@@ -22,10 +22,10 @@
 ! SOFTWARE.                                                                        
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
 !  
-module version 
+module  version 
 character (128), parameter :: compdate= &  
 ' 06-03-2023 ' // & 
-' 23:29 ' // & 
+' 23:53 ' // & 
 ' '  
 character(128), parameter :: dataversion= & 
 'SEMBA_FDTD Version W-1533-g0deb34e ' // &  

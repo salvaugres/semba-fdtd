@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.0)
 
 
 ENABLE_LANGUAGE(Fortran)
-project(semba_fdtd Fortran)
+project(semba-fdtd Fortran)
 
 
 function(add_sources dir srcs)
@@ -32,7 +32,7 @@ message(STATUS "Adding source files...")
 add_sources(. SRCS)
 message(STATUS ${SRCS})
 
-add_executable(semba_fdtd ${SRCS})
+add_executable(semba-fdtd ${SRCS})
 
 if(CMAKE_Fortran_COMPILER_ID MATCHES "GNU")
 	message(STATUS "Gfortran found...")
@@ -48,7 +48,7 @@ if (CompileWithHDF)
 	#HDF no funciona
 	find_package(HDF5 REQUIRED COMPONENTS Fortran HL)
 	include_directories(${HDF5_INCLUDE_DIRS})
-	target_link_libraries(semba_fdtd ${HDF5_LIBRARIES} ${HDF5_HL_LIBRARIES})
+	target_link_libraries(semba-fdtd ${HDF5_LIBRARIES} ${HDF5_HL_LIBRARIES})
 else()
 	message(STATUS "HDF libraries NOT needed.")
 endif()
@@ -63,7 +63,7 @@ if (CompileWithMPI)
 	add_definitions(${MPI_Fortran_COMPILE_OPTIONS})
 	include_directories(${MPI_Fortran_INCLUDE_DIRS})
 	link_directories(${MPI_Fortran_LIBRARIES})
-	target_link_libraries(semba_fdtd ${MPI_Fortran_LIBRARIES})
+	target_link_libraries(semba-fdtd ${MPI_Fortran_LIBRARIES})
 	add_compile_options (${MPI_Fortran_COMPILER_FLAGS})
 else()
 	message(STATUS "MPI libraries NOT needed.")
