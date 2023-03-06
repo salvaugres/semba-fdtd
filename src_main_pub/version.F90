@@ -22,7 +22,7 @@
 ! SOFTWARE.                                                                        
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
 !  
-module  version 
+module version 
 character (128), parameter :: compdate= &  
 ' 06-03-2023 ' // & 
 ' 23:29 ' // & 
