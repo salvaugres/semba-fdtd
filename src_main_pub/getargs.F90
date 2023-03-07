@@ -111,7 +111,7 @@ contains
          endif
       end do
       status=0
-      !!!!!endif
+      !!!!!!endif
       commandargumentcount=n
       return
    end function
