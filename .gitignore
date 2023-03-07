@@ -34,3 +34,4 @@
 .bak
 .vs
 build
+CMakeSettings.json

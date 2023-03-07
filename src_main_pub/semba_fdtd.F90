@@ -41,6 +41,7 @@ PROGRAM SEMBA_FDTD_launcher
    USE Solver
    USE Resuming
    !nfde parser stuff
+   USE NFDETypes
 #ifdef CompilePrivateVersion  
    USE ParseadorClass
 #endif   
