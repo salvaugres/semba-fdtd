@@ -25,10 +25,10 @@
 module  version 
 character (128), parameter :: compdate= &  
 ' 07-03-2023 ' // & 
-' 18:12 ' // & 
+' 18:56 ' // & 
 ' '  
 character(128), parameter :: dataversion= & 
-'SEMBA_FDTD Version 6b7c2b2 ' // &  
+'SEMBA_FDTD Version d2c618e ' // &  
 'Built on ' // & 
 trim(adjustl(compdate))  
 end module version 
