@@ -1,15 +1,15 @@
 # semba-fdtd
-
+## Authors
 All rights reserved by the University of Granada (Spain)
-_______________________________________________________________
+
 Authors: 
 - Salvador Gonzalez Garcia <salva@ugr.es>
 - Miguel Ruiz Cabello <mcabello@ugr.es>
 - Luis Diaz Angulo <lmdiazangulo@ugr.es>
 - Amelia Rubio Bretones <arubio@ugr.es>
 - Rafael Gomez Martin <rgomez@ugr.es>
-_______________________________________________________________
 
+## Features
 In a nutshell, semba-fdtd capabilities are
 
 	- Cluster working capabilites through MPI.
@@ -45,4 +45,10 @@ Most of these capabilities are explained in further detail in the references bel
 	- Guadalupe Gutierrez Gutierrez, Daniel Mateos Romero, Miguel Ruiz Cabello, Enrique Pascual-Gil, Luis Diaz Angulo, David Garcia Gomez, Salvador Gonzalez Garcia, "On the Design of Aircraft Electrical Structure Networks," in IEEE Transactions on Electromagnetic Compatibility, vol. 58, no. 2, pp. 401-408, April 2016, doi: 10.1109/TEMC.2016.2514379.
 
 The authors want to acknowledge Jesus Alvarez, Enrique Pascual-Gil, and Guadalupe Gutierrez, from AIRBUS, for their contributions to this solver.
+
+## Compilation
+Tested only with Intel One API HPC compiler.
+### Windows
+Make sure to use
+> cmake -DCMAKE_C_COMPILER=icx -DCMAKE_CXX_COMPILER=icx -GNinja … 
 

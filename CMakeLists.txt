@@ -1,9 +1,7 @@
 cmake_minimum_required(VERSION 3.0)
 
-
 ENABLE_LANGUAGE(Fortran)
 project(semba-fdtd Fortran)
-
 
 function(add_sources dir srcs)
     set(curdir ${CMAKE_CURRENT_LIST_DIR}/${dir})
@@ -29,7 +27,8 @@ endfunction()
 message(STATUS ${CMAKE_Fortran_COMPILER_ID})
 
 message(STATUS "Adding source files...")
-add_sources(. SRCS)
+add_sources(src_main_pub SRCS)
+add_sources(src_wires_pub SRCS)
 message(STATUS ${SRCS})
 
 add_executable(semba-fdtd ${SRCS})
@@ -67,6 +66,11 @@ if (CompileWithMPI)
 	add_compile_options (${MPI_Fortran_COMPILER_FLAGS})
 else()
 	message(STATUS "MPI libraries NOT needed.")
+endif()
+
+option(CompileWithOpenSEMBA "Use OpenSEMBA input files." OFF)
+if (CompileWithOpenSEMBA)
+	add_subdirectory(src_opensemba_parser)
 endif()
 
 add_definitions(		
