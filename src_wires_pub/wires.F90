@@ -1609,7 +1609,7 @@ contains
          select case (trim(adjustl(inductance_model)))
           case ('berenger')
             !---------------------------------------------------------------------------------
-            !!Guiffaut=Berenger
+            !!Slanted=Berenger
             !The second best one for the edelvik PEC box (Boutayeb's PPT is the best one for this case)
             !menos ruidoso que el de Boutayeb en uniones de hilos paralelos
             HWires%CurrentSegment(i1)%Lind = &
@@ -1618,7 +1618,7 @@ contains
             despT2/despT1*atan(despT1/despT2)     + &
             pi*r0**2.0_RKIND_wires /(despT2*despT1)-3.0_RKIND_wires)
             !!---------------------------------------------------------------------------------
-            !Guiffaut corrected for wires of radius > 0.3_RKIND_wires  Delta
+            !Slanted corrected for wires of radius > 0.3_RKIND_wires  Delta
             ! Untested
             !just divides by a correction factor equal to that used by Boutayeb in his correction
             !proposed by Grando
@@ -1636,7 +1636,7 @@ contains
             (1.0_RKIND_wires / (4.0_RKIND_wires * pi*InvMu(jmed)))*(log((despT1**2.0_RKIND_wires +despT2**2.0_RKIND_wires )/(  r0**2.0_RKIND_wires ))+ &
             despT1/despT2*atan(despT2/despT1)+ &
             despT2/despT1*atan(despT1/despT2)+ pi*r0**2.0_RKIND_wires /(16.0_RKIND_wires *despT2*despT1)-3.0_RKIND_wires)
-            !Guiffaut makes this correction for radius>0.3_RKIND_wires  Delta.  a>0.3_RKIND_wires  Delta
+            !Slanted makes this correction for radius>0.3_RKIND_wires  Delta.  a>0.3_RKIND_wires  Delta
             !I use it also in Ledleft !2012
             !never tested
             if ((r0 > 0.3_RKIND_wires  *despT1).or.(r0 > 0.3_RKIND_wires *despT2)) then
@@ -1659,7 +1659,7 @@ contains
             endif
             !---------------------------------------------------------------------------------
             !Boutayeb's PPT for radius>0.3_RKIND_wires  Delta.  a>0.3_RKIND_wires  Delta.
-            !(Guiffaut corrects for 0.3_RKIND_wires  Delta while boutayeb does it for 0.5_RKIND_wires  Delta, I take Guiffaut's)
+            !(Slanted corrects for 0.3_RKIND_wires  Delta while boutayeb does it for 0.5_RKIND_wires  Delta, I take Slanted's)
             !Untested
             !just divides by a correction factor (warning becomes negative for r0/delta >0.56)
             if ((r0 > 0.3_RKIND_wires  *despT1).or.(r0 > 0.3_RKIND_wires *despT2)) then

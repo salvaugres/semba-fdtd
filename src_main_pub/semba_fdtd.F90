@@ -91,7 +91,7 @@ PROGRAM SEMBA_FDTD_launcher
    character (len=5)  :: NFDEEXTENSION='.nfde',CONFEXTENSION='.conf',CMSHEXTENSION='.cmsh'
    CHARACTER (LEN=20) :: inductance_model,wiresflavor
    integer (kind=4)   :: inductance_order
-   LOGICAL :: makeholes,connectendings, isolategroupgroups, dontsplitnodes,resume_fromold, pausar, l_aux,skindepthpre,groundwires,noguiffautcrecepelo ,mibc,ade,SGBC,SGBCDispersive,SGBCcrank, &
+   LOGICAL :: makeholes,connectendings, isolategroupgroups, dontsplitnodes,resume_fromold, pausar, l_aux,skindepthpre,groundwires,noSlantedcrecepelo ,mibc,ade,SGBC,SGBCDispersive,SGBCcrank, &
    conformalskin,CLIPREGION,boundwireradius,vtkindex,createh5bin,wirecrank,ignoreerrors,fatalerror,fatalerror_aux,dummylog,fatalerrornfde2sgg,fieldtotl,finishedwithsuccess,ignoresamplingerrors,l_auxinput, l_auxoutput, &
        ThereArethinslots
    !-------------------------------->
@@ -618,8 +618,8 @@ PROGRAM SEMBA_FDTD_launcher
     endif
 #endif
 #ifndef CompileWithSlantedWires
-    if  ((wiresflavor=='guiffaut').or.(wiresflavor=='semistructured')) then
-         CALL stoponerror (layoutnumber, size, 'Slanted Wires without support. Recompile!')
+    if  ((wiresflavor=='slanted').or.(wiresflavor=='semistructured')) then
+         CALL stoponerror (layoutnumber, size, 'slanted Wires without support. Recompile!')
     endif
 #endif
          CONTINUE
@@ -683,11 +683,11 @@ PROGRAM SEMBA_FDTD_launcher
    END IF
 #ifndef CompileWithSlantedWires
    IF (hay_slanted_wires) THEN
-      CALL stoponerror (layoutnumber, size, 'Slanted wires without slanted support. Recompile ()')
+      CALL stoponerror (layoutnumber, size, 'slanted wires without slanted support. Recompile ()')
    END IF
 #endif   
-   IF (hay_slanted_wires .AND. ((trim(adjustl(wiresflavor))/='guiffaut').AND.(trim(adjustl(wiresflavor))/='semistructured'))) THEN
-      CALL stoponerror (layoutnumber, size, 'Slanted wires require -wiresflavor guiffaut/semistructured')
+   IF (hay_slanted_wires .AND. ((trim(adjustl(wiresflavor))/='slanted').AND.(trim(adjustl(wiresflavor))/='semistructured'))) THEN
+      CALL stoponerror (layoutnumber, size, 'slanted wires require -wiresflavor Slanted/semistructured')
    endif
 
    
@@ -850,7 +850,7 @@ PROGRAM SEMBA_FDTD_launcher
          CALL launch_simulation (sgg,sggMtag,sggMiNo,sggMiEx,sggMiEy,sggMiEz,sggMiHx,sggMiHy,sggMiHz, cfl,SINPML_fullsize,fullsize, nEntradaRoot, finaltimestep, resume, saveall, &
          & makeholes,connectendings, isolategroupgroups,dontsplitnodes,stableradholland, flushsecondsFields,mtlnberenger, &
          & flushsecondsData, layoutnumber, size, createmap, inductance_model, inductance_order, maxCPUtime,time_desdelanzamiento, &
-         & nresumeable2, resume_fromold,groundwires,noguiffautcrecepelo,SGBC,SGBCDispersive,mibc,attfactorc,attfactorw,&
+         & nresumeable2, resume_fromold,groundwires,noSlantedcrecepelo,SGBC,SGBCDispersive,mibc,attfactorc,attfactorw,&
          & alphamaxpar,alphaOrden,kappamaxpar,mur_second,MurAfterPML,MEDIOEXTRA,singlefilewrite,maxSourceValue,NOcompomur,ADE, &
          & conformalskin,strictOLD,TAPARRABOS,wiresflavor,mindistwires,facesNF2FF,NF2FFDECIM,vtkindex,createh5bin,wirecrank,opcionestotales,SGBCFreq,SGBCresol,SGBCcrank,SGBCDepth,fatalerror,fieldtotl,finishedwithsuccess,permitscaling, &
          & Eps0,Mu0, EpsMuTimeScale_input_parameters &
@@ -1871,8 +1871,8 @@ contains
                 wiresflavor='holland'
             case ('berenger','new')
                 wiresflavor='berenger'
-            case ('guiffaut','experimental','slanted')
-                wiresflavor='guiffaut'
+            case ('slanted','experimental')
+                wiresflavor='slanted'
             case ('transition')
                 wiresflavor='transition'
             case ('semistructured')
@@ -1895,12 +1895,12 @@ contains
 4621        IF ( ((trim(adjustl(wiresflavor)) /= 'holland')  .AND. &
                   (trim(adjustl(wiresflavor)) /= 'transition') .AND. &
                   (trim(adjustl(wiresflavor)) /= 'berenger') .AND.  &
-                  (trim(adjustl(wiresflavor)) /= 'guiffaut').and. &
+                  (trim(adjustl(wiresflavor)) /= 'slanted').and. &
                   (trim(adjustl(wiresflavor))/='semistructured')) .or. &
              .not.((trim(adjustl(wiresflavor)) == 'holland')  .xor.  &
                   (trim(adjustl(wiresflavor)) == 'transition') .xor. &
                   (trim(adjustl(wiresflavor)) == 'berenger') .xor.  &
-                  (trim(adjustl(wiresflavor)) == 'guiffaut').xor.  &
+                  (trim(adjustl(wiresflavor)) == 'slanted').xor.  &
                   (trim(adjustl(wiresflavor)) =='semistructured')) )  THEN
                CALL stoponerror (layoutnumber, size, 'Invalid wires flavor->'//trim(adjustl(wiresflavor)),.true.); statuse=-1; !return
             END IF
@@ -1918,7 +1918,7 @@ contains
 #endif
 #ifndef CompileWithSlantedWires
             select case (trim(adjustl(wiresflavor)))
-            case ('guiffaut','experimental')
+            case ('slanted','experimental')
                 CALL stoponerror (layoutnumber, size, 'Experimental wire flavor not available in this compilation',.true.); statuse=-1; !return
             end select   
 #endif
@@ -1931,8 +1931,8 @@ contains
           CASE ('-groundwires')
             groundwires = .TRUE.
             opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))
-          CASE ('-noguiffautcrecepelo ') !opcion niapa excperimental 131219
-            noguiffautcrecepelo  = .TRUE.
+          CASE ('-noSlantedcrecepelo ') !opcion niapa excperimental 131219
+            noSlantedcrecepelo  = .TRUE.
             opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))
           CASE ('-inductance')
             i = i + 1
@@ -2230,9 +2230,9 @@ contains
 !
 !
 !
-   if (((wiresflavor=='guiffaut').or.(wiresflavor=='semistructured')).AND.(mpidir/=3)) then
+   if (((wiresflavor=='slanted').or.(wiresflavor=='semistructured')).AND.(mpidir/=3)) then
        continue !arreglado mpidir slanted 2019
-       !         CALL stoponerror (layoutnumber, size, 'Slanted wires unsupported with -mpidir {x,y}',.true.); statuse=-1; !return
+       !         CALL stoponerror (layoutnumber, size, 'slanted wires unsupported with -mpidir {x,y}',.true.); statuse=-1; !return
    endif
    if (input_conformal_flag.AND.(mpidir/=3)) then
         continue !arreglado mpidir conformal 2019
@@ -2911,7 +2911,7 @@ end subroutine cargaNFDE
       CALL print11 (layoutnumber, '-wiresflavor {berenger} : model for the wires    ')   
 #endif
 #ifdef CompileWithSlantedWires
-      CALL print11 (layoutnumber, '-wiresflavor {new/guiffaut.or.experimental.or.slanted/transition/semistructured precision} : model for the wires    ')   
+      CALL print11 (layoutnumber, '-wiresflavor {new/Slanted.or.experimental.or.slanted/transition/semistructured precision} : model for the wires    ')   
 #endif
 #ifdef CompileWithWires
       CALL print11 (layoutnumber, '&                        (default '//trim(adjustl(wiresflavor))//')   ')
@@ -2925,7 +2925,7 @@ end subroutine cargaNFDE
       CALL print11 (layoutnumber, '&                        Use only in case of instabilities.  (experimental)')
       CALL print11 (layoutnumber, '-groundwires           : Ground wires touching/embedded/crossing PEC/Lossy.')
       CALL print11 (layoutnumber, '&                        Use with CAUTION. Revise *Warnings.txt file!      ')
-      CALL print11 (layoutnumber, '-noguiffautcrecepelo : Ground open nodes. Experimental. Do not use.')
+      CALL print11 (layoutnumber, '-noSlantedcrecepelo : Ground open nodes. Experimental. Do not use.')
       CALL print11 (layoutnumber, '-connectendings        : Joins ohmicly endings nodes of adjacent segments  ')
       CALL print11 (layoutnumber, '&                        from multiwires (segments do no collapse).        ')
       CALL print11 (layoutnumber, '&                        regardless of whether they are actually connected ')
@@ -3267,7 +3267,7 @@ end subroutine cargaNFDE
       factordelta=1.0e+30 !para evitar division por cero 120123
       !default
       groundwires = .false.
-      noguiffautcrecepelo =.false. !131219 experimental niapa ojoooo
+      noSlantedcrecepelo =.false. !131219 experimental niapa ojoooo
       inductance_model = 'boutayeb'
       inductance_order = 8
       wiresflavor='holland'

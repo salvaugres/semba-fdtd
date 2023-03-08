@@ -41,9 +41,9 @@ module Observa
    use WiresBerenger
 #endif   
 #ifdef CompileWithSlantedWires
-   use WiresGuiffaut
-   use WiresGuiffaut_Types
-   use WiresGuiffaut_Constants
+   use WiresSlanted
+   use WiresSlanted_Types
+   use WiresSlanted_Constants
 #endif
    use report
 
@@ -70,7 +70,7 @@ module Observa
       type (TSegment)       , pointer  ::  segmento_Berenger !segmento de hilo que se observa si lo hubiere
 #endif
 #ifdef CompileWithSlantedWires
-      class(Segment)        , pointer  ::  segmento_Guiffaut !segmento de hilo que se observa si lo hubiere
+      class(Segment)        , pointer  ::  segmento_Slanted !segmento de hilo que se observa si lo hubiere
 #endif
       character (len=1024)  ::  path
       integer (kind=4) :: unit,unitmaster !to store the unit of the file y en caso de singlefileginario el unitmaster que escribe
@@ -111,7 +111,7 @@ module Observa
    type(TWires)     , pointer  ::  Hwireslocal_Berenger
 #endif
 #ifdef CompileWithSlantedWires
-   type(WiresData)  , pointer  ::  Hwireslocal_Guiffaut
+   type(WiresData)  , pointer  ::  Hwireslocal_Slanted
 #endif
 
 #ifdef CompileWithMPI
@@ -487,8 +487,8 @@ contains
          endif
 #endif
 #ifdef CompileWithSlantedWires
-         if ((trim(adjustl(wiresflavor))=='guiffaut').or.(trim(adjustl(wiresflavor))=='semistructured')) then
-            if (Therearewires) Hwireslocal_Guiffaut => GetHwires_Guiffaut()
+         if ((trim(adjustl(wiresflavor))=='slanted').or.(trim(adjustl(wiresflavor))=='semistructured')) then
+            if (Therearewires) Hwireslocal_Slanted => GetHwires_Slanted()
          endif
 #endif
 
@@ -857,7 +857,7 @@ contains
                   endif
 #endif
 #ifdef CompileWithSlantedWires
-                  if ((trim(adjustl(wiresflavor))=='guiffaut').or.(trim(adjustl(wiresflavor))=='semistructured')) then 
+                  if ((trim(adjustl(wiresflavor))=='slanted').or.(trim(adjustl(wiresflavor))=='semistructured')) then 
                      found=.false.
                      if ((Therearewires).and.((field==iJx).or.(field==iJy).or.(field==iJz))) then
 
@@ -876,10 +876,10 @@ contains
                         !en caso de hilos se necesitan
                         !parsea los hilos
                         found=.false.
-                        do n=1,Hwireslocal_Guiffaut%NumSegments
-                           if (Hwireslocal_Guiffaut%Segments(n)%ptr%Index==no)  then
+                        do n=1,Hwireslocal_Slanted%NumSegments
+                           if (Hwireslocal_Slanted%Segments(n)%ptr%Index==no)  then
                               !I have chosen IJx=10 IEx, etc. !do not change
-                              output(ii)%item(i)%segmento_Guiffaut => Hwireslocal_Guiffaut%Segments(n)%ptr
+                              output(ii)%item(i)%segmento_Slanted => Hwireslocal_Slanted%Segments(n)%ptr
                               found=.true.
                            endif
                         end do
@@ -2567,7 +2567,7 @@ contains
 #endif
       !
 #ifdef CompileWithSlantedWires      
-      class(Segment)        , pointer  ::  segmDumm_Guiffaut !segmento de hilo que se observa si lo hubiere
+      class(Segment)        , pointer  ::  segmDumm_Slanted !segmento de hilo que se observa si lo hubiere
 #endif
 
       logical ::  INIT,GEOM,ASIGNA,electric,magnetic
@@ -2811,14 +2811,14 @@ contains
                      endif
 #endif
 #ifdef CompileWithSlantedWires
-                     if((trim(adjustl(wiresflavor))=='guiffaut').or.(trim(adjustl(wiresflavor))=='semistructured')) then !del wiresflavor
-                        SegmDumm_Guiffaut => output( ii)%item( i)%Segmento_Guiffaut
-                        output( ii)%item(i)%valor(nTime-nInit)= SegmDumm_Guiffaut%Currentpast
-                        output( ii)%item(i)%valor2(nTime-nInit)=SegmDumm_Guiffaut%field * SegmDumm_Guiffaut%dl
-                        ! output( ii)%item(i)%valor2(nTime-nInit)=   (((SegmDumm_Guiffaut%Voltage(iPlus )%ptr%Voltage + SegmDumm_Guiffaut%Voltage(iPlus )%ptr%VoltagePast))/2.0_RKIND)
-                        ! output( ii)%item(i)%valortres(nTime-nInit)=   (((SegmDumm_Guiffaut%Voltage(iMinus)%ptr%Voltage + SegmDumm_Guiffaut%Voltage(iMinus)%ptr%VoltagePast))/2.0_RKIND)
-                        output( ii)%item(i)%valor3(nTime-nInit)=   (((SegmDumm_Guiffaut%Voltage(iPlus)%ptr%Voltage + SegmDumm_Guiffaut%Voltage(iPlus)%ptr%VoltagePast))/2.0_RKIND) - & 
-                                                                   (((SegmDumm_Guiffaut%Voltage(iMinus)%ptr%Voltage + SegmDumm_Guiffaut%Voltage(iMinus)%ptr%VoltagePast))/2.0_RKIND)
+                     if((trim(adjustl(wiresflavor))=='slanted').or.(trim(adjustl(wiresflavor))=='semistructured')) then !del wiresflavor
+                        SegmDumm_Slanted => output( ii)%item( i)%Segmento_Slanted
+                        output( ii)%item(i)%valor(nTime-nInit)= SegmDumm_Slanted%Currentpast
+                        output( ii)%item(i)%valor2(nTime-nInit)=SegmDumm_Slanted%field * SegmDumm_Slanted%dl
+                        ! output( ii)%item(i)%valor2(nTime-nInit)=   (((SegmDumm_Slanted%Voltage(iPlus )%ptr%Voltage + SegmDumm_Slanted%Voltage(iPlus )%ptr%VoltagePast))/2.0_RKIND)
+                        ! output( ii)%item(i)%valortres(nTime-nInit)=   (((SegmDumm_Slanted%Voltage(iMinus)%ptr%Voltage + SegmDumm_Slanted%Voltage(iMinus)%ptr%VoltagePast))/2.0_RKIND)
+                        output( ii)%item(i)%valor3(nTime-nInit)=   (((SegmDumm_Slanted%Voltage(iPlus)%ptr%Voltage + SegmDumm_Slanted%Voltage(iPlus)%ptr%VoltagePast))/2.0_RKIND) - & 
+                                                                   (((SegmDumm_Slanted%Voltage(iMinus)%ptr%Voltage + SegmDumm_Slanted%Voltage(iMinus)%ptr%VoltagePast))/2.0_RKIND)
                         output( ii)%item(i)%valor5(nTime-nInit)= -output( ii)%item(i)%valor2(nTime-nInit)+output( ii)%item(i)%valor3(nTime-nInit)
                      endif
 #endif
@@ -4822,7 +4822,7 @@ contains
 #endif
 #ifdef CompileWithSlantedWires
       !
-      type(WiresData)  , pointer, save  ::  Hwireslocal_Guiffaut
+      type(WiresData)  , pointer, save  ::  Hwireslocal_Slanted
 #endif
 
 
@@ -4840,8 +4840,8 @@ contains
          endif
 #endif
 #ifdef CompileWithSlantedWires
-         if((trim(adjustl(wiresflavor))=='guiffaut').or.(trim(adjustl(wiresflavor))=='semistructured')) then
-            Hwireslocal_Guiffaut => GetHwires_Guiffaut()
+         if((trim(adjustl(wiresflavor))=='slanted').or.(trim(adjustl(wiresflavor))=='semistructured')) then
+            Hwireslocal_Slanted => GetHwires_Slanted()
          endif
 #endif
       endif
@@ -4934,17 +4934,17 @@ contains
       endif
 #endif
 #ifdef CompileWithSlantedWires
-      if ((trim(adjustl(wiresflavor))=='guiffaut').or.(trim(adjustl(wiresflavor))=='semistructured')) then
+      if ((trim(adjustl(wiresflavor))=='slanted').or.(trim(adjustl(wiresflavor))=='semistructured')) then
          !parsea los hilos
          if (geom) then
             MINIMED=2**12
-            do n=1,Hwireslocal_Guiffaut%NumSegmentsStr
+            do n=1,Hwireslocal_Slanted%NumSegmentsStr
                conta=conta+1
-               minimed=MIN(MINIMED, Hwireslocal_Guiffaut%SegmentsStr(n)%imeD)
-               ni=Hwireslocal_Guiffaut%SegmentsStr(n)%cell(iX)
-               nj=Hwireslocal_Guiffaut%SegmentsStr(n)%cell(iY)
-               nk=Hwireslocal_Guiffaut%SegmentsStr(n)%cell(iZ)
-               select case (Hwireslocal_Guiffaut%SegmentsStr(n)%orient)
+               minimed=MIN(MINIMED, Hwireslocal_Slanted%SegmentsStr(n)%imeD)
+               ni=Hwireslocal_Slanted%SegmentsStr(n)%cell(iX)
+               nj=Hwireslocal_Slanted%SegmentsStr(n)%cell(iY)
+               nk=Hwireslocal_Slanted%SegmentsStr(n)%cell(iZ)
+               select case (Hwireslocal_Slanted%SegmentsStr(n)%orient)
                 case (iEx)
                   output(ii)%item(i)%Serialized%currentType(conta)=iJx
                 case (iEy)
@@ -4959,17 +4959,17 @@ contains
             end do
 
          elseif (asigna) then
-            do n=1,Hwireslocal_Guiffaut%NumSegmentsStr
+            do n=1,Hwireslocal_Slanted%NumSegmentsStr
                conta=conta+1
-               if ((Hwireslocal_Guiffaut%SegmentsStr(n)%IsExt(iBeg)).or. &
-                   (Hwireslocal_Guiffaut%SegmentsStr(n)%IsExt(iEnd))) then
+               if ((Hwireslocal_Slanted%SegmentsStr(n)%IsExt(iBeg)).or. &
+                   (Hwireslocal_Slanted%SegmentsStr(n)%IsExt(iEnd))) then
                   output( ii)%item( i)%Serialized%valor(Ntimeforvolumic,conta) = 10
                else
-                  output( ii)%item( i)%Serialized%valor(Ntimeforvolumic,conta) = 20 + Hwireslocal_Guiffaut%SegmentsStr(n)%imed-MINIMED
+                  output( ii)%item( i)%Serialized%valor(Ntimeforvolumic,conta) = 20 + Hwireslocal_Slanted%SegmentsStr(n)%imed-MINIMED
                endif
             end do
          else
-            do n=1,Hwireslocal_Guiffaut%NumSegmentsStr
+            do n=1,Hwireslocal_Slanted%NumSegmentsStr
                conta=conta+1
             end do
          endif
