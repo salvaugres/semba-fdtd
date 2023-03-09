@@ -2785,7 +2785,7 @@ end subroutine cargaNFDE
       CALL print11 (layoutnumber, dubuf)
       CALL print11 (layoutnumber, 'All rights reserved by the University of Granada (Spain)')
       CALL print11 (layoutnumber, '       Contact person: Salvador G. Garcia <salva@ugr.es>')
-      
+      CALL print11 (layoutnumber, ' ')
       !*******************************************************************************
 
 
@@ -2800,6 +2800,11 @@ end subroutine cargaNFDE
       CALL print11 (layoutnumber, 'Compiled WITH .h5 HDF support')
 #else
       CALL print11 (layoutnumber, 'Compiled without .h5 HDF support')
+#endif
+#ifdef CompileWithConformal
+      CALL print11 (layoutnumber, 'Compiled WITH Conformal support')
+#else
+      CALL print11 (layoutnumber, 'Compiled without Conformal support')
 #endif
       WRITE (dubuf,*) SEPARADOR // SEPARADOR // SEPARADOR
       CALL print11 (layoutnumber, dubuf)
