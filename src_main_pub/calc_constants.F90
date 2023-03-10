@@ -24,7 +24,7 @@
  
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !  Creation date Date :  October, 24, 2018
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 module CALC_CONSTANTS
    use fdetypes
@@ -157,8 +157,8 @@ end module CALC_CONSTANTS
 !!!!!!DONE       !!!!               call InitWires       ()
 !!!!!!UNSUPPORTED       !!!      elseif (trim(adjustl(wiresflavor))=='berenger') then
 !!!!!!UNSUPPORTED       !!!         call InitWires_Berenger()
-!!!!!!UNSUPPORTED       !!!      elseif((trim(adjustl(wiresflavor))=='guiffaut').or.(trim(adjustl(wiresflavor))=='semistructured')) then
-!!!!!!UNSUPPORTED       !!!         call InitWires_Guiffaut()
+!!!!!!UNSUPPORTED       !!!      elseif((trim(adjustl(wiresflavor))=='slanted').or.(trim(adjustl(wiresflavor))=='semistructured')) then
+!!!!!!UNSUPPORTED       !!!         call InitWires_Slanted()
 !!!!!!UNSUPPORTED       !!!      endif
 !!!!!!DONE       !               CALL InitLumped()
 !!!!!!DONE       !               call InitAnisotropic()
@@ -182,7 +182,7 @@ end module CALC_CONSTANTS
 !!call AdvanceWiresEcrank(sgg,n, layoutnumber,wiresflavor)
 !!call AdvanceWiresE(sgg,n, layoutnumber,wiresflavor,simu_devia,stochastic)
 !!call AdvanceWiresE_Berenger(sgg,n)
-!!call AdvanceWiresE_Guiffaut(sgg,n)
+!!call AdvanceWiresE_Slanted(sgg,n)
 !!call AdvancePMLbodyE
 !!call AdvanceelectricCPML          (sgg%NumMedia, b       ,sggMiEx,sggMiEy,sggMiEz,G2,Ex,Ey,Ez,Hx,Hy,Hz)
 !!call AdvanceMultiportE(sgg%alloc,Ex, Ey, Ez)

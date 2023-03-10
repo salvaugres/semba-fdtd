@@ -38,9 +38,9 @@ module resuming
 
 #ifdef CompileWithSGBC
 #ifdef CompileWithStochastic
-   use maloney_stoch
+   use SGBC_stoch
 #else
-   use maloney_NOstoch
+   use SGBC_NOstoch
 #endif  
 #endif
    use PMLbodies
@@ -71,7 +71,7 @@ module resuming
 #endif
 #endif   
 #ifdef CompileWithSlantedWires
-   use WiresGuiffaut
+   use WiresSlanted
 #endif
 
    !Plane Wave Module
@@ -328,8 +328,8 @@ contains
          endif
 #endif
 #ifdef CompileWithSlantedWires
-         if((trim(adjustl(wiresflavor))=='guiffaut').or.(trim(adjustl(wiresflavor))=='semistructured')) then
-            call StoreFieldsWires_Guiffaut
+         if((trim(adjustl(wiresflavor))=='slanted').or.(trim(adjustl(wiresflavor))=='semistructured')) then
+            call StoreFieldsWires_Slanted
          endif
 #endif
       endif

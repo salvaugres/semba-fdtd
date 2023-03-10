@@ -36,7 +36,7 @@
 !!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-module maloney_nostoch
+module SGBC_nostoch
 
 
 #ifdef CompileWithSGBC
@@ -1430,7 +1430,7 @@ subroutine gm1gm2(dt,mu,sigmam,Gm1,Gm2)
 
       goto 635
 634   call print11(0,SEPARADOR//separador//separador)
-      call print11(0,'MALONEY: ERROR WRITING RESTARTING FIELDS. IGNORING AND CONTINUING')
+      call print11(0,'SGBC: ERROR WRITING RESTARTING FIELDS. IGNORING AND CONTINUING')
       call print11(0,SEPARADOR//separador//separador)          
 635   return
    end subroutine StoreFieldsSGBCs
@@ -1695,5 +1695,5 @@ end subroutine solve_tridiag_distintos
             
 #endif
 
-end module maloney_nostoch
+end module SGBC_nostoch
 

@@ -41,9 +41,10 @@ PROGRAM SEMBA_FDTD_launcher
    USE Solver
    USE Resuming
    !nfde parser stuff
-   USE NFDETypes
 #ifdef CompilePrivateVersion  
    USE ParseadorClass
+#else
+   USE NFDETypes
 #endif   
    USE Preprocess
    USE storeData
@@ -90,7 +91,7 @@ PROGRAM SEMBA_FDTD_launcher
    character (len=5)  :: NFDEEXTENSION='.nfde',CONFEXTENSION='.conf',CMSHEXTENSION='.cmsh'
    CHARACTER (LEN=20) :: inductance_model,wiresflavor
    integer (kind=4)   :: inductance_order
-   LOGICAL :: makeholes,connectendings, isolategroupgroups, dontsplitnodes,resume_fromold, pausar, l_aux,skindepthpre,groundwires,noguiffautcrecepelo ,mibc,ade,SGBC,SGBCDispersive,SGBCcrank, &
+   LOGICAL :: makeholes,connectendings, isolategroupgroups, dontsplitnodes,resume_fromold, pausar, l_aux,skindepthpre,groundwires,noSlantedcrecepelo ,mibc,ade,SGBC,SGBCDispersive,SGBCcrank, &
    conformalskin,CLIPREGION,boundwireradius,vtkindex,createh5bin,wirecrank,ignoreerrors,fatalerror,fatalerror_aux,dummylog,fatalerrornfde2sgg,fieldtotl,finishedwithsuccess,ignoresamplingerrors,l_auxinput, l_auxoutput, &
        ThereArethinslots
    !-------------------------------->
@@ -367,14 +368,14 @@ PROGRAM SEMBA_FDTD_launcher
    call print_credits 
 #ifdef CompilePrivateVersion   
    call cargaNFDE
+#else
+   print *,'Currently the parser is privative. The user must build by the input type using the info in nfde_types.F90'
+   stop
+#endif   
 !!!!!!!!!!!!!!!!!!!!!!!
    sgg%extraswitches=parser%switches
 !!!da preferencia a los switches por linea de comando
    CALL getcommandargument (chain2, 1, chaindummy, length, statuse)
-#else
-   print *,'The user must build by his own the nfde type'
-   stop
-#endif   
    
    chain2=trim(adjustl(chain2))
    chaindummy=trim(adjustl(chaindummy))
@@ -617,8 +618,8 @@ PROGRAM SEMBA_FDTD_launcher
     endif
 #endif
 #ifndef CompileWithSlantedWires
-    if  ((wiresflavor=='guiffaut').or.(wiresflavor=='semistructured')) then
-         CALL stoponerror (layoutnumber, size, 'Slanted Wires without support. Recompile!')
+    if  ((wiresflavor=='slanted').or.(wiresflavor=='semistructured')) then
+         CALL stoponerror (layoutnumber, size, 'slanted Wires without support. Recompile!')
     endif
 #endif
          CONTINUE
@@ -682,11 +683,11 @@ PROGRAM SEMBA_FDTD_launcher
    END IF
 #ifndef CompileWithSlantedWires
    IF (hay_slanted_wires) THEN
-      CALL stoponerror (layoutnumber, size, 'Slanted wires without slanted support. Recompile ()')
+      CALL stoponerror (layoutnumber, size, 'slanted wires without slanted support. Recompile ()')
    END IF
 #endif   
-   IF (hay_slanted_wires .AND. ((trim(adjustl(wiresflavor))/='guiffaut').AND.(trim(adjustl(wiresflavor))/='semistructured'))) THEN
-      CALL stoponerror (layoutnumber, size, 'Slanted wires require -wiresflavor guiffaut/semistructured')
+   IF (hay_slanted_wires .AND. ((trim(adjustl(wiresflavor))/='slanted').AND.(trim(adjustl(wiresflavor))/='semistructured'))) THEN
+      CALL stoponerror (layoutnumber, size, 'slanted wires require -wiresflavor Slanted/semistructured')
    endif
 
    
@@ -814,7 +815,7 @@ PROGRAM SEMBA_FDTD_launcher
             write(thefileno,'(a)') '# (  8.0 ,  8.0 ) '//trim(adjustl('Thin wire segments colliding with structure                             (Line)'))
             write(thefileno,'(a)') '# (  8.5 ,  8.5 ) '//trim(adjustl('Soft/Hard Nodal CURRENT/FIELD ELECTRIC DENSITY SOURCE                   (Line)'))
             write(thefileno,'(a)') '# (  9.0 ,  9.0 ) '//trim(adjustl('Soft/Hard Nodal CURRENT/FIELD MAGNETIC DENSITY SOURCE                   (Line)'))
-            write(thefileno,'(a)') '# (   10 ,   11 ) '//trim(adjustl('ENL/ENR/Ending  segment                                                 (Wire)'))
+            write(thefileno,'(a)') '# (   10 ,   11 ) '//trim(adjustl('LeftEnd/RightEnd/Ending  segment                                                 (Wire)'))
             write(thefileno,'(a)') '# (   20 ,   20 ) '//trim(adjustl('Intermediate segment +number_holland_parallel or +number_berenger       (Wire) '))
             write(thefileno,'(a)') '# (  400 ,  499 ) '//trim(adjustl('Thin slot (+indexmedium)                                                (Surface)'))
             write(thefileno,'(a)') '# ( -0.5 , -0.5 ) '//trim(adjustl('Other types of media                                                    (Line)'))
@@ -849,7 +850,7 @@ PROGRAM SEMBA_FDTD_launcher
          CALL launch_simulation (sgg,sggMtag,sggMiNo,sggMiEx,sggMiEy,sggMiEz,sggMiHx,sggMiHy,sggMiHz, cfl,SINPML_fullsize,fullsize, nEntradaRoot, finaltimestep, resume, saveall, &
          & makeholes,connectendings, isolategroupgroups,dontsplitnodes,stableradholland, flushsecondsFields,mtlnberenger, &
          & flushsecondsData, layoutnumber, size, createmap, inductance_model, inductance_order, maxCPUtime,time_desdelanzamiento, &
-         & nresumeable2, resume_fromold,groundwires,noguiffautcrecepelo,SGBC,SGBCDispersive,mibc,attfactorc,attfactorw,&
+         & nresumeable2, resume_fromold,groundwires,noSlantedcrecepelo,SGBC,SGBCDispersive,mibc,attfactorc,attfactorw,&
          & alphamaxpar,alphaOrden,kappamaxpar,mur_second,MurAfterPML,MEDIOEXTRA,singlefilewrite,maxSourceValue,NOcompomur,ADE, &
          & conformalskin,strictOLD,TAPARRABOS,wiresflavor,mindistwires,facesNF2FF,NF2FFDECIM,vtkindex,createh5bin,wirecrank,opcionestotales,SGBCFreq,SGBCresol,SGBCcrank,SGBCDepth,fatalerror,fieldtotl,finishedwithsuccess,permitscaling, &
          & Eps0,Mu0, EpsMuTimeScale_input_parameters &
@@ -1870,8 +1871,8 @@ contains
                 wiresflavor='holland'
             case ('berenger','new')
                 wiresflavor='berenger'
-            case ('guiffaut','experimental','slanted')
-                wiresflavor='guiffaut'
+            case ('slanted','experimental')
+                wiresflavor='slanted'
             case ('transition')
                 wiresflavor='transition'
             case ('semistructured')
@@ -1894,12 +1895,12 @@ contains
 4621        IF ( ((trim(adjustl(wiresflavor)) /= 'holland')  .AND. &
                   (trim(adjustl(wiresflavor)) /= 'transition') .AND. &
                   (trim(adjustl(wiresflavor)) /= 'berenger') .AND.  &
-                  (trim(adjustl(wiresflavor)) /= 'guiffaut').and. &
+                  (trim(adjustl(wiresflavor)) /= 'slanted').and. &
                   (trim(adjustl(wiresflavor))/='semistructured')) .or. &
              .not.((trim(adjustl(wiresflavor)) == 'holland')  .xor.  &
                   (trim(adjustl(wiresflavor)) == 'transition') .xor. &
                   (trim(adjustl(wiresflavor)) == 'berenger') .xor.  &
-                  (trim(adjustl(wiresflavor)) == 'guiffaut').xor.  &
+                  (trim(adjustl(wiresflavor)) == 'slanted').xor.  &
                   (trim(adjustl(wiresflavor)) =='semistructured')) )  THEN
                CALL stoponerror (layoutnumber, size, 'Invalid wires flavor->'//trim(adjustl(wiresflavor)),.true.); statuse=-1; !return
             END IF
@@ -1917,7 +1918,7 @@ contains
 #endif
 #ifndef CompileWithSlantedWires
             select case (trim(adjustl(wiresflavor)))
-            case ('guiffaut','experimental')
+            case ('slanted','experimental')
                 CALL stoponerror (layoutnumber, size, 'Experimental wire flavor not available in this compilation',.true.); statuse=-1; !return
             end select   
 #endif
@@ -1930,8 +1931,8 @@ contains
           CASE ('-groundwires')
             groundwires = .TRUE.
             opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))
-          CASE ('-noguiffautcrecepelo ') !opcion niapa excperimental 131219
-            noguiffautcrecepelo  = .TRUE.
+          CASE ('-noSlantedcrecepelo ') !opcion niapa excperimental 131219
+            noSlantedcrecepelo  = .TRUE.
             opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))
           CASE ('-inductance')
             i = i + 1
@@ -2229,9 +2230,9 @@ contains
 !
 !
 !
-   if (((wiresflavor=='guiffaut').or.(wiresflavor=='semistructured')).AND.(mpidir/=3)) then
+   if (((wiresflavor=='slanted').or.(wiresflavor=='semistructured')).AND.(mpidir/=3)) then
        continue !arreglado mpidir slanted 2019
-       !         CALL stoponerror (layoutnumber, size, 'Slanted wires unsupported with -mpidir {x,y}',.true.); statuse=-1; !return
+       !         CALL stoponerror (layoutnumber, size, 'slanted wires unsupported with -mpidir {x,y}',.true.); statuse=-1; !return
    endif
    if (input_conformal_flag.AND.(mpidir/=3)) then
         continue !arreglado mpidir conformal 2019
@@ -2329,7 +2330,7 @@ contains
 #ifdef CompileWithMPI
    CALL MPI_Barrier (SUBCOMM_MPI, ierr)
 #endif
-   !openReportingFiles
+   !open ReportingFiles
    !only the master
 
    IF (((layoutnumber==0).or.((layoutnumber == size/2).and.stochastic)).and.(statuse/=-1)) THEN
@@ -2453,7 +2454,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!
 
-#ifdef CompilePrivateVersion   
+#ifdef CompilePrivateVersion 
 subroutine cargaNFDE
    INTEGER (KIND=8) :: numero,i8,troncho,longitud
    integer (kind=4) :: mpi_t_linea_t,longitud4
@@ -2540,7 +2541,6 @@ subroutine cargaNFDE
 
 end subroutine cargaNFDE
 #endif
- !del CompilePrivateVersion
 
 !!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!
@@ -2785,7 +2785,7 @@ end subroutine cargaNFDE
       CALL print11 (layoutnumber, dubuf)
       CALL print11 (layoutnumber, 'All rights reserved by the University of Granada (Spain)')
       CALL print11 (layoutnumber, '       Contact person: Salvador G. Garcia <salva@ugr.es>')
-      
+      CALL print11 (layoutnumber, ' ')
       !*******************************************************************************
 
 
@@ -2800,6 +2800,11 @@ end subroutine cargaNFDE
       CALL print11 (layoutnumber, 'Compiled WITH .h5 HDF support')
 #else
       CALL print11 (layoutnumber, 'Compiled without .h5 HDF support')
+#endif
+#ifdef CompileWithConformal
+      CALL print11 (layoutnumber, 'Compiled WITH Conformal support')
+#else
+      CALL print11 (layoutnumber, 'Compiled without Conformal support')
 #endif
       WRITE (dubuf,*) SEPARADOR // SEPARADOR // SEPARADOR
       CALL print11 (layoutnumber, dubuf)
@@ -2857,7 +2862,7 @@ end subroutine cargaNFDE
 #endif
       !*********************************************************************************************************************
 #ifdef CompileWithNIBC
-      CALL print11 (layoutnumber, '-skindepthpre          : Pre-processor for Maloney metals including skin depth.')
+      CALL print11 (layoutnumber, '-skindepthpre          : Pre-processor for SGBC metals including skin depth.')
       CALL print11 (layoutnumber, '-mibc                  : Uses pure MIBC to deal with composites.  ')
       CALL print11 (layoutnumber, '-ade                   : Uses ADE-MIBC to deal with composites. ')
       CALL print11 (layoutnumber, '&                        Alternative to -mibc.'      )
@@ -2911,7 +2916,7 @@ end subroutine cargaNFDE
       CALL print11 (layoutnumber, '-wiresflavor {berenger} : model for the wires    ')   
 #endif
 #ifdef CompileWithSlantedWires
-      CALL print11 (layoutnumber, '-wiresflavor {new/guiffaut.or.experimental.or.slanted/transition/semistructured precision} : model for the wires    ')   
+      CALL print11 (layoutnumber, '-wiresflavor {new/Slanted.or.experimental.or.slanted/transition/semistructured precision} : model for the wires    ')   
 #endif
 #ifdef CompileWithWires
       CALL print11 (layoutnumber, '&                        (default '//trim(adjustl(wiresflavor))//')   ')
@@ -2925,11 +2930,11 @@ end subroutine cargaNFDE
       CALL print11 (layoutnumber, '&                        Use only in case of instabilities.  (experimental)')
       CALL print11 (layoutnumber, '-groundwires           : Ground wires touching/embedded/crossing PEC/Lossy.')
       CALL print11 (layoutnumber, '&                        Use with CAUTION. Revise *Warnings.txt file!      ')
-      CALL print11 (layoutnumber, '-noguiffautcrecepelo : Ground open nodes. Experimental. Do not use.')
+      CALL print11 (layoutnumber, '-noSlantedcrecepelo : Ground open nodes. Experimental. Do not use.')
       CALL print11 (layoutnumber, '-connectendings        : Joins ohmicly endings nodes of adjacent segments  ')
       CALL print11 (layoutnumber, '&                        from multiwires (segments do no collapse).        ')
       CALL print11 (layoutnumber, '&                        regardless of whether they are actually connected ')
-      CALL print11 (layoutnumber, '&                       through the ENL/ENR numbering ')
+      CALL print11 (layoutnumber, '&                        through the LeftEnd/RightEnd numbering ')
       CALL print11 (layoutnumber, '&                        Automatic with -a                                 ')
       CALL print11 (layoutnumber, '&                        Use with CAUTION. Revise *Warnings.txt file!      ')
       CALL print11 (layoutnumber, '-isolategroupgroups    : Detach ohmicly endings nodes of adjacent segments ')
@@ -3267,7 +3272,7 @@ end subroutine cargaNFDE
       factordelta=1.0e+30 !para evitar division por cero 120123
       !default
       groundwires = .false.
-      noguiffautcrecepelo =.false. !131219 experimental niapa ojoooo
+      noSlantedcrecepelo =.false. !131219 experimental niapa ojoooo
       inductance_model = 'boutayeb'
       inductance_order = 8
       wiresflavor='holland'

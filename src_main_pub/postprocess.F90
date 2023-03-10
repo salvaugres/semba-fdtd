@@ -55,7 +55,7 @@ contains
       complex (kind=CKIND), allocatable, dimension(:,:) :: valoresDF,valoresDF2
       REAL (KIND=RKIND_tiempo), allocatable, dimension(:) :: tiempo,samplingtime
 	  integer (kind=4) :: pozi
-      logical :: existe,neverprecounted,escribir,escribirbulk,niapapostprocess,forceresampled,somethingdone
+      logical :: existe,neverprecounted,escribir,escribirBloque,niapapostprocess,forceresampled,somethingdone
       integer (kind=4) :: fqLength,ii,i,i1,j1,field,ns,timesteps,compo,iii,pp,pasadas
       real (kind=RKIND) :: dummy
       real (kind=RKIND_tiempo) :: rinstant
@@ -99,15 +99,15 @@ contains
             if (.not.sgg%Observation(ii)%Volumic) then
 
 #ifdef CompileWithMPI
-               escribirbulk=((field == ibulkJx).or.(field == ibulkJy).or. &
-               (field == ibulkMx).or.(field == ibulkMy)).and. &
+               escribirBloque=((field == iBloqueJx).or.(field == iBloqueJy).or. &
+               (field == iBloqueMx).or.(field == iBloqueMy)).and. &
                (layoutnumber == output(ii)%item(i)%MPIRoot)
 #else
-               escribirbulk=.true.
+               escribirBloque=.true.
 #endif
-               escribir= (( ((field /= ibulkJx).and.(field /= ibulkJy)  .and. &
-                             (field /= ibulkMx).and.(field /= ibulkMy)) .or. &
-                             escribirbulk) .and. &
+               escribir= (( ((field /= iBloqueJx).and.(field /= iBloqueJy)  .and. &
+                             (field /= iBloqueMx).and.(field /= iBloqueMy)) .or. &
+                             escribirBloque) .and. &
                             (SGG%Observation(ii)%FreqDomain .or. SGG%Observation(ii)%Transfer))
                if (escribir) then
                 !
@@ -551,7 +551,7 @@ contains
 
       type(output_t), pointer, dimension( : )  ::  output
       character (len=1024) :: path
-      logical :: existe,escribir,escribirbulk,somethingdone,niapapostprocess,forceresampled
+      logical :: existe,escribir,escribirBloque,somethingdone,niapapostprocess,forceresampled
       integer (kind=4) :: ii,i,field
       character(len=BUFSIZE) :: buff
       real (kind=RKIND_tiempo) :: rinstant
@@ -562,15 +562,15 @@ contains
          do i=1,sgg%Observation(ii)%nP
             field=sgg%Observation(ii)%P(i)%What
 #ifdef CompileWithMPI
-            escribirbulk=((field == ibulkJx).or.(field == ibulkJy).or. &
-            (field == ibulkMx).or.(field == ibulkMy)).and. &
+            escribirBloque=((field == iBloqueJx).or.(field == iBloqueJy).or. &
+            (field == iBloqueMx).or.(field == iBloqueMy)).and. &
             (layoutnumber == output(ii)%item(i)%MPIRoot)
 #else
-            escribirbulk=.true.
+            escribirBloque=.true.
 #endif
-            escribir= (( ((field /= ibulkJx).and.(field /= ibulkJy)  .and. &
-                          (field /= ibulkMx).and.(field /= ibulkMy)) .or. &
-                          escribirbulk) .and. &
+            escribir= (( ((field /= iBloqueJx).and.(field /= iBloqueJy)  .and. &
+                          (field /= iBloqueMx).and.(field /= iBloqueMy)) .or. &
+                          escribirBloque) .and. &
                          (SGG%Observation(ii)%FreqDomain .or. SGG%Observation(ii)%Transfer))
             if (escribir) then
                if (SGG%Observation(ii)%FreqDomain) then
@@ -594,15 +594,15 @@ contains
          do i=1,sgg%Observation(ii)%nP
             field=sgg%Observation(ii)%P(i)%What
 #ifdef CompileWithMPI
-            escribirbulk=((field == ibulkJx).or.(field == ibulkJy).or. &
-            (field == ibulkMx).or.(field == ibulkMy)).and. &
+            escribirBloque=((field == iBloqueJx).or.(field == iBloqueJy).or. &
+            (field == iBloqueMx).or.(field == iBloqueMy)).and. &
             (layoutnumber == output(ii)%item(i)%MPIRoot)
 #else
-            escribirbulk=.true.
+            escribirBloque=.true.
 #endif  
-            escribir= (( ((field /= ibulkJx).and.(field /= ibulkJy)  .and. &
-                          (field /= ibulkMx).and.(field /= ibulkMy)) .or. &
-                          escribirbulk) .and. &
+            escribir= (( ((field /= iBloqueJx).and.(field /= iBloqueJy)  .and. &
+                          (field /= iBloqueMx).and.(field /= iBloqueMy)) .or. &
+                          escribirBloque) .and. &
                          (SGG%Observation(ii)%FreqDomain .or. SGG%Observation(ii)%Transfer))
             if (escribir) then
                if (SGG%Observation(ii)%FreqDomain) then

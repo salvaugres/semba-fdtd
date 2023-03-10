@@ -41,9 +41,9 @@ module Observa
    use WiresBerenger
 #endif   
 #ifdef CompileWithSlantedWires
-   use WiresGuiffaut
-   use WiresGuiffaut_Types
-   use WiresGuiffaut_Constants
+   use WiresSlanted
+   use WiresSlanted_Types
+   use WiresSlanted_Constants
 #endif
    use report
 
@@ -70,7 +70,7 @@ module Observa
       type (TSegment)       , pointer  ::  segmento_Berenger !segmento de hilo que se observa si lo hubiere
 #endif
 #ifdef CompileWithSlantedWires
-      class(Segment)        , pointer  ::  segmento_Guiffaut !segmento de hilo que se observa si lo hubiere
+      class(Segment)        , pointer  ::  segmento_Slanted !segmento de hilo que se observa si lo hubiere
 #endif
       character (len=1024)  ::  path
       integer (kind=4) :: unit,unitmaster !to store the unit of the file y en caso de singlefileginario el unitmaster que escribe
@@ -111,11 +111,11 @@ module Observa
    type(TWires)     , pointer  ::  Hwireslocal_Berenger
 #endif
 #ifdef CompileWithSlantedWires
-   type(WiresData)  , pointer  ::  Hwireslocal_Guiffaut
+   type(WiresData)  , pointer  ::  Hwireslocal_Slanted
 #endif
 
 #ifdef CompileWithMPI
-   REAL (KIND=RKIND), pointer, dimension( : )   ::  valores ,newvalores  !auxiliary for bulk currents sync
+   REAL (KIND=RKIND), pointer, dimension( : )   ::  valores ,newvalores  !auxiliary for Bloque currents sync
 #endif
 !!!variables globales del modulo
    REAL (KIND=RKIND), save           ::  eps0,mu0
@@ -202,7 +202,7 @@ contains
       output=> null()
 #ifdef CompileWithMPI
       valores=>null()
-      newvalores => null()  !auxiliary for bulk currents sync
+      newvalores => null()  !auxiliary for Bloque currents sync
 #endif
 
       unitmaster=-1000 !!!no se bien. Lo pongo absurdo çççç
@@ -277,7 +277,7 @@ contains
 #ifdef miguelConformalStandAlone
             output(ii)%SaveAll=.false.
 #endif
-            !!!        if (SGG%Observation(ii)%TimeDomain) then !CREO QUE NO SE PRECISA PQ LAS FREQ. DOMAIN TRADICIONALES TAMBIEN DEBEN PASAR POR AQUI
+            !!!        if (SGG%Observation(ii)%TimeDomain) then !CREO QUE NO SE PRECISA PQ LAS FREQ. DOMAIN PROBES TAMBIEN DEBEN PASAR POR AQUI
             if (sgg%observation(ii)%Saveall)  then
                 output(ii)%Trancos       = 1
                 sgg%observation(ii)%InitialTime=0.0_RKIND
@@ -335,7 +335,7 @@ contains
 #endif
             field=sgg%observation(ii)%P(i)%What
             select case (field)
-             case (ibulkJx,ibulkJy,ibulkMx,ibulkMy)     !the end point info is only relevant for bulk
+             case (iBloqueJx,iBloqueJy,iBloqueMx,iBloqueMy)     !the end point info is only relevant for Bloque
                if ((sgg%Observation(ii)%P(i)%ZI >  sgg%Sweep(fieldo(field,'Z'))%ZE).or. &
                (sgg%Observation(ii)%P(i)%ZE <  sgg%Sweep(fieldo(field,'Z'))%ZI)) then
                   sgg%observation(ii)%P(i)%What=nothing
@@ -356,7 +356,7 @@ contains
 #else
                endif
 #endif
-             case (iEx,iVx,iEy,iVy,iHz,ibulkMz,iJx,iJy) !in case of MPI the flushing is only cared by one of the sharing layouts
+             case (iEx,iVx,iEy,iVy,iHz,iBloqueMz,iJx,iJy) !in case of MPI the flushing is only cared by one of the sharing layouts
                !in case of MPI the flushing is only cared by one of the sharing layouts
                !este es el unico caso en el que un punto es susceptible de ser escrito por dos layouts. Por eso se lo echo
                ! solo a uno de ellos: al de abajo (a menos que que sea el layout de mas arriba, en cuyo caso tiene que tratarlo el) !bug del itc2 con el pathx hasta el borde
@@ -364,12 +364,12 @@ contains
                (sgg%observation(ii)%P(i)%ZI <  sgg%Sweep(fieldo(field,'Z'))%ZI)                             ) then
                   sgg%observation(ii)%P(i)%What=Nothing !do not observe anything
                endif
-             case (iEz,iVz,iJz,ibulkJz,iHx,iHy)
+             case (iEz,iVz,iJz,iBloqueJz,iHx,iHy)
                if ((sgg%Observation(ii)%P(i)%ZI > sgg%Sweep(fieldo(field,'Z'))%ZE).or. &
                (sgg%Observation(ii)%P(i)%ZI < sgg%Sweep(fieldo(field,'Z'))%ZI)) then
                   sgg%observation(ii)%P(i)%What=Nothing !do not observe anything
                endif
-               !the end point info is only relevant for Volumic and bulk
+               !the end point info is only relevant for Volumic and Bloque
              case (iExC,iEyC,iHzC,iMhC,iEzC,iHxC,iHyC,iMeC)
                if ((sgg%Observation(ii)%P(i)%ZI >  sgg%Sweep(fieldo(field,'Z'))%ZE).or. &
                (sgg%Observation(ii)%P(i)%ZE <  sgg%Sweep(fieldo(field,'Z'))%ZI)) then
@@ -391,7 +391,7 @@ contains
 #else
                endif
 #endif
-               !the end point info is only relevant for Volumic and bulk
+               !the end point info is only relevant for Volumic and Bloque
              case (iCur,iCurX,iCurY,iCurZ,mapvtk)
                if ((sgg%Observation(ii)%P(i)%ZI >=  sgg%Sweep(iHz)%ZE).or. &
                (sgg%Observation(ii)%P(i)%ZE <  sgg%Sweep(iHZ)%ZI)) then
@@ -487,8 +487,8 @@ contains
          endif
 #endif
 #ifdef CompileWithSlantedWires
-         if ((trim(adjustl(wiresflavor))=='guiffaut').or.(trim(adjustl(wiresflavor))=='semistructured')) then
-            if (Therearewires) Hwireslocal_Guiffaut => GetHwires_Guiffaut()
+         if ((trim(adjustl(wiresflavor))=='slanted').or.(trim(adjustl(wiresflavor))=='semistructured')) then
+            if (Therearewires) Hwireslocal_Slanted => GetHwires_Slanted()
          endif
 #endif
 
@@ -857,7 +857,7 @@ contains
                   endif
 #endif
 #ifdef CompileWithSlantedWires
-                  if ((trim(adjustl(wiresflavor))=='guiffaut').or.(trim(adjustl(wiresflavor))=='semistructured')) then 
+                  if ((trim(adjustl(wiresflavor))=='slanted').or.(trim(adjustl(wiresflavor))=='semistructured')) then 
                      found=.false.
                      if ((Therearewires).and.((field==iJx).or.(field==iJy).or.(field==iJz))) then
 
@@ -876,10 +876,10 @@ contains
                         !en caso de hilos se necesitan
                         !parsea los hilos
                         found=.false.
-                        do n=1,Hwireslocal_Guiffaut%NumSegments
-                           if (Hwireslocal_Guiffaut%Segments(n)%ptr%Index==no)  then
+                        do n=1,Hwireslocal_Slanted%NumSegments
+                           if (Hwireslocal_Slanted%Segments(n)%ptr%Index==no)  then
                               !I have chosen IJx=10 IEx, etc. !do not change
-                              output(ii)%item(i)%segmento_Guiffaut => Hwireslocal_Guiffaut%Segments(n)%ptr
+                              output(ii)%item(i)%segmento_Slanted => Hwireslocal_Slanted%Segments(n)%ptr
                               found=.true.
                            endif
                         end do
@@ -966,7 +966,7 @@ contains
                      endif
 
                   endif
-                case (iBulkJx,iBulkJy,iBulkJz,iBulkMx,iBulkMy,iBulkMz)
+                case (iBloqueJx,iBloqueJy,iBloqueJz,iBloqueMx,iBloqueMy,iBloqueMz)
                   output(ii)%item(i)%columnas=1
                   write(chari2,'(i7)') i2
                   write(charj2,'(i7)') j2
@@ -976,52 +976,52 @@ contains
                       extpoint=trim(adjustl(chari)) //'_'//trim(adjustl(charj)) //'_'//trim(adjustl(chark))//'__'// &
                                trim(adjustl(chari2))//'_'//trim(adjustl(charj2))//'_'//trim(adjustl(chark2))
                       select case (field)
-                      case (iBulkJx)
-                        prefix_field=prefix(iBulkJx)
-                      case (iBulkJy)
-                        prefix_field=prefix(iBulkJy)
-                      case (iBulkJz)
-                        prefix_field=prefix(iBulkJz)
-                      case (iBulkMx)
-                        prefix_field=prefix(iBulkMx)
-                      case (iBulkMy)
-                        prefix_field=prefix(iBulkMy)
-                      case (iBulkMz)
-                        prefix_field=prefix(iBulkMz)
+                      case (iBloqueJx)
+                        prefix_field=prefix(iBloqueJx)
+                      case (iBloqueJy)
+                        prefix_field=prefix(iBloqueJy)
+                      case (iBloqueJz)
+                        prefix_field=prefix(iBloqueJz)
+                      case (iBloqueMx)
+                        prefix_field=prefix(iBloqueMx)
+                      case (iBloqueMy)
+                        prefix_field=prefix(iBloqueMy)
+                      case (iBloqueMz)
+                        prefix_field=prefix(iBloqueMz)
                       end select
                   elseif  (mpidir==2) then
                       extpoint=trim(adjustl(charj)) //'_'//trim(adjustl(chark)) //'_'//trim(adjustl(chari))//'__'// &
                                trim(adjustl(charj2))//'_'//trim(adjustl(chark2))//'_'//trim(adjustl(chari2))
                       select case (field)
-                      case (iBulkJx)
-                        prefix_field=prefix(iBulkJz)
-                      case (iBulkJy)
-                        prefix_field=prefix(iBulkJx)
-                      case (iBulkJz)
-                        prefix_field=prefix(iBulkJy)
-                      case (iBulkMx)
-                        prefix_field=prefix(iBulkMz)
-                      case (iBulkMy)
-                        prefix_field=prefix(iBulkMx)
-                      case (iBulkMz)
-                        prefix_field=prefix(iBulkMy)
+                      case (iBloqueJx)
+                        prefix_field=prefix(iBloqueJz)
+                      case (iBloqueJy)
+                        prefix_field=prefix(iBloqueJx)
+                      case (iBloqueJz)
+                        prefix_field=prefix(iBloqueJy)
+                      case (iBloqueMx)
+                        prefix_field=prefix(iBloqueMz)
+                      case (iBloqueMy)
+                        prefix_field=prefix(iBloqueMx)
+                      case (iBloqueMz)
+                        prefix_field=prefix(iBloqueMy)
                       end select
                   elseif  (mpidir==1) then
                       extpoint=trim(adjustl(chark)) //'_'//trim(adjustl(chari)) //'_'//trim(adjustl(charj))//'__'// &
                                trim(adjustl(chark2))//'_'//trim(adjustl(chari2))//'_'//trim(adjustl(charj2))
                       select case (field)
-                      case (iBulkJx)
-                        prefix_field=prefix(iBulkJy)
-                      case (iBulkJy)
-                        prefix_field=prefix(iBulkJz)
-                      case (iBulkJz)
-                        prefix_field=prefix(iBulkJx)
-                      case (iBulkMx)
-                        prefix_field=prefix(iBulkMy)
-                      case (iBulkMy)
-                        prefix_field=prefix(iBulkMz)
-                      case (iBulkMz)
-                        prefix_field=prefix(iBulkMx)
+                      case (iBloqueJx)
+                        prefix_field=prefix(iBloqueJy)
+                      case (iBloqueJy)
+                        prefix_field=prefix(iBloqueJz)
+                      case (iBloqueJz)
+                        prefix_field=prefix(iBloqueJx)
+                      case (iBloqueMx)
+                        prefix_field=prefix(iBloqueMy)
+                      case (iBloqueMy)
+                        prefix_field=prefix(iBloqueMz)
+                      case (iBloqueMz)
+                        prefix_field=prefix(iBloqueMx)
                       end select
                   else
                       call stoponerror(layoutnumber,size,'Buggy error in mpidir. ')
@@ -1052,17 +1052,17 @@ contains
                   output(ii)%item(i)%valor(0 : BuffObse)=0.0_RKIND
                   !readjust correctly the calculation region (for currents crossing the MPI region)
                   select case(field)
-                   case (iBulkJx,iBulkJy)
+                   case (iBloqueJx,iBloqueJy)
                      sgg%observation(ii)%P(i)%ZI=max(sgg%Sweep(fieldo(field,'Z'))%ZI+1,sgg%observation(ii)%P(i)%ZI)
                      sgg%observation(ii)%P(i)%ZE=min(sgg%Sweep(fieldo(field,'Z'))%ZE  ,sgg%observation(ii)%P(i)%ZE)
-                   case (iBulkMx,iBulkMy,iBulkJz,iBulkMz)
+                   case (iBloqueMx,iBloqueMy,iBloqueJz,iBloqueMz)
                      sgg%observation(ii)%P(i)%ZI=max(sgg%Sweep(fieldo(field,'Z'))%ZI  ,sgg%observation(ii)%P(i)%ZI)
                      sgg%observation(ii)%P(i)%ZE=min(sgg%Sweep(fieldo(field,'Z'))%ZE  ,sgg%observation(ii)%P(i)%ZE)
                   end select
                   !
 #ifdef CompileWithMPI
                   if ((layoutnumber == output(ii)%item(i)%MPIRoot).or. &
-                  (field==iBulkJz).or.(field==iBulkMz)) then !only the master
+                  (field==iBloqueJz).or.(field==iBloqueMz)) then !only the master
 #endif
                   my_iostat=0
 9837              if(my_iostat /= 0) write(*,fmt='(a)',advance='no'), '.' !!if(my_iostat /= 0) print '(i5,a1,i4,2x,a)',9837,layoutnumber,trim(adjustl(nEntradaRoot))//'_Outputrequests_'//trim(adjustl(whoamishort))//'.txt'
@@ -1089,7 +1089,7 @@ contains
                   else
                      inquire(file= trim(adjustl(output(ii)%item(i)%path)),exist=existe)
                      if (.not.existe) then
-                        call stoponerror(layoutnumber,size,'Data files for resuming non existent (Bulk, etc.) '//trim(adjustl(output(ii)%item(i)%path)))
+                        call stoponerror(layoutnumber,size,'Data files for resuming non existent (Bloque, etc.) '//trim(adjustl(output(ii)%item(i)%path)))
                      endif
                      open (output(ii)%item(i)%unit,recl=1000,access='sequential',  &
                      file= trim(adjustl(output(ii)%item(i)%path)))
@@ -1111,14 +1111,14 @@ contains
 #ifdef CompileWithMPI
                endif
 #endif
-                  !voluminc bulk current probes along edges (wires, surfaces
+                  !voluminc Bloque current probes along edges (wires, surfaces
                 case (iCur,iCurX,iCurY,iCurZ,mapvtk)
                   if (sgg%Observation(ii)%Volumic) then !they are necssaryly
                      if (sgg%Observation(ii)%nP /= 1) then
                         call stoponerror(layoutnumber,size,'ERROR! More than a volumic probe per group')
                      endif
                      !readjut correctly the calculation region
-                     !de momento sere conservador 20/2/14 por lo que truene el MPI luego quitare el -1 si acaso !!!!ççççç !a priori puedo necesitar el HZ(alloc+1) para calcular las bulk currents pero de momento me estoy quieto
+                     !de momento sere conservador 20/2/14 por lo que truene el MPI luego quitare el -1 si acaso !!!!ççççç !a priori puedo necesitar el HZ(alloc+1) para calcular las Bloque currents pero de momento me estoy quieto
                      sgg%observation(ii)%P(i)%ZI=max(sgg%Sweep(iEx)%ZI  ,sgg%observation(ii)%P(i)%ZI) !ojo estaba sweep(iEz) para ser conservador...puede dar problemas!! 03/07/15
                      sgg%observation(ii)%P(i)%ZE=min(sgg%Sweep(iEx)%ZE  ,sgg%observation(ii)%P(i)%ZE) !ojo estaba sweep(iEz) para ser conservador...puede dar problemas!! 03/07/15
                      !solo acepto que P(1:1) !!!
@@ -1536,7 +1536,7 @@ contains
                                     output(ii)%item(i)%Serialized%eI(conta)=iii
                                     output(ii)%item(i)%Serialized%eJ(conta)=jjj
                                     output(ii)%item(i)%Serialized%eK(conta)=kkk
-                                    output(ii)%item(i)%Serialized%currentType(conta)=iBulkJx
+                                    output(ii)%item(i)%Serialized%currentType(conta)=iBloqueJx
                                     output(ii)%item(i)%Serialized%sggMtag(conta)=iabs(sggMtag(iii,jjj,kkk))
                                  endif
                                  if (((sgg%med(sggMiHy(III- b%Hy%XI, JJJ- b%Hy%YI, KKK- b%Hy%ZI))%Is%PEC).or. &
@@ -1546,7 +1546,7 @@ contains
                                     output(ii)%item(i)%Serialized%eI(conta)=iii
                                     output(ii)%item(i)%Serialized%eJ(conta)=jjj
                                     output(ii)%item(i)%Serialized%eK(conta)=kkk
-                                    output(ii)%item(i)%Serialized%currentType(conta)=iBulkJy
+                                    output(ii)%item(i)%Serialized%currentType(conta)=iBloqueJy
                                     output(ii)%item(i)%Serialized%sggMtag(conta)=iabs(sggMtag(iii,jjj,kkk))
                                  endif
                                  if (((sgg%med(sggMiHz(III- b%Hz%XI, JJJ- b%Hz%YI, KKK- b%Hz%ZI))%Is%PEC).or. &
@@ -1556,17 +1556,17 @@ contains
                                     output(ii)%item(i)%Serialized%eI(conta)=iii
                                     output(ii)%item(i)%Serialized%eJ(conta)=jjj
                                     output(ii)%item(i)%Serialized%eK(conta)=kkk
-                                    output(ii)%item(i)%Serialized%currentType(conta)=iBulkJz
+                                    output(ii)%item(i)%Serialized%currentType(conta)=iBloqueJz
                                     output(ii)%item(i)%Serialized%sggMtag(conta)=iabs(sggMtag(iii,jjj,kkk))
                                  endif
-                              else !mapvtk y si no es vacio, asimilo la salida a corrientes ibulkJ? para que vtk.f90 los escriba en quads
+                              else !mapvtk y si no es vacio, asimilo la salida a corrientes iBloqueJ? para que vtk.f90 los escriba en quads
                                  if ((sggMiHx(III -b%Hx%XI, JJJ- b%Hx%YI, KKK- b%Hx%ZI)/=1).and. &
                                  (.not.sgg%med(sggMiHx(III -b%Hx%XI, JJJ- b%Hx%YI, KKK- b%Hx%ZI))%is%PML).and.(iii <= SINPML_fullsize(iHx)%XE).and.(jjj <= SINPML_fullsize(iHx)%YE).and.(kkk <= SINPML_fullsize(iHx)%ZE)) then
                                     conta=conta+1
                                     output(ii)%item(i)%Serialized%eI(conta)=iii
                                     output(ii)%item(i)%Serialized%eJ(conta)=jjj
                                     output(ii)%item(i)%Serialized%eK(conta)=kkk
-                                    output(ii)%item(i)%Serialized%currentType(conta)=iBulkJx
+                                    output(ii)%item(i)%Serialized%currentType(conta)=iBloqueJx
                                     output(ii)%item(i)%Serialized%sggMtag(conta)=sggMtag(iii,jjj,kkk)  !sin valor absoluto pq es mapvtk
                                  endif
                                  if ((sggMiHy(III- b%Hy%XI, JJJ- b%Hy%YI, KKK- b%Hy%ZI)/=1).and. &
@@ -1575,7 +1575,7 @@ contains
                                     output(ii)%item(i)%Serialized%eI(conta)=iii
                                     output(ii)%item(i)%Serialized%eJ(conta)=jjj
                                     output(ii)%item(i)%Serialized%eK(conta)=kkk
-                                    output(ii)%item(i)%Serialized%currentType(conta)=iBulkJy
+                                    output(ii)%item(i)%Serialized%currentType(conta)=iBloqueJy
                                     output(ii)%item(i)%Serialized%sggMtag(conta)=sggMtag(iii,jjj,kkk)
                                  endif
                                  if ((sggMiHz(III- b%Hz%XI, JJJ- b%Hz%YI, KKK- b%Hz%ZI)/=1).and. &
@@ -1584,7 +1584,7 @@ contains
                                     output(ii)%item(i)%Serialized%eI(conta)=iii
                                     output(ii)%item(i)%Serialized%eJ(conta)=jjj
                                     output(ii)%item(i)%Serialized%eK(conta)=kkk
-                                    output(ii)%item(i)%Serialized%currentType(conta)=iBulkJz
+                                    output(ii)%item(i)%Serialized%currentType(conta)=iBloqueJz
                                     output(ii)%item(i)%Serialized%sggMtag(conta)=sggMtag(iii,jjj,kkk)
                                  endif
 !                                 ! los tags 141020 para mapvtk
@@ -1595,7 +1595,7 @@ contains
                                         output(ii)%item(i)%Serialized%eI(conta)=iii
                                         output(ii)%item(i)%Serialized%eJ(conta)=jjj
                                         output(ii)%item(i)%Serialized%eK(conta)=kkk
-                                        output(ii)%item(i)%Serialized%currentType(conta)=iBulkJx
+                                        output(ii)%item(i)%Serialized%currentType(conta)=iBloqueJx
                                         output(ii)%item(i)%Serialized%sggMtag(conta)=sggMtag(iii,jjj,kkk) !sin valor absoluto pq es mapvtk
                                      endif
                                      if ( (btest(iabs(sggMtag(iii,jjj,kkk)),4)).and. & 
@@ -1604,7 +1604,7 @@ contains
                                         output(ii)%item(i)%Serialized%eI(conta)=iii
                                         output(ii)%item(i)%Serialized%eJ(conta)=jjj
                                         output(ii)%item(i)%Serialized%eK(conta)=kkk
-                                        output(ii)%item(i)%Serialized%currentType(conta)=iBulkJy
+                                        output(ii)%item(i)%Serialized%currentType(conta)=iBloqueJy
                                         output(ii)%item(i)%Serialized%sggMtag(conta)=sggMtag(iii,jjj,kkk)
                                      endif
                                      if ( (btest(iabs(sggMtag(iii,jjj,kkk)),5)).and. &
@@ -1613,7 +1613,7 @@ contains
                                         output(ii)%item(i)%Serialized%eI(conta)=iii
                                         output(ii)%item(i)%Serialized%eJ(conta)=jjj
                                         output(ii)%item(i)%Serialized%eK(conta)=kkk
-                                        output(ii)%item(i)%Serialized%currentType(conta)=iBulkJz
+                                        output(ii)%item(i)%Serialized%currentType(conta)=iBloqueJz
                                         output(ii)%item(i)%Serialized%sggMtag(conta)=sggMtag(iii,jjj,kkk)
                                      endif
                                 endif
@@ -2197,7 +2197,7 @@ contains
                   call writefile_mpi(layoutnumber,thefile, buff2)
                   write(buff2,*) 'plot ',trim(adjustl(path)),' using 1:2 every 1::2 with lines '
                   call writefile_mpi(layoutnumber,thefile, buff2)
-                case (iBulkJx,iBulkJy,iBulkJz,iBulkMx,iBulkMy,iBulkMz)
+                case (iBloqueJx,iBloqueJy,iBloqueJz,iBloqueMx,iBloqueMy,iBloqueMz)
                   conta=conta+1
                   write(chari2,'(i7)') i2
                   write(charj2,'(i7)') j2
@@ -2207,18 +2207,18 @@ contains
                       extpoint=trim(adjustl(chari)) //'_'//trim(adjustl(charj)) //'_'//trim(adjustl(chark))//'__'// &
                                trim(adjustl(chari2))//'_'//trim(adjustl(charj2))//'_'//trim(adjustl(chark2))
                       select case (field)
-                      case (iBulkJX)
-                        prefix_field=prefix(iBulkJX)
-                      case (iBulkJY)
-                        prefix_field=prefix(iBulkJY)
-                      case (iBulkJZ)
-                        prefix_field=prefix(iBulkJZ)
-                      case (iBulkMX)
-                        prefix_field=prefix(iBulkMX)
-                      case (iBulkMY)
-                        prefix_field=prefix(iBulkMY)
-                      case (iBulkMZ)
-                        prefix_field=prefix(iBulkMZ)
+                      case (iBloqueJX)
+                        prefix_field=prefix(iBloqueJX)
+                      case (iBloqueJY)
+                        prefix_field=prefix(iBloqueJY)
+                      case (iBloqueJZ)
+                        prefix_field=prefix(iBloqueJZ)
+                      case (iBloqueMX)
+                        prefix_field=prefix(iBloqueMX)
+                      case (iBloqueMY)
+                        prefix_field=prefix(iBloqueMY)
+                      case (iBloqueMZ)
+                        prefix_field=prefix(iBloqueMZ)
                       case default
                         prefix_field=prefix(field)
                       end select
@@ -2226,18 +2226,18 @@ contains
                       extpoint=trim(adjustl(charj)) //'_'//trim(adjustl(chark)) //'_'//trim(adjustl(chari))//'__'// &
                                trim(adjustl(charj2))//'_'//trim(adjustl(chark2))//'_'//trim(adjustl(chari2))
                       select case (field)
-                      case (iBulkJX)
-                        prefix_field=prefix(iBulkJZ)
-                      case (iBulkJY)
-                        prefix_field=prefix(iBulkJX)
-                      case (iBulkJZ)
-                        prefix_field=prefix(iBulkJY)
-                      case (iBulkMX)
-                        prefix_field=prefix(iBulkMZ)
-                      case (iBulkMY)
-                        prefix_field=prefix(iBulkMX)
-                      case (iBulkMZ)
-                        prefix_field=prefix(iBulkMY)
+                      case (iBloqueJX)
+                        prefix_field=prefix(iBloqueJZ)
+                      case (iBloqueJY)
+                        prefix_field=prefix(iBloqueJX)
+                      case (iBloqueJZ)
+                        prefix_field=prefix(iBloqueJY)
+                      case (iBloqueMX)
+                        prefix_field=prefix(iBloqueMZ)
+                      case (iBloqueMY)
+                        prefix_field=prefix(iBloqueMX)
+                      case (iBloqueMZ)
+                        prefix_field=prefix(iBloqueMY)
                       case default
                         prefix_field=prefix(field)
                       end select
@@ -2245,18 +2245,18 @@ contains
                       extpoint=trim(adjustl(chark)) //'_'//trim(adjustl(chari)) //'_'//trim(adjustl(charj))//'__'// &
                                trim(adjustl(chark2))//'_'//trim(adjustl(chari2))//'_'//trim(adjustl(charj2))
                       select case (field)
-                      case (iBulkJX)
-                        prefix_field=prefix(iBulkJY)
-                      case (iBulkJY)
-                        prefix_field=prefix(iBulkJZ)
-                      case (iBulkJZ)
-                        prefix_field=prefix(iBulkJX)
-                      case (iBulkMX)
-                        prefix_field=prefix(iBulkMY)
-                      case (iBulkMY)
-                        prefix_field=prefix(iBulkMZ)
-                      case (iBulkMZ)
-                        prefix_field=prefix(iBulkMX)
+                      case (iBloqueJX)
+                        prefix_field=prefix(iBloqueJY)
+                      case (iBloqueJY)
+                        prefix_field=prefix(iBloqueJZ)
+                      case (iBloqueJZ)
+                        prefix_field=prefix(iBloqueJX)
+                      case (iBloqueMX)
+                        prefix_field=prefix(iBloqueMY)
+                      case (iBloqueMY)
+                        prefix_field=prefix(iBloqueMZ)
+                      case (iBloqueMZ)
+                        prefix_field=prefix(iBloqueMX)
                       case default
                         prefix_field=prefix(field)
                       end select
@@ -2567,7 +2567,7 @@ contains
 #endif
       !
 #ifdef CompileWithSlantedWires      
-      class(Segment)        , pointer  ::  segmDumm_Guiffaut !segmento de hilo que se observa si lo hubiere
+      class(Segment)        , pointer  ::  segmDumm_Slanted !segmento de hilo que se observa si lo hubiere
 #endif
 
       logical ::  INIT,GEOM,ASIGNA,electric,magnetic
@@ -2582,7 +2582,7 @@ contains
                I1 = SGG%Observation( ii)%P( i)%XI
                J1 = SGG%Observation( ii)%P( i)%YI
                K1 = SGG%Observation( ii)%P( i)%ZI
-               I2 = SGG%Observation( ii)%P( i)%XE !ojo estos no se usan salvo en bulks y Volumics
+               I2 = SGG%Observation( ii)%P( i)%XE !ojo estos no se usan salvo en Bloques y Volumics
                J2 = SGG%Observation( ii)%P( i)%YE
                K2 = SGG%Observation( ii)%P( i)%ZE
                !--->
@@ -2624,7 +2624,7 @@ contains
                      j1_m = J1 - b%Hz%YI
                      k1_m = K1 - b%Hz%ZI
                      output( ii)%item( i)%valor(nTime-nInit) = Hz( i1_m, j1_m, k1_m)
-                   case( ibulkJx)
+                   case( iBloqueJx)
                      output( ii)%item( i)%valor(nTime-nInit) = 0.0_RKIND !wipe value
                      i1_m = I1 - b%Hy%XI
                      j1_m = J1 - b%Hy%YI
@@ -2648,7 +2648,7 @@ contains
                         output( ii)%item( i)%valor(nTime-nInit) +   &
                         (-Hz( i1_m, j1_m-1, KKK_m) + Hz( i1_m, j2_m, KKK_m)) * dzh( KKK_m )
                      enddo
-                   case( ibulkJy)
+                   case( iBloqueJy)
                      output( ii)%item( i)%valor(nTime-nInit) = 0.0_RKIND !wipe value
                      i1_m = I1 - b%Hz%XI
                      j1_m = J1 - b%Hz%YI
@@ -2671,7 +2671,7 @@ contains
                         output( ii)%item( i)%valor(nTime-nInit) +   &
                         (Hx( III_m, j1_m, k2_m) - Hx( III_m, j1_m, k1_m-1)) * dxh( III_m )
                      enddo
-                   case( ibulkJz)
+                   case( iBloqueJz)
                      output( ii)%item( i)%valor(nTime-nInit) = 0.0_RKIND !wipe value
                      j1_m = J1 - b%Hx%YI
                      k1_m = K1 - b%Hx%ZI
@@ -2694,7 +2694,7 @@ contains
                         output( ii)%item( i)%valor(nTime-nInit) +   &
                         (-Hy( i1_m-1, JJJ_m, k1_m) + Hy( i2_m, JJJ_m, k1_m)) * dyh( JJJ_m )
                      enddo
-                   case( ibulkMx)
+                   case( iBloqueMx)
                      output( ii)%item( i)%valor(nTime-nInit) = 0.0_RKIND !wipe value
                      i1_m = I1 - b%Ey%XI
                      k1_m = K1 - b%Ey%ZI
@@ -2717,7 +2717,7 @@ contains
                         output( ii)%item( i)%valor(nTime-nInit) +   &
                         (Ez( i1_m, j1_m, KKK_m) - Ez( i1_m, j2_m+1, KKK_m)) * dze(KKK_m )
                      enddo
-                   case( ibulkMy)
+                   case( iBloqueMy)
                      output( ii)%item( i)%valor(nTime-nInit) = 0.0_RKIND !wipe value
                      i1_m = I1 - b%Ez%XI
                      j1_m = J1 - b%Ez%YI
@@ -2740,7 +2740,7 @@ contains
                         output( ii)%item( i)%valor(nTime-nInit) +   &
                         (-Ex( III_m, j1_m, k2_m+1) + Ex( III_m, j1_m, k1_m)) * dxe( III_m )
                      enddo
-                   case( ibulkMz)
+                   case( iBloqueMz)
                      output( ii)%item( i)%valor(nTime-nInit) = 0.0_RKIND !wipe value
                      j1_m = J1 - b%Ex%YI
                      k1_m = K1 - b%Ex%ZI
@@ -2811,14 +2811,14 @@ contains
                      endif
 #endif
 #ifdef CompileWithSlantedWires
-                     if((trim(adjustl(wiresflavor))=='guiffaut').or.(trim(adjustl(wiresflavor))=='semistructured')) then !del wiresflavor
-                        SegmDumm_Guiffaut => output( ii)%item( i)%Segmento_Guiffaut
-                        output( ii)%item(i)%valor(nTime-nInit)= SegmDumm_Guiffaut%Currentpast
-                        output( ii)%item(i)%valor2(nTime-nInit)=SegmDumm_Guiffaut%field * SegmDumm_Guiffaut%dl
-                        ! output( ii)%item(i)%valor2(nTime-nInit)=   (((SegmDumm_Guiffaut%Voltage(iPlus )%ptr%Voltage + SegmDumm_Guiffaut%Voltage(iPlus )%ptr%VoltagePast))/2.0_RKIND)
-                        ! output( ii)%item(i)%valortres(nTime-nInit)=   (((SegmDumm_Guiffaut%Voltage(iMinus)%ptr%Voltage + SegmDumm_Guiffaut%Voltage(iMinus)%ptr%VoltagePast))/2.0_RKIND)
-                        output( ii)%item(i)%valor3(nTime-nInit)=   (((SegmDumm_Guiffaut%Voltage(iPlus)%ptr%Voltage + SegmDumm_Guiffaut%Voltage(iPlus)%ptr%VoltagePast))/2.0_RKIND) - & 
-                                                                   (((SegmDumm_Guiffaut%Voltage(iMinus)%ptr%Voltage + SegmDumm_Guiffaut%Voltage(iMinus)%ptr%VoltagePast))/2.0_RKIND)
+                     if((trim(adjustl(wiresflavor))=='slanted').or.(trim(adjustl(wiresflavor))=='semistructured')) then !del wiresflavor
+                        SegmDumm_Slanted => output( ii)%item( i)%Segmento_Slanted
+                        output( ii)%item(i)%valor(nTime-nInit)= SegmDumm_Slanted%Currentpast
+                        output( ii)%item(i)%valor2(nTime-nInit)=SegmDumm_Slanted%field * SegmDumm_Slanted%dl
+                        ! output( ii)%item(i)%valor2(nTime-nInit)=   (((SegmDumm_Slanted%Voltage(iPlus )%ptr%Voltage + SegmDumm_Slanted%Voltage(iPlus )%ptr%VoltagePast))/2.0_RKIND)
+                        ! output( ii)%item(i)%valortres(nTime-nInit)=   (((SegmDumm_Slanted%Voltage(iMinus)%ptr%Voltage + SegmDumm_Slanted%Voltage(iMinus)%ptr%VoltagePast))/2.0_RKIND)
+                        output( ii)%item(i)%valor3(nTime-nInit)=   (((SegmDumm_Slanted%Voltage(iPlus)%ptr%Voltage + SegmDumm_Slanted%Voltage(iPlus)%ptr%VoltagePast))/2.0_RKIND) - & 
+                                                                   (((SegmDumm_Slanted%Voltage(iMinus)%ptr%Voltage + SegmDumm_Slanted%Voltage(iMinus)%ptr%VoltagePast))/2.0_RKIND)
                         output( ii)%item(i)%valor5(nTime-nInit)= -output( ii)%item(i)%valor2(nTime-nInit)+output( ii)%item(i)%valor3(nTime-nInit)
                      endif
 #endif
@@ -3078,7 +3078,7 @@ contains
                                     if (field/=mapvtk) then
                                        if ((sgg%med(sggMiEx(III - b%Ex%XI, JJJ - b%Ex%YI, KKK - b%Ex%ZI))%Is%ThinWire).and.(iii <= SINPML_fullsize(iEx)%XE).and.(jjj <= SINPML_fullsize(iEx)%YE).and.(kkk <= SINPML_fullsize(iEx)%ZE)) then
                                           conta=conta+1
-                                          Jz= dyh(JJJ - b%Hy%YI) * (- Hy( III - b%Hy%XI, JJJ - b%Hy%YI, KKK - b%Ex%ZI)+Hy( III - b%Hy%XI  , JJJ - b%Hy%YI  , KKK - b%Hy%ZI-1))    !bulk current (circulacion de H)
+                                          Jz= dyh(JJJ - b%Hy%YI) * (- Hy( III - b%Hy%XI, JJJ - b%Hy%YI, KKK - b%Ex%ZI)+Hy( III - b%Hy%XI  , JJJ - b%Hy%YI  , KKK - b%Hy%ZI-1))    !Bloque current (circulacion de H)
                                           Jy= dzh(KKK - b%Hz%ZI) * (  Hz( III - b%Hz%XI, JJJ - b%Hz%YI, KKK - b%Hz%ZI)-Hz( III - b%Hz%XI  , JJJ - b%Hz%YI-1, KKK - b%Hz%ZI  ))
                                           output( ii)%item( i)%Serialized%valor(Ntimeforvolumic,conta) = sqrt(Jy**2+Jz**2.0_RKIND )
                                        endif
@@ -3100,7 +3100,7 @@ contains
                                           (.not.sgg%med(sggMiHz(III - b%Hz%XI  , JJJ - b%Hz%YI  , KKK - b%Hz%ZI  ))%Is%PEC).and. &
                                           (.not.sgg%med(sggMiHz(III - b%Hz%XI  , JJJ - b%Hz%YI-1, KKK - b%Hz%ZI  ))%Is%PEC)) then
                                              conta=conta+1
-                                             Jz= dyh(JJJ - b%Hy%YI) * (- Hy( III - b%Hy%XI, JJJ - b%Hy%YI, KKK - b%Ex%ZI)+Hy( III - b%Hy%XI  , JJJ - b%Hy%YI  , KKK - b%Hy%ZI-1))    !bulk current (circulacion de H)
+                                             Jz= dyh(JJJ - b%Hy%YI) * (- Hy( III - b%Hy%XI, JJJ - b%Hy%YI, KKK - b%Ex%ZI)+Hy( III - b%Hy%XI  , JJJ - b%Hy%YI  , KKK - b%Hy%ZI-1))    !Bloque current (circulacion de H)
                                              Jy= dzh(KKK - b%Hz%ZI) * (  Hz( III - b%Hz%XI, JJJ - b%Hz%YI, KKK - b%Hz%ZI)-Hz( III - b%Hz%XI  , JJJ - b%Hz%YI-1, KKK - b%Hz%ZI  ))
                                              output( ii)%item( i)%Serialized%valor(Ntimeforvolumic,conta) =sqrt(Jy**2.0_RKIND+Jz**2.0_RKIND )
                                           endif
@@ -3321,7 +3321,7 @@ contains
                                           !
                                           output( ii)%item( i)%Serialized%valor(Ntimeforvolumic,conta) = sqrt(Jx**2.0_RKIND+Jy**2.0_RKIND )
                                        endif
-                                    else                                       !si es mapvtk y si no es vacio, asimilo la salida a corrientes ibulkJ? para que vtk.f90 los escriba en quads
+                                    else                                       !si es mapvtk y si no es vacio, asimilo la salida a corrientes iBloqueJ? para que vtk.f90 los escriba en quads
                                        if ((sggMiHx(III -b%Hx%XI, JJJ- b%Hx%YI, KKK- b%Hx%ZI)/=1).and. &
                                        (.not.sgg%med(sggMiHx(III -b%Hx%XI, JJJ- b%Hx%YI, KKK- b%Hx%ZI))%is%PML).and.(iii <= SINPML_fullsize(iHx)%XE).and.(jjj <= SINPML_fullsize(iHx)%YE).and.(kkk <= SINPML_fullsize(iHx)%ZE)) then
                                           conta=conta+1
@@ -3439,7 +3439,7 @@ contains
 #endif                              
                            endif
                            !!!
-                           !!!!!!!!!!!!esto dara problemas en los angulos y aristas donde porque ahi sacara la bulk current en Hx!!!! 19/2/14
+                           !!!!!!!!!!!!esto dara problemas en los angulos y aristas donde porque ahi sacara la Bloque current en Hx!!!! 19/2/14
                         endif
                      endif
                      !!!!!!!!fin sondas corriente
@@ -3541,7 +3541,7 @@ contains
                               !saca bul current a lo largo del edgje con las sondas icur
                               if ((sgg%med(sggMiEx(III - b%Ex%XI, JJJ - b%Ex%YI, KKK - b%Ex%ZI))%Is%ThinWire).and.(iii <= SINPML_fullsize(iEx)%XE).and.(jjj <= SINPML_fullsize(iEx)%YE).and.(kkk <= SINPML_fullsize(iEx)%ZE)) then
                                  conta=conta+1
-                                 Jz= dyh(JJJ - b%Hy%YI) * (- Hy( III - b%Hy%XI, JJJ - b%Hy%YI, KKK - b%Ex%ZI)+Hy( III - b%Hy%XI  , JJJ - b%Hy%YI  , KKK - b%Hy%ZI-1))    !bulk current (circulacion de H)
+                                 Jz= dyh(JJJ - b%Hy%YI) * (- Hy( III - b%Hy%XI, JJJ - b%Hy%YI, KKK - b%Ex%ZI)+Hy( III - b%Hy%XI  , JJJ - b%Hy%YI  , KKK - b%Hy%ZI-1))    !Bloque current (circulacion de H)
                                  Jy= dzh(KKK - b%Hz%ZI) * (  Hz( III - b%Hz%XI, JJJ - b%Hz%YI, KKK - b%Hz%ZI)-Hz( III - b%Hz%XI  , JJJ - b%Hz%YI-1, KKK - b%Hz%ZI  ))
                                  do if1=1,output( ii)%NumFreqs
                                     output( ii)%item( i)%Serialized%valorComplex(if1,1,conta) = output( ii)%item( i)%Serialized%valorComplex(if1,1,conta) +  &
@@ -3578,7 +3578,7 @@ contains
                                  (.not.sgg%med(sggMiHz(III - b%Hz%XI  , JJJ - b%Hz%YI  , KKK - b%Hz%ZI  ))%Is%PEC).and. &
                                  (.not.sgg%med(sggMiHz(III - b%Hz%XI  , JJJ - b%Hz%YI-1, KKK - b%Hz%ZI  ))%Is%PEC)) then
                                     conta=conta+1
-                                    Jz= dyh(JJJ - b%Hy%YI) * (- Hy( III - b%Hy%XI, JJJ - b%Hy%YI, KKK - b%Ex%ZI)+Hy( III - b%Hy%XI  , JJJ - b%Hy%YI  , KKK - b%Hy%ZI-1))    !bulk current (circulacion de H)
+                                    Jz= dyh(JJJ - b%Hy%YI) * (- Hy( III - b%Hy%XI, JJJ - b%Hy%YI, KKK - b%Ex%ZI)+Hy( III - b%Hy%XI  , JJJ - b%Hy%YI  , KKK - b%Hy%ZI-1))    !Bloque current (circulacion de H)
                                     Jy= dzh(KKK - b%Hz%ZI) * (  Hz( III - b%Hz%XI, JJJ - b%Hz%YI, KKK - b%Hz%ZI)-Hz( III - b%Hz%XI  , JJJ - b%Hz%YI-1, KKK - b%Hz%ZI  ))
                                     do if1=1,output( ii)%NumFreqs
                                        output( ii)%item( i)%Serialized%valorComplex(if1,1,conta) = output( ii)%item( i)%Serialized%valorComplex(if1,1,conta) +  &
@@ -3687,7 +3687,7 @@ contains
                            end do
                         end do
                      end do
-                     !!!!!!!!!!!!esto dara problemas en los angulos y aristas donde porque ahi sacara la bulk current en Hx!!!! 19/2/14
+                     !!!!!!!!!!!!esto dara problemas en los angulos y aristas donde porque ahi sacara la Bloque current en Hx!!!! 19/2/14
 
                      !!!!!!!!fin sondas corriente
                   end select
@@ -3857,45 +3857,45 @@ contains
                   endif
                   call flush(unidad)
                   !
-                case (iBulkMx,iBulkMz,iBulkMy,iBulkJx,iBulkJz,iBulkJy)
+                case (iBloqueMx,iBloqueMz,iBloqueMy,iBloqueJx,iBloqueJz,iBloqueJy)
 #ifdef CompileWithMPI
-                  if ((field==iBulkMx).or.(field==iBulkMy).or.(field==iBulkJx).or.(field==iBulkJy)) then
+                  if ((field==iBloqueMx).or.(field==iBloqueMy).or.(field==iBloqueJx).or.(field==iBloqueJy)) then
                      if (output(ii)%item(i)%MPISubComm /= -1) then !solo si alguien tiene que hacerlo
                         valores(0 : BuffObse)=output(ii)%item(i)%valor(0 : BuffObse)
-                        call MPIupdateBulks(layoutnumber,valores,newvalores, &
+                        call MPIupdateBloques(layoutnumber,valores,newvalores, &
                         output(ii)%item(i)%MPISubComm)
                         output(ii)%item(i)%valor(0 : BuffObse)=newvalores(0 : BuffObse)
                      endif
                   endif
 
                   if ((layoutnumber == output(ii)%item(i)%MPIRoot).or. &
-                  (field==iBulkJz).or.(field==iBulkMz)) then !only the master
+                  (field==iBloqueJz).or.(field==iBloqueMz)) then !only the master
 #endif
                   !                    nInit=max(nint(0.4999999+sgg%OBSERVATION(ii)%InitialTime/sgg%dt),nInit)
                   DO N=nInit,FinalInstant
                      if (mod(n,output(ii)%Trancos)==0) then  !save only for the requested data
                         select case(field)
-                         case (iBulkMx,iBulkMz,iBulkMy)
+                         case (iBloqueMx,iBloqueMz,iBloqueMy)
                            at=sgg%tiempo(N)+sgg%dt/2.0_RKIND_tiempo
-                         case (iBulkJx,iBulkJz,iBulkJy)
+                         case (iBloqueJx,iBloqueJz,iBloqueJy)
                            at=sgg%tiempo(N)
                         end select
                         if ( ((at >= sgg%OBSERVATION(ii)%InitialTime).and.(at <= sgg%OBSERVATION(ii)%FinalTime+sgg%dt/2.0_RKIND)).or. &
                         output(ii)%saveall) then
                         select case(field)
-                         case (iBulkMx,iBulkMz,iBulkMy)
+                         case (iBloqueMx,iBloqueMz,iBloqueMy)
 #ifdef CompileWithReal16
                            WRITE (output(ii)%item(i)%unit,*) at-sgg%dt/2.0_RKIND_tiempo, output(ii)%item(i)%valor(n-nInit) !SOLO A EFECTOS DE SALIDA EN FICHERO CHAPUZ SGG MAIL OLD 070916 Ç
-                         case (iBulkJx,iBulkJz,iBulkJy)
+                         case (iBloqueJx,iBloqueJz,iBloqueJy)
                            WRITE (output(ii)%item(i)%unit,*) at, output(ii)%item(i)%valor(n-nInit)
 #else
 #ifdef CompileWithmMiguelStandaloneObservation
                            WRITE (output(ii)%item(i)%unit,*) at-sgg%dt/2.0_RKIND_tiempo, output(ii)%item(i)%valor(n-nInit) !SOLO A EFECTOS DE SALIDA EN FICHERO CHAPUZ SGG MAIL OLD 070916 Ç
-                         case (iBulkJx,iBulkJz,iBulkJy)
+                         case (iBloqueJx,iBloqueJz,iBloqueJy)
                            WRITE (output(ii)%item(i)%unit,*) at, output(ii)%item(i)%valor(n-nInit)
 #else
                            WRITE (output(ii)%item(i)%unit,fmt) at-sgg%dt/2.0_RKIND_tiempo, output(ii)%item(i)%valor(n-nInit) !SOLO A EFECTOS DE SALIDA EN FICHERO CHAPUZ SGG MAIL OLD 070916 Ç
-                         case (iBulkJx,iBulkJz,iBulkJy)
+                         case (iBloqueJx,iBloqueJz,iBloqueJy)
                            WRITE (output(ii)%item(i)%unit,fmt) at, output(ii)%item(i)%valor(n-nInit)
 #endif
 #endif
@@ -4039,7 +4039,7 @@ contains
                   output(ii)%item(i)%valor2(0:BuffObse)=0.0_RKIND
                   output(ii)%item(i)%valor3(0:BuffObse)=0.0_RKIND
                   output(ii)%item(i)%valor5(0:BuffObse)=0.0_RKIND
-                case (iBulkMx,iBulkMz,iBulkMy,iBulkJx,iBulkJz,iBulkJy,iEx,iEy,iEz,iHx,iHy,iHz)
+                case (iBloqueMx,iBloqueMz,iBloqueMy,iBloqueJx,iBloqueJz,iBloqueJy,iEx,iEy,iEz,iHx,iHy,iHz)
                   output(ii)%item(i)%valor(0:BuffObse)=0.0_RKIND
                end select
             endif
@@ -4081,7 +4081,7 @@ contains
                deallocate (output(ii)%item(i)%valor)
                deallocate (output(ii)%item(i)%valor2,output(ii)%item(i)%valor3,output(ii)%item(i)%valor5)  !en caso de hilos se necesitan
 #endif
-             case (iBulkJx,iBulkJy,iBulkMx,iBulkMy)
+             case (iBloqueJx,iBloqueJy,iBloqueMx,iBloqueMy)
                deallocate (output(ii)%item(i)%valor)
 #ifdef CompileWithMPI
                if (output(ii)%item(i)%MPISubComm /= -1) then
@@ -4102,15 +4102,15 @@ contains
                   call MPI_Group_free(output(ii)%item(i)%MPIgroupindex,ierr)
                endif
 #endif
-               if (SGG%Observation(ii)%TimeDomain) deallocate (output(ii)%item(i)%serialized%valor)
-               if (SGG%Observation(ii)%FreqDomain) deallocate (output(ii)%item(i)%serialized%valorComplex)
-               deallocate (output(ii)%item(i)%serialized%eI)
-               deallocate (output(ii)%item(i)%serialized%eJ)
-               deallocate (output(ii)%item(i)%serialized%eK)
-               deallocate (output(ii)%item(i)%serialized%currentType)
-               deallocate (output(ii)%item(i)%serialized%sggMtag)
+               if (SGG%Observation(ii)%TimeDomain) deallocate (output(ii)%item(i)%Serialized%valor)
+               if (SGG%Observation(ii)%FreqDomain) deallocate (output(ii)%item(i)%Serialized%valorComplex)
+               deallocate (output(ii)%item(i)%Serialized%eI)
+               deallocate (output(ii)%item(i)%Serialized%eJ)
+               deallocate (output(ii)%item(i)%Serialized%eK)
+               deallocate (output(ii)%item(i)%Serialized%currentType)
+               deallocate (output(ii)%item(i)%Serialized%sggMtag)
 
-             case (iBulkMz,iBulkJz,iEx,iEy,iEz,iHx,iHy,iHz)
+             case (iBloqueMz,iBloqueJz,iEx,iEy,iEz,iHx,iHy,iHz)
                deallocate (output(ii)%item(i)%valor)
 #ifdef CompileWithNF2FF
              case (farfield)
@@ -4159,17 +4159,17 @@ contains
          ext='Hy_'
        case (iHz)
          ext='Hz_'
-       case (iBulkJx)
+       case (iBloqueJx)
          ext='Jx_'
-       case (iBulkJy)
+       case (iBloqueJy)
          ext='Jy_'
-       case (iBulkJz)
+       case (iBloqueJz)
          ext='Jz_'
-       case (iBulkMx)
+       case (iBloqueMx)
          ext='Mx_'
-       case (iBulkMy)
+       case (iBloqueMy)
          ext='My_'
-       case (iBulkMz)
+       case (iBloqueMz)
          ext='Mz_'
        case (iJx)
          ext='Wx_'
@@ -4240,17 +4240,17 @@ contains
       select case(field)
        case(iEx,iEy,iEz,iHx,iHy,iHz)
          fieldo2=field
-       case (iJx,iVx,ibulkJx,iExC)
+       case (iJx,iVx,iBloqueJx,iExC)
          fieldo2=iEx
-       case (iJy,iVy,ibulkJy,iEyC)
+       case (iJy,iVy,iBloqueJy,iEyC)
          fieldo2=iEy
-       case (iJz,iVz,ibulkJz,iEzC)
+       case (iJz,iVz,iBloqueJz,iEzC)
          fieldo2=iEz
-       case (ibulkMx,iHxC)
+       case (iBloqueMx,iHxC)
          fieldo2=iHx
-       case (ibulkMy,iHyC)
+       case (iBloqueMy,iHyC)
          fieldo2=iHy
-       case (ibulkMz,iHzC)
+       case (iBloqueMz,iHzC)
          fieldo2=iHz
        case(iMEC)
          select case (dir)
@@ -4659,7 +4659,7 @@ contains
                            output(ii)%item(i)%Serialized%eI(conta)=ni
                            output(ii)%item(i)%Serialized%eJ(conta)=nj
                            output(ii)%item(i)%Serialized%eK(conta)=nk
-                           output(ii)%item(i)%Serialized%currentType(conta)=iBulkJx
+                           output(ii)%item(i)%Serialized%currentType(conta)=iBloqueJx
                            output(ii)%item(i)%Serialized%sggMtag(conta)=iabs(sggMtag(ni,nj,nk))
                         endif
                         if (asigna) output( ii)%item( i)%Serialized%valor(Ntimeforvolumic,conta) = 9.0
@@ -4683,7 +4683,7 @@ contains
                            output(ii)%item(i)%Serialized%eI(conta)=ni
                            output(ii)%item(i)%Serialized%eJ(conta)=nj
                            output(ii)%item(i)%Serialized%eK(conta)=nk
-                           output(ii)%item(i)%Serialized%currentType(conta)=iBulkJx
+                           output(ii)%item(i)%Serialized%currentType(conta)=iBloqueJx
                            output(ii)%item(i)%Serialized%sggMtag(conta)=iabs(sggMtag(ni,nj,nk))
                         endif
                         if (asigna) output( ii)%item( i)%Serialized%valor(Ntimeforvolumic,conta) = 9.0
@@ -4708,7 +4708,7 @@ contains
                            output(ii)%item(i)%Serialized%eI(conta)=ni
                            output(ii)%item(i)%Serialized%eJ(conta)=nj
                            output(ii)%item(i)%Serialized%eK(conta)=nk
-                           output(ii)%item(i)%Serialized%currentType(conta)=iBulkJy
+                           output(ii)%item(i)%Serialized%currentType(conta)=iBloqueJy
                            output(ii)%item(i)%Serialized%sggMtag(conta)=iabs(sggMtag(ni,nj,nk))
                         endif
                         if (asigna) output( ii)%item( i)%Serialized%valor(Ntimeforvolumic,conta) = 9.0
@@ -4732,7 +4732,7 @@ contains
                            output(ii)%item(i)%Serialized%eI(conta)=ni
                            output(ii)%item(i)%Serialized%eJ(conta)=nj
                            output(ii)%item(i)%Serialized%eK(conta)=nk
-                           output(ii)%item(i)%Serialized%currentType(conta)=iBulkJy
+                           output(ii)%item(i)%Serialized%currentType(conta)=iBloqueJy
                            output(ii)%item(i)%Serialized%sggMtag(conta)=iabs(sggMtag(ni,nj,nk))
                         endif
                         if (asigna) output( ii)%item( i)%Serialized%valor(Ntimeforvolumic,conta) = 9.0
@@ -4756,7 +4756,7 @@ contains
                            output(ii)%item(i)%Serialized%eI(conta)=ni
                            output(ii)%item(i)%Serialized%eJ(conta)=nj
                            output(ii)%item(i)%Serialized%eK(conta)=nk
-                           output(ii)%item(i)%Serialized%currentType(conta)=iBulkJz
+                           output(ii)%item(i)%Serialized%currentType(conta)=iBloqueJz
                            output(ii)%item(i)%Serialized%sggMtag(conta)=iabs(sggMtag(ni,nj,nk))
                         endif
                         if (asigna) output( ii)%item( i)%Serialized%valor(Ntimeforvolumic,conta) = 9.0
@@ -4780,7 +4780,7 @@ contains
                            output(ii)%item(i)%Serialized%eI(conta)=ni
                            output(ii)%item(i)%Serialized%eJ(conta)=nj
                            output(ii)%item(i)%Serialized%eK(conta)=nk
-                           output(ii)%item(i)%Serialized%currentType(conta)=iBulkJz
+                           output(ii)%item(i)%Serialized%currentType(conta)=iBloqueJz
                            output(ii)%item(i)%Serialized%sggMtag(conta)=iabs(sggMtag(ni,nj,nk))
                         endif
                         if (asigna) output( ii)%item( i)%Serialized%valor(Ntimeforvolumic,conta) = 9.0
@@ -4822,7 +4822,7 @@ contains
 #endif
 #ifdef CompileWithSlantedWires
       !
-      type(WiresData)  , pointer, save  ::  Hwireslocal_Guiffaut
+      type(WiresData)  , pointer, save  ::  Hwireslocal_Slanted
 #endif
 
 
@@ -4840,8 +4840,8 @@ contains
          endif
 #endif
 #ifdef CompileWithSlantedWires
-         if((trim(adjustl(wiresflavor))=='guiffaut').or.(trim(adjustl(wiresflavor))=='semistructured')) then
-            Hwireslocal_Guiffaut => GetHwires_Guiffaut()
+         if((trim(adjustl(wiresflavor))=='slanted').or.(trim(adjustl(wiresflavor))=='semistructured')) then
+            Hwireslocal_Slanted => GetHwires_Slanted()
          endif
 #endif
       endif
@@ -4874,8 +4874,8 @@ contains
          elseif (asigna) then
             do n=1,Hwireslocal_Berenger%NumSegments
                conta=conta+1
-               if ((Hwireslocal_Berenger%Segments(n)%IsEnl).or. &
-               (Hwireslocal_Berenger%Segments(n)%IsEnR)) then
+               if ((Hwireslocal_Berenger%Segments(n)%Is_LeftEnd).or. &
+               (Hwireslocal_Berenger%Segments(n)%Is_RightEnd)) then
                   output( ii)%item( i)%Serialized%valor(Ntimeforvolumic,conta) = 10
                else
                   output( ii)%item( i)%Serialized%valor(Ntimeforvolumic,conta) = 20 + Hwireslocal_Berenger%Segments(n)%imed-MINIMED
@@ -4916,14 +4916,14 @@ contains
          elseif (asigna) then
             do n=1,Hwireslocal%NumCurrentSegments
                conta=conta+1
-               if ((Hwireslocal%CurrentSegment(n)%IsEnl).or. &
-               (Hwireslocal%CurrentSegment(n)%IsEnR)) then
+               if ((Hwireslocal%CurrentSegment(n)%Is_LeftEnd).or. &
+               (Hwireslocal%CurrentSegment(n)%Is_RightEnd)) then
                   output( ii)%item( i)%Serialized%valor(Ntimeforvolumic,conta) = 10
-               elseif (Hwireslocal%CurrentSegment(n)%IsEndingnorLnorR) then
+               elseif (Hwireslocal%CurrentSegment(n)%IsEnd_norLeft_norRight) then
                   output( ii)%item( i)%Serialized%valor(Ntimeforvolumic,conta) = 11
                else
                   !  output( ii)%item( i)%Serialized%valor(Ntimeforvolumic,conta) = 20 + Hwireslocal%CurrentSegment(n)%indexmed-MINIMED
-                  output( ii)%item( i)%Serialized%valor(Ntimeforvolumic,conta) = 20 + Hwireslocal%CurrentSegment(n)%numparallel
+                  output( ii)%item( i)%Serialized%valor(Ntimeforvolumic,conta) = 20 + Hwireslocal%CurrentSegment(n)%NumParallel
                endif
             end do
          else
@@ -4934,17 +4934,17 @@ contains
       endif
 #endif
 #ifdef CompileWithSlantedWires
-      if ((trim(adjustl(wiresflavor))=='guiffaut').or.(trim(adjustl(wiresflavor))=='semistructured')) then
+      if ((trim(adjustl(wiresflavor))=='slanted').or.(trim(adjustl(wiresflavor))=='semistructured')) then
          !parsea los hilos
          if (geom) then
             MINIMED=2**12
-            do n=1,Hwireslocal_Guiffaut%NumSegmentsStr
+            do n=1,Hwireslocal_Slanted%NumSegmentsStr
                conta=conta+1
-               minimed=MIN(MINIMED, Hwireslocal_Guiffaut%SegmentsStr(n)%imeD)
-               ni=Hwireslocal_Guiffaut%SegmentsStr(n)%cell(iX)
-               nj=Hwireslocal_Guiffaut%SegmentsStr(n)%cell(iY)
-               nk=Hwireslocal_Guiffaut%SegmentsStr(n)%cell(iZ)
-               select case (Hwireslocal_Guiffaut%SegmentsStr(n)%orient)
+               minimed=MIN(MINIMED, Hwireslocal_Slanted%SegmentsStr(n)%imeD)
+               ni=Hwireslocal_Slanted%SegmentsStr(n)%cell(iX)
+               nj=Hwireslocal_Slanted%SegmentsStr(n)%cell(iY)
+               nk=Hwireslocal_Slanted%SegmentsStr(n)%cell(iZ)
+               select case (Hwireslocal_Slanted%SegmentsStr(n)%orient)
                 case (iEx)
                   output(ii)%item(i)%Serialized%currentType(conta)=iJx
                 case (iEy)
@@ -4959,17 +4959,17 @@ contains
             end do
 
          elseif (asigna) then
-            do n=1,Hwireslocal_Guiffaut%NumSegmentsStr
+            do n=1,Hwireslocal_Slanted%NumSegmentsStr
                conta=conta+1
-               if ((Hwireslocal_Guiffaut%SegmentsStr(n)%IsExt(iBeg)).or. &
-                   (Hwireslocal_Guiffaut%SegmentsStr(n)%IsExt(iEnd))) then
+               if ((Hwireslocal_Slanted%SegmentsStr(n)%IsExt(iBeg)).or. &
+                   (Hwireslocal_Slanted%SegmentsStr(n)%IsExt(iEnd))) then
                   output( ii)%item( i)%Serialized%valor(Ntimeforvolumic,conta) = 10
                else
-                  output( ii)%item( i)%Serialized%valor(Ntimeforvolumic,conta) = 20 + Hwireslocal_Guiffaut%SegmentsStr(n)%imed-MINIMED
+                  output( ii)%item( i)%Serialized%valor(Ntimeforvolumic,conta) = 20 + Hwireslocal_Slanted%SegmentsStr(n)%imed-MINIMED
                endif
             end do
          else
-            do n=1,Hwireslocal_Guiffaut%NumSegmentsStr
+            do n=1,Hwireslocal_Slanted%NumSegmentsStr
                conta=conta+1
             end do
          endif
@@ -5025,7 +5025,7 @@ contains
       fqval=0.0_RKIND
       
 #ifdef CompileWithOpenMP
-!$OMP  PARALLEL DO  DEFAULT(SHARED) private (i,j)
+!$OMP PARALLEL DO DEFAULT(SHARED) private (i,j)
 #endif
       do i=1, fqSize
          do j = 1, sigSize-1 !algun delta promedio habra que tomar permit scaling 211118
@@ -5035,11 +5035,11 @@ contains
          end do
       end do
 #ifdef CompileWithOpenMP
-!$OMP  END PARALLEL DO
+!$OMP END PARALLEL DO
 #endif
 
 #ifdef CompileWithOpenMP
-!$OMP  PARALLEL DO  DEFAULT(SHARED) private (i,j)
+!$OMP PARALLEL DO DEFAULT(SHARED) private (i,j)
 #endif
       do i=1, fqSize
          j=sigSize  !algun delta promedio habra que tomar permit scaling 211118
@@ -5049,7 +5049,7 @@ contains
      
       end do
 #ifdef CompileWithOpenMP
-!$OMP  END PARALLEL DO
+!$OMP END PARALLEL DO
 #endif
 
 

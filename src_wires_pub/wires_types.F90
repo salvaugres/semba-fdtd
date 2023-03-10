@@ -38,7 +38,7 @@ module wiresHolland_constants
       type (CurrentSegments), pointer         ::  CurrentPlus_7,CurrentMinus_7  !neighbours in the plus and Minus direction
       type (CurrentSegments), pointer         ::  CurrentPlus_8,CurrentMinus_8  !neighbours in the plus and Minus direction
       type (CurrentSegments), pointer         ::  CurrentPlus_9,CurrentMinus_9  !neighbours in the plus and Minus direction
-      logical                                 ::  IsMur,IsPeriodic,IsAttachedtoVoltage,IsPEC,HasIsource,Exists,IsEnl,IsEnR,IsLossy
+      logical                                 ::  IsMur,IsPeriodic,IsAttachedtoVoltage,IsPEC,HasIsource,Exists,Is_LeftEnd,Is_RightEnd,IsLossy
       logical                                 ::  IsBackDownLeftMur,IsFrontUpRightMur
       logical                                         ::  proc !dama
       logical                                 ::  IsHeterogeneousJunction,IsInSingleRLCsegment   
@@ -72,8 +72,8 @@ module wiresHolland_constants
       REAL (KIND=RKIND_wires)                    ::  givenautoin, resist
       REAL (KIND=RKIND_wires)                    ::  givenautoin_devia, resist_devia
       type (ChargeNodes), pointer          ::  ChargePlus ,ChargeMinus !neighbours in the plus and Minus direction
-      logical                              ::  IsPMC,HasVsource,IsShielded,HasParallel_TR,HasParallel_TL,HasSerial_TR,HasSerial_TL,HasAbsorbing_TR,HasAbsorbing_TL
-      logical                              ::  IsEnl, IsEnR,IsEndingnorLnorR,proc,IsConformal
+      logical                              ::  IsPMC,HasVsource,IsShielded,HasParallel_RightEnd,HasParallel_LeftEnd,HasSeries_RightEnd,HasSeries_LeftEnd,HasAbsorbing_RightEnd,HasAbsorbing_LeftEnd
+      logical                              ::  Is_LeftEnd, Is_RightEnd,IsEnd_norLeft_norRight,proc,IsConformal
       REAL (KIND=RKIND_wires)                           ::  cte1,cte2,cte3,cte5,FractionPlus,FractionMinus
       REAL (KIND=RKIND_wires)                           ::  Current,qplus_qminus
       REAL (KIND=RKIND_wires)                           ::  CurrentPast !added just for right observation
@@ -145,7 +145,7 @@ module wiresHolland_constants
    end type ThinWires_t
    !
    type, public:: adyacc
-      logical  ::  Is, Parallel,IsHeterogeneousJunction,BothExtremesConnected
+      logical  ::  Is, Parallel,IsHeterogeneousJunction,BothEndingsConnected
       integer (kind=4)  ::  i,j,k
       integer (kind=4), dimension (1:2) :: YESsegment
    end type

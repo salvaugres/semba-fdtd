@@ -1,7 +1,9 @@
 cmake_minimum_required(VERSION 3.0)
 
+
 ENABLE_LANGUAGE(Fortran)
 project(semba-fdtd Fortran)
+
 
 function(add_sources dir srcs)
     set(curdir ${CMAKE_CURRENT_LIST_DIR}/${dir})
@@ -27,17 +29,30 @@ endfunction()
 message(STATUS ${CMAKE_Fortran_COMPILER_ID})
 
 message(STATUS "Adding source files...")
-add_sources(src_main_pub SRCS)
-add_sources(src_wires_pub SRCS)
+add_sources(. SRCS)
 message(STATUS ${SRCS})
 
 add_executable(semba-fdtd ${SRCS})
 
+# Set a default build type if none was specified
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+  message(STATUS "Setting build type to 'Release' as none was specified.")
+  set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build." FORCE)
+  # Set the possible values of build type for cmake-gui
+  set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release"
+    "MinSizeRel" "RelWithDebInfo")
+endif()
+
 if(CMAKE_Fortran_COMPILER_ID MATCHES "GNU")
 	message(STATUS "Gfortran found...")
-	set(CMAKE_Fortran_FLAGS "-ffree-form -ffree-line-length-0 -fdec")
+	set(CMAKE_Fortran_FLAGS "-ffree-form -ffree-line-length-0 -fdec -fcheck=bounds")
 else()
-	message(STATUS "Gfortran not found. Stopping.")
+	if(CMAKE_Fortran_COMPILER_ID MATCHES "^Intel")
+		message(STATUS "INTEL FORTRAN found...")
+		set(CMAKE_Fortran_FLAGS "-fpp -check all -debug full -traceback ")
+	else()
+		message(STATUS "Neither Intel nor Gfortran not found. Stopping.")
+	endif()
 endif()
 
 option (CompileWithHDF "Use HDF" ON)
@@ -66,11 +81,6 @@ if (CompileWithMPI)
 	add_compile_options (${MPI_Fortran_COMPILER_FLAGS})
 else()
 	message(STATUS "MPI libraries NOT needed.")
-endif()
-
-option(CompileWithOpenSEMBA "Use OpenSEMBA input files." OFF)
-if (CompileWithOpenSEMBA)
-	add_subdirectory(src_opensemba_parser)
 endif()
 
 add_definitions(		

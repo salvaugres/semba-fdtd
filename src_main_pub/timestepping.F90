@@ -74,9 +74,9 @@ module Solver
 
 #ifdef CompileWithSGBC
 #ifdef CompileWithStochastic
-   use maloney_stoch
+   use SGBC_stoch
 #else
-   use maloney_NOstoch
+   use SGBC_NOstoch
 #endif  
 #endif
 
@@ -97,7 +97,7 @@ module Solver
 #endif
 #endif
 #ifdef CompileWithSlantedWires
-   use WiresGuiffaut
+   use WiresSlanted
    use estructura_slanted_m
 #endif
 
@@ -123,7 +123,7 @@ contains
    connectendings,isolategroupgroups,dontsplitnodes,stableradholland,flushsecondsFields,mtlnberenger, &
    flushsecondsData,layoutnumber,size,createmap, &
    inductance_model, inductance_order, maxCPUtime,time_desdelanzamiento,nresumeable2,resume_fromold,  &
-   groundwires,noguiffautcrecepelo , SGBC,SGBCDispersive,mibc,attfactorc,attfactorw, &
+   groundwires,noSlantedcrecepelo , SGBC,SGBCDispersive,mibc,attfactorc,attfactorw, &
    alphamaxpar,alphaOrden,kappamaxpar,mur_second,murafterpml,MEDIOEXTRA, &
    singlefilewrite,maxSourceValue,NOcompomur,ADE,conformalskin,&
    strictOLD,TAPARRABOS,wiresflavor,mindistwires,facesNF2FF,NF2FFDecim,vtkindex,createh5bin,wirecrank,opcionestotales,SGBCFreq,SGBCresol,SGBCcrank,SGBCDepth,fatalerror,fieldtotl,finishedwithsuccess,permitscaling, &
@@ -192,7 +192,7 @@ contains
       type (bounds_t)  ::  b
 
       integer (kind=4), intent(inout)                     ::  finaltimestep
-      logical, intent(in)           ::  resume,saveall,makeholes,connectendings,isolategroupgroups,dontsplitnodes,createmap,groundwires,noguiffautcrecepelo, &
+      logical, intent(in)           ::  resume,saveall,makeholes,connectendings,isolategroupgroups,dontsplitnodes,createmap,groundwires,noSlantedcrecepelo, &
       SGBC,SGBCDispersive,mibc,ADE,conformalskin,NOcompomur,strictOLD,TAPARRABOS
       CHARACTER (LEN=1024), intent(in) :: opcionestotales
       logical, intent(inout)           ::  resume_fromold
@@ -574,7 +574,7 @@ contains
          call WarnErrReport(buff)
          write(buff,*) 'connectendings=',connectendings,', isolategroupgroups=',isolategroupgroups,', dontsplitnodes=',dontsplitnodes
          call WarnErrReport(buff)
-         write(buff,*) 'stableradholland=',stableradholland,'mtlnberenger=',mtlnberenger,' inductance_model=',inductance_model,', inductance_order=',inductance_order,', groundwires=',groundwires,' ,fieldtotl=',fieldtotl,' noguiffautcrecepelo =',noguiffautcrecepelo 
+         write(buff,*) 'stableradholland=',stableradholland,'mtlnberenger=',mtlnberenger,' inductance_model=',inductance_model,', inductance_order=',inductance_order,', groundwires=',groundwires,' ,fieldtotl=',fieldtotl,' noSlantedcrecepelo =',noSlantedcrecepelo 
          call WarnErrReport(buff)
          write(buff,*) 'SGBC=',SGBC,', mibc=',mibc,', attfactorc=',attfactorc,', attfactorw=',attfactorw
          call WarnErrReport(buff)
@@ -728,7 +728,7 @@ contains
       endif
 #endif
 #ifdef CompileWithSlantedWires
-      if((trim(adjustl(wiresflavor))=='guiffaut').or.(trim(adjustl(wiresflavor))=='semistructured')) then
+      if((trim(adjustl(wiresflavor))=='slanted').or.(trim(adjustl(wiresflavor))=='semistructured')) then
 
 #ifdef CompileWithMPI
          call MPI_Barrier(SUBCOMM_MPI,ierr)
@@ -743,13 +743,13 @@ contains
 !!!!             call estructura_slanted(sgg,precision)   
              continue
          endif
-         call InitWires_Guiffaut(sgg, layoutnumber,size, Ex, Ey, Ez,   & 
+         call InitWires_Slanted(sgg, layoutnumber,size, Ex, Ey, Ez,   & 
                                  Idxe, Idye, Idze, Idxh, Idyh, Idzh,   &
                                  sggMiNo,                              &
                                  sggMiEx, sggMiEy, sggMiEz,            &
                                  sggMiHx, sggMiHy, sggMiHz,            &
                                  Thereare%Wires, resume,               &
-                                 mindistwires, groundwires,noguiffautcrecepelo ,     &
+                                 mindistwires, groundwires,noSlantedcrecepelo ,     &
                                  inductance_model, inductance_order,   &
                                  g2, SINPML_fullsize, dtcritico,eps0,mu0,verbose)
          l_auxinput=thereare%Wires
@@ -760,9 +760,9 @@ contains
 #endif
          
          if (l_auxoutput ) then
-             write (dubuf,*) '----> there are Guiffaut wires';  call print11(layoutnumber,dubuf)
+             write (dubuf,*) '----> there are Slanted wires';  call print11(layoutnumber,dubuf)
          else
-              write(dubuf,*) '----> no Guiffaut wires found';  call print11(layoutnumber,dubuf)
+              write(dubuf,*) '----> no Slanted wires found';  call print11(layoutnumber,dubuf)
          endif
       endif
 #endif
@@ -1081,7 +1081,7 @@ contains
       endif
 #endif
 #ifdef CompileWithSlantedWires
-      if ((trim(adjustl(wiresflavor))=='guiffaut').or.(trim(adjustl(wiresflavor))=='semistructured')) then
+      if ((trim(adjustl(wiresflavor))=='slanted').or.(trim(adjustl(wiresflavor))=='semistructured')) then
          continue
       endif
 #endif
@@ -1312,10 +1312,10 @@ contains
          endif
 #endif
 #ifdef CompileWithSlantedWires
-         if((trim(adjustl(wiresflavor))=='guiffaut').or.(trim(adjustl(wiresflavor))=='semistructured')) then
-            !!!! IF (Thereare%Wires) call AdvanceWiresE_Guiffaut(sgg,n) !aniadido thereare%wires 141118 (no estaba pero funcionaba antes)!
+         if((trim(adjustl(wiresflavor))=='slanted').or.(trim(adjustl(wiresflavor))=='semistructured')) then
+            !!!! IF (Thereare%Wires) call AdvanceWiresE_Slanted(sgg,n) !aniadido thereare%wires 141118 (no estaba pero funcionaba antes)!
             !quitado thereare%wires 220711 porque si no se atranca el mpi que lo llaman TODOS dentro!
-            call AdvanceWiresE_Guiffaut(sgg,n) 
+            call AdvanceWiresE_Slanted(sgg,n) 
          endif
 #endif
          If (Thereare%PMLbodies) then !waveport absorbers
@@ -1582,7 +1582,7 @@ contains
 #ifdef CompileWithMPI
          !!Flush all the MPI (esto estaba justo al principo del bucle temporal diciendo que era necesario para correcto resuming)
          !lo he movido aqui a 16/10/2012 porque el farfield necesita tener los campos magneticos correctos
-         !e intuyo que el bulk current tambien a tenor del comentario siguiente
+         !e intuyo que el Bloque current tambien a tenor del comentario siguiente
          !Incluyo un flush inicial antes de entrar al bucle para que el resuming sea correcto
          if (size>1) then
             call MPI_Barrier(SUBCOMM_MPI,ierr)
@@ -1642,9 +1642,9 @@ contains
 #endif
          ENDIF
 
-         !Update observation matrices !MUST GO AFTER THE MPI EXCHANGING INFO, SINCE BULK CURRENTS NEED UPDATED INFO
+         !Update observation matrices !MUST GO AFTER THE MPI EXCHANGING INFO, SINCE Bloque CURRENTS NEED UPDATED INFO
          IF (Thereare%Observation) then
-            !se le pasan los incrementos autenticos (bug que podia aparecer en NF2FF y bulk currents 17/10/12)
+            !se le pasan los incrementos autenticos (bug que podia aparecer en NF2FF y Bloque currents 17/10/12)
             call UpdateObservation(sgg,sggMiEx,sggMiEy,sggMiEz,sggMiHx,sggMiHy,sggMiHz,sggMtag, n,ini_save, b, Ex, Ey, Ez, Hx, Hy, Hz, dxe, dye, dze, dxh, dyh, dzh,wiresflavor,SINPML_FULLSIZE,wirecrank, &
                                    Exvac, Eyvac, Ezvac, Hxvac, Hyvac, Hzvac,Excor, Eycor, Ezcor, Hxcor, Hycor, Hzcor,planewavecorr)
             if (n>=ini_save+BuffObse)  then
@@ -3105,8 +3105,8 @@ contains
       endif
 #endif
 #ifdef CompileWithSlantedWires
-      if((trim(adjustl(wiresflavor))=='guiffaut').or.(trim(adjustl(wiresflavor))=='semistructured')) then
-         call DestroyWires_Guiffaut(sgg)
+      if((trim(adjustl(wiresflavor))=='slanted').or.(trim(adjustl(wiresflavor))=='semistructured')) then
+         call DestroyWires_Slanted(sgg)
       endif
 #endif      
 

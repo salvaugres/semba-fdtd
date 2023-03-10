@@ -67,7 +67,7 @@ module MPIcomm
 
 
    public FlushMPI_E,FlushMPI_H,InitMPI,MPIupdateMin, InitGeneralMPI,MPIdivide
-   public MPIupdateBulks, MPIinitSubcomm
+   public MPIupdateBloques, MPIinitSubcomm
 #ifdef CompileWithWires
    !public InitWiresMPI
    public newInitWiresMPI,NewFlushWiresMPI
@@ -405,10 +405,10 @@ contains
    end subroutine
 
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-   ! Sync the bulk current data
+   ! Sync the Bloque current data
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-   subroutine MPIupdateBulks(layoutnumber,valores,newvalores,SubComm)
+   subroutine MPIupdateBloques(layoutnumber,valores,newvalores,SubComm)
       integer (kind=4)  ::  ierr,sizeofvalores,SubComm
       real (kind=RKIND), intent(in), dimension( 0:BuffObse )  ::  valores
       real (kind=RKIND), intent(out), dimension( 0:BuffObse )  ::  newvalores
@@ -422,7 +422,7 @@ contains
    end subroutine
 
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-   ! Init the sync the bulk current data
+   ! Init the sync the Bloque current data
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
    subroutine MPIinitSubcomm(layoutnumber,size,SubComm,Root,group1)
@@ -437,7 +437,7 @@ contains
       !print *,'---layoutnumber, subcomm',layoutnumber,subcomm
       if (Subcomm == 1) allranks(layoutnumber)=.true.
       call MPI_AllReduce(allranks, newallranks, size, MPI_LOGICAL, MPI_LOR, SUBCOMM_MPI, ierr)
-      !choose the maximum layer to be root !ojo no poenr el minimo pq es -1 (voided de entrada)
+      !choose the maximum layer to be root !ojo no poner el minimo pq es -1 (voided de entrada)
       call MPI_AllReduce(Root, newRoot, 1_4, MPI_INTEGER, MPI_MAX, SUBCOMM_MPI, ierr)
       Root=newRoot
       count=-1

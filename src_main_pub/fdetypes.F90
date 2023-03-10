@@ -184,11 +184,11 @@ module  FDETYPES
    !
    integer (kind=4),  parameter  :: iMEC=51 !modulus, tangential, normal fields in cuts for Volumic probes
    integer (kind=4),  parameter  :: iMHC=52
-   integer (kind=4),  parameter  :: iCur=53 !bulk currents along edges in thin wires, pec and surface edges
-   integer (kind=4),  parameter  :: iCurX=54 !bulk currents along edges in surface with normal X
-   integer (kind=4),  parameter  :: iCurY=55 !bulk currents along edges in surface with normal Y
-   integer (kind=4),  parameter  :: iCurZ=56 !bulk currents along edges in surface with normal Z
-   integer (kind=4),  parameter  :: mapvtk=57 !bulk currents along edges in surface with normal Z
+   integer (kind=4),  parameter  :: iCur=53 !Bloque currents along edges in thin wires, pec and surface edges
+   integer (kind=4),  parameter  :: iCurX=54 !Bloque currents along edges in surface with normal X
+   integer (kind=4),  parameter  :: iCurY=55 !Bloque currents along edges in surface with normal Y
+   integer (kind=4),  parameter  :: iCurZ=56 !Bloque currents along edges in surface with normal Z
+   integer (kind=4),  parameter  :: mapvtk=57 !Bloque currents along edges in surface with normal Z
    integer (kind=4),  parameter  :: iExC=61 !components in cuts for Volumic probes
    integer (kind=4),  parameter  :: iEyC=62
    integer (kind=4),  parameter  :: iEzC=63
@@ -199,8 +199,8 @@ module  FDETYPES
    ! do not change
    integer (kind=4),  parameter  ::  iJx=10*iEx,iJy=10*iEy,iJz=10*iEz
    integer (kind=4),  parameter  ::  iVx=1000*iEx,iVy=1000*iEy,iVz=1000*iEz
-   integer (kind=4),  parameter  ::  ibulkJx=100*iEx,ibulkJy=100*iEy,ibulkJz=100*iEz
-   integer (kind=4),  parameter  ::  ibulkMx=100*iHx,ibulkMy=100*iHy,ibulkMz=100*iHz
+   integer (kind=4),  parameter  ::  iBloqueJx=100*iEx,iBloqueJy=100*iEy,iBloqueJz=100*iEz
+   integer (kind=4),  parameter  ::  iBloqueMx=100*iHx,iBloqueMy=100*iHy,iBloqueMz=100*iHz
    !
    CHARACTER (LEN=*), PARAMETER  ::  SEPARADOR='______________'
    integer (kind=4), PARAMETER  ::  comi=1,fine=2, icoord=1,jcoord=2,kcoord=3
@@ -352,7 +352,7 @@ module  FDETYPES
    type  ::  oriented_point
       integer (kind=4)  :: ori
       integer (kind=4)  ::  i,j,k,origIndex,ilibre,jlibre,klibre,multiraboDE !si es multirabo de que indice lo es
-      logical :: isEnL,isEnR,IsEndingnorLnorR
+      logical :: Is_LeftEnd,Is_RightEnd,IsEnd_norLeft_norRight
       logical :: repetido,multirabo !marca segmentos que aparecen repetidos en un mismo thin wire!los bundles deberan estar thin-wires distintos
       logical :: orientadoalreves
    end type oriented_point
@@ -366,23 +366,23 @@ module  FDETYPES
       type (source), pointer, dimension( : )  ::  Vsource
       type (source), pointer, dimension( : )  ::  Isource
       logical  ::  VsourceExists ,IsourceExists
-      logical  ::  HasParallel_TL ,HasParallel_TR ,HasSerial_TL ,HasSerial_TR,HasAbsorbing_TL,HasAbsorbing_TR
-      REAL (KIND=RKIND_wires)   ::  ParallelR_TR,ParallelR_TL
-      REAL (KIND=RKIND_wires)   ::  SerialR_TR,SerialR_TL
-      REAL (KIND=RKIND_wires)   ::  ParallelI_TR,ParallelI_TL
-      REAL (KIND=RKIND_wires)   ::  SerialI_TR,SerialI_TL
-      REAL (KIND=RKIND_wires)   ::  ParallelC_TR,ParallelC_TL
-      REAL (KIND=RKIND_wires)   ::  SerialC_TR,SerialC_TL
+      logical  ::  HasParallel_LeftEnd ,HasParallel_RightEnd ,HasSeries_LeftEnd ,HasSeries_RightEnd,HasAbsorbing_LeftEnd,HasAbsorbing_RightEnd
+      REAL (KIND=RKIND_wires)   ::  Parallel_R_RightEnd,Parallel_R_LeftEnd
+      REAL (KIND=RKIND_wires)   ::  Series_R_RightEnd,Series_R_LeftEnd
+      REAL (KIND=RKIND_wires)   ::  Parallel_L_RightEnd,Parallel_L_LeftEnd
+      REAL (KIND=RKIND_wires)   ::  Series_L_RightEnd,Series_L_LeftEnd
+      REAL (KIND=RKIND_wires)   ::  Parallel_C_RightEnd,Parallel_C_LeftEnd
+      REAL (KIND=RKIND_wires)   ::  Series_C_RightEnd,Series_C_LeftEnd
 !
-      REAL (KIND=RKIND_wires)   ::  ParallelR_TR_devia ,ParallelR_TL_devia
-      REAL (KIND=RKIND_wires)   ::    SerialR_TR_devia ,  SerialR_TL_devia
-      REAL (KIND=RKIND_wires)   ::  ParallelI_TR_devia ,ParallelI_TL_devia
-      REAL (KIND=RKIND_wires)   ::    SerialI_TR_devia ,  SerialI_TL_devia
-      REAL (KIND=RKIND_wires)   ::  ParallelC_TR_devia ,ParallelC_TL_devia
-      REAL (KIND=RKIND_wires)   ::    SerialC_TR_devia ,  SerialC_TL_devia
-      type (WireDispersiveParams_t), allocatable, dimension(:) :: disp_TL, disp_TR
+      REAL (KIND=RKIND_wires)   ::  Parallel_R_RightEnd_devia ,Parallel_R_LeftEnd_devia
+      REAL (KIND=RKIND_wires)   ::    Series_R_RightEnd_devia ,  Series_R_LeftEnd_devia
+      REAL (KIND=RKIND_wires)   ::  Parallel_L_RightEnd_devia ,Parallel_L_LeftEnd_devia
+      REAL (KIND=RKIND_wires)   ::    Series_L_RightEnd_devia ,  Series_L_LeftEnd_devia
+      REAL (KIND=RKIND_wires)   ::  Parallel_C_RightEnd_devia ,Parallel_C_LeftEnd_devia
+      REAL (KIND=RKIND_wires)   ::    Series_C_RightEnd_devia ,  Series_C_LeftEnd_devia
+      type (WireDispersiveParams_t), allocatable, dimension(:) :: disp_LeftEnd, disp_RightEnd
       ! integer (kind=4)  ::  LextremoI,LextremoJ,LextremoK,RextremoI,RextremoJ,RextremoK !no ncesario: yo luego calculo bien los extremos
-      integer (kind=4)  ::  enL,enR
+      integer (kind=4)  ::  LeftEnd,RightEnd
    end type Wires_t
    
    type  :: SlantedNode_t
@@ -395,18 +395,18 @@ module  FDETYPES
    type  :: SlantedWires_t
       REAL (KIND=RKIND_wires) :: radius,R,L,C,P_R,P_L,P_C
       type (WireDispersiveParams_t), allocatable, dimension(:) :: disp
-      integer (kind=4)  :: EnL, EnR
+      integer (kind=4)  :: LeftEnd, RightEnd
       integer (kind=4)  :: NumNodes
       type (SlantedNode_t), pointer, dimension(:)  :: nodes
-      logical           :: HasParallel_TL
-      REAL (KIND=RKIND_wires) :: ParallelR_TL, ParallelI_TL, ParallelC_TL
-      logical           :: HasParallel_TR
-      REAL (KIND=RKIND_wires) :: ParallelR_TR, ParallelI_TR, ParallelC_TR
-      logical           :: HasSerial_TL
-      REAL (KIND=RKIND_wires) :: SerialR_TL, SerialI_TL, SerialC_TL
-      logical           :: HasSerial_TR
-      REAL (KIND=RKIND_wires) :: SerialR_TR, SerialI_TR, SerialC_TR
-      type (WireDispersiveParams_t), allocatable, dimension(:) :: disp_TL, disp_TR
+      logical           :: HasParallel_LeftEnd
+      REAL (KIND=RKIND_wires) :: Parallel_R_LeftEnd, Parallel_L_LeftEnd, Parallel_C_LeftEnd
+      logical           :: HasParallel_RightEnd
+      REAL (KIND=RKIND_wires) :: Parallel_R_RightEnd, Parallel_L_RightEnd, Parallel_C_RightEnd
+      logical           :: HasSeries_LeftEnd
+      REAL (KIND=RKIND_wires) :: Series_R_LeftEnd, Series_L_LeftEnd, Series_C_LeftEnd
+      logical           :: HasSeries_RightEnd
+      REAL (KIND=RKIND_wires) :: Series_R_RightEnd, Series_L_RightEnd, Series_C_RightEnd
+      type (WireDispersiveParams_t), allocatable, dimension(:) :: disp_LeftEnd, disp_RightEnd
    end type SlantedWires_t
    !
    TYPE  ::  Lumped_t
