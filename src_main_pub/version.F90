@@ -1,9 +1,9 @@
 module  version 
 character (128), parameter :: compdate= &  
-' Wed Mar 8 15:31:06 2023 +0100' // & 
+' Sun Mar 12 22:40:57 2023 +0000' // & 
 ' '  
 character(128), parameter :: dataversion= & 
-'SEMBA-FDTD Version 39c1e19 ' // &  
+'SEMBA-FDTD Version 881c73b ' // &  
 'Commit on ' // & 
 trim(adjustl(compdate))  
 end module version 
