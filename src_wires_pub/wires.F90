@@ -1287,7 +1287,6 @@ contains
                         ! default
                         HWires%CurrentSegment(conta)%field_wire2main => Ex(i1,j1,k1) 
                         HWires%CurrentSegment(conta)%field_main2wire => Ex(i1,j1,k1) 
-                        sggmiE = sggmiEx(i1,j1,k1); call deembed_peclossyconformal_segments(sggmiE); sggmiEx(i1,j1,k1)= sggmiE !por si se ha modificado !ojo agresivo 180220
                         !
                         HWires%CurrentSegment(conta)%delta=1.0_RKIND_wires / Idxe(i1)    !ojo esto de los delta habra que corregirlo  para uniones
                         HWires%CurrentSegment(conta)%deltaTransv1=1.0_RKIND_wires / Idyh(j1)
@@ -1302,13 +1301,13 @@ contains
                         !dama
                         HWires%CurrentSegment(conta)%ie     = i1+1
                         HWires%CurrentSegment(conta)%x      = j1+0.25_RKIND_wires
-                        HWires%CurrentSegment(conta)%y      = k1+0.25_RKIND_wires
+                        HWires%CurrentSegment(conta)%y      = k1+0.25_RKIND_wires 
+                        sggmiE = sggmiEx(i1,j1,k1); call deembed_peclossyconformal_segments(sggmiE); sggmiEx(i1,j1,k1)= sggmiE !por si se ha modificado !ojo agresivo 180220 !ojo cambiado aqui 170323 de sitio pq no se habian puesto los deltatrans y salia division por cero
                         !fin dama
                       case (iEy)
                         ! default
                         HWires%CurrentSegment(conta)%field_wire2main => Ey(i1,j1,k1) 
                         HWires%CurrentSegment(conta)%field_main2wire => Ey(i1,j1,k1) 
-                        sggmiE = sggmiEy(i1,j1,k1); call deembed_peclossyconformal_segments(sggmiE); sggmiEy(i1,j1,k1)= sggmiE !por si se ha modificado !ojo agresivo 180220
                         !
                         HWires%CurrentSegment(conta)%delta=1.0_RKIND_wires / Idye(j1)
                         if (k1 <= sgg%ALLOC(iEz)%ZE) then !esta corriente en el limite de los alloc nunca se precisa
@@ -1324,12 +1323,12 @@ contains
                         HWires%CurrentSegment(conta)%je     = j1+1
                         HWires%CurrentSegment(conta)%x      = k1+0.25_RKIND_wires
                         HWires%CurrentSegment(conta)%y      = i1+0.25_RKIND_wires
+                        sggmiE = sggmiEy(i1,j1,k1); call deembed_peclossyconformal_segments(sggmiE); sggmiEy(i1,j1,k1)= sggmiE !por si se ha modificado !ojo agresivo 180220 !ojo cambiado aqui 170323 de sitio pq no se habian puesto los deltatrans y salia division por cero
                         !fin dama
                       case (iEz)
                         ! default
                         HWires%CurrentSegment(conta)%field_wire2main => Ez(i1,j1,k1) 
                         HWires%CurrentSegment(conta)%field_main2wire => Ez(i1,j1,k1) 
-                        sggmiE = sggmiEz(i1,j1,k1); call deembed_peclossyconformal_segments(sggmiE); sggmiEz(i1,j1,k1)= sggmiE !por si se ha modificado !ojo agresivo 180220
                         !
                         HWires%CurrentSegment(conta)%delta=1.0_RKIND_wires / Idze(k1)
                         HWires%CurrentSegment(conta)%deltaTransv1=1.0_RKIND_wires / Idxh(i1)
@@ -1338,6 +1337,7 @@ contains
                         HWires%CurrentSegment(conta)%ke     = k1+1
                         HWires%CurrentSegment(conta)%x      = i1+0.25_RKIND_wires
                         HWires%CurrentSegment(conta)%y      = j1+0.25_RKIND_wires
+                        sggmiE = sggmiEz(i1,j1,k1); call deembed_peclossyconformal_segments(sggmiE); sggmiEz(i1,j1,k1)= sggmiE !por si se ha modificado !ojo agresivo 180220 !ojo cambiado aqui 170323 de sitio pq no se habian puesto los deltatrans y salia division por cero
                         !fin dama
                      end select
                   endif

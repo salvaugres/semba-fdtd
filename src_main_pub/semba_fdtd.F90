@@ -1866,6 +1866,7 @@ contains
             CALL getcommandargument (chaininput, i, f, length,  statuse)
             opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain)) // ' ' // trim (adjustl(f))
             READ (f, '(a)', ERR=3621) wiresflavor
+            if (trim(adjustl(wiresflavor(1:1)))=='g') wiresflavor='slanted' 
             select case (trim(adjustl(wiresflavor)))
             case ('holland','old')
                 wiresflavor='holland'
