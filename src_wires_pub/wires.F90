@@ -283,8 +283,6 @@ contains
          !!!
 
 
-
-
       ThereAreWires=.FALSE.
 
       !detect thin wires :  same radius implies same medium independently of its orientation
@@ -304,6 +302,16 @@ contains
          endif
       end do
 
+!!!chequeo previo 210323 para que no haya conectores dispersivos
+         
+      do iwi=1,HWires%NumDifferentWires
+            if (allocated(sgg%Med(HWires%WireTipoMedio(iwi))%wire(1)%disp)) then
+                write (buff,'(a)')  'Dispersive connectors unsupported in Holland wires'
+                call WarnErrReport(buff,.true.)
+            endif
+      end do
+
+      
       do iwi=1,HWires%NumDifferentWires
          do iwj=1,sgg%Med(HWires%WireTipoMedio(iwi))%wire(1)%numsegmentos
             sgg%Med(HWires%WireTipoMedio(iwi))%wire(1)%segm(iwj)%multirabo=.false.
