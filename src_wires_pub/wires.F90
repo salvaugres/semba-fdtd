@@ -3728,7 +3728,7 @@ contains
    contains
  
    
- !!!!!!!!!  
+ !!!!!!!!!
    
    subroutine deembed_peclossyconformal_segments(sggmiE)
     
@@ -4032,7 +4032,8 @@ end subroutine deembed_segment
    integer :: ib,jb,kb,tipofieldb
    integer :: io,jo,ko,tipofieldo
    type (CurrentSegments), pointer  ::  dummy
-    
+   embed=.true.; return !!!!ojoooo sgg tocado a mano para ver bug conformal 220323 
+   
     embed=.false.
     if (associated(nodo%CurrentMinus_1))  then
         dummy => nodo%CurrentMinus_1
