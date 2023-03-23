@@ -5193,7 +5193,7 @@ subroutine resume_casuistics
 
          endif !del nodo%exists !voideo algunos cuando spliteo
       end do
-
+!!!no toco lo que esta comentado a 230323 para fuentes duras/blandas
       !!!las convierto en duras mas abajo. correos jag rayos junio'15
       !!!Transparent current source feeding in the charge nodes if necessary
       !!!if (.not.simu_devia) then              
@@ -5212,6 +5212,27 @@ subroutine resume_casuistics
       !!    end do
       !!!endif
       !!!endif
+      
+!aniado eso a 230323 para fuentes de corrientes duras blandas. Me inspiro en lo que esta comentado antes   
+      if (.not.simu_devia) then              
+          if (thereAreIsources) then
+              do n=1,HWires%NumChargeNodes
+                  if (HWires%ChargeNode(n)%exists) then
+                  If  (HWires%ChargeNode(n)%HasIsource) then
+                      Nodo => HWires%ChargeNode(n)
+                      Iincid=evolucion(timei-unmedio*sgg%dt,Nodo%Isource%Fichero%Samples, &
+                                        Nodo%Isource%Fichero%DeltaSamples,Nodo%Isource%Fichero%NumSamples)
+                      if (Nodo%Isource%soft) then
+                            Nodo%ChargePresent = Nodo%ChargePresent    +  Nodo%CtePlain     * Iincid
+                      else
+                          Qincid=iincid !es realmente una fuente de carga
+                          Nodo%ChargePresent =Qincid/ (Nodo%CurrentPlus_1%Lind * InvMu(Nodo%CurrentPlus_1%indexmed)*InvEps(Nodo%CurrentPlus_1%indexmed))
+                      endif
+                  endif
+                  endif
+              end do
+          endif
+      endif
 
       !Absorbing Mur boundary conditions if necessary in the charges
       if (thereAreMurConditions) then
@@ -5355,33 +5376,38 @@ subroutine resume_casuistics
                            print *,'error en experimentalVideal 200621'
                        endif
                    else !lo de siempre. aniado lo anterior para ver lo de las fuentes duras
-                       Segmento%Current = Segmento%Current + &
-                       Segmento%cte3 * Qincid  / (Segmento%Lind * InvMu(Segmento%indexmed)*InvEps(Segmento%indexmed))
-                       !I use the capacitance to find the incident charge
-                       !assuming that the evolution file contains a voltage, not a charge
+                       if (Segmento%Vsource%soft) then !fuentes blandas usuales 230323
+                           Segmento%Current = Segmento%Current + &
+                           Segmento%cte3 * Qincid  / (Segmento%Lind * InvMu(Segmento%indexmed)*InvEps(Segmento%indexmed))
+                           !I use the capacitance to find the incident charge
+                           !assuming that the evolution file contains a voltage, not a charge
+                       else !nuevas fuentes duras 230323
+                           Iincid=Qincid !realmente se trata de forzar la corriente 230323
+                           Segmento%Current =  Qincid
+                       endif
                    endif
                 endif
              end do
           endif
       endif
       
-
-      !!!080615  uso una fuente dura de corriente correos jag simulacion rayos Junio'15
-      if (.not.simu_devia) then             
-          if (thereAreIsources) then
-             do n=1,HWires%NumChargeNodes
-                if (HWires%ChargeNode(n)%exists) then
-                   If  (HWires%ChargeNode(n)%HasIsource) then
-                      Nodo => HWires%ChargeNode(n)
-                      Iincid=evolucion(timei,Nodo%Isource%Fichero%Samples, &
-                      Nodo%Isource%Fichero%DeltaSamples,Nodo%Isource%Fichero%NumSamples)
-                      Nodo%CurrentPlus_1%Current = Iincid
-                   endif
-                endif
-             end do
-          endif
-      endif
-      
+!!!230323 comento lo que sigue porque ya manejo fuentes duras y blandas antes, pero esto funcionó con jag rayos junio'15
+      !!!!!!080615  uso una fuente dura de corriente correos jag simulacion rayos Junio'15
+      !!!if (.not.simu_devia) then             
+      !!!    if (thereAreIsources) then
+      !!!       do n=1,HWires%NumChargeNodes
+      !!!          if (HWires%ChargeNode(n)%exists) then
+      !!!             If  (HWires%ChargeNode(n)%HasIsource) then
+      !!!                Nodo => HWires%ChargeNode(n)
+      !!!                Iincid=evolucion(timei,Nodo%Isource%Fichero%Samples, &
+      !!!                Nodo%Isource%Fichero%DeltaSamples,Nodo%Isource%Fichero%NumSamples)
+      !!!                Nodo%CurrentPlus_1%Current = Iincid
+      !!!             endif
+      !!!          endif
+      !!!       end do
+      !!!    endif
+      !!!endif
+      !!!
 
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       !END OF CURRENT ADVANCING from n+1 to n+2
