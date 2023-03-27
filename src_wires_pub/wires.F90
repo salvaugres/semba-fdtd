@@ -3678,7 +3678,7 @@ contains
       do i1=1,HWires%NumChargeNodes
          If (associated(HWires%ChargeNode(i1)%CurrentPlus_1)) then
             dummy=>HWires%ChargeNode(i1)%CurrentPlus_1
-            DO k1=1,segmento%Tipowire%numcurrentsources
+            DO k1=1,dummy%Tipowire%numcurrentsources
                if (dummy%TipoWire%IsourceExists) then
                   if ((dummy%i == dummy%Tipowire%Isource(k1)%I).and. &
                   (dummy%j == dummy%Tipowire%Isource(k1)%J).and. &
@@ -5226,7 +5226,11 @@ subroutine resume_casuistics
                             Nodo%ChargePresent = Nodo%ChargePresent    +  Nodo%CtePlain     * Iincid
                       else
                           Qincid=iincid !es realmente una fuente de carga
-                          Nodo%ChargePresent =Qincid/ (Nodo%CurrentPlus_1%Lind * InvMu(Nodo%CurrentPlus_1%indexmed)*InvEps(Nodo%CurrentPlus_1%indexmed))
+                          if (associated(Nodo%CurrentPlus_1)) then
+                            Nodo%ChargePresent =Qincid/ (Nodo%CurrentPlus_1%Lind * InvMu(Nodo%CurrentPlus_1%indexmed)*InvEps(Nodo%CurrentPlus_1%indexmed))
+                          else
+                              print *,'bug in HARD current sources (experimental)'
+                          endif
                       endif
                   endif
                   endif
