@@ -5231,7 +5231,8 @@ subroutine resume_casuistics
                           elseif (associated(Nodo%CurrentMinus_1)) then !alguno estara asociado, solo es para sacar el L, eps, mu
                             Nodo%ChargePresent = Vincid/ (Nodo%CurrentMinus_1%Lind * InvMu(Nodo%CurrentMinus_1%indexmed)*InvEps(Nodo%CurrentMinus_1%indexmed))
                           else
-                              print *,'bug in HARD current sources (experimental)'
+                              print *,'bug in current sources '
+                              stop
                           endif
                       endif
                   endif
@@ -5373,15 +5374,16 @@ subroutine resume_casuistics
                    Segmento => HWires%CurrentSegment(n)
                    Vincid=evolucion(timei,Segmento%Vsource%Fichero%Samples, &
                                     Segmento%Vsource%Fichero%DeltaSamples,Segmento%Vsource%Fichero%NumSamples)
-                   if (experimentalVideal) then
-                       if ((.not.Segmento%ChargePlus%isPEC).and.Segmento%ChargeMinus%isPEC) then
-                            Segmento%ChargePlus%ChargePresent = Vincid  / (Segmento%Lind * InvMu(Segmento%indexmed)*InvEps(Segmento%indexmed))
-                       elseif ((.not.Segmento%ChargeMinus%isPEC).and.Segmento%ChargePlus%isPEC) then
-                            Segmento%ChargeMinus%ChargePresent =  Vincid  / (Segmento%Lind * InvMu(Segmento%indexmed)*InvEps(Segmento%indexmed))
-                       else
-                           print *,'error en experimentalVideal 200621'
-                       endif
-                   else !lo de siempre. aniado lo anterior para ver lo de las fuentes duras !C=Q/V-> C=c^-2/L-> Q=V*C=V/(L c^2)
+                   !!!if (experimentalVideal) then
+                   !!!    if ((.not.Segmento%ChargePlus%isPEC).and.Segmento%ChargeMinus%isPEC) then
+                   !!!         Segmento%ChargePlus%ChargePresent = Vincid  / (Segmento%Lind * InvMu(Segmento%indexmed)*InvEps(Segmento%indexmed))
+                   !!!    elseif ((.not.Segmento%ChargeMinus%isPEC).and.Segmento%ChargePlus%isPEC) then
+                   !!!         Segmento%ChargeMinus%ChargePresent =  Vincid  / (Segmento%Lind * InvMu(Segmento%indexmed)*InvEps(Segmento%indexmed))
+                   !!!    else
+                   !!!        print *,'error en experimentalVideal 200621'
+                   !!!    endif
+                   !!!else
+                       !lo de siempre. aniado lo anterior para ver lo de las fuentes duras !C=Q/V-> C=c^-2/L-> Q=V*C=V/(L c^2)
                        if (Segmento%Vsource%soft) then !fuentes blandas usuales 230323
                            Segmento%Current = Segmento%Current + &
                                  Segmento%cte3 * Vincid  / (Segmento%Lind * InvMu(Segmento%indexmed)*InvEps(Segmento%indexmed))
@@ -5391,7 +5393,7 @@ subroutine resume_casuistics
                            Iincid=Vincid !realmente se trata de forzar la corriente 230323
                            Segmento%Current =  Iincid
                        endif
-                   endif
+                   !!!endif
                 endif
              end do
           endif

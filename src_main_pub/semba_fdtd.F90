@@ -1852,9 +1852,9 @@ contains
           case ('-fieldtotl')
               fieldtotl=.true.
             opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))
-          case ('-experimentalVideal')
-              experimentalVideal=.true.
-              opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))
+          !!case ('-experimentalVideal')
+          !!    experimentalVideal=.true.
+          !!    opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))
           case ('-forceresampled') !a menos que se pida explicitamente, no se resamplea 120123
               forceresampled=.true.
               opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))
@@ -3305,13 +3305,18 @@ end subroutine cargaNFDE
       relaunching=.false.
       forcestop=.false.
       input_conformal_flag = .false.
-!thin gaps      
+!thin gaps  
+#ifdef CompileWithDMMA
+      run_with_dmma = .true.
+#else
+      run_with_dmma = .false.
+#endif    
 #ifdef CompileWithConformal
       run_with_dmma = .false.
 ! todo esto para el abrezanjas. se precisa tambien el input_conformal_flag  
 !!!!quitado sgg ojo 290521 esto no se ha arreglado aim... quito el abrezanjas !290521 bug
-      run_with_abrezanjas = .true.
-      !!! run_with_abrezanjas = .false. !0222 
+      run_with_abrezanjas = .true. !OJO 0323 A VECES DA ERROR. PONER A FALSE SI SUCEDE
+      !!!!run_with_abrezanjas = .false.
       if (.NOT.input_conformal_flag) then
             conformal_file_input_name = char(0)
             input_conformal_flag = .true.;
@@ -3319,11 +3324,6 @@ end subroutine cargaNFDE
       end if
 #else
       run_with_abrezanjas = .false.
-#ifdef CompileWithDMMA
-      run_with_dmma = .true.
-#else
-      run_with_dmma = .false.
-#endif
 #endif
 
 !fin thin gaps
