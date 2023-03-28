@@ -1097,7 +1097,7 @@ contains
       ini_save = initialtimestep
       n_info = 5 + initialtimestep
       !
-      if (verbose) call ReportExistence(sgg,layoutnumber,size, thereare,mur_second,MurAfterPML)
+!      if (verbose) call ReportExistence(sgg,layoutnumber,size, thereare,mur_second,MurAfterPML)
 
 
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

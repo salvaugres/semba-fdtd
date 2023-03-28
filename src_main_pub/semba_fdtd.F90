@@ -1496,7 +1496,6 @@ contains
 !Gamusiono de las narices
 
           CASE ('-verbose')
-            !dump the map files
             verbose = .TRUE.
           CASE ('-mapvtk')
             !dump the map files
@@ -1826,8 +1825,6 @@ contains
                CALL stoponerror (layoutnumber, size, 'Invalid minimum distance between wires',.true.); statuse=-1; !return
             END IF
             opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))// ' ' // trim (adjustl(f))
-            !!CASE ('-wiresverbose')
-            !!  verbose = .TRUE.
           CASE ('-makeholes')
             makeholes = .TRUE.
             opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))
@@ -2822,7 +2819,6 @@ end subroutine cargaNFDE
       CALL print11 (layoutnumber, 'Command line arguments: ')
       CALL print11 (layoutnumber, '___________________________________________________________________________')
       CALL print11 (layoutnumber, '-i geometryfile        : Simulates the Native format input file            ')
-      !!!          CALL print11 (layoutnumber, '-wiresverbose          : Enforce writing wire warnings in file (only in MPI)') !deprecated 07/03/15
       CALL print11 (layoutnumber, '-r                     : Restarts a previous execution until a given step. ')
       CALL print11 (layoutnumber, '&                        Needs -n                                          ')
       CALL print11 (layoutnumber, '-run                   : Uses a semaphore running file and automatically   ')

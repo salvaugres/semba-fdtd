@@ -366,14 +366,18 @@ contains
                                  call conviertecabecera(cabecera,cabeceraNew,numComp+1,rinstant)
                                  !
                                  pozi=index(path,'_log_')
-                                 if (pozi/=0) cabeceraNew=trim(adjustl(cabeceraNew))//' (In dB (20 log10) and radians)'
+                                 if (pozi/=0) cabeceraNew=trim(adjustl(cabeceraNew))//'_(In_dB_(20_log10)_and_radians)'
                                  !
                                  write(output(ii)%item(i)%unit,'(a)') trim(adjustl(cabeceraNew))
                                  do i1=1,fqLength
                                     !ojo no saco la SE sino la funcion de transferencia. Habia antes del 13/07 un signo -1 delante del 20.0_RKIND * log10 de mas abajo. Cambiado!!! por eso salia el coef de reflexion numer mayor que la unidad
-                                    write(output(ii)%item(i)%unit,fmt) fqPos(i1), &
-                                    (20.0_RKIND * log10(abs(valoresDF2(i1,j1))),atan2(aimag(valoresDF2(i1,j1)),  &
-                                    real(valoresDF2(i1,j1))), j1=1,numComp)
+                                     do j1=1,numComp
+                                        if  (abs(valoresDF2(i1,j1)).lt.1e-30) valoresDF2(i1,j1)=1e-30 !para evitar calcular el log10(0)
+                                     end do
+                                     write(output(ii)%item(i)%unit,fmt) fqPos(i1), &
+                                        (20.0_RKIND * log10(abs(valoresDF2(i1,j1))),&
+                                            atan2(aimag(valoresDF2(i1,j1)),real(valoresDF2(i1,j1))), j1=1,numComp)
+
                                  enddo
                                  close (output(ii)%item(i)%unit)
                                  deallocate(valoresDF2,valores,tiempo,signal,samplingtime)

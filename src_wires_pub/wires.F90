@@ -623,7 +623,7 @@ contains
                            sgg%Med(HWires%WireTipoMedio(iwi))%wire(1)%segm(iwj  )%klibre = k1+1
                         end select
                      endif !DEL NUMERO SEGMENTOS '2014 NO PORTADO A !CHECK
-                  ENDIF !DEL LeftEnd RightEnd
+                  ENDIF !Del Left_End Right_End
                   !!!!!!!!!!!!!!!!!!!
                endif !del strictOLD
 
@@ -644,7 +644,7 @@ contains
                      whatfield=sgg%Med(HWires%WireTipoMedio(iwi))%wire(1)%segm(iwj)%ori
                      ORIGINDEX=sgg%Med(HWires%WireTipoMedio(iwi))%wire(1)%segm(iwj)%origindex
                      !precontaje
-                     buscarabos: do iwjjj=iwj+1,sgg%Med(HWires%WireTipoMedio(iwi))%wire(1)%numsegmentos !el RightEnd aunque no se tape si debe detectarse a efectos par/impar
+                     buscarabos: do iwjjj=iwj+1,sgg%Med(HWires%WireTipoMedio(iwi))%wire(1)%numsegmentos !el Right_End aunque no se tape si debe detectarse a efectos par/impar
                         i2=        sgg%Med(HWires%WireTipoMedio(iwi))%wire(1)%segm(iwjjj)%i
                         j2=        sgg%Med(HWires%WireTipoMedio(iwi))%wire(1)%segm(iwjjj)%j
                         k2=        sgg%Med(HWires%WireTipoMedio(iwi))%wire(1)%segm(iwjjj)%k
@@ -661,7 +661,7 @@ contains
                      !machaca rabos
                      if (multirabos/=1) then
                         !
-                        taparabos: do iwjjj=iwj+(2-mod(multirabos,2)),sgg%Med(HWires%WireTipoMedio(iwi))%wire(1)%numsegmentos-1 !el RightEnd no debe taparse ya se tapa el de dentro en el otro bucle
+                        taparabos: do iwjjj=iwj+(2-mod(multirabos,2)),sgg%Med(HWires%WireTipoMedio(iwi))%wire(1)%numsegmentos-1 !el Right_End no debe taparse ya se tapa el de dentro en el otro bucle
                            i2=        sgg%Med(HWires%WireTipoMedio(iwi))%wire(1)%segm(iwjjj)%i
                            j2=        sgg%Med(HWires%WireTipoMedio(iwi))%wire(1)%segm(iwjjj)%j
                            k2=        sgg%Med(HWires%WireTipoMedio(iwi))%wire(1)%segm(iwjjj)%k
@@ -691,7 +691,7 @@ contains
                      k1=       sgg%Med(HWires%WireTipoMedio(iwi))%wire(1)%segm(iwj)%k
                      whatfield=sgg%Med(HWires%WireTipoMedio(iwi))%wire(1)%segm(iwj)%ori
                      ORIGINDEX=sgg%Med(HWires%WireTipoMedio(iwi))%wire(1)%segm(iwj)%origindex
-                     buscarabos2: do iwjjj=iwj-1,1,-1 !el LeftEnd aunque no se tape si debe detectarse a efectos par/impar
+                     buscarabos2: do iwjjj=iwj-1,1,-1 !el Left_End aunque no se tape si debe detectarse a efectos par/impar
                         i2=        sgg%Med(HWires%WireTipoMedio(iwi))%wire(1)%segm(iwjjj)%i
                         j2=        sgg%Med(HWires%WireTipoMedio(iwi))%wire(1)%segm(iwjjj)%j
                         k2=        sgg%Med(HWires%WireTipoMedio(iwi))%wire(1)%segm(iwjjj)%k
@@ -709,7 +709,7 @@ contains
                      !machaca rabos
                      if (multirabos/=1) then
                         !
-                        taparabos2: do iwjjj=iwj-(2-mod(multirabos,2)),2,-1 !el LeftEnd no debe taparse
+                        taparabos2: do iwjjj=iwj-(2-mod(multirabos,2)),2,-1 !el Left_End no debe taparse
                            i2=        sgg%Med(HWires%WireTipoMedio(iwi))%wire(1)%segm(iwjjj)%i
                            j2=        sgg%Med(HWires%WireTipoMedio(iwi))%wire(1)%segm(iwjjj)%j
                            k2=        sgg%Med(HWires%WireTipoMedio(iwi))%wire(1)%segm(iwjjj)%k
@@ -748,7 +748,7 @@ contains
                         whatfield=sgg%Med(HWires%WireTipoMedio(iwi))%wire(1)%segm(iwj)%ori
                         ORIGINDEX=sgg%Med(HWires%WireTipoMedio(iwi))%wire(1)%segm(iwj)%origindex
                         !precontaje
-                        buscarabos6: do iwjjj=iwj+1,sgg%Med(HWires%WireTipoMedio(iwi))%wire(1)%numsegmentos !el RightEnd aunque no se tape si debe detectarse a efectos par/impar
+                        buscarabos6: do iwjjj=iwj+1,sgg%Med(HWires%WireTipoMedio(iwi))%wire(1)%numsegmentos !el Right_End aunque no se tape si debe detectarse a efectos par/impar
                            i2=        sgg%Med(HWires%WireTipoMedio(iwi))%wire(1)%segm(iwjjj)%i
                            j2=        sgg%Med(HWires%WireTipoMedio(iwi))%wire(1)%segm(iwjjj)%j
                            k2=        sgg%Med(HWires%WireTipoMedio(iwi))%wire(1)%segm(iwjjj)%k
@@ -766,8 +766,8 @@ contains
                         if ((mod(multirabos,2)/=1).and.(Jprimernorabo /= sgg%Med(HWires%WireTipoMedio(iwi))%wire(1)%numsegmentos)) then !no al RightEnd
                            if (sgg%Med(HWires%WireTipoMedio(iwi))%wire(1)%segm(iwj          )%Is_LeftEnd) then
                               sgg%Med(HWires%WireTipoMedio(iwi))%wire(1)%segm(iwj          )%Is_LeftEnd=.false.
-                              sgg%Med(HWires%WireTipoMedio(iwi))%wire(1)%segm(Jprimernorabo)%Is_LeftEnd=.true. !pasa caracter LeftEnd al primernorabo
-                              !!!tocado esto por el problema de gra_powerline_simple.nfde 190916 el rabito se quedaba con el libre mal computado. Los ilibre,jlbre,klibre para LeftEnd son el primer punto directamente
+                              sgg%Med(HWires%WireTipoMedio(iwi))%wire(1)%segm(Jprimernorabo)%Is_LeftEnd=.true. !pasa caracter Left_End al primernorabo
+                              !!!tocado esto por el problema de gra_powerline_simple.nfde 190916 el rabito se quedaba con el libre mal computado. Los ilibre,jlbre,klibre para Left_End son el primer punto directamente
                               sgg%Med(HWires%WireTipoMedio(iwi))%wire(1)%segm(Jprimernorabo)%ilibre=sgg%Med(HWires%WireTipoMedio(iwi))%wire(1)%segm(Jprimernorabo)%i  !!!!sgg%Med(HWires%WireTipoMedio(iwi))%wire(1)%segm(iwj)%ilibre
                               sgg%Med(HWires%WireTipoMedio(iwi))%wire(1)%segm(Jprimernorabo)%jlibre=sgg%Med(HWires%WireTipoMedio(iwi))%wire(1)%segm(Jprimernorabo)%j  !!!!sgg%Med(HWires%WireTipoMedio(iwi))%wire(1)%segm(iwj)%jlibre
                               sgg%Med(HWires%WireTipoMedio(iwi))%wire(1)%segm(Jprimernorabo)%klibre=sgg%Med(HWires%WireTipoMedio(iwi))%wire(1)%segm(Jprimernorabo)%k  !!!!sgg%Med(HWires%WireTipoMedio(iwi))%wire(1)%segm(iwj)%klibre
@@ -825,7 +825,7 @@ contains
                         k1=       sgg%Med(HWires%WireTipoMedio(iwi))%wire(1)%segm(iwj)%k
                         whatfield=sgg%Med(HWires%WireTipoMedio(iwi))%wire(1)%segm(iwj)%ori
                         ORIGINDEX=sgg%Med(HWires%WireTipoMedio(iwi))%wire(1)%segm(iwj)%origindex
-                        buscarabos7: do iwjjj=iwj-1,1,-1 !el LeftEnd aunque no se tape si debe detectarse a efectos par/impar
+                        buscarabos7: do iwjjj=iwj-1,1,-1 !el Left_End aunque no se tape si debe detectarse a efectos par/impar
                            i2=        sgg%Med(HWires%WireTipoMedio(iwi))%wire(1)%segm(iwjjj)%i
                            j2=        sgg%Med(HWires%WireTipoMedio(iwi))%wire(1)%segm(iwjjj)%j
                            k2=        sgg%Med(HWires%WireTipoMedio(iwi))%wire(1)%segm(iwjjj)%k
@@ -841,11 +841,11 @@ contains
                         end do buscarabos7
 
                         !machaca rabos
-                        if ((mod(multirabos,2)/=1).and.(Jprimernorabo /= 1)) then   !no el LeftEnd
+                        if ((mod(multirabos,2)/=1).and.(Jprimernorabo /= 1)) then   !no el Left_End
                            if (sgg%Med(HWires%WireTipoMedio(iwi))%wire(1)%segm(iwj          )%Is_RightEnd) then
                               sgg%Med(HWires%WireTipoMedio(iwi))%wire(1)%segm(iwj          )%Is_RightEnd=.false.
                               sgg%Med(HWires%WireTipoMedio(iwi))%wire(1)%segm(Jprimernorabo)%Is_RightEnd=.true. !pasa caracter RightEnd al primernorabo
-                              !!!tocado esto por el problema de gra_powerline_simple.nfde 190916 el rabito se quedaba con el libre mal computado. Los ilibre,jlbre,klibre para LeftEnd son el primer punto directamente
+                              !!!tocado esto por el problema de gra_powerline_simple.nfde 190916 el rabito se quedaba con el libre mal computado. Los ilibre,jlbre,klibre para Left_End son el primer punto directamente
                               sgg%Med(HWires%WireTipoMedio(iwi))%wire(1)%segm(Jprimernorabo)%ilibre=sgg%Med(HWires%WireTipoMedio(iwi))%wire(1)%segm(Jprimernorabo)%i  !!!!sgg%Med(HWires%WireTipoMedio(iwi))%wire(1)%segm(iwj)%ilibre
                               sgg%Med(HWires%WireTipoMedio(iwi))%wire(1)%segm(Jprimernorabo)%jlibre=sgg%Med(HWires%WireTipoMedio(iwi))%wire(1)%segm(Jprimernorabo)%j  !!!!sgg%Med(HWires%WireTipoMedio(iwi))%wire(1)%segm(iwj)%jlibre
                               sgg%Med(HWires%WireTipoMedio(iwi))%wire(1)%segm(Jprimernorabo)%klibre=sgg%Med(HWires%WireTipoMedio(iwi))%wire(1)%segm(Jprimernorabo)%k  !!!!sgg%Med(HWires%WireTipoMedio(iwi))%wire(1)%segm(iwj)%klibre
@@ -1061,7 +1061,7 @@ contains
                                     sgg%Med(HWires%WireTipoMedio(iwi))%wire(1)%segm(iwj  )%origindex, &
                                     sgg%Med(HWires%WireTipoMedio(iwi))%wire(1)%segm(iwjjj)%origindex,i1,j1,k1
                                  else
-                                    write (buff,'(a,2i7,3i7)')  'wir0_INFO: Duplicate terminal LeftEnd and RightEnd Parallel segment. Removing the second one (NO LeftEnd RLC)', &
+                                    write (buff,'(a,2i7,3i7)')  'wir0_INFO: Duplicate terminal LeftEnd and RightEnd Parallel segment. Removing the second one (NO LeftEnd RLC, Only RightEnd RLC)', &
                                     sgg%Med(HWires%WireTipoMedio(iwi))%wire(1)%segm(iwj  )%origindex, &
                                     sgg%Med(HWires%WireTipoMedio(iwi))%wire(1)%segm(iwjjj)%origindex,i1,j1,k1
                                  endif
@@ -1074,7 +1074,7 @@ contains
                                     sgg%Med(HWires%WireTipoMedio(iwi))%wire(1)%segm(iwj  )%origindex, &
                                     sgg%Med(HWires%WireTipoMedio(iwi))%wire(1)%segm(iwjjj)%origindex,i1,j1,k1
                                  else
-                                    write (buff,'(a,2i7,3i7)')  'wir0_INFO: Duplicate terminal LeftEnd and RightEnd Parallel segment. Removing the first one (NO LeftEnd RLC)', &
+                                    write (buff,'(a,2i7,3i7)')  'wir0_INFO: Duplicate terminal LeftEnd and RightEnd Parallel segment. Removing the first one (NO LeftEnd RLC, Only RightEnd RLC)', &
                                     sgg%Med(HWires%WireTipoMedio(iwi))%wire(1)%segm(iwj  )%origindex, &
                                     sgg%Med(HWires%WireTipoMedio(iwi))%wire(1)%segm(iwjjj)%origindex,i1,j1,k1
                                  endif
@@ -3678,7 +3678,7 @@ contains
       do i1=1,HWires%NumChargeNodes
          If (associated(HWires%ChargeNode(i1)%CurrentPlus_1)) then
             dummy=>HWires%ChargeNode(i1)%CurrentPlus_1
-            DO k1=1,segmento%Tipowire%numcurrentsources
+            DO k1=1,dummy%Tipowire%numcurrentsources
                if (dummy%TipoWire%IsourceExists) then
                   if ((dummy%i == dummy%Tipowire%Isource(k1)%I).and. &
                   (dummy%j == dummy%Tipowire%Isource(k1)%J).and. &
@@ -4032,7 +4032,7 @@ end subroutine deembed_segment
    integer :: ib,jb,kb,tipofieldb
    integer :: io,jo,ko,tipofieldo
    type (CurrentSegments), pointer  ::  dummy
-   embed=.true.; return !!!!ojoooo sgg tocado a mano para ver bug conformal 220323 
+  !!!!!!!!!!!!!!!!! embed=.true.; return !!!!ojoooo sgg tocado a mano para ver bug conformal 220323 
    
     embed=.false.
     if (associated(nodo%CurrentMinus_1))  then
@@ -5090,7 +5090,7 @@ subroutine resume_casuistics
 
       integer (kind=4), intent(IN)  ::  timeinstant
       REAL (KIND=RKIND_wires)   ::  Iplus,IMinus,Qplus,QMinus,timei
-      REAL (KIND=RKIND_wires)   ::  Qincid,Iincid
+      REAL (KIND=RKIND_wires)   ::  Vincid,Iincid
       type (CurrentSegments), pointer  ::  Segmento, Segmento2
       type (ChargeNodes), pointer  ::  Nodo
       type (TMultiline), pointer                      ::  Multiline
@@ -5225,8 +5225,14 @@ subroutine resume_casuistics
                       if (Nodo%Isource%soft) then
                             Nodo%ChargePresent = Nodo%ChargePresent    +  Nodo%CtePlain     * Iincid
                       else
-                          Qincid=iincid !es realmente una fuente de carga
-                          Nodo%ChargePresent =Qincid/ (Nodo%CurrentPlus_1%Lind * InvMu(Nodo%CurrentPlus_1%indexmed)*InvEps(Nodo%CurrentPlus_1%indexmed))
+                          Vincid=iincid !es realmente una fuente de carga
+                          if (associated(Nodo%CurrentPlus_1)) then
+                            Nodo%ChargePresent = Vincid/ (Nodo%CurrentPlus_1%Lind * InvMu(Nodo%CurrentPlus_1%indexmed)*InvEps(Nodo%CurrentPlus_1%indexmed))
+                          elseif (associated(Nodo%CurrentMinus_1)) then !alguno estara asociado, solo es para sacar el L, eps, mu
+                            Nodo%ChargePresent = Vincid/ (Nodo%CurrentMinus_1%Lind * InvMu(Nodo%CurrentMinus_1%indexmed)*InvEps(Nodo%CurrentMinus_1%indexmed))
+                          else
+                              print *,'bug in HARD current sources (experimental)'
+                          endif
                       endif
                   endif
                   endif
@@ -5365,25 +5371,25 @@ subroutine resume_casuistics
              do n=1,HWires%NumCurrentSegments
                 If  (HWires%CurrentSegment(n)%HasVsource) then
                    Segmento => HWires%CurrentSegment(n)
-                   Qincid=evolucion(timei,Segmento%Vsource%Fichero%Samples, &
-                   Segmento%Vsource%Fichero%DeltaSamples,Segmento%Vsource%Fichero%NumSamples)
+                   Vincid=evolucion(timei,Segmento%Vsource%Fichero%Samples, &
+                                    Segmento%Vsource%Fichero%DeltaSamples,Segmento%Vsource%Fichero%NumSamples)
                    if (experimentalVideal) then
                        if ((.not.Segmento%ChargePlus%isPEC).and.Segmento%ChargeMinus%isPEC) then
-                            Segmento%ChargePlus%ChargePresent = Qincid  / (Segmento%Lind * InvMu(Segmento%indexmed)*InvEps(Segmento%indexmed))
+                            Segmento%ChargePlus%ChargePresent = Vincid  / (Segmento%Lind * InvMu(Segmento%indexmed)*InvEps(Segmento%indexmed))
                        elseif ((.not.Segmento%ChargeMinus%isPEC).and.Segmento%ChargePlus%isPEC) then
-                            Segmento%ChargeMinus%ChargePresent =  Qincid  / (Segmento%Lind * InvMu(Segmento%indexmed)*InvEps(Segmento%indexmed))
+                            Segmento%ChargeMinus%ChargePresent =  Vincid  / (Segmento%Lind * InvMu(Segmento%indexmed)*InvEps(Segmento%indexmed))
                        else
                            print *,'error en experimentalVideal 200621'
                        endif
-                   else !lo de siempre. aniado lo anterior para ver lo de las fuentes duras
+                   else !lo de siempre. aniado lo anterior para ver lo de las fuentes duras !C=Q/V-> C=c^-2/L-> Q=V*C=V/(L c^2)
                        if (Segmento%Vsource%soft) then !fuentes blandas usuales 230323
                            Segmento%Current = Segmento%Current + &
-                           Segmento%cte3 * Qincid  / (Segmento%Lind * InvMu(Segmento%indexmed)*InvEps(Segmento%indexmed))
+                                 Segmento%cte3 * Vincid  / (Segmento%Lind * InvMu(Segmento%indexmed)*InvEps(Segmento%indexmed))
                            !I use the capacitance to find the incident charge
                            !assuming that the evolution file contains a voltage, not a charge
                        else !nuevas fuentes duras 230323
-                           Iincid=Qincid !realmente se trata de forzar la corriente 230323
-                           Segmento%Current =  Qincid
+                           Iincid=Vincid !realmente se trata de forzar la corriente 230323
+                           Segmento%Current =  Iincid
                        endif
                    endif
                 endif
@@ -5474,7 +5480,7 @@ subroutine resume_casuistics
 
       integer (kind=4), intent(IN)  ::  timeinstant
       REAL (KIND=RKIND_wires)   ::  Iplus,IMinus,IplusPast,IMinusPast,source,timei
-      REAL (KIND=RKIND_wires)   ::  Qincid,Iincid
+      REAL (KIND=RKIND_wires)   ::  Vincid,Iincid
       type (CurrentSegments), pointer  ::  Segmento , Segmento2
       type (ChargeNodes), pointer  ::  Nodo
       type (TMultiline), pointer                      ::  Multiline

@@ -367,11 +367,12 @@ contains
 #else
 #ifdef CompileWithSlantedWires
          continue
-#endif
-#endif
-#endif
-         buff=trim(adjustl(whoami))// 'WIREs unsupported. Recompile'
+#else
+         buff=trim(adjustl(whoami))// ' WIREs unsupported. Recompile'
          call stoponerror(layoutnumber,size,buff)
+#endif
+#endif
+#endif
       endif
       !
       !!!!!!!!!!!!!
