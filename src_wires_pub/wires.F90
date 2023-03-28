@@ -231,7 +231,7 @@ contains
          HWires%NullSegment%Resist_devia      = 0.0_RKIND_wires
          HWires%NullSegment%C      = 0.0_RKIND_wires
          HWires%NullSegment%L      = 0.0_RKIND_wires
-         HWires%NullSegment%Lstab    = 0.0_RKIND_wires
+         HWires%NullSegment%Lintrinsic    = 0.0_RKIND_wires
          HWires%NullSegment%NumParallel    =1
          HWires%NullSegment%origindex       =i1
          HWires%NullSegment%indexsegment    =i1
@@ -1183,7 +1183,7 @@ contains
             HWires%CurrentSegment(i1)%Resist_devia      = 0.0_RKIND_wires
             HWires%CurrentSegment(i1)%C      = 0.0_RKIND_wires
             HWires%CurrentSegment(i1)%L      = 0.0_RKIND_wires
-            HWires%CurrentSegment(i1)%Lstab    = 0.0_RKIND_wires
+            HWires%CurrentSegment(i1)%Lintrinsic    = 0.0_RKIND_wires
             HWires%CurrentSegment(i1)%proc   =.false.
             HWires%CurrentSegment(i1)%NumParallel    =1
             HWires%CurrentSegment(i1)%origindex       =i1
@@ -2331,24 +2331,24 @@ contains
                dx2		= HWires%Multilines(iw1)%Segments(is1)%ptr%deltaTransv2
                r0 		= HWires%Multilines(iw1)%Segments(is1)%ptr%TipoWire%radius
                imed 	= HWires%Multilines(iw1)%Segments(is1)%ptr%indexmed
-               HWires%Multilines(iw1)%Segments(is1)%ptr%Lstab  = &
+               HWires%Multilines(iw1)%Segments(is1)%ptr%Lintrinsic  = &
                (1.0_RKIND_wires / (4.0_RKIND_wires * pi*InvMu(imed)))*(log((dx1**2.0_RKIND_wires +dx2**2.0_RKIND_wires)/(4.0_RKIND_wires * r0**2.0_RKIND_wires)) + &
                dx1/dx2*atan(dx2/dx1)     + &
                dx2/dx1*atan(dx1/dx2)     + &
                pi*r0**2.0_RKIND_wires / (dx2*dx1)-3.0_RKIND_wires)
                if ((r0 < 0.3_RKIND_wires  *dx1).or.(r0 < 0.3_RKIND_wires *dx2)) then
-                  HWires%Multilines(iw1)%Segments(is1)%ptr%Lstab = HWires%Multilines(iw1)%Segments(is1)%ptr%Lstab - 0.57_RKIND_wires /(4.0_RKIND_wires * pi*InvMu(imed))
+                  HWires%Multilines(iw1)%Segments(is1)%ptr%Lintrinsic = HWires%Multilines(iw1)%Segments(is1)%ptr%Lintrinsic - 0.57_RKIND_wires /(4.0_RKIND_wires * pi*InvMu(imed))
 
                endif
                if ((r0 > 0.3_RKIND_wires  *dx1).or.(r0 > 0.3_RKIND_wires *dx2)) then
-                  HWires%Multilines(iw1)%Segments(is1)%ptr%Lstab = HWires%Multilines(iw1)%Segments(is1)%ptr%Lstab /(1.0_RKIND_wires-pi*r0**2.0_RKIND_wires /(dx2*dx1))
+                  HWires%Multilines(iw1)%Segments(is1)%ptr%Lintrinsic = HWires%Multilines(iw1)%Segments(is1)%ptr%Lintrinsic /(1.0_RKIND_wires-pi*r0**2.0_RKIND_wires /(dx2*dx1))
                endif
 
                HWires%Multilines(iw1)%Segments(is1)%ptr%L      = HWires%Multilines(iw1)%Segments(is1)%ptr%L + &
-               HWires%Multilines(iw1)%Segments(is1)%ptr%Lstab
+               HWires%Multilines(iw1)%Segments(is1)%ptr%Lintrinsic
                HWires%Multilines(iw1)%Segments(is1)%ptr%C      = HWires%Multilines(iw1)%Segments(is1)%ptr%C + &
                1.0_RKIND_wires / (InvMu(imed)*InvEps(imed)* &
-               HWires%Multilines(iw1)%Segments(is1)%ptr%Lstab)
+               HWires%Multilines(iw1)%Segments(is1)%ptr%Lintrinsic)
                do is2 = 1,NumParallel
                   if(is1 == is2) then
                      HWires%Multilines(iw1)%C(is1,is2) = HWires%Multilines(iw1)%Segments(is1)%ptr%C
@@ -4302,7 +4302,7 @@ subroutine resume_casuistics
             NumParallel = HWires%Multilines(iw1)%NumParallel
             do is1 = 1,NumParallel
                imed 	= HWires%Multilines(iw1)%Segments(is1)%ptr%indexmed
-               HWires%Multilines(iw1)%Segments(is1)%ptr%Lstab = HWires%Multilines(iw1)%Segments(is1)%ptr%Lstab  * OldInvMu (imed)/InvMu (imed) 
+               HWires%Multilines(iw1)%Segments(is1)%ptr%Lintrinsic = HWires%Multilines(iw1)%Segments(is1)%ptr%Lintrinsic  * OldInvMu (imed)/InvMu (imed) 
                HWires%Multilines(iw1)%Segments(is1)%ptr%L      = HWires%Multilines(iw1)%Segments(is1)%ptr%L     * OldInvMu (imed)/InvMu (imed) 
                HWires%Multilines(iw1)%Segments(is1)%ptr%C      = HWires%Multilines(iw1)%Segments(is1)%ptr%C     * OldInvEps(imed)/InvEps(imed) 
                do is2 = 1,NumParallel

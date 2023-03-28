@@ -89,7 +89,7 @@ module wiresHolland_constants
       real    (kind=RKIND_wires)                            ::  L_devia, C_devia, R_devia
       real    (kind=RKIND_wires)                            ::  cI
       real    (kind=RKIND_wires)                            ::  bI
-      real    (kind=RKIND_wires)                            ::  Lstab
+      real    (kind=RKIND_wires)                            ::  Lintrinsic
       !fin dama
       integer (kind=4)   ::  tipofield !iEx,iEy o iEz
       logical :: orientadoalreves
