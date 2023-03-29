@@ -3990,17 +3990,18 @@ end subroutine deembed_segment
                               sgg%med(medio1m)%is%split_and_useless .and. sgg%med(medio2m)%is%split_and_useless .and. sgg%med(medio3m)%is%split_and_useless) then
                            write (buff,*)  'wir1_ERROR: Conformal split_and_useless node NOT changed (IMPOSIBLE) to PEC grounded node at ', i,j,k
                            if ((k >  ZI).and.(k <= ZE)) call WarnErrReport(buff,.true.)
-                           !ojo no tendria arreglo porque aunque se updatee a 0, este campo luego esta partido en dos en conformal y es split_and_useless
-                      ELSE !esta a PEC/lossy o al punietero aire
-                           if (nodo%ispec)  then
-                               write (buff,*)  'wir1_INFO: (SHOULD BE REDUNDANT) Terminal Node grounded to PEC ', i,j,k
-                           elseif (nodo%islossy) then
-                               write (buff,*)  'wir1_INFO: (SHOULD BE REDUNDANT) Terminal Node grounded to Lossy ', i,j,k
-                           else
-                               write (buff,*)  'wir1_INFO: (SHOULD BE REDUNDANT) Terminal Node embedded in air ', i,j,k
-                           endif
-                           if ((k >  ZI).and.(k <= ZE)) call WarnErrReport(buff)
+                           !ojo no tendria arreglo porque aunque se updatee a 0, este campo luego esta partido en dos en conformal y es split_and_useless        
                       endif
+                      !esta a PEC/lossy o al punietero aire
+                              !!!lo he sacado del if. solo para reporte y que coincida con lo que da estructurado  280323
+                      if (nodo%ispec)  then
+                          write (buff,*)  'wir1_INFO: (SHOULD BE REDUNDANT) Terminal Node grounded to PEC ', i,j,k
+                      elseif (nodo%islossy) then
+                          write (buff,*)  'wir1_INFO: (SHOULD BE REDUNDANT) Terminal Node grounded to Lossy ', i,j,k
+                      else
+                          write (buff,*)  'wir1_INFO: (SHOULD BE REDUNDANT) Terminal Node embedded in air ', i,j,k
+                      endif
+                      if ((k >  ZI).and.(k <= ZE)) call WarnErrReport(buff)
                  endif
 !!!!fin pedazo de niapa           
                
