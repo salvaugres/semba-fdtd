@@ -1978,9 +1978,9 @@ contains
 
                 !!!!!!!!!!!!!!!!!!!!hasta aqui casuistica. Aniade ahora la resistencia si procede con la formula de tercero de fisicas
                 if (isLossy) then
-                   !rlossy=rlossy + 1.0_RKIND_wires/(2.0_RKIND_wires * pi*dummy%TipoWire%radius*sigt)/dummy%delta   !p.u.l.
-                    !rlossy=rlossy + 1.0_RKIND_wires/(2.0_RKIND_wires * pi*dummy%DELTA          *sigt)/dummy%delta   !p.u.l.
-                    rlossy=rlossy + 1.0_RKIND_wires/(2.0_RKIND_wires * pi * (factordelta*dummy%DELTA +factorradius*dummy%TipoWire%radius) *sigt)/dummy%delta   !p.u.l.
+                   !rlossy=rlossy + 1.0_RKIND_wires/(2.0_RKIND_wires * pi*dummy%TipoWire%radius*sigt)/dummy%delta   !p.u.l.     !pruebas distintas 0223
+                    !rlossy=rlossy + 1.0_RKIND_wires/(2.0_RKIND_wires * pi*dummy%DELTA          *sigt)/dummy%delta   !p.u.l.     !pruebas distintas 0223
+                    rlossy=rlossy ! + 1.0_RKIND_wires/(2.0_RKIND_wires * pi * (factordelta*dummy%DELTA +factorradius*dummy%TipoWire%radius) *sigt)/dummy%delta   !p.u.l. !comentado a 290323 porque no me fio de esto hasta que no se valide bien agb
                 endif
              endif
          endif !del esPML
