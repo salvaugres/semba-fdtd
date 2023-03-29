@@ -3737,14 +3737,14 @@ contains
    !primero los conformal 130220 %Is%split_and_useless
        if ((sgg%Med(sggmiE)%Is%split_and_useless).and. &
                 .not.(IsEnd_norLeft_norRight.or.Is_LeftEnd.or.Is_RightEnd)) then   !NO NO NO ES UN TERMINAL
-                   call deembed_segment
+                   call deembed_segment 
                    write (buff,'(a,6i9)') 'wir0_WARNING: YES de-embedding a NON-TERMINAL conformal split_and_useless WIRE segment: ', sggmiE, &
                             HWires%CurrentSegment(conta)%origIndex,HWires%CurrentSegment(conta)%i, &
                             HWires%CurrentSegment(conta)%j,HWires%CurrentSegment(conta)%k,HWires%CurrentSegment(conta)%tipofield
                    if ((k1 >= ZI).and.(k1 <= ZE)) call WarnErrReport(buff)
         elseif ((sgg%Med(sggmiE)%Is%split_and_useless).and. &
                 (IsEnd_norLeft_norRight.or.Is_LeftEnd.or.Is_RightEnd)) then   !SI SI SI ES UN TERMINAL
-                   call deembed_segment
+                   call deembed_segment 
                    write (buff,'(a,6i9)') 'wir0_SEVEREWARNING: YES de-embedding a YES-TERMINAL WIRE SEGMENT IN A CONFORMAL split_and_useless SURFACE (): ', sggmiE, &
                            HWires%CurrentSegment(conta)%origIndex,HWires%CurrentSegment(conta)%i, &
                           HWires%CurrentSegment(conta)%j,HWires%CurrentSegment(conta)%k,HWires%CurrentSegment(conta)%tipofield
@@ -3752,9 +3752,9 @@ contains
         elseif ((sgg%Med(sggmiE)%Is%already_YEEadvanced_byconformal).and. &  !!!!!!!!!!!!already_YEEadvanced_byconformal
                 .not.(IsEnd_norLeft_norRight.or.Is_LeftEnd.or.Is_RightEnd)) then   !NO NO NO ES UN TERMINAL                    
                 if (.not.fieldtotl) then
-                         HWires%CurrentSegment(conta)%cte5=sgg%dt /eps0 /(HWires%CurrentSegment(conta)%deltaTransv1*HWires%CurrentSegment(conta)%deltaTransv2)
+                         HWires%CurrentSegment(conta)%cte5 = sgg%dt /eps0 /(HWires%CurrentSegment(conta)%deltaTransv1*HWires%CurrentSegment(conta)%deltaTransv2)
                 else
-                         HWires%CurrentSegment(conta)%cte5=0.0_RKIND_wires
+                         HWires%CurrentSegment(conta)%cte5 = 0.0_RKIND_wires
                 endif
                    write (buff,'(a,6i9)') 'wir0_WARNING: NO de-embedding a NON-TERMINAL conformal already_YEEadvanced_byconformal  WIRE segment: ', sggmiE, &
                                      HWires%CurrentSegment(conta)%origIndex,HWires%CurrentSegment(conta)%i, &
@@ -3763,11 +3763,11 @@ contains
         elseif ((sgg%Med(sggmiE)%Is%already_YEEadvanced_byconformal).and. &
                 (IsEnd_norLeft_norRight.or.Is_LeftEnd.or.Is_RightEnd)) then  !SI SI SI ES UN TERMINAL                    
                 if (.not.fieldtotl) then
-                         HWires%CurrentSegment(conta)%cte5=sgg%dt /eps0 /(HWires%CurrentSegment(conta)%deltaTransv1*HWires%CurrentSegment(conta)%deltaTransv2)
+                         HWires%CurrentSegment(conta)%cte5 = sgg%dt /eps0 /(HWires%CurrentSegment(conta)%deltaTransv1*HWires%CurrentSegment(conta)%deltaTransv2)
                 else
                          HWires%CurrentSegment(conta)%cte5=0.0_RKIND_wires
                 endif
-                   write (buff,'(a,6i9)') 'wir0_WARNING: NO de-embedding YES-TERMINAL conformal already_YEEadvanced_byconformal  WIRE segment: ', sggmiE, &
+                   write (buff,'(a,6i9)') 'wir0_WARNING: NO de-embedding a YES-TERMINAL conformal already_YEEadvanced_byconformal  WIRE segment: ', sggmiE, &
                                   HWires%CurrentSegment(conta)%origIndex,HWires%CurrentSegment(conta)%i, &
                                   HWires%CurrentSegment(conta)%j,HWires%CurrentSegment(conta)%k,HWires%CurrentSegment(conta)%tipofield
                    if ((k1 >= ZI).and.(k1 <= ZE)) call WarnErrReport(buff)
@@ -3786,8 +3786,10 @@ contains
                                   HWires%CurrentSegment(conta)%origIndex,HWires%CurrentSegment(conta)%i, &
                                   HWires%CurrentSegment(conta)%j,HWires%CurrentSegment(conta)%k,HWires%CurrentSegment(conta)%tipofield
                    endif
+                   
                   else  !SI SI SI ES UN TERMINAL
                    if ((sggmiE == 0).or.(sgg%med(sggmiE)%is%pec)) then
+                       call deembed_segment !ojoo esto no estaba a 290323 y lo he aniadido porque parece que tiene sentido deembed si lo dice
                        write (buff,'(a,6i9)')  'wir0_SEVEREWARNING: YES de-embedding a YES-TERMINAL struct SEGMENT from PEC  ', sggmiE, &
                                   HWires%CurrentSegment(conta)%origIndex,HWires%CurrentSegment(conta)%i, &
                                   HWires%CurrentSegment(conta)%j,HWires%CurrentSegment(conta)%k,HWires%CurrentSegment(conta)%tipofield
@@ -3801,7 +3803,7 @@ contains
 !!!!  luego normales
           else
             if ((sggmiE /= 1).and.(.not.sgg%Med(sggmiE)%Is%ThinWire)) then
-                write (buff,'(a,6i9)')'wir0_WARNING: NO de-embedding terminal/non-terminal segment in Lossless medium ', sggmiE, &
+                write (buff,'(a,6i9)')'wir0_WARNING: NO de-embedding a terminal/non-terminal segment in Lossless medium ', sggmiE, &
                       HWires%CurrentSegment(conta)%origIndex,HWires%CurrentSegment(conta)%i, &
                       HWires%CurrentSegment(conta)%j,HWires%CurrentSegment(conta)%k,HWires%CurrentSegment(conta)%tipofield
                       call WarnErrReport(buff)
