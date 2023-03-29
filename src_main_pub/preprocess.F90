@@ -2324,7 +2324,6 @@ endif
                ELSE IF ((trim(adjustl(this%twires%TW(j)%TWC(i)%SRCTYPE)) == 'CURR').OR. & 
                         (trim(adjustl(this%twires%TW(j)%TWC(i)%SRCTYPE)) == 'HARDCURR')) THEN
                   CONTAVOLT=CONTAVOLT+1
-                  buff='WARNING: Current sources programmed but untested '
                   CALL WarnErrReport (buff)
                   !             CALL STOPONERROR(layoutnumber,size,buff)
                   sgg%Med(contamedia)%wire(1)%VsourceExists = .TRUE.
@@ -2352,7 +2351,6 @@ endif
                   sgg%Med(contamedia)%wire(1)%ISource(CONTACURR)%k = this%twires%TW(j)%TWC(i)%k
                ELSE IF ((trim(adjustl(this%twires%TW(j)%TWC(i)%SRCTYPE)) == 'SOFTCURR')) THEN
                   CONTACURR=CONTACURR+1
-                  buff='WARNING: Current sources programmed but untested '
                   CALL WarnErrReport (buff)
                   !             CALL STOPONERROR(layoutnumber,size,buff)
                   sgg%Med(contamedia)%wire(1)%IsourceExists = .TRUE.
