@@ -812,8 +812,9 @@ contains
                      endif
                      if ((.not.found).and.((((field==iJx).or.(field==iJy).or.(field==iJz))))) then
                         sgg%Observation(ii)%P(i)%What=nothing
-                        !  write(buff,'(a,4i7,a)') 'WARNING: WIRE probe ',no,i1,j1,k1,' DOES NOT EXIST'
-                        !  CALL WarnErrReport (buff)
+                          !ojoo 010423 para debugeo lbb1
+                          write(buff,'(a,4i7,a)') 'WARNING: WIRE probe ',no,i1,j1,k1,' DOES NOT EXIST'
+                          CALL WarnErrReport (buff,.true.)
                      endif
                   endif
 #endif
@@ -892,11 +893,13 @@ contains
                               found=.true.
                            endif
                         end do
-                     endif
+                     endif                           
                      if ((.not.found).and.((((field==iJx).or.(field==iJy).or.(field==iJz))))) then
                         sgg%Observation(ii)%P(i)%What=nothing
-                        !  write(buff,'(a,4i7,a)') 'WARNING: WIRE probe ',no,i1,j1,k1,' DOES NOT EXIST'
-                        !  CALL WarnErrReport (buff)
+                        
+                          !ojoo 010423 para debugeo lbb1
+                          write(buff,'(a,4i7,a)') 'WARNING: WIRE probe ',no,i1,j1,k1,' DOES NOT EXIST'
+                          CALL WarnErrReport (buff,.true.)
                      endif
                   endif   
 #endif            

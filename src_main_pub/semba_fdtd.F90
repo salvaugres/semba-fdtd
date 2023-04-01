@@ -41,7 +41,8 @@ PROGRAM SEMBA_FDTD_launcher
    USE Solver
    USE Resuming
    !nfde parser stuff
-#ifndef CompilePrivateVersion  
+#ifdef CompilePrivateVersion      
+   USE NFDETypes
    USE ParseadorClass
 #else
    USE NFDETypes
@@ -366,7 +367,7 @@ PROGRAM SEMBA_FDTD_launcher
 !!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!
    call print_credits 
-#ifndef CompilePrivateVersion   
+#ifdef CompilePrivateVersion   
    call cargaNFDE
 #else               
    print *,'Currently the parser is privative. The user must build by the input type using the info in nfde_types.F90.'    
@@ -493,7 +494,7 @@ PROGRAM SEMBA_FDTD_launcher
       !NOTE: md: lo necesito despues del conformal init (antes se borraba mas arriba)
       !REVIEW: sgg
 
-#ifndef CompilePrivateVersion           
+#ifdef CompilePrivateVersion           
       CALL Destroy_Parser (parser)
 #endif      
       DEALLOCATE (NFDE_FILE%lineas)
@@ -2454,7 +2455,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!
 
-#ifndef CompilePrivateVersion 
+#ifdef CompilePrivateVersion 
 subroutine cargaNFDE
    INTEGER (KIND=8) :: numero,i8,troncho,longitud
    integer (kind=4) :: mpi_t_linea_t,longitud4

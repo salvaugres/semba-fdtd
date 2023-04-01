@@ -1554,7 +1554,7 @@ contains
       integer(kind=MPI_OFFSET_KIND) disp
       integer (kind=4) :: ierr
 #endif
-      logical verbosete,ignoreerrors1
+      logical verbosete,ignoreerrors1       , itsopen2
       integer :: my_iostat
       character (len=1024) :: ficherito
       verbose=verbosete
@@ -1564,7 +1564,9 @@ contains
       write(whoami,'(a,i5,a,i5,a)') '(',layoutnumber+1,'/',size,') '
       write(whoamishort,'(i5)') layoutnumber+1
 
-      IF (layoutnumber == 0) THEN
+      IF (layoutnumber == 0) THEN          
+      !!!inquire(unit=17, opened=itsopen2)
+      !!!if (itsopen2) print *,'----------->17 open!!!'
         ficherito=trim(adjustl(nEntradaRoot))//trim(adjustl(whoamishort))//'_tmpWarnings.txt'
         call openclosedelete(ficherito)
       endif
@@ -1584,6 +1586,9 @@ contains
       !!!    open (17,file=trim(adjustl(nEntradaRoot))//'_tmpWarnings.txt',form='formatted')
       !!!ENDIF
       !!!#else
+      
+      inquire(unit=17, opened=itsopen2)
+      !!!if (itsopen2) print *,'----------->17 open!!!'
       ficherito=trim(adjustl(nEntradaRoot))//trim(adjustl(whoamishort))//'_tmpWarnings.txt'
       call opensolo(17,ficherito)
       !!!#endif
@@ -1641,7 +1646,7 @@ contains
       integer (kind=4) :: ierr,posic,i
       character (len=BUFSIZE) :: buf2
       character (len=1024)     ::  dubuf
-      logical :: fatalerror_final , lexis,stoch_undivided,simu_devia
+      logical :: fatalerror_final , lexis,stoch_undivided,simu_devia        , itsopen2
       character( len = 14)  ::  whoamishort,whoami,chinstant
       integer :: my_iostat,file87
       character (len=1024) :: ficherito
@@ -1678,7 +1683,9 @@ contains
                endif
             endif 
             inquire(file=trim(adjustl(WarningFile))//trim(adjustl(whoamishort))//'_tmpWarnings.txt',exist=lexis)
-            if (lexis) then
+            if (lexis) then         
+      !!!inquire(unit=87, opened=itsopen2)
+      !!!if (itsopen2) print *,'----------->87 open!!!'
                ficherito=trim(adjustl(WarningFile))//trim(adjustl(whoamishort))//'_tmpWarnings.txt'
                call opensolo(87,ficherito)
                !
