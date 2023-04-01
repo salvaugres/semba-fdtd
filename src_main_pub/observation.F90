@@ -813,7 +813,7 @@ contains
                      if ((.not.found).and.((((field==iJx).or.(field==iJy).or.(field==iJz))))) then
                         sgg%Observation(ii)%P(i)%What=nothing
                           !ojoo 010423 para debugeo lbb1
-                          write(buff,'(a,4i7,a)') 'WARNING: WIRE probe ',no,i1,j1,k1,' DOES NOT EXIST'
+                          write(buff,'(a,4i7,a)') 'ERROR: WIRE probe ',no,i1,j1,k1,' DOES NOT EXIST'
                           CALL WarnErrReport (buff,.true.)
                      endif
                   endif
@@ -858,8 +858,8 @@ contains
                      endif
                      if ((.not.found).and.((((field==iJx).or.(field==iJy).or.(field==iJz))))) then
                         sgg%Observation(ii)%P(i)%What=nothing
-                        write(buff,'(a,4i7,a)') 'SEVEREWARNING: WIRE probe ',no,i1,j1,k1,' DOES NOT EXIST'
-                        CALL WarnErrReport (buff)
+                        write(buff,'(a,4i7,a)') 'ERROR: WIRE probe ',no,i1,j1,k1,' DOES NOT EXIST'
+                        CALL WarnErrReport (buff,.TRUE.)
                      endif
                   endif
 #endif
@@ -893,12 +893,21 @@ contains
                               found=.true.
                            endif
                         end do
-                     endif                           
+                     endif 
+                     !010423  creo que si no lo encuentra es porque el indice es el exterior bug lbb1 epg 0323
+                     if (.not.found) then   
+                         do n=1,Hwireslocal_Slanted%NumSegments
+                           if (Hwireslocal_Slanted%Segments(n)%ptr%elotroindice ==no)  then
+                              output(ii)%item(i)%segmento_Slanted => Hwireslocal_Slanted%Segments(n)%ptr
+                              found=.true.
+                           endif
+                         end do
+                     endif                       
                      if ((.not.found).and.((((field==iJx).or.(field==iJy).or.(field==iJz))))) then
                         sgg%Observation(ii)%P(i)%What=nothing
                         
                           !ojoo 010423 para debugeo lbb1
-                          write(buff,'(a,4i7,a)') 'WARNING: WIRE probe ',no,i1,j1,k1,' DOES NOT EXIST'
+                          write(buff,'(a,4i7,a)') 'ERROR: WIRE probe ',no,i1,j1,k1,' DOES NOT EXIST'
                           CALL WarnErrReport (buff,.true.)
                      endif
                   endif   
