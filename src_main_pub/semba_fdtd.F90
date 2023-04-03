@@ -2775,7 +2775,7 @@ end subroutine cargaNFDE
       if (creditosyaprinteados) return
       creditosyaprinteados=.true.
       CALL print11 (layoutnumber, '=========================')
-      CALL print11 (layoutnumber, 'SEMBA_FDTD SOLVER')
+      CALL print11 (layoutnumber, 'SEMBA-FDTD SOLVER')
       CALL print11 (layoutnumber, '=========================')
       
       WRITE (dubuf,*) SEPARADOR // SEPARADOR // SEPARADOR
