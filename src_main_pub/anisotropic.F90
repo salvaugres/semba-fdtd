@@ -747,12 +747,12 @@ contains
                ((Coeff%ehyz * hy(-1 + i,j,-1 + k) + Coeff%ehyz * hy(-1 + i,j,k) +                                          &
                Coeff%ehyz * hy(-1 + i,1 + j,-1 + k) + Coeff%ehyz * hy(-1 + i,1 + j,k) -                               &
                Coeff%ehyz * hy(i,j,-1 + k) - Coeff%ehyz * hy(i,j,k) - Coeff%ehyz * hy(i,1 + j,-1 + k) -                  &
-               Coeff%ehyz * hy(i,1 + j,k) - 4. * Coeff%ehyy * hz(-1 + i,j,k) + 4. * Coeff%ehyy * hz(i,j,k)) * Idxh(i))/          &
+               Coeff%ehyz * hy(i,1 + j,k) - 4. * Coeff%ehyy * hz(-1 + i,j,k) + 4. * Coeff%ehyy * hz(i,j,k)) * Idxh(i))/       &
                4. + ((Coeff%ehyz * hx(i,-1 + j,-1 + k) + Coeff%ehyz * hx(i,-1 + j,k) -                                    &
                Coeff%ehyz * hx(i,1 + j,-1 + k) - Coeff%ehyz * hx(i,1 + j,k) -                                         &
                Coeff%ehyx * hz(-1 + i,-1 + j,k) + Coeff%ehyx * hz(-1 + i,1 + j,k) -                                   &
                Coeff%ehyx * hz(i,-1 + j,k) + Coeff%ehyx * hz(i,1 + j,k)) * Idye(j))/4. -                                &
-               ((4. * Coeff%ehyy * hx(i,j,-1 + k) - 4. * Coeff%ehyy * hx(i,j,k) - Coeff%ehyx * hy(-1 + i,j,-1 + k) +                &
+               ((4. * Coeff%ehyy * hx(i,j,-1 + k) - 4. * Coeff%ehyy * hx(i,j,k) - Coeff%ehyx * hy(-1 + i,j,-1 + k) +   &
                Coeff%ehyx * hy(-1 + i,j,k) - Coeff%ehyx * hy(-1 + i,1 + j,-1 + k) +                                   &
                Coeff%ehyx * hy(-1 + i,1 + j,k) - Coeff%ehyx * hy(i,j,-1 + k) + Coeff%ehyx * hy(i,j,k) -                  &
                Coeff%ehyx * hy(i,1 + j,-1 + k) + Coeff%ehyx * hy(i,1 + j,k)) * Idzh(k))/4.0_RKIND
@@ -1402,7 +1402,7 @@ contains
       sigmam(1,1)) *(2 * mu0 * mur(2,3) + dt * sigmam(2,3))) *((mu0 * mur(3,2))/dt - sigmam(3,2)/2.0_RKIND) +((mu0      &
       * mur(2,2))/dt - sigmam(2,2)/2.0_RKIND) *(-((2 * mu0 * mur(1,3) + dt * sigmam(1,3)) *(2 * mu0 * mur(3,1) + dt      &
       * sigmam(3,1))) +(2 * mu0 * mur(1,1) + dt * sigmam(1,1)) *(2 * mu0 * mur(3,3) + dt      &
-      * sigmam(3,3))) +((mu0 * mur(1,2))/dt - sigmam(1,2)/2.0_RKIND) *((2 * mu0 * mur(2,3) + dt * sigmam(2,3)) *(2 * mu0 * mur      &
+      * sigmam(3,3))) +((mu0 * mur(1,2))/dt - sigmam(1,2)/2.0_RKIND) *((2 * mu0 * mur(2,3) + dt * sigmam(2,3)) *(2 * mu0 * mur  &
       (3,1) + dt * sigmam(3,1)) -(2 * mu0 * mur(2,1) + dt * sigmam(2,1)) *(2 * mu0 * mur(3,3) + dt * sigmam      &
       (3,3))))/((-((2 * mu0 * mur(1,3) + dt * sigmam(1,3)) *(2 * mu0 * mur(2,2) + dt * sigmam(2,2))) +(2 * mu0      &
       * mur(1,2) + dt * sigmam(1,2)) *(2 * mu0 * mur(2,3) + dt * sigmam(2,3))) *((mu0 * mur(3,1))/dt +      &
