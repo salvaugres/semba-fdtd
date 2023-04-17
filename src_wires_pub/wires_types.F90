@@ -80,6 +80,7 @@ module wiresHolland_constants
       !at the desired time step in observation.f90
       REAL (KIND=RKIND) , pointer                 ::  field_wire2main
       REAL (KIND=RKIND) , pointer                 ::  field_main2wire
+      type (thick_field)                          ::  thick_field_wire2main,thick_field_main2wire
 !      REAL (KIND=RKIND_wires)                           ::  field_wire2main_past  !no sirve para nada 171216
       integer (kind=4)   ::  i,j,k,indexmed,ILIBRE,JLIBRE,KLIBRE
       !dama
