@@ -24,6 +24,7 @@
  
 module wiresHolland_constants
    use fdetypes
+   use Thick_m
    !Types definitions
    
    integer (kind=4), parameter             ::  MaxNumCurrentMinusPlus=9
