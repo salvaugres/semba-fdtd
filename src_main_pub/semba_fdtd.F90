@@ -32,7 +32,7 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
 
 PROGRAM SEMBA_FDTD_launcher
-#define compileWithGamusino
+
    USE version
    USE Report
    USE Getargs
@@ -74,7 +74,6 @@ PROGRAM SEMBA_FDTD_launcher
    USE Conformal_TimeSteps_m
 #endif
    use EpsMuTimeScale_m
-!!!   use interpretswitches_m
    !*************************************************
    !*************************************************
    !*************************************************
@@ -125,7 +124,7 @@ PROGRAM SEMBA_FDTD_launcher
    CHARACTER (LEN=1024) :: fichin = ' ', f = ' ', chain = ' ', chain2 = ' ', opcionestotales = ' ', chain3 = ' ',chain4 = ' ',  nEntradaRoot = ' ', fileFDE = ' ', fileH5 = ' ',chaindummy=' '
    CHARACTER (LEN=1024) :: licensee = ' ',nresumeable2 = ' ', prefix = ' ', geomfile = ' ', filenombre = ' '
 
-   CHARACTER (LEN=65536) :: prefixopci = ' ', prefixopci1 = ' ',opcionespararesumeo = ' ',opcionespararesumeo2 = ' ', opcionesoriginales = ' ', &
+   CHARACTER (LEN=65536) :: prefixopci = ' ', prefixopci1 = ' ',opcionespararesumeo = ' ', opcionesoriginales = ' ', &
    slicesoriginales = ' ', slices = ' ', chdummy = ' '
    CHARACTER (LEN=5) :: chari
    CHARACTER (LEN=14) :: whoami, whoamishort
@@ -387,48 +386,6 @@ PROGRAM SEMBA_FDTD_launcher
    chain2=trim(adjustl(trim(adjustl(chaindummy))//' '//trim(adjustl(sgg%extraswitches))//' '//trim(adjustl(chain2(length+1:)))))
 !!!!
    call interpretswitches(chain2,status)
-   
-   !!! call interpretswitches_new( &
-              !!!hopf,forceresampled,ficherohopf, &
-              !!!inductance_model,wiresflavor,inductance_order ,&
-              !!!makeholes,connectendings, isolategroupgroups,resume_fromold, pausar, &
-              !!!l_aux,skindepthpre,groundwires,noSlantedcrecepelo ,mibc,ade,SGBC,SGBCDispersive,SGBCcrank, &
-              !!!conformalskin,CLIPREGION,boundwireradius,vtkindex,createh5bin,wirecrank,ignoreerrors, &
-              !!!fatalerror,fieldtotl,ignoresamplingerrors, &
-              !!!attfactorc,attfactorw,cfl,cfltemp,pausetime, &
-              !!!time_begin,time_end, &
-              !!!factorradius,factordelta, &
-              !!!precision, &
-              !!!facesNF2FF, &
-              !!!sgg, &
-              !!!resume, resume3, freshstart,forcerun, forcesteps, createmap, createmapvtk, &
-              !!!MurAfterPML,mur_second,mur_first,forcecfl,mtlnberenger,stableradholland,NOcompomur,strictOLD, &
-              !!!TAPARRABOS,NF2FFDecim,verbose, &
-              !!!mindistwires,maxwireradius,SGBCFreq,SGBCresol , &
-              !!!finaltimestep, length, n, i,j, donde,mpidir,SGBCdepth,newmpidir, &
-              !!!flushminutesFields, flushsecondsFields, &
-              !!!flushminutesData, flushsecondsData, &
-              !!!fichin, f, chain,  opcionestotales ,  nEntradaRoot, &
-              !!!nresumeable2, prefix, geomfile, &
-              !!!prefixopci, prefixopci1,opcionespararesumeo, opcionesoriginales, &
-              !!!slicesoriginales, chdummy, &
-              !!!chari, &
-              !!!statuse, &
-              !!!saveall, existeNFDE,existeh5,deleteintermediates,updateshared, &
-              !!!MEDIOEXTRA, &
-              !!!run_with_dmma, run_with_abrezanjas,flag_conf_sgg, &
-              !!!alphamaxpar,kappamaxpar,alphaOrden, &
-              !!!forced, maxCPUtime, &
-              !!!forcing, singlefilewrite,takeintcripte,prioritizeCOMPOoverPEC, &
-              !!!prioritizeISOTROPICBODYoverall,permitscaling,niapapostprocess,planewavecorr, &
-              !!!time_out2, &
-              !!!buff, conformal_file_input_name,&
-              !!!stochastic,chosenyesornostochastic, &
-              !!!dontwritevtk, &
-              !!!chain2, &
-              !!!EpsMuTimeScale_input_parameters)
-   
-                !!!status=statuse  
 !!!!tunel a lo bestia para crear el .h5 a 021219
 
 #ifdef CompileWithXDMF   
@@ -1469,6 +1426,115 @@ contains
 2712      CONTINUE
             !COMO LA RCS SE CALCULA SOLO AL FINAL NO OBLIGO A RESUMEAR CON IGUAL -NONFF2FF PARA PODER CALCULAR CON Y SIN ESTA OPCION resumeando
             !          opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain)) // ' ' // trim (adjustl(f))
+          CASE ('-force')
+            forcing = .TRUE.
+            i = i + 1
+            CALL getcommandargument (chaininput, i, f, length,  statuse)
+            READ (f,*, ERR=412) forced
+            GO TO 312
+412         CALL stoponerror (layoutnumber, size, 'Invalid cut',.true.)
+          statuse=-1
+          !return
+312         CONTINUE
+            opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain)) // ' ' // trim (adjustl(f))
+          CASE ('-singlefile')
+            singlefilewrite = .TRUE.
+            opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))
+          CASE ('-r')
+            resume = .TRUE.
+            forcesteps=.true.
+#ifdef CompileWithOldSaving
+          CASE ('-old')
+            resume_fromold = .TRUE.
+#endif
+          CASE ('-cpumax')
+            i = i + 1
+            CALL getcommandargument (chaininput, i, f, length,  statuse)
+            ! Converts the characters to integer
+            READ (f,*, ERR=712) maxCPUtime
+            GO TO 812
+712         CALL stoponerror (layoutnumber, size, 'Invalid CPU maximum time',.true.)
+          statuse=-1
+          !return
+812         IF (maxCPUtime <= 0) THEN
+               CALL stoponerror (layoutnumber, size, 'Invalid CPU maximum time',.true.)
+          statuse=-1
+          !return
+            END IF
+          CASE ('-forcerun')
+            forcerun = .TRUE.
+          CASE ('-s')
+            freshstart = .TRUE.
+          CASE ('-flush')
+            i = i + 1
+            CALL getcommandargument (chaininput, i, f, length,  statuse)
+            ! Converts the characters to integer
+            READ (f,*, ERR=300) flushminutesFields
+            GO TO 400
+300         CALL stoponerror (layoutnumber, size, 'Invalid flushing interval',.true.)
+          statuse=-1
+          !return
+400         IF (flushminutesFields <= 0) THEN
+               CALL stoponerror (layoutnumber, size, 'Invalid flushing interval',.true.)
+          statuse=-1
+          !return
+            END IF
+          CASE ('-flushdata')
+            i = i + 1
+            CALL getcommandargument (chaininput, i, f, length,  statuse)
+            ! Converts the characters to integer
+            READ (f,*, ERR=301) flushminutesData
+            GO TO 401
+301         CALL stoponerror (layoutnumber, size, 'Invalid flushing interval',.true.)
+          statuse=-1
+          !return
+401         IF (flushminutesData <= 0) THEN
+               CALL stoponerror (layoutnumber, size, 'Invalid flushing interval',.true.)
+          statuse=-1
+          !return
+            END IF
+          CASE ('-map')
+            !dump the map files
+            createmap = .TRUE.
+!Gamusiono de las narices
+
+          CASE ('-verbose')
+            verbose = .TRUE.
+          CASE ('-mapvtk')
+            !dump the map files
+#ifdef CompileWithVTK   
+            createmapvtk = .TRUE.
+#else
+            createmapvtk = .FALSE.
+#endif
+#ifndef compileWithGamusino
+          CASE ('-dontwritevtk')
+            dontwritevtk=.true.
+          CASE ('-vtkindex')
+            vtkindex = .TRUE.
+          CASE ('-ignoreerrors')
+            ignoreerrors = .TRUE.
+          CASE ('-ignoresamplingerrors')
+            ignoresamplingerrors = .TRUE.
+          CASE ('-prioritizeCOMPOoverPEC')
+            prioritizeCOMPOoverPEC=.true.
+            opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))
+            ignoreerrors = .TRUE.
+          CASE ('-noshared')
+            updateshared=.false.
+            opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))
+          CASE ('-prioritizeISOTROPICBODYoverall')
+            prioritizeISOTROPICBODYoverall=.true.
+            opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))
+          CASE ('-wirecrank')
+            wirecrank = .TRUE.
+            opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))
+          CASE ('-clip')
+            CLIPREGION = .TRUE.
+            opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))
+
+!endif del compileWithGamusino
+#endif 
 
 !
           CASE ('-hopf')
@@ -2001,115 +2067,6 @@ contains
             opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))         
           case ('-forcecreateh5bin')         
             createh5bin=.true.     
-          case ('-singlefile')  
-            singlefilewrite = .TRUE.                                    
-            opcionespararesumeo2 =  ' ' // trim (adjustl(chain))     
-!!!!!!!!!  gamusino           
-          CASE ('-force')
-            forcing = .TRUE.
-            i = i + 1
-            CALL getcommandargument (chaininput, i, f, length,  statuse)
-            READ (f,*, ERR=412) forced
-            GO TO 312
-412         CALL stoponerror (layoutnumber, size, 'Invalid cut',.true.)
-          statuse=-1
-          !return
-312         CONTINUE
-       !     opcionespararesumeo2 = ' ' // trim (adjustl(chain)) // ' ' // trim (adjustl(f))                          
- 
-          CASE ('-r')
-            resume = .TRUE.
-            forcesteps=.true.  
-#ifdef CompileWithOldSaving
-          CASE ('-old')
-            resume_fromold = .TRUE.
-#endif                       
-          CASE ('-cpumax')
-            i = i + 1
-            CALL getcommandargument (chaininput, i, f, length,  statuse)
-            ! Converts the characters to integer
-            READ (f,*, ERR=712) maxCPUtime
-            GO TO 812
-712         CALL stoponerror (layoutnumber, size, 'Invalid CPU maximum time',.true.)
-          statuse=-1
-          !return
-812         IF (maxCPUtime <= 0) THEN
-               CALL stoponerror (layoutnumber, size, 'Invalid CPU maximum time',.true.)
-          statuse=-1
-          !return
-            END IF                           
-#ifndef compileWithGamusino
-          CASE ('-forcerun')
-            forcerun = .TRUE.              
-#endif            
-          CASE ('-s')
-            freshstart = .TRUE.
-          CASE ('-flush')
-            i = i + 1
-            CALL getcommandargument (chaininput, i, f, length,  statuse)
-            ! Converts the characters to integer
-            READ (f,*, ERR=300) flushminutesFields
-            GO TO 400
-300         CALL stoponerror (layoutnumber, size, 'Invalid flushing interval',.true.)
-          statuse=-1
-          !return
-400         IF (flushminutesFields <= 0) THEN
-               CALL stoponerror (layoutnumber, size, 'Invalid flushing interval',.true.)
-          statuse=-1
-          !return
-            END IF
-          CASE ('-flushdata')
-            i = i + 1
-            CALL getcommandargument (chaininput, i, f, length,  statuse)
-            ! Converts the characters to integer
-            READ (f,*, ERR=301) flushminutesData
-            GO TO 401
-301         CALL stoponerror (layoutnumber, size, 'Invalid flushing interval',.true.)
-          statuse=-1
-          !return
-401         IF (flushminutesData <= 0) THEN
-               CALL stoponerror (layoutnumber, size, 'Invalid flushing interval',.true.)
-          statuse=-1
-          !return
-            END IF
-          CASE ('-map')
-            !dump the map files
-            createmap = .TRUE.
-          CASE ('-verbose')
-            verbose = .TRUE.
-          CASE ('-mapvtk')
-            !dump the map files
-#ifdef CompileWithVTK   
-            createmapvtk = .TRUE.
-#else
-            createmapvtk = .FALSE.
-#endif
-          CASE ('-dontwritevtk')
-            dontwritevtk=.true.
-          CASE ('-vtkindex')
-            vtkindex = .TRUE.
-          CASE ('-ignoreerrors')
-            ignoreerrors = .TRUE.
-          CASE ('-ignoresamplingerrors')
-            ignoresamplingerrors = .TRUE.
-          CASE ('-prioritizeCOMPOoverPEC')
-            prioritizeCOMPOoverPEC=.true.
-        !    opcionespararesumeo2 = trim (adjustl(opcionespararesumeo2)) // ' ' // trim (adjustl(chain))
-            ignoreerrors = .TRUE.
-          CASE ('-noshared')
-            updateshared=.false.
-        !    opcionespararesumeo2 = trim (adjustl(opcionespararesumeo2)) // ' ' // trim (adjustl(chain))
-          CASE ('-prioritizeISOTROPICBODYoverall')
-            prioritizeISOTROPICBODYoverall=.true.
-        !    opcionespararesumeo2 = trim (adjustl(opcionespararesumeo2)) // ' ' // trim (adjustl(chain))
-          CASE ('-wirecrank')
-            wirecrank = .TRUE.
-        !    opcionespararesumeo2 = trim (adjustl(opcionespararesumeo2)) // ' ' // trim (adjustl(chain))
-          CASE ('-clip')
-            CLIPREGION = .TRUE.
-        !    opcionespararesumeo2 = trim (adjustl(opcionespararesumeo2)) // ' ' // trim (adjustl(chain))
-!!!#endif
-!!!!!!!!!!!!!!!            
           CASE ('') !100615 para evitar el crlf del .sh
             continue
           CASE DEFAULT
@@ -2119,7 +2076,6 @@ contains
       END DO
 
    END IF
-   call interpretswitches2(chaininput,statuse)
    !some checkings
    !just to be sure that I do not have stupid errors
 #ifdef CompileWithMPI
@@ -2340,7 +2296,7 @@ contains
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-   if ((forcerun)) then  !el modo forcerun crea el semaforo pause para permiter encolados salvajes en ugrgrid
+   if ((forcerun)) then  !el modo run crea el semaforo pause para permiter encolados salvajes en ugrgrid
 #ifdef keeppause
           !!!solo para el cluster
                   INQUIRE (file='running', EXIST=hayinput)
@@ -2493,165 +2449,6 @@ contains
     return !el unico return que he dejado !240817
    
    end subroutine interpretswitches
-   
-
-   subroutine interpretswitches2(chaininput,statuse)
-   CHARACTER (LEN=1024) ::  chaininput
-   integer (kind=4) :: statuse
-   logical :: existiarunningigual,mpidirset   
-
-#ifndef compileWithGamusino          
-   mpidirset=.false.
-   existiarunningigual=.false.
-   statuse=0
-   !!!!!!!!!!!!!!!
-   n = commandargumentcount (chaininput)
-   IF (n == 0) THEN
-      call print_basic_help
-      call stoponerror(layoutnumber,size,'Error: NO arguments neither command line nor in launch file. Correct and remove pause...',.true.)
-      statuse=-1
-      !return
-   END IF
-   opcionestotales=''
-   do i=2,n
-      CALL getcommandargument (chaininput, i, chain, length, statuse)
-      IF (statuse /= 0) THEN
-         CALL stoponerror (layoutnumber, size, 'Reading input',.true.)
-          statuse=-1
-          !return
-      END IF
-      opcionestotales=trim(adjustl(opcionestotales))//' '//trim(adjustl(chain))
-   end do
-   CALL print11 (layoutnumber, 'Switches '//trim(adjustl(opcionestotales)))
-
- 
-   IF (n > 0) THEN
-      i = 2  ! se empieza en 2 porque el primer argumento es siempre el nombre del ejecutable
-      DO while (i <= n)
-         CALL getcommandargument (chaininput, i, chain, length, statuse)
-         IF (statuse /= 0) THEN
-            CALL stoponerror (layoutnumber, size, 'Reading input',.true.)
-          statuse=-1
-          !return
-         END IF
-         SELECT CASE (trim(adjustl(chain)))
-          CASE ('-force')
-            forcing = .TRUE.
-            i = i + 1
-            CALL getcommandargument (chaininput, i, f, length,  statuse)
-            READ (f,*, ERR=412) forced
-            GO TO 312
-412         CALL stoponerror (layoutnumber, size, 'Invalid cut',.true.)
-          statuse=-1
-          !return
-312         CONTINUE
-            opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain)) // ' ' // trim (adjustl(f))
-          CASE ('-singlefile')
-            singlefilewrite = .TRUE.
-            opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))
-          CASE ('-r')
-            resume = .TRUE.
-            forcesteps=.true.
-#ifdef CompileWithOldSaving
-          CASE ('-old')
-            resume_fromold = .TRUE.
-#endif
-          CASE ('-cpumax')
-            i = i + 1
-            CALL getcommandargument (chaininput, i, f, length,  statuse)
-            ! Converts the characters to integer
-            READ (f,*, ERR=712) maxCPUtime
-            GO TO 812
-712         CALL stoponerror (layoutnumber, size, 'Invalid CPU maximum time',.true.)
-          statuse=-1
-          !return
-812         IF (maxCPUtime <= 0) THEN
-               CALL stoponerror (layoutnumber, size, 'Invalid CPU maximum time',.true.)
-          statuse=-1
-          !return
-            END IF
-          CASE ('-forcerun')
-            forcerun = .TRUE.
-          CASE ('-s')
-            freshstart = .TRUE.
-          CASE ('-flush')
-            i = i + 1
-            CALL getcommandargument (chaininput, i, f, length,  statuse)
-            ! Converts the characters to integer
-            READ (f,*, ERR=300) flushminutesFields
-            GO TO 400
-300         CALL stoponerror (layoutnumber, size, 'Invalid flushing interval',.true.)
-          statuse=-1
-          !return
-400         IF (flushminutesFields <= 0) THEN
-               CALL stoponerror (layoutnumber, size, 'Invalid flushing interval',.true.)
-          statuse=-1
-          !return
-            END IF
-          CASE ('-flushdata')
-            i = i + 1
-            CALL getcommandargument (chaininput, i, f, length,  statuse)
-            ! Converts the characters to integer
-            READ (f,*, ERR=301) flushminutesData
-            GO TO 401
-301         CALL stoponerror (layoutnumber, size, 'Invalid flushing interval',.true.)
-          statuse=-1
-          !return
-401         IF (flushminutesData <= 0) THEN
-               CALL stoponerror (layoutnumber, size, 'Invalid flushing interval',.true.)
-          statuse=-1
-          !return
-            END IF
-          CASE ('-map')
-            !dump the map files
-            createmap = .TRUE.
-!Gamusiono de las narices
-
-          CASE ('-verbose')
-            verbose = .TRUE.
-          CASE ('-mapvtk')
-            !dump the map files
-#ifdef CompileWithVTK   
-            createmapvtk = .TRUE.
-#else
-            createmapvtk = .FALSE.
-#endif
-          CASE ('-dontwritevtk')
-            dontwritevtk=.true.
-          CASE ('-vtkindex')
-            vtkindex = .TRUE.
-          CASE ('-ignoreerrors')
-            ignoreerrors = .TRUE.
-          CASE ('-ignoresamplingerrors')
-            ignoresamplingerrors = .TRUE.
-          CASE ('-prioritizeCOMPOoverPEC')
-            prioritizeCOMPOoverPEC=.true.
-            opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))
-            ignoreerrors = .TRUE.
-          CASE ('-noshared')
-            updateshared=.false.
-            opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))
-          CASE ('-prioritizeISOTROPICBODYoverall')
-            prioritizeISOTROPICBODYoverall=.true.
-            opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))
-          CASE ('-wirecrank')
-            wirecrank = .TRUE.
-            opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))
-          CASE ('-clip')
-            CLIPREGION = .TRUE.
-            opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))
-
-!endif del compileWithGamusino
-         END SELECT
-         i = i + 1
-      END DO
-
-   END IF
-                                                       
-#endif 
-    return !el unico return que he dejado !240817
-   
-   end subroutine interpretswitches2   
 !!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!
@@ -3027,7 +2824,7 @@ end subroutine cargaNFDE
       CALL print11 (layoutnumber, '-i geometryfile        : Simulates the Native format input file            ')
       CALL print11 (layoutnumber, '-r                     : Restarts a previous execution until a given step. ')
       CALL print11 (layoutnumber, '&                        Needs -n                                          ')
-      CALL print11 (layoutnumber, '-forcerun              : Uses a semaphore running file and automatically   ')
+      CALL print11 (layoutnumber, '-forcerun                   : Uses a semaphore running file and automatically   ')
       CALL print11 (layoutnumber, '&                        relaunches simulation if ended or aborted (cluter)')
 #ifdef CompileWithOldSaving
       CALL print11 (layoutnumber, '-old                   : Jointly with -r restarts from .fields.old files   ')
