@@ -1496,8 +1496,6 @@ contains
           CASE ('-map')
             !dump the map files
             createmap = .TRUE.
-!Gamusiono de las narices
-
           CASE ('-verbose')
             verbose = .TRUE.
           CASE ('-mapvtk')
@@ -1530,12 +1528,12 @@ contains
             opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))
           CASE ('-clip')
             CLIPREGION = .TRUE.
-            opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))
-!endif del CompileWithGamusino
-#endif        
-!                        
+            opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))                
           CASE ('-noshared')
             updateshared=.false.
+!endif del CompileWithGamusino
+#endif        
+!                
           CASE ('-hopf')
             hopf=.true.
             i = i + 1;
