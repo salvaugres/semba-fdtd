@@ -1346,7 +1346,8 @@ contains
             opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain)) // ' ' // trim (adjustl(f))
             mpidirset=.true.
           endif
-
+           
+#ifndef CompileWithGamusino              
           case ('-pause')
             i = i + 1
             CALL getcommandargument (chaininput, i, f, length,  statuse)
@@ -1396,7 +1397,6 @@ contains
           !!!!return
             !!!2012      CONTINUE
             !!!          opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain)) // ' ' // trim (adjustl(f))
-
           CASE ('-NF2FFdecim')
             NF2FFDecim=.true.
             opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain)) // ' ' // trim (adjustl(f))
@@ -1425,9 +1425,9 @@ contains
           !return
 2712      CONTINUE
             !COMO LA RCS SE CALCULA SOLO AL FINAL NO OBLIGO A RESUMEAR CON IGUAL -NONFF2FF PARA PODER CALCULAR CON Y SIN ESTA OPCION resumeando
-            !          opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain)) // ' ' // trim (adjustl(f))                      
-          CASE ('-force')
-            forcing = .TRUE.
+            !          opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain)) // ' ' // trim (adjustl(f))      
+          CASE ('-force')      
+            forcing = .TRUE. 
             i = i + 1
             CALL getcommandargument (chaininput, i, f, length,  statuse)
             READ (f,*, ERR=412) forced
@@ -1439,14 +1439,40 @@ contains
             opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain)) // ' ' // trim (adjustl(f))
           CASE ('-singlefile')
             singlefilewrite = .TRUE.
+            opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))  
+          CASE ('-ignoresamplingerrors')
+            ignoresamplingerrors = .TRUE.
+          CASE ('-prioritizeCOMPOoverPEC')
+            prioritizeCOMPOoverPEC=.true.
             opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))
+            ignoreerrors = .TRUE.
+          CASE ('-noshared')
+            updateshared=.false.
+            opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))
+          CASE ('-prioritizeISOTROPICBODYoverall')
+            prioritizeISOTROPICBODYoverall=.true.
+            opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))
+          CASE ('-wirecrank')
+            wirecrank = .TRUE.
+            opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))
+          CASE ('-clip')
+            CLIPREGION = .TRUE.
+            opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))
+!endif del compileWithGamusino
+#endif        
+!     
+  
+          CASE ('-verbose')
+            verbose = .TRUE.
+          CASE ('-ignoreerrors')
+            ignoreerrors = .TRUE.         
           CASE ('-r')
             resume = .TRUE.
             forcesteps=.true.
 #ifdef CompileWithOldSaving
           CASE ('-old')
             resume_fromold = .TRUE.
-#endif
+#endif  
           CASE ('-cpumax')
             i = i + 1
             CALL getcommandargument (chaininput, i, f, length,  statuse)
@@ -1460,9 +1486,7 @@ contains
                CALL stoponerror (layoutnumber, size, 'Invalid CPU maximum time',.true.)
           statuse=-1
           !return
-            END IF    
-          CASE ('-run')
-            run = .TRUE.
+            END IF   
           CASE ('-s')
             freshstart = .TRUE.
           CASE ('-flush')
@@ -1492,12 +1516,16 @@ contains
                CALL stoponerror (layoutnumber, size, 'Invalid flushing interval',.true.)
           statuse=-1
           !return
-            END IF     
+            END IF   
+          CASE ('-run')
+            run = .TRUE.                
           CASE ('-map')
             !dump the map files
             createmap = .TRUE.
-          CASE ('-verbose')
-            verbose = .TRUE.
+          CASE ('-dontwritevtk')
+            dontwritevtk=.true.
+          CASE ('-vtkindex')
+            vtkindex = .TRUE.  
           CASE ('-mapvtk')
             !dump the map files
 #ifdef CompileWithVTK   
@@ -1505,35 +1533,6 @@ contains
 #else
             createmapvtk = .FALSE.
 #endif
-          CASE ('-dontwritevtk')
-            dontwritevtk=.true.
-          CASE ('-vtkindex')
-            vtkindex = .TRUE.        
-          CASE ('-ignoreerrors')
-            ignoreerrors = .TRUE.
-          CASE ('-ignoresamplingerrors')
-            ignoresamplingerrors = .TRUE.     
-!el gamusino a lo mejor se resuelve compilando con -heap-arrays
-#ifndef CompileWithGamusino
-          CASE ('-prioritizeCOMPOoverPEC')
-            prioritizeCOMPOoverPEC=.true.
-            opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))
-            ignoreerrors = .TRUE.
-            opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))
-          CASE ('-prioritizeISOTROPICBODYoverall')
-            prioritizeISOTROPICBODYoverall=.true.
-            opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))
-          CASE ('-wirecrank')
-            wirecrank = .TRUE.
-            opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))
-          CASE ('-clip')
-            CLIPREGION = .TRUE.
-            opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))                
-          CASE ('-noshared')
-            updateshared=.false.
-!endif del CompileWithGamusino
-#endif        
-!                
           CASE ('-hopf')
             hopf=.true.
             i = i + 1;
@@ -2063,7 +2062,7 @@ contains
             chosenyesornostochastic=.true.
             opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))         
           case ('-forcecreateh5bin')         
-            createh5bin=.true.  
+            createh5bin=.true.     
           CASE ('') !100615 para evitar el crlf del .sh
             continue
           CASE DEFAULT
@@ -2072,7 +2071,7 @@ contains
          i = i + 1
       END DO
 
-   END IF                                   
+   END IF
    !some checkings
    !just to be sure that I do not have stupid errors
 #ifdef CompileWithMPI
