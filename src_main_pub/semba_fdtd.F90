@@ -369,11 +369,7 @@ PROGRAM SEMBA_FDTD_launcher
    call print_credits 
 #ifdef CompilePrivateVersion   
    call cargaNFDE
-<<<<<<< HEAD
-#else
-=======
 #else               
->>>>>>> salva_dev
    print *,'Currently the parser is privative. The user must build by the input type using the info in nfde_types.F90.'    
    print *,'You can also contact us for CAD solutions to generate this info it in an automatic manner for general geometries,'
    print *,'and to have also access to advanced models not included here: stochastic analysis, multiwire and conformal cables, LF acceleration, etc.'
@@ -1350,11 +1346,6 @@ contains
             opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain)) // ' ' // trim (adjustl(f))
             mpidirset=.true.
           endif
-<<<<<<< HEAD
-
-=======
-           
->>>>>>> salva_dev
 #ifndef CompileWithGamusino              
           case ('-pause')
             i = i + 1
@@ -1457,18 +1448,6 @@ contains
           CASE ('-noshared')
             updateshared=.false.
             opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))
-<<<<<<< HEAD
-          CASE ('-ignoresamplingerrors')
-            ignoresamplingerrors = .TRUE.
-          CASE ('-prioritizeCOMPOoverPEC')
-            prioritizeCOMPOoverPEC=.true.
-            opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))
-            ignoreerrors = .TRUE.
-          CASE ('-noshared')
-            updateshared=.false.
-            opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))
-=======
->>>>>>> salva_dev
           CASE ('-prioritizeISOTROPICBODYoverall')
             prioritizeISOTROPICBODYoverall=.true.
             opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))
@@ -1506,11 +1485,8 @@ contains
                CALL stoponerror (layoutnumber, size, 'Invalid CPU maximum time',.true.)
           statuse=-1
           !return
-<<<<<<< HEAD
-            END IF
-=======
             END IF   
->>>>>>> salva_dev
+
           CASE ('-s')
             freshstart = .TRUE.
           CASE ('-flush')
@@ -1540,11 +1516,7 @@ contains
                CALL stoponerror (layoutnumber, size, 'Invalid flushing interval',.true.)
           statuse=-1
           !return
-<<<<<<< HEAD
-            END IF
-=======
             END IF   
->>>>>>> salva_dev
           CASE ('-run')
             run = .TRUE.                
           CASE ('-map')
@@ -1561,11 +1533,6 @@ contains
 #else
             createmapvtk = .FALSE.
 #endif
-<<<<<<< HEAD
-
-
-=======
->>>>>>> salva_dev
           CASE ('-hopf')
             hopf=.true.
             i = i + 1;
@@ -3337,11 +3304,7 @@ end subroutine cargaNFDE
       relaunching=.false.
       forcestop=.false.
       input_conformal_flag = .false.
-<<<<<<< HEAD
-!thin gaps      
-=======
 !thin gaps  
->>>>>>> salva_dev
 #ifdef CompileWithDMMA
       run_with_dmma = .true.
 #else

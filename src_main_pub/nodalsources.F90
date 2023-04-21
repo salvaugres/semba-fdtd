@@ -440,11 +440,7 @@ contains
                   i_m = i - b%Ex%XI
                   medio = sggMiEx(i_m,j_m,k_m)
                   if (.not.simu_devia)   then !bug 280323 mdrc
-<<<<<<< HEAD
-                  if (.not.sgg%Med(medio)%Is%PEC) Ex(i_m,j_m,k_m) = amp * evolucion(timei,Nodal_Ex%nodHard(ii))
-=======
                         if (.not.sgg%Med(medio)%Is%PEC) Ex(i_m,j_m,k_m) = amp * evolucion(timei,Nodal_Ex%nodHard(ii))
->>>>>>> salva_dev
                   else
                         if (.not.sgg%Med(medio)%Is%PEC) Ex(i_m,j_m,k_m) = 0.0 !!!!!!
                   endif
@@ -468,11 +464,7 @@ contains
                   medio = sggMiEx(i_m,j_m,k_m)
                   
                   if (.not.simu_devia)   then !bug 280323 mdrc
-<<<<<<< HEAD
-                  if (.not.sgg%Med(medio)%Is%PEC) Ex(i_m,j_m,k_m) = Ex(i_m,j_m,k_m)- G2(medio) * Idyh(j_m) * Idzh(k_m) * amp * evolucion(timei,Nodal_Ex%nodSoft(ii))
-=======
                         if (.not.sgg%Med(medio)%Is%PEC) Ex(i_m,j_m,k_m) = Ex(i_m,j_m,k_m)- G2(medio) * Idyh(j_m) * Idzh(k_m) * amp * evolucion(timei,Nodal_Ex%nodSoft(ii)) 
->>>>>>> salva_dev
                   else
                        if (.not.sgg%Med(medio)%Is%PEC)  Ex(i_m,j_m,k_m) = Ex(i_m,j_m,k_m) !!!!!!
                   endif
@@ -497,11 +489,7 @@ contains
                   medio = sggMiEy(i_m,j_m,k_m)
                   
                   if (.not.simu_devia)   then !bug 280323 mdrc
-<<<<<<< HEAD
-                  if (.not.sgg%Med(medio)%Is%PEC) Ey(i_m,j_m,k_m) = amp * evolucion(timei,Nodal_Ey%nodHard(ii))
-=======
                         if (.not.sgg%Med(medio)%Is%PEC) Ey(i_m,j_m,k_m) = amp * evolucion(timei,Nodal_Ey%nodHard(ii))   
->>>>>>> salva_dev
                   else
                         if (.not.sgg%Med(medio)%Is%PEC) Ey(i_m,j_m,k_m) = 0.0 !!!!!!
                   endif
@@ -525,11 +513,7 @@ contains
                   medio = sggMiEy(i_m,j_m,k_m)
                   
                   if (.not.simu_devia)   then !bug 280323 mdrc
-<<<<<<< HEAD
-                  if (.not.sgg%Med(medio)%Is%PEC) Ey(i_m,j_m,k_m) = Ey(i_m,j_m,k_m)- G2(medio) * Idxh(i_m) * Idzh(k_m) * amp * evolucion(timei,Nodal_Ey%nodSoft(ii))
-=======
                         if (.not.sgg%Med(medio)%Is%PEC) Ey(i_m,j_m,k_m) = Ey(i_m,j_m,k_m)- G2(medio) * Idxh(i_m) * Idzh(k_m) * amp * evolucion(timei,Nodal_Ey%nodSoft(ii))   
->>>>>>> salva_dev
                   else
                        if (.not.sgg%Med(medio)%Is%PEC)  Ey(i_m,j_m,k_m) = Ey(i_m,j_m,k_m) !!!!!!
                   endif
@@ -553,11 +537,7 @@ contains
                   medio = sggMiEz(i_m,j_m,k_m)
                   
                   if (.not.simu_devia)   then !bug 280323 mdrc
-<<<<<<< HEAD
-                  if (.not.sgg%Med(medio)%Is%PEC) Ez(i_m,j_m,k_m) = amp * evolucion(timei,Nodal_Ez%nodHard(ii))
-=======
                         if (.not.sgg%Med(medio)%Is%PEC) Ez(i_m,j_m,k_m) = amp * evolucion(timei,Nodal_Ez%nodHard(ii))  
->>>>>>> salva_dev
                   else
                         if (.not.sgg%Med(medio)%Is%PEC) Ez(i_m,j_m,k_m) = 0.0 !!!!!!
                   endif
@@ -581,11 +561,7 @@ contains
                   medio = sggMiEz(i_m,j_m,k_m)
                   
                   if (.not.simu_devia)   then !bug 280323 mdrc
-<<<<<<< HEAD
-                  if (.not.sgg%Med(medio)%Is%PEC) Ez(i_m,j_m,k_m) = Ez(i_m,j_m,k_m)- G2(medio) * Idyh(j_m) * Idxh(i_m) * amp * evolucion(timei,Nodal_Ez%nodSoft(ii))
-=======
                         if (.not.sgg%Med(medio)%Is%PEC) Ez(i_m,j_m,k_m) = Ez(i_m,j_m,k_m)- G2(medio) * Idyh(j_m) * Idxh(i_m) * amp * evolucion(timei,Nodal_Ez%nodSoft(ii))
->>>>>>> salva_dev
                   else
                         if (.not.sgg%Med(medio)%Is%PEC) Ez(i_m,j_m,k_m) = Ez(i_m,j_m,k_m) !!!!!!
                   endif

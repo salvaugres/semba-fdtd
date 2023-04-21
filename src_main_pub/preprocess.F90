@@ -2301,11 +2301,7 @@ endif
             & Alloc_iHy_XE, Alloc_iHy_YI, Alloc_iHy_YE, Alloc_iHy_ZI, Alloc_iHy_ZE, Alloc_iHz_XI, Alloc_iHz_XE, Alloc_iHz_YI, &
             & Alloc_iHz_YE, Alloc_iHz_ZI, Alloc_iHz_ZE, sgg%Med, sgg%NumMedia, sgg%EShared, BoundingBox, punto, orientacion, &
             & contamedia, isathinwire,verbose,numeroasignaciones)
-<<<<<<< HEAD
-            IF ((trim(adjustl(this%twires%TW(j)%TWC(i)%SRCTYPE)) == 'VOLT') .OR.   &
-=======
             IF ((trim(adjustl(this%twires%TW(j)%TWC(i)%SRCTYPE))   == 'VOLT') .OR.   &
->>>>>>> salva_dev
             &     (trim(adjustl(this%twires%TW(j)%TWC(i)%SRCTYPE)) == 'CURR').OR.   &
             &     (trim(adjustl(this%twires%TW(j)%TWC(i)%SRCTYPE)) == 'SOFTVOLT').OR.   &
             &     (trim(adjustl(this%twires%TW(j)%TWC(i)%SRCTYPE)) == 'SOFTCURR').OR.   &
@@ -2341,25 +2337,6 @@ endif
                   sgg%Med(contamedia)%wire(1)%VSource(CONTAVOLT)%i = this%twires%TW(j)%TWC(i)%i
                   sgg%Med(contamedia)%wire(1)%VSource(CONTAVOLT)%j = this%twires%TW(j)%TWC(i)%j
                   sgg%Med(contamedia)%wire(1)%VSource(CONTAVOLT)%k = this%twires%TW(j)%TWC(i)%k
-<<<<<<< HEAD
-               ELSE IF ((trim(adjustl(this%twires%TW(j)%TWC(i)%SRCTYPE)) == 'CURR').OR. & 
-                        (trim(adjustl(this%twires%TW(j)%TWC(i)%SRCTYPE)) == 'HARDCURR')) THEN
-                  CONTAVOLT=CONTAVOLT+1
-                  CALL WarnErrReport (buff)
-                  !             CALL STOPONERROR(layoutnumber,size,buff)
-                  sgg%Med(contamedia)%wire(1)%VsourceExists = .TRUE.
-                  sgg%Med(contamedia)%wire(1)%VSource(CONTAVOLT)%SOFT=.FALSE. !230323 FUENTES DURAS Y FALSAS SGG
-                  sgg%Med(contamedia)%wire(1)%VSource(CONTAVOLT)%Multiplier = this%twires%TW(j)%TWC(i)%m
-                  sgg%Med(contamedia)%wire(1)%VSource(CONTAVOLT)%fichero%name = trim (adjustl(this%twires%TW(j)%TWC(i)%SRCFILE))
-                  sgg%Med(contamedia)%wire(1)%VSource(CONTAVOLT)%Resistance = 0.0_RKIND
-                  !not provided by .nfde but supported by the simulation though untested
-                  !                           
-                  sgg%Med(contamedia)%wire(1)%VSource(CONTAVOLT)%fichero%name = trim (adjustl(this%twires%TW(j)%TWC(i)%SRCFILE))
-                  sgg%Med(contamedia)%wire(1)%VSource(CONTAVOLT)%i = this%twires%TW(j)%TWC(i)%i
-                  sgg%Med(contamedia)%wire(1)%VSource(CONTAVOLT)%j = this%twires%TW(j)%TWC(i)%j
-                  sgg%Med(contamedia)%wire(1)%VSource(CONTAVOLT)%k = this%twires%TW(j)%TWC(i)%k
-=======
->>>>>>> salva_dev
                ELSEIF (trim(adjustl(this%twires%TW(j)%TWC(i)%SRCTYPE)) == 'HARDVOLT') THEN
                   CONTACURR=CONTACURR+1
                   sgg%Med(contamedia)%wire(1)%IsourceExists = .TRUE.
@@ -2527,22 +2504,6 @@ endif
             
             IF ((trim(adjustl(this%swires%SW(j)%swc(i)%SRCTYPE)) == 'VOLT').or. &
                 (trim(adjustl(this%swires%SW(j)%swc(i)%SRCTYPE)) == 'SOFTVOLT')) THEN
-<<<<<<< HEAD
-               allocate (sgg%Med(contamedia)%SlantedWire(1)%nodes(i)%Vsource)
-               sgg%Med(contamedia)%SlantedWire(1)%nodes(i)%VsourceExists = .TRUE.
-               sgg%Med(contamedia)%SlantedWire(1)%nodes(i)%VSource%SOFT=.TRUE.  !fuentes duras sgg 230323. default blandas
-               sgg%Med(contamedia)%SlantedWire(1)%nodes(i)%VSource%Multiplier = this%swires%SW(j)%swc(i)%m
-               sgg%Med(contamedia)%SlantedWire(1)%nodes(i)%VSource%Resistance = 0.0_RKIND
-               sgg%Med(contamedia)%SlantedWire(1)%nodes(i)%VSource%fichero%name = trim (adjustl(this%swires%SW(j)%swc(i)%SRCFILE))   
-            ELSE IF ((trim(adjustl(this%swires%SW(j)%swc(i)%SRCTYPE)) == 'CURR').OR. &
-                     (trim(adjustl(this%swires%SW(j)%swc(i)%SRCTYPE)) == 'HARDCURR')) THEN !EQUIVALENTES A IMPLEMENTAR UNA DE voltage
-               allocate (sgg%Med(contamedia)%SlantedWire(1)%nodes(i)%Vsource)
-               sgg%Med(contamedia)%SlantedWire(1)%nodes(i)%VsourceExists = .TRUE.
-               sgg%Med(contamedia)%SlantedWire(1)%nodes(i)%Vsource%SOFT=.FALSE.
-               sgg%Med(contamedia)%SlantedWire(1)%nodes(i)%VSource%Multiplier = this%swires%SW(j)%swc(i)%m
-               sgg%Med(contamedia)%SlantedWire(1)%nodes(i)%VSource%Resistance = 0.0_RKIND
-               sgg%Med(contamedia)%SlantedWire(1)%nodes(i)%VSource%fichero%name = trim (adjustl(this%swires%SW(j)%swc(i)%SRCFILE))
-=======
                allocate (sgg%Med(contamedia)%SlantedWire(1)%nodes(i)%Vsource)
                sgg%Med(contamedia)%SlantedWire(1)%nodes(i)%VsourceExists = .TRUE.
                sgg%Med(contamedia)%SlantedWire(1)%nodes(i)%VSource%SOFT=.TRUE.  !fuentes duras sgg 230323. default blandas
@@ -2557,7 +2518,6 @@ endif
                sgg%Med(contamedia)%SlantedWire(1)%nodes(i)%Vsource%Multiplier = this%swires%SW(j)%swc(i)%m
                sgg%Med(contamedia)%SlantedWire(1)%nodes(i)%Vsource%Resistance = 0.0_RKIND
                sgg%Med(contamedia)%SlantedWire(1)%nodes(i)%Vsource%fichero%name = trim (adjustl(this%swires%SW(j)%swc(i)%SRCFILE))
->>>>>>> salva_dev
             ELSEIF (trim(adjustl(this%swires%SW(j)%swc(i)%SRCTYPE)) == 'HARDVOLT') THEN !EQUIVALENTES A IMPLEMENTAR UNA DE Corriente
                allocate (sgg%Med(contamedia)%SlantedWire(1)%nodes(i)%Isource)
                sgg%Med(contamedia)%SlantedWire(1)%nodes(i)%IsourceExists = .TRUE.

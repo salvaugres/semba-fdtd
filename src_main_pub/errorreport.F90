@@ -1218,11 +1218,7 @@ contains
                               if ((i+i1 <= fin_ibox).and.(j+j1 <= fin_jbox).and.(k+k1 <= fin_kbox)) then
                                  valor = valor+sqrt(Ex(i+i1, j+j1, k+k1) * Ex( i+i1, j+j1, k+k1) + &
                                                     Ey( i+i1, j+j1, k+k1) * Ey(i+i1, j+j1, k+k1)+ &
-<<<<<<< HEAD
                                  Ez(i+i1, j+j1, k+k1) * Ez( i+i1, j+j1, k+k1))
-=======
-                                                    Ez(i+i1, j+j1, k+k1) * Ez( i+i1, j+j1, k+k1))
->>>>>>> salva_dev
                                  veces=veces+1
                               endif
                            end do
@@ -1584,11 +1580,8 @@ contains
       write(whoami,'(a,i5,a,i5,a)') '(',layoutnumber+1,'/',size,') '
       write(whoamishort,'(i5)') layoutnumber+1
 
-<<<<<<< HEAD
-      IF (layoutnumber == 0) THEN
-=======
       IF (layoutnumber == 0) THEN          
->>>>>>> salva_dev
+
       !!!inquire(unit=17, opened=itsopen2)
       !!!if (itsopen2) print *,'----------->17 open!!!'
         ficherito=trim(adjustl(nEntradaRoot))//trim(adjustl(whoamishort))//'_tmpWarnings.txt'
@@ -1708,11 +1701,7 @@ contains
                endif
             endif 
             inquire(file=trim(adjustl(WarningFile))//trim(adjustl(whoamishort))//'_tmpWarnings.txt',exist=lexis)
-<<<<<<< HEAD
-            if (lexis) then
-=======
             if (lexis) then         
->>>>>>> salva_dev
       !!!inquire(unit=87, opened=itsopen2)
       !!!if (itsopen2) print *,'----------->87 open!!!'
                ficherito=trim(adjustl(WarningFile))//trim(adjustl(whoamishort))//'_tmpWarnings.txt'
