@@ -1346,6 +1346,7 @@ contains
             opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain)) // ' ' // trim (adjustl(f))
             mpidirset=.true.
           endif
+           
 #ifndef CompileWithGamusino              
           case ('-pause')
             i = i + 1
