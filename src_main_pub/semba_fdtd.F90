@@ -369,7 +369,11 @@ PROGRAM SEMBA_FDTD_launcher
    call print_credits 
 #ifdef CompilePrivateVersion   
    call cargaNFDE
+<<<<<<< HEAD
 #else
+=======
+#else               
+>>>>>>> salva_dev
    print *,'Currently the parser is privative. The user must build by the input type using the info in nfde_types.F90.'    
    print *,'You can also contact us for CAD solutions to generate this info it in an automatic manner for general geometries,'
    print *,'and to have also access to advanced models not included here: stochastic analysis, multiwire and conformal cables, LF acceleration, etc.'
@@ -379,7 +383,7 @@ PROGRAM SEMBA_FDTD_launcher
    sgg%extraswitches=parser%switches
 !!!da preferencia a los switches por linea de comando
    CALL getcommandargument (chain2, 1, chaindummy, length, statuse)
-   
+
    chain2=trim(adjustl(chain2))
    chaindummy=trim(adjustl(chaindummy))
    length=len(trim(adjustl(chaindummy)))
@@ -1312,7 +1316,7 @@ contains
           statuse=-1
           !return
          END IF
-         SELECT CASE (trim(adjustl(chain)))
+         SELECT CASE (trim(adjustl(chain)))   
           CASE ('-i')
                i = i + 1
                CALL getcommandargument (chaininput, i, f, length,  statuse)
@@ -1346,7 +1350,11 @@ contains
             opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain)) // ' ' // trim (adjustl(f))
             mpidirset=.true.
           endif
+<<<<<<< HEAD
 
+=======
+           
+>>>>>>> salva_dev
 #ifndef CompileWithGamusino              
           case ('-pause')
             i = i + 1
@@ -1397,7 +1405,6 @@ contains
           !!!!return
             !!!2012      CONTINUE
             !!!          opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain)) // ' ' // trim (adjustl(f))
-
           CASE ('-NF2FFdecim')
             NF2FFDecim=.true.
             opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain)) // ' ' // trim (adjustl(f))
@@ -1424,11 +1431,11 @@ contains
 1712        CALL stoponerror (layoutnumber, size, 'Invalid -noNF2FF option',.true.)
           statuse=-1
           !return
-2712        CONTINUE
+2712      CONTINUE
             !COMO LA RCS SE CALCULA SOLO AL FINAL NO OBLIGO A RESUMEAR CON IGUAL -NONFF2FF PARA PODER CALCULAR CON Y SIN ESTA OPCION resumeando
-            !          opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain)) // ' ' // trim (adjustl(f))
-          CASE ('-force')
-            forcing = .TRUE.
+            !          opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain)) // ' ' // trim (adjustl(f))      
+          CASE ('-force')      
+            forcing = .TRUE. 
             i = i + 1
             CALL getcommandargument (chaininput, i, f, length,  statuse)
             READ (f,*, ERR=412) forced
@@ -1440,7 +1447,7 @@ contains
             opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain)) // ' ' // trim (adjustl(f))
           CASE ('-singlefile')
             singlefilewrite = .TRUE.
-            opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))
+            opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))  
           CASE ('-ignoresamplingerrors')
             ignoresamplingerrors = .TRUE.
           CASE ('-prioritizeCOMPOoverPEC')
@@ -1450,6 +1457,18 @@ contains
           CASE ('-noshared')
             updateshared=.false.
             opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))
+<<<<<<< HEAD
+          CASE ('-ignoresamplingerrors')
+            ignoresamplingerrors = .TRUE.
+          CASE ('-prioritizeCOMPOoverPEC')
+            prioritizeCOMPOoverPEC=.true.
+            opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))
+            ignoreerrors = .TRUE.
+          CASE ('-noshared')
+            updateshared=.false.
+            opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))
+=======
+>>>>>>> salva_dev
           CASE ('-prioritizeISOTROPICBODYoverall')
             prioritizeISOTROPICBODYoverall=.true.
             opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))
@@ -1473,7 +1492,7 @@ contains
 #ifdef CompileWithOldSaving
           CASE ('-old')
             resume_fromold = .TRUE.
-#endif
+#endif  
           CASE ('-cpumax')
             i = i + 1
             CALL getcommandargument (chaininput, i, f, length,  statuse)
@@ -1487,7 +1506,11 @@ contains
                CALL stoponerror (layoutnumber, size, 'Invalid CPU maximum time',.true.)
           statuse=-1
           !return
+<<<<<<< HEAD
             END IF
+=======
+            END IF   
+>>>>>>> salva_dev
           CASE ('-s')
             freshstart = .TRUE.
           CASE ('-flush')
@@ -1517,7 +1540,11 @@ contains
                CALL stoponerror (layoutnumber, size, 'Invalid flushing interval',.true.)
           statuse=-1
           !return
+<<<<<<< HEAD
             END IF
+=======
+            END IF   
+>>>>>>> salva_dev
           CASE ('-run')
             run = .TRUE.                
           CASE ('-map')
@@ -1534,8 +1561,11 @@ contains
 #else
             createmapvtk = .FALSE.
 #endif
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> salva_dev
           CASE ('-hopf')
             hopf=.true.
             i = i + 1;
@@ -2065,7 +2095,7 @@ contains
             chosenyesornostochastic=.true.
             opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))         
           case ('-forcecreateh5bin')         
-            createh5bin=.true.
+            createh5bin=.true.     
           CASE ('') !100615 para evitar el crlf del .sh
             continue
           CASE DEFAULT
@@ -3307,7 +3337,11 @@ end subroutine cargaNFDE
       relaunching=.false.
       forcestop=.false.
       input_conformal_flag = .false.
+<<<<<<< HEAD
 !thin gaps      
+=======
+!thin gaps  
+>>>>>>> salva_dev
 #ifdef CompileWithDMMA
       run_with_dmma = .true.
 #else

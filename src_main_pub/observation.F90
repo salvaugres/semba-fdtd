@@ -893,7 +893,11 @@ contains
                               found=.true.
                            endif
                         end do
+<<<<<<< HEAD
                      endif
+=======
+                     endif 
+>>>>>>> salva_dev
                      !010423  creo que si no lo encuentra es porque el indice es el exterior bug lbb1 epg 0323
                      if (.not.found) then   
                          do n=1,Hwireslocal_Slanted%NumSegments
@@ -2797,7 +2801,11 @@ contains
                            output( ii)%item(i)%valor3(nTime-nInit)= output(ii)%item(i)%valorsigno* &
                                  (((SegmDumm%ChargePlus%ChargePresent)))* SegmDumm%Lind * ( InvMu(SegmDumm%indexmed) * InvEps( SegmDumm%indexmed))
                            output( ii)%item(i)%valor4(nTime-nInit)= output(ii)%item(i)%valorsigno*&
+<<<<<<< HEAD
                                                                     (((SegmDumm%ChargeMinus%ChargePresent)))*SegmDumm%Lind * (InvMu( SegmDumm%indexmed) * InvEps( SegmDumm%indexmed))
+=======
+                                 (((SegmDumm%ChargeMinus%ChargePresent)))*SegmDumm%Lind * (InvMu( SegmDumm%indexmed) * InvEps( SegmDumm%indexmed))
+>>>>>>> salva_dev
                            output( ii)%item(i)%valor5(nTime-nInit)=output( ii)%item(i)%valor3(nTime-nInit)-output( ii)%item(i)%valor4(nTime-nInit)
     
                         else
@@ -2827,7 +2835,11 @@ contains
                                   (((SegmDumm_Berenger%ChargePlus  + SegmDumm_Berenger%ChargePlusPast))/2.0_RKIND)  * &
                                    SegmDumm_Berenger%L *    (InvMu(SegmDumm_Berenger%imed) * InvEps( SegmDumm_Berenger%imed))                                                                  
                         output( ii)%item(i)%valor4(nTime-nInit)= output(ii)%item(i)%valorsigno*&
+<<<<<<< HEAD
                                                                     (((SegmDumm_Berenger%ChargeMinus + SegmDumm_Berenger%ChargeMinusPast))/2.0_RKIND) * &
+=======
+                                 (((SegmDumm_Berenger%ChargeMinus + SegmDumm_Berenger%ChargeMinusPast))/2.0_RKIND) * &
+>>>>>>> salva_dev
                                    SegmDumm_Berenger%L *    (InvMu(SegmDumm_Berenger%imed) * InvEps( SegmDumm_Berenger%imed))
                         output( ii)%item(i)%valor5(nTime-nInit)=output( ii)%item(i)%valor3(nTime-nInit)-output( ii)%item(i)%valor4(nTime-nInit)
                      endif
@@ -2841,7 +2853,11 @@ contains
                         output( ii)%item(i)%valor3(nTime-nInit)= &
                                  (((SegmDumm_Slanted%Voltage(iPlus)%ptr%Voltage + SegmDumm_Slanted%Voltage(iPlus)%ptr%VoltagePast))/2.0_RKIND)                  
                         output( ii)%item(i)%valor4(nTime-nInit)= &
+<<<<<<< HEAD
                                                                    (((SegmDumm_Slanted%Voltage(iMinus)%ptr%Voltage + SegmDumm_Slanted%Voltage(iMinus)%ptr%VoltagePast))/2.0_RKIND)
+=======
+                                 (((SegmDumm_Slanted%Voltage(iMinus)%ptr%Voltage + SegmDumm_Slanted%Voltage(iMinus)%ptr%VoltagePast))/2.0_RKIND)
+>>>>>>> salva_dev
                         output( ii)%item(i)%valor5(nTime-nInit)=output( ii)%item(i)%valor3(nTime-nInit)-output( ii)%item(i)%valor4(nTime-nInit)
                      endif
 #endif
@@ -4062,7 +4078,7 @@ contains
                   !    output(ii)%item(i)%valor3D = 0.0_RKIND
                 case (iJx,iJy,iJz)
                   output(ii)%item(i)%valor(0:BuffObse)=0.0_RKIND
-                  output(ii)%item(i)%valor2(0:BuffObse)=0.0_RKIND
+                  output(ii)%item(i)%valor2(0:BuffObse)=0.0_RKIND   
                   output(ii)%item(i)%valor3(0:BuffObse)=0.0_RKIND
                   output(ii)%item(i)%valor4(0:BuffObse)=0.0_RKIND
                   output(ii)%item(i)%valor5(0:BuffObse)=0.0_RKIND

@@ -3728,7 +3728,7 @@ contains
    contains
  
    
- !!!!!!!!!  
+ !!!!!!!!!
    
    subroutine deembed_peclossyconformal_segments(sggmiE)
     
@@ -3737,14 +3737,14 @@ contains
    !primero los conformal 130220 %Is%split_and_useless
        if ((sgg%Med(sggmiE)%Is%split_and_useless).and. &
                 .not.(IsEnd_norLeft_norRight.or.Is_LeftEnd.or.Is_RightEnd)) then   !NO NO NO ES UN TERMINAL
-                   call deembed_segment
+                   call deembed_segment 
                    write (buff,'(a,6i9)') 'wir0_WARNING: YES de-embedding a NON-TERMINAL conformal split_and_useless WIRE segment: ', sggmiE, &
                             HWires%CurrentSegment(conta)%origIndex,HWires%CurrentSegment(conta)%i, &
                             HWires%CurrentSegment(conta)%j,HWires%CurrentSegment(conta)%k,HWires%CurrentSegment(conta)%tipofield
                    if ((k1 >= ZI).and.(k1 <= ZE)) call WarnErrReport(buff)
         elseif ((sgg%Med(sggmiE)%Is%split_and_useless).and. &
                 (IsEnd_norLeft_norRight.or.Is_LeftEnd.or.Is_RightEnd)) then   !SI SI SI ES UN TERMINAL
-                   call deembed_segment
+                   call deembed_segment 
                    write (buff,'(a,6i9)') 'wir0_SEVEREWARNING: YES de-embedding a YES-TERMINAL WIRE SEGMENT IN A CONFORMAL split_and_useless SURFACE (): ', sggmiE, &
                            HWires%CurrentSegment(conta)%origIndex,HWires%CurrentSegment(conta)%i, &
                           HWires%CurrentSegment(conta)%j,HWires%CurrentSegment(conta)%k,HWires%CurrentSegment(conta)%tipofield
@@ -3752,9 +3752,9 @@ contains
         elseif ((sgg%Med(sggmiE)%Is%already_YEEadvanced_byconformal).and. &  !!!!!!!!!!!!already_YEEadvanced_byconformal
                 .not.(IsEnd_norLeft_norRight.or.Is_LeftEnd.or.Is_RightEnd)) then   !NO NO NO ES UN TERMINAL                    
                 if (.not.fieldtotl) then
-                         HWires%CurrentSegment(conta)%cte5=sgg%dt /eps0 /(HWires%CurrentSegment(conta)%deltaTransv1*HWires%CurrentSegment(conta)%deltaTransv2)
+                         HWires%CurrentSegment(conta)%cte5 = sgg%dt /eps0 /(HWires%CurrentSegment(conta)%deltaTransv1*HWires%CurrentSegment(conta)%deltaTransv2)
                 else
-                         HWires%CurrentSegment(conta)%cte5=0.0_RKIND_wires
+                         HWires%CurrentSegment(conta)%cte5 = 0.0_RKIND_wires
                 endif
                    write (buff,'(a,6i9)') 'wir0_WARNING: NO de-embedding a NON-TERMINAL conformal already_YEEadvanced_byconformal  WIRE segment: ', sggmiE, &
                                      HWires%CurrentSegment(conta)%origIndex,HWires%CurrentSegment(conta)%i, &
@@ -3763,7 +3763,7 @@ contains
         elseif ((sgg%Med(sggmiE)%Is%already_YEEadvanced_byconformal).and. &
                 (IsEnd_norLeft_norRight.or.Is_LeftEnd.or.Is_RightEnd)) then  !SI SI SI ES UN TERMINAL                    
                 if (.not.fieldtotl) then
-                         HWires%CurrentSegment(conta)%cte5=sgg%dt /eps0 /(HWires%CurrentSegment(conta)%deltaTransv1*HWires%CurrentSegment(conta)%deltaTransv2)
+                         HWires%CurrentSegment(conta)%cte5 = sgg%dt /eps0 /(HWires%CurrentSegment(conta)%deltaTransv1*HWires%CurrentSegment(conta)%deltaTransv2)
                 else
                          HWires%CurrentSegment(conta)%cte5=0.0_RKIND_wires
                 endif
@@ -3990,6 +3990,7 @@ end subroutine deembed_segment
                               sgg%med(medio1m)%is%split_and_useless .and. sgg%med(medio2m)%is%split_and_useless .and. sgg%med(medio3m)%is%split_and_useless) then
                            write (buff,*)  'wir1_ERROR: Conformal split_and_useless node NOT changed (IMPOSIBLE) to PEC grounded node at ', i,j,k
                            if ((k >  ZI).and.(k <= ZE)) call WarnErrReport(buff,.true.)
+<<<<<<< HEAD
                            !ojo no tendria arreglo porque aunque se updatee a 0, este campo luego esta partido en dos en conformal y es split_and_useless
                       endif
                       !esta a PEC/lossy o al punietero aire
@@ -4003,6 +4004,21 @@ end subroutine deembed_segment
                            endif
                            if ((k >  ZI).and.(k <= ZE)) call WarnErrReport(buff)
                       endif
+=======
+                           !ojo no tendria arreglo porque aunque se updatee a 0, este campo luego esta partido en dos en conformal y es split_and_useless        
+                      endif
+                      !esta a PEC/lossy o al punietero aire
+                              !!!lo he sacado del if. solo para reporte y que coincida con lo que da estructurado  280323
+                      if (nodo%ispec)  then
+                          write (buff,*)  'wir1_INFO: (SHOULD BE REDUNDANT) Terminal Node grounded to PEC ', i,j,k
+                      elseif (nodo%islossy) then
+                          write (buff,*)  'wir1_INFO: (SHOULD BE REDUNDANT) Terminal Node grounded to Lossy ', i,j,k
+                      else
+                          write (buff,*)  'wir1_INFO: (SHOULD BE REDUNDANT) Terminal Node embedded in air ', i,j,k
+                      endif
+                      if ((k >  ZI).and.(k <= ZE)) call WarnErrReport(buff)
+                 endif
+>>>>>>> salva_dev
 !!!!fin pedazo de niapa           
                
 
@@ -4036,7 +4052,11 @@ end subroutine deembed_segment
    integer :: io,jo,ko,tipofieldo
    type (CurrentSegments), pointer  ::  dummy
   !!!!!!!!!!!!!!!!! embed=.true.; return !!!!ojoooo sgg tocado a mano para ver bug conformal 220323 
+<<<<<<< HEAD
     
+=======
+   
+>>>>>>> salva_dev
     embed=.false.
     if (associated(nodo%CurrentMinus_1))  then
         dummy => nodo%CurrentMinus_1
@@ -5215,6 +5235,34 @@ subroutine resume_casuistics
       !!    end do
       !!!endif
       !!!endif
+      
+!aniado eso a 230323 para fuentes de corrientes duras blandas. Me inspiro en lo que esta comentado antes   
+      if (.not.simu_devia) then              
+          if (thereAreIsources) then
+              do n=1,HWires%NumChargeNodes
+                  if (HWires%ChargeNode(n)%exists) then
+                  If  (HWires%ChargeNode(n)%HasIsource) then
+                      Nodo => HWires%ChargeNode(n)
+                      Iincid=evolucion(timei-unmedio*sgg%dt,Nodo%Isource%Fichero%Samples, &
+                                        Nodo%Isource%Fichero%DeltaSamples,Nodo%Isource%Fichero%NumSamples)
+                      if (Nodo%Isource%soft) then
+                            Nodo%ChargePresent = Nodo%ChargePresent    +  Nodo%CtePlain     * Iincid
+                      else
+                          Vincid=iincid !es realmente una fuente de carga
+                          if (associated(Nodo%CurrentPlus_1)) then
+                            Nodo%ChargePresent = Vincid/ (Nodo%CurrentPlus_1%Lind * InvMu(Nodo%CurrentPlus_1%indexmed)*InvEps(Nodo%CurrentPlus_1%indexmed))
+                          elseif (associated(Nodo%CurrentMinus_1)) then !alguno estara asociado, solo es para sacar el L, eps, mu
+                            Nodo%ChargePresent = Vincid/ (Nodo%CurrentMinus_1%Lind * InvMu(Nodo%CurrentMinus_1%indexmed)*InvEps(Nodo%CurrentMinus_1%indexmed))
+                          else
+                              print *,'bug in current sources '
+                              stop
+                          endif
+                      endif
+                  endif
+                  endif
+              end do
+          endif
+      endif
 
 !aniado eso a 230323 para fuentes de corrientes duras blandas. Me inspiro en lo que esta comentado antes   
       if (.not.simu_devia) then              
@@ -5376,7 +5424,11 @@ subroutine resume_casuistics
                 If  (HWires%CurrentSegment(n)%HasVsource) then
                    Segmento => HWires%CurrentSegment(n)
                    Vincid=evolucion(timei,Segmento%Vsource%Fichero%Samples, &
+<<<<<<< HEAD
                    Segmento%Vsource%Fichero%DeltaSamples,Segmento%Vsource%Fichero%NumSamples)
+=======
+                                    Segmento%Vsource%Fichero%DeltaSamples,Segmento%Vsource%Fichero%NumSamples)
+>>>>>>> salva_dev
                    !!!if (experimentalVideal) then
                    !!!    if ((.not.Segmento%ChargePlus%isPEC).and.Segmento%ChargeMinus%isPEC) then
                    !!!         Segmento%ChargePlus%ChargePresent = Vincid  / (Segmento%Lind * InvMu(Segmento%indexmed)*InvEps(Segmento%indexmed))
@@ -5388,6 +5440,7 @@ subroutine resume_casuistics
                    !!!else
                        !lo de siempre. aniado lo anterior para ver lo de las fuentes duras !C=Q/V-> C=c^-2/L-> Q=V*C=V/(L c^2)
                        if (Segmento%Vsource%soft) then !fuentes blandas usuales 230323
+<<<<<<< HEAD
                        Segmento%Current = Segmento%Current + &
                                  Segmento%cte3 * Vincid  / (Segmento%Lind * InvMu(Segmento%indexmed)*InvEps(Segmento%indexmed))
                        !I use the capacitance to find the incident charge
@@ -5396,6 +5449,16 @@ subroutine resume_casuistics
                            Iincid=Vincid !realmente se trata de forzar la corriente 230323
                            Segmento%Current =  Iincid
                    endif
+=======
+                           Segmento%Current = Segmento%Current + &
+                                 Segmento%cte3 * Vincid  / (Segmento%Lind * InvMu(Segmento%indexmed)*InvEps(Segmento%indexmed))
+                           !I use the capacitance to find the incident charge
+                           !assuming that the evolution file contains a voltage, not a charge
+                       else !nuevas fuentes duras 230323
+                           Iincid=Vincid !realmente se trata de forzar la corriente 230323
+                           Segmento%Current =  Iincid
+                       endif
+>>>>>>> salva_dev
                    !!!endif
                 endif
              end do

@@ -374,7 +374,11 @@ contains
                                      do j1=1,numComp
                                         if  (abs(valoresDF2(i1,j1)).lt.1e-30) valoresDF2(i1,j1)=1e-30 !para evitar calcular el log10(0)
                                      end do
+<<<<<<< HEAD
                                     write(output(ii)%item(i)%unit,fmt) fqPos(i1), &
+=======
+                                     write(output(ii)%item(i)%unit,fmt) fqPos(i1), &
+>>>>>>> salva_dev
                                         (20.0_RKIND * log10(abs(valoresDF2(i1,j1))),&
                                             atan2(aimag(valoresDF2(i1,j1)),real(valoresDF2(i1,j1))), j1=1,numComp)
 
