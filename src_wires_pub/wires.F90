@@ -4036,6 +4036,7 @@ end subroutine deembed_segment
    integer :: io,jo,ko,tipofieldo
    type (CurrentSegments), pointer  ::  dummy
   !!!!!!!!!!!!!!!!! embed=.true.; return !!!!ojoooo sgg tocado a mano para ver bug conformal 220323 
+   
     embed=.false.
     if (associated(nodo%CurrentMinus_1))  then
         dummy => nodo%CurrentMinus_1
@@ -5215,34 +5216,6 @@ subroutine resume_casuistics
       !!!endif
       !!!endif
       
-!aniado eso a 230323 para fuentes de corrientes duras blandas. Me inspiro en lo que esta comentado antes   
-      if (.not.simu_devia) then              
-          if (thereAreIsources) then
-              do n=1,HWires%NumChargeNodes
-                  if (HWires%ChargeNode(n)%exists) then
-                  If  (HWires%ChargeNode(n)%HasIsource) then
-                      Nodo => HWires%ChargeNode(n)
-                      Iincid=evolucion(timei-unmedio*sgg%dt,Nodo%Isource%Fichero%Samples, &
-                                        Nodo%Isource%Fichero%DeltaSamples,Nodo%Isource%Fichero%NumSamples)
-                      if (Nodo%Isource%soft) then
-                            Nodo%ChargePresent = Nodo%ChargePresent    +  Nodo%CtePlain     * Iincid
-                      else
-                          Vincid=iincid !es realmente una fuente de carga
-                          if (associated(Nodo%CurrentPlus_1)) then
-                            Nodo%ChargePresent = Vincid/ (Nodo%CurrentPlus_1%Lind * InvMu(Nodo%CurrentPlus_1%indexmed)*InvEps(Nodo%CurrentPlus_1%indexmed))
-                          elseif (associated(Nodo%CurrentMinus_1)) then !alguno estara asociado, solo es para sacar el L, eps, mu
-                            Nodo%ChargePresent = Vincid/ (Nodo%CurrentMinus_1%Lind * InvMu(Nodo%CurrentMinus_1%indexmed)*InvEps(Nodo%CurrentMinus_1%indexmed))
-                          else
-                              print *,'bug in current sources '
-                              stop
-                          endif
-                      endif
-                  endif
-                  endif
-              end do
-          endif
-      endif
-
 !aniado eso a 230323 para fuentes de corrientes duras blandas. Me inspiro en lo que esta comentado antes   
       if (.not.simu_devia) then              
           if (thereAreIsources) then
