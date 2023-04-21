@@ -393,9 +393,10 @@ contains
 
 
    !**************************************************************************************************
-   subroutine AdvancenodalE(sgg,sggMiEx, sggMiEy, sggMiEz,NumMedia,timeinstant, b, g2,Idxh,Idyh,Idzh,Ex,Ey,Ez)
+   subroutine AdvancenodalE(sgg,sggMiEx, sggMiEy, sggMiEz,NumMedia,timeinstant, b, g2,Idxh,Idyh,Idzh,Ex,Ey,Ez,simu_devia)
       !---------------------------> inputs <----------------------------------------------------------
       type (SGGFDTDINFO), intent(IN)     , target  ::  sgg
+      logical, intent(in) :: simu_devia
       integer, intent( IN)  ::  NumMedia, timeinstant
       !!!
       type( bounds_t), intent( IN)  ::  b
@@ -438,7 +439,11 @@ contains
                do i=Nodal_Ex%nodHard(ii)%punto%xi,Nodal_Ex%nodHard(ii)%punto%xe
                   i_m = i - b%Ex%XI
                   medio = sggMiEx(i_m,j_m,k_m)
+                  if (.not.simu_devia)   then !bug 280323 mdrc
                   if (.not.sgg%Med(medio)%Is%PEC) Ex(i_m,j_m,k_m) = amp * evolucion(timei,Nodal_Ex%nodHard(ii))
+                  else
+                        if (.not.sgg%Med(medio)%Is%PEC) Ex(i_m,j_m,k_m) = 0.0 !!!!!!
+                  endif
                end do
             End do
          end do
@@ -457,7 +462,12 @@ contains
                do i=Nodal_Ex%nodSoft(ii)%punto%xi,Nodal_Ex%nodSoft(ii)%punto%xe
                   i_m = i - b%Ex%XI
                   medio = sggMiEx(i_m,j_m,k_m)
+                  
+                  if (.not.simu_devia)   then !bug 280323 mdrc
                   if (.not.sgg%Med(medio)%Is%PEC) Ex(i_m,j_m,k_m) = Ex(i_m,j_m,k_m)- G2(medio) * Idyh(j_m) * Idzh(k_m) * amp * evolucion(timei,Nodal_Ex%nodSoft(ii))
+                  else
+                       if (.not.sgg%Med(medio)%Is%PEC)  Ex(i_m,j_m,k_m) = Ex(i_m,j_m,k_m) !!!!!!
+                  endif
                end do
             End do
          end do
@@ -477,7 +487,12 @@ contains
                do i=Nodal_Ey%nodHard(ii)%punto%xi,Nodal_Ey%nodHard(ii)%punto%xe
                   i_m = i - b%Ey%XI
                   medio = sggMiEy(i_m,j_m,k_m)
+                  
+                  if (.not.simu_devia)   then !bug 280323 mdrc
                   if (.not.sgg%Med(medio)%Is%PEC) Ey(i_m,j_m,k_m) = amp * evolucion(timei,Nodal_Ey%nodHard(ii))
+                  else
+                        if (.not.sgg%Med(medio)%Is%PEC) Ey(i_m,j_m,k_m) = 0.0 !!!!!!
+                  endif
                end do
             End do
          end do
@@ -496,7 +511,12 @@ contains
                do i=Nodal_Ey%nodSoft(ii)%punto%xi,Nodal_Ey%nodSoft(ii)%punto%xe
                   i_m = i - b%Ey%XI
                   medio = sggMiEy(i_m,j_m,k_m)
+                  
+                  if (.not.simu_devia)   then !bug 280323 mdrc
                   if (.not.sgg%Med(medio)%Is%PEC) Ey(i_m,j_m,k_m) = Ey(i_m,j_m,k_m)- G2(medio) * Idxh(i_m) * Idzh(k_m) * amp * evolucion(timei,Nodal_Ey%nodSoft(ii))
+                  else
+                       if (.not.sgg%Med(medio)%Is%PEC)  Ey(i_m,j_m,k_m) = Ey(i_m,j_m,k_m) !!!!!!
+                  endif
                end do
             End do
          end do
@@ -515,7 +535,12 @@ contains
                do i=Nodal_Ez%nodHard(ii)%punto%xi,Nodal_Ez%nodHard(ii)%punto%xe
                   i_m = i - b%Ez%XI
                   medio = sggMiEz(i_m,j_m,k_m)
+                  
+                  if (.not.simu_devia)   then !bug 280323 mdrc
                   if (.not.sgg%Med(medio)%Is%PEC) Ez(i_m,j_m,k_m) = amp * evolucion(timei,Nodal_Ez%nodHard(ii))
+                  else
+                        if (.not.sgg%Med(medio)%Is%PEC) Ez(i_m,j_m,k_m) = 0.0 !!!!!!
+                  endif
                end do
             End do
          end do
@@ -534,7 +559,12 @@ contains
                do i=Nodal_Ez%nodSoft(ii)%punto%xi,Nodal_Ez%nodSoft(ii)%punto%xe
                   i_m = i - b%Ez%XI
                   medio = sggMiEz(i_m,j_m,k_m)
+                  
+                  if (.not.simu_devia)   then !bug 280323 mdrc
                   if (.not.sgg%Med(medio)%Is%PEC) Ez(i_m,j_m,k_m) = Ez(i_m,j_m,k_m)- G2(medio) * Idyh(j_m) * Idxh(i_m) * amp * evolucion(timei,Nodal_Ez%nodSoft(ii))
+                  else
+                        if (.not.sgg%Med(medio)%Is%PEC) Ez(i_m,j_m,k_m) = Ez(i_m,j_m,k_m) !!!!!!
+                  endif
                end do
             End do
          end do
@@ -551,9 +581,10 @@ contains
    !!! Feed the currents to illuminate the H-field at n+0.5_RKIND
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
    !**************************************************************************************************
-   subroutine AdvancenodalH(sgg,sggMiHx, sggMiHy, sggMiHz,NumMedia,timeinstant, b,gm2,Idxe,Idye,Idze,Hx,Hy,Hz)
+   subroutine AdvancenodalH(sgg,sggMiHx, sggMiHy, sggMiHz,NumMedia,timeinstant, b,gm2,Idxe,Idye,Idze,Hx,Hy,Hz,simu_devia)
       !---------------------------> inputs <----------------------------------------------------------
       type (SGGFDTDINFO), intent(IN)     , target  ::  sgg
+      logical , intent(in) :: simu_devia !ojo untested con simu_devia este tipo de fuentes
       integer, intent( IN)  ::  NumMedia, timeinstant
       !!!
       type( bounds_t), intent( IN)  ::  b
@@ -577,7 +608,10 @@ contains
       integer (kind=4)  ::  i, j, k, i_m, j_m, k_m,ii,medio
       real (kind = RKIND)  ::  GM2_1
       !!!
-
+      if (simu_devia) then
+          print *,'Devia H nodal/field sources untested. Aborting'
+          stop
+      endif
       GM2_1=GM2(1)
       !---------------------------> empieza AdvancenodalH <---------------------------------------
       

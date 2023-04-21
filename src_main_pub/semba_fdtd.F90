@@ -41,7 +41,8 @@ PROGRAM SEMBA_FDTD_launcher
    USE Solver
    USE Resuming
    !nfde parser stuff
-#ifndef CompilePrivateVersion  
+#ifdef CompilePrivateVersion      
+   USE NFDETypes
    USE ParseadorClass
 #else
    USE NFDETypes
@@ -366,10 +367,12 @@ PROGRAM SEMBA_FDTD_launcher
 !!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!
    call print_credits 
-#ifndef CompilePrivateVersion   
+#ifdef CompilePrivateVersion   
    call cargaNFDE
 #else
-   print *,'Currently the parser is privative. The user must build by the input type using the info in nfde_types.F90'
+   print *,'Currently the parser is privative. The user must build by the input type using the info in nfde_types.F90.'    
+   print *,'You can also contact us for CAD solutions to generate this info it in an automatic manner for general geometries,'
+   print *,'and to have also access to advanced models not included here: stochastic analysis, multiwire and conformal cables, LF acceleration, etc.'
    stop
 #endif   
 !!!!!!!!!!!!!!!!!!!!!!!
@@ -491,7 +494,7 @@ PROGRAM SEMBA_FDTD_launcher
       !NOTE: md: lo necesito despues del conformal init (antes se borraba mas arriba)
       !REVIEW: sgg
 
-#ifndef CompilePrivateVersion           
+#ifdef CompilePrivateVersion           
       CALL Destroy_Parser (parser)
 #endif      
       DEALLOCATE (NFDE_FILE%lineas)
@@ -1344,6 +1347,7 @@ contains
             mpidirset=.true.
           endif
 
+#ifndef CompileWithGamusino              
           case ('-pause')
             i = i + 1
             CALL getcommandargument (chaininput, i, f, length,  statuse)
@@ -1437,6 +1441,32 @@ contains
           CASE ('-singlefile')
             singlefilewrite = .TRUE.
             opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))
+          CASE ('-ignoresamplingerrors')
+            ignoresamplingerrors = .TRUE.
+          CASE ('-prioritizeCOMPOoverPEC')
+            prioritizeCOMPOoverPEC=.true.
+            opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))
+            ignoreerrors = .TRUE.
+          CASE ('-noshared')
+            updateshared=.false.
+            opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))
+          CASE ('-prioritizeISOTROPICBODYoverall')
+            prioritizeISOTROPICBODYoverall=.true.
+            opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))
+          CASE ('-wirecrank')
+            wirecrank = .TRUE.
+            opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))
+          CASE ('-clip')
+            CLIPREGION = .TRUE.
+            opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))
+!endif del compileWithGamusino
+#endif        
+!     
+  
+          CASE ('-verbose')
+            verbose = .TRUE.
+          CASE ('-ignoreerrors')
+            ignoreerrors = .TRUE.         
           CASE ('-r')
             resume = .TRUE.
             forcesteps=.true.
@@ -1458,8 +1488,6 @@ contains
           statuse=-1
           !return
             END IF
-          CASE ('-run')
-            run = .TRUE.
           CASE ('-s')
             freshstart = .TRUE.
           CASE ('-flush')
@@ -1490,14 +1518,15 @@ contains
           statuse=-1
           !return
             END IF
+          CASE ('-run')
+            run = .TRUE.                
           CASE ('-map')
             !dump the map files
             createmap = .TRUE.
-!Gamusiono de las narices
-
-          CASE ('-verbose')
-            !dump the map files
-            verbose = .TRUE.
+          CASE ('-dontwritevtk')
+            dontwritevtk=.true.
+          CASE ('-vtkindex')
+            vtkindex = .TRUE.  
           CASE ('-mapvtk')
             !dump the map files
 #ifdef CompileWithVTK   
@@ -1505,36 +1534,8 @@ contains
 #else
             createmapvtk = .FALSE.
 #endif
-#ifndef compileWithGamusino
-          CASE ('-dontwritevtk')
-            dontwritevtk=.true.
-          CASE ('-vtkindex')
-            vtkindex = .TRUE.
-          CASE ('-ignoreerrors')
-            ignoreerrors = .TRUE.
-          CASE ('-ignoresamplingerrors')
-            ignoresamplingerrors = .TRUE.
-          CASE ('-prioritizeCOMPOoverPEC')
-            prioritizeCOMPOoverPEC=.true.
-            opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))
-            ignoreerrors = .TRUE.
-          CASE ('-noshared')
-            updateshared=.false.
-            opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))
-          CASE ('-prioritizeISOTROPICBODYoverall')
-            prioritizeISOTROPICBODYoverall=.true.
-            opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))
-          CASE ('-wirecrank')
-            wirecrank = .TRUE.
-            opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))
-          CASE ('-clip')
-            CLIPREGION = .TRUE.
-            opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))
 
-!endif del compileWithGamusino
-#endif 
 
-!
           CASE ('-hopf')
             hopf=.true.
             i = i + 1;
@@ -1826,8 +1827,6 @@ contains
                CALL stoponerror (layoutnumber, size, 'Invalid minimum distance between wires',.true.); statuse=-1; !return
             END IF
             opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))// ' ' // trim (adjustl(f))
-            !!CASE ('-wiresverbose')
-            !!  verbose = .TRUE.
           CASE ('-makeholes')
             makeholes = .TRUE.
             opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))
@@ -1855,9 +1854,9 @@ contains
           case ('-fieldtotl')
               fieldtotl=.true.
             opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))
-          case ('-experimentalVideal')
-              experimentalVideal=.true.
-              opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))
+          !!case ('-experimentalVideal')
+          !!    experimentalVideal=.true.
+          !!    opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))
           case ('-forceresampled') !a menos que se pida explicitamente, no se resamplea 120123
               forceresampled=.true.
               opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))
@@ -2455,7 +2454,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!
 
-#ifndef CompilePrivateVersion 
+#ifdef CompilePrivateVersion 
 subroutine cargaNFDE
    INTEGER (KIND=8) :: numero,i8,troncho,longitud
    integer (kind=4) :: mpi_t_linea_t,longitud4
@@ -2775,7 +2774,7 @@ end subroutine cargaNFDE
       if (creditosyaprinteados) return
       creditosyaprinteados=.true.
       CALL print11 (layoutnumber, '=========================')
-      CALL print11 (layoutnumber, 'SEMBA_FDTD SOLVER')
+      CALL print11 (layoutnumber, 'SEMBA-FDTD SOLVER')
       CALL print11 (layoutnumber, '=========================')
       
       WRITE (dubuf,*) SEPARADOR // SEPARADOR // SEPARADOR
@@ -2822,7 +2821,6 @@ end subroutine cargaNFDE
       CALL print11 (layoutnumber, 'Command line arguments: ')
       CALL print11 (layoutnumber, '___________________________________________________________________________')
       CALL print11 (layoutnumber, '-i geometryfile        : Simulates the Native format input file            ')
-      !!!          CALL print11 (layoutnumber, '-wiresverbose          : Enforce writing wire warnings in file (only in MPI)') !deprecated 07/03/15
       CALL print11 (layoutnumber, '-r                     : Restarts a previous execution until a given step. ')
       CALL print11 (layoutnumber, '&                        Needs -n                                          ')
       CALL print11 (layoutnumber, '-run                   : Uses a semaphore running file and automatically   ')
@@ -3310,12 +3308,17 @@ end subroutine cargaNFDE
       forcestop=.false.
       input_conformal_flag = .false.
 !thin gaps      
+#ifdef CompileWithDMMA
+      run_with_dmma = .true.
+#else
+      run_with_dmma = .false.
+#endif    
 #ifdef CompileWithConformal
       run_with_dmma = .false.
 ! todo esto para el abrezanjas. se precisa tambien el input_conformal_flag  
 !!!!quitado sgg ojo 290521 esto no se ha arreglado aim... quito el abrezanjas !290521 bug
-      run_with_abrezanjas = .true.
-      !!! run_with_abrezanjas = .false. !0222 
+      run_with_abrezanjas = .true. !OJO 0323 A VECES DA ERROR. PONER A FALSE SI SUCEDE
+      !!!!run_with_abrezanjas = .false.
       if (.NOT.input_conformal_flag) then
             conformal_file_input_name = char(0)
             input_conformal_flag = .true.;
@@ -3323,11 +3326,6 @@ end subroutine cargaNFDE
       end if
 #else
       run_with_abrezanjas = .false.
-#ifdef CompileWithDMMA
-      run_with_dmma = .true.
-#else
-      run_with_dmma = .false.
-#endif
 #endif
 
 !fin thin gaps

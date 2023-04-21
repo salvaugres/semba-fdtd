@@ -1097,7 +1097,7 @@ contains
       ini_save = initialtimestep
       n_info = 5 + initialtimestep
       !
-      if (verbose) call ReportExistence(sgg,layoutnumber,size, thereare,mur_second,MurAfterPML)
+!      if (verbose) call ReportExistence(sgg,layoutnumber,size, thereare,mur_second,MurAfterPML)
 
 
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -1387,9 +1387,9 @@ contains
 #ifdef CompileWithNodalSources
          !NOdal sources  E-field advancing
          If (Thereare%NodalE) then
-              if (.not.simu_devia) then
-                 call AdvanceNodalE(sgg,sggMiEx,sggMiEy,sggMiEz,sgg%NumMedia,n, b,G2,Idxh,Idyh,Idzh,Ex,Ey,Ez)
-              endif
+  !            if (.not.simu_devia) then  !bug! debe entrar en nodal y si son hard simplemente ponerlas a cero !mdrc 290323
+                 call AdvanceNodalE(sgg,sggMiEx,sggMiEy,sggMiEz,sgg%NumMedia,n, b,G2,Idxh,Idyh,Idzh,Ex,Ey,Ez,simu_devia)
+  !            endif
          endif
          
 #endif
@@ -1545,9 +1545,9 @@ contains
 #ifdef CompileWithNodalSources
          !NOdal sources  E-field advancing
          If (Thereare%NodalH) then
-              if (.not.simu_devia) then
-                 call AdvanceNodalH(sgg,sggMiHx,sggMiHy,sggMiHz,sgg%NumMedia,n, b       ,GM2,Idxe,Idye,Idze,Hx,Hy,Hz)
-              endif
+          !!    if (.not.simu_devia) then  !bug! debe entrar en nodal y si son hard simplemente ponerlas a cero !mdrc 290323
+                 call AdvanceNodalH(sgg,sggMiHx,sggMiHy,sggMiHz,sgg%NumMedia,n, b       ,GM2,Idxe,Idye,Idze,Hx,Hy,Hz,simu_devia)
+          !!    endif
         endif
 
 #endif
