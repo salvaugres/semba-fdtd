@@ -2669,7 +2669,7 @@ end subroutine cargaNFDE
          CALL print11 (layoutnumber, dubuf)
          CALL read_geomData (sgg,sggMtag,sggMiNo,sggMiEx,sggMiEy,sggMiEz,sggMiHx,sggMiHy,sggMiHz, fichin, layoutnumber, size, SINPML_fullsize, fullsize, parser, &
          groundwires,attfactorc,mibc,sgbc,sgbcDispersive,MEDIOEXTRA,maxSourceValue,skindepthpre,createmapvtk,input_conformal_flag,CLIPREGION,boundwireradius,maxwireradius,updateshared,run_with_dmma, &
-         eps0,mu0,.false.,hay_slanted_wires,verbose,ignoresamplingerrors,tagtype)
+         eps0,mu0,.false.,hay_slanted_wires,verbose,ignoresamplingerrors,tagtype,wiresflavor)
          WRITE (dubuf,*) '[OK] ENDED NFDE --------> GEOM'
          CALL print11 (layoutnumber, dubuf)
          !writing
@@ -2735,7 +2735,7 @@ end subroutine cargaNFDE
          CALL print11 (layoutnumber, dubuf)
          CALL read_geomData (sgg,sggMtag,sggMiNo,sggMiEx,sggMiEy,sggMiEz,sggMiHx,sggMiHy,sggMiHz, fichin, layoutnumber, size, SINPML_fullsize, fullsize, parser, &
          groundwires,attfactorc,mibc,sgbc,sgbcDispersive,MEDIOEXTRA,maxSourceValue,skindepthpre,createmapvtk,input_conformal_flag,CLIPREGION,boundwireradius,maxwireradius,updateshared,run_with_dmma, &
-         eps0,mu0,simu_devia,hay_slanted_wires,verbose,ignoresamplingerrors,tagtype)
+         eps0,mu0,simu_devia,hay_slanted_wires,verbose,ignoresamplingerrors,tagtype,wiresflavor)
 #ifdef CompileWithMPI
          !wait until everything comes out
          CALL MPI_Barrier (SUBCOMM_MPI, ierr)

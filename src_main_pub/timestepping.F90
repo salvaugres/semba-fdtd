@@ -1750,7 +1750,7 @@ contains
                       call print11(layoutnumber,SEPARADOR//separador//separador)
     !
                       if (performpostprocess) then
-                         write(dubuf,'(a,i9)') 'Postprocessing frequency domain probes, if any  at n= ',n
+                         write(dubuf,'(a,i9)') 'Postprocessing frequency domain probes, if any, at n= ',n
                          call print11(layoutnumber,dubuf)
                          write(dubuf,*) SEPARADOR//separador//separador
                          call print11(layoutnumber,dubuf)
@@ -1958,7 +1958,7 @@ contains
       call MPI_Barrier(SUBCOMM_MPI,ierr)
 #endif
 
-       write(dubuf,'(a,i9)') 'INIT FINAL Postprocessing frequency domain probes, if any  at n= ',n
+       write(dubuf,'(a,i9)') 'INIT FINAL Postprocessing frequency domain probes, if any, at n= ',n
        call print11(layoutnumber,dubuf)
        write(dubuf,*) SEPARADOR//separador//separador
        call print11(layoutnumber,dubuf)

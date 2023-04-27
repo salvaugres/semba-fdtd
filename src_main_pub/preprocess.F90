@@ -61,12 +61,13 @@ CONTAINS
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
    SUBROUTINE read_geomData (sgg,sggMtag,sggMiNo,sggMiEx,sggMiEy,sggMiEz,sggMiHx,sggMiHy,sggMiHz, fichin, layoutnumber, size, SINPML_fullsize, fullsize, this, &
    groundwires,attfactor,mibc,SGBC,SGBCDispersive,MEDIOEXTRA,maxSourceValue,skindepthpre,createmapvtk,input_conformal_flag,CLIPREGION,boundwireradius,maxwireradius,updateshared,run_with_dmma, &
-   eps00,mu00,simu_devia,hay_slanted_wires,verbose,ignoresamplingerrors,tagtype)
+   eps00,mu00,simu_devia,hay_slanted_wires,verbose,ignoresamplingerrors,tagtype,wiresflavor)
       logical :: simu_devia,verbose,hay_slanted_wires
       REAL (KIND=RKIND)           ::  eps00,mu00
 
       TYPE (MedioExtra_t), INTENT (INout) :: MEDIOEXTRA
       !
+      CHARACTER (LEN=20), intent(in) :: wiresflavor
       logical, intent (in) :: updateshared,run_with_dmma,ignoresamplingerrors
       LOGICAL, INTENT (INout) :: mibc,SGBC,CLIPREGION,boundwireradius,SGBCDispersive,skindepthpre
       LOGICAL, INTENT (INout) :: createmapvtk
@@ -1727,8 +1728,9 @@ CONTAINS
          sgg%Med(contamedia)%wire(1)%C = this%twires%TW(j)%CAP
          sgg%Med(contamedia)%wire(1)%P_R = this%twires%TW(j)%P_RES
          sgg%Med(contamedia)%wire(1)%P_l = this%twires%TW(j)%P_IND
+
          sgg%Med(contamedia)%wire(1)%P_C = this%twires%TW(j)%P_CAP
-         if (this%twires%TW(j)%disp) then
+         if (this%twires%TW(j)%disp) then   
             allocate (sgg%Med(contamedia)%wire(1)%disp(1))
             call asignawiredisper(sgg%Med(contamedia)%wire(1)%disp(1), &
                                   this%twires%TW(j)%dispfile)
@@ -2405,7 +2407,7 @@ endif
          sgg%Med(contamedia)%SlantedWire(1)%P_L = this%swires%SW(j)%P_ind
          sgg%Med(contamedia)%SlantedWire(1)%P_C = this%swires%SW(j)%P_cap
          
-         if (this%swires%SW(j)%disp) then
+         if (this%swires%SW(j)%disp) then               
             allocate (sgg%Med(contamedia)%SlantedWire(1)%disp(1))
             call asignawiredisper(sgg%Med(contamedia)%SlantedWire(1)%disp(1), &
                                   this%swires%SW(j)%dispfile)
