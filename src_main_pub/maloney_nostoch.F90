@@ -1172,21 +1172,22 @@ subroutine calc_g1g2gm1gm2_compo(sgg,compo,eps00,mu00,SGBCDispersive)
             sigmatemp=sgg%Med(compo%jmed)%multiport(1)%sigma(1)
             eprtemp= sgg%Med(compo%jmed)%multiport(1)%epr(1)   
           !prescindo de los filo_placa 0121 poque en las pec de boundaries las detecta incorrectamente !de todos modos esto nunca me ha gustado 0121
-            !!!if (compo%es_unfilo_placa) then
-            !!!    epsilon = ((epr_adyacente(0)+epr_adyacente(1))/2.0_rkind  * eps0 *(compo%transversaldeltah - width/2.0_rkind)   + &
-            !!!                eprtemp                                       * eps0 * width /2.0_rkind) / &
-            !!!               (compo%transversaldeltah)
-            !!!    sigma =   ((sig_adyacente(0)+sig_adyacente(1))/2.0_rkind         *(compo%transversaldeltah - width/2.0_rkind)   + &
-            !!!                sigmatemp                                            *width  /2.0_rkind) / &
-            !!!               (compo%transversaldeltah)
-            !!!else
-            epsilon = ((epr_adyacente(0)+epr_adyacente(1))/2.0_rkind  * eps0 *(compo%transversaldeltah-width)   + &
-                        eprtemp                                       * eps0 *width             ) / &
+                        !no puedo prescindir de los filo_placas a 040523 SinSTOCH_antiguou_th0.0001
+            if (compo%es_unfilo_placa) then
+                epsilon = ((epr_adyacente(0)+epr_adyacente(1))/2.0_rkind  * eps0 *(compo%transversaldeltah - width/2.0_rkind)   + &
+                            eprtemp                                       * eps0 * width /2.0_rkind) / &
                            (compo%transversaldeltah)
-            sigma =   ((sig_adyacente(0)+sig_adyacente(1))/2.0_rkind         *(compo%transversaldeltah-width)   + &
-                        sigmatemp                                            *width             ) / &
+                sigma =   ((sig_adyacente(0)+sig_adyacente(1))/2.0_rkind         *(compo%transversaldeltah - width/2.0_rkind)   + &
+                            sigmatemp                                            *width  /2.0_rkind) / &
                            (compo%transversaldeltah)
-            !!!endif
+            else
+                epsilon = ((epr_adyacente(0)+epr_adyacente(1))/2.0_rkind  * eps0 *(compo%transversaldeltah-width)   + &
+                            eprtemp                                       * eps0 *width             ) / &
+                               (compo%transversaldeltah)
+                sigma =   ((sig_adyacente(0)+sig_adyacente(1))/2.0_rkind         *(compo%transversaldeltah-width)   + &
+                            sigmatemp                                            *width             ) / &
+                               (compo%transversaldeltah)
+            endif
 !!!!!ajusta primero los g1 y g2 de los bordes del espesor de la capa !ojo en sgbcdispersive no se utilizan las constantes kappa, beta, g3 en lo putos filo_placas. solo en el interior
             call g1g2(sgg%dt,epsilon,sigma,g1,g2)
             compo%g1   (0)=g1 
@@ -1241,18 +1242,20 @@ subroutine calc_g1g2gm1gm2_compo(sgg,compo,eps00,mu00,SGBCDispersive)
             else
                 ib=sgg%Med(compo%jmed)%multiport(1)%numcapas !ultima capa
                 delta_entreEinterno_temp=compo%delta_entreEinterno(compo%depth-1)     
-            endif
+            endif   
+            width     =sgg%med(compo%jmed)%Multiport(1)%width(ib)
             sigmatemp= sgg%Med(compo%jmed)%multiport(1)%sigma(ib)
             eprtemp=   sgg%Med(compo%jmed)%multiport(1)%epr(ib)  
           !prescindo de los filo_placa 0121 poque en las pec de boundaries las detecta incorrectamente !de todos modos esto nunca me ha gustado 0121
-            !!!!if (compo%es_unfilo_placa) then
-            !!!!    epsilon = (epr_adyacente(i)* eps0 *(compo%transversalDeltaH + delta_entreEinterno_temp /2.0_RKIND)   + &
-            !!!!                       eprtemp         * eps0 *               (delta_entreEinterno_temp /2.0_RKIND)) / &
-            !!!!                      (compo%transversalDeltaH +               delta_entreEinterno_temp)
-            !!!!    Sigma =   (sig_adyacente(i)       *(compo%transversalDeltaH + delta_entreEinterno_temp /2.0_RKIND)   + &
-            !!!!                       sigmatemp               *(delta_entreEinterno_temp  /2.0_RKIND)) / &
-            !!!!                      (compo%transversalDeltaH + delta_entreEinterno_temp)
-            !!!!else
+                        !no puedo prescindir de los filo_placas a 040523 SinSTOCH_antiguou_th0.0001
+            if (compo%es_unfilo_placa) then
+                epsilon = (epr_adyacente(i)* eps0 *(compo%transversalDeltaH + delta_entreEinterno_temp /2.0_RKIND)   + &
+                                   eprtemp         * eps0 *               (delta_entreEinterno_temp /2.0_RKIND)) / &
+                                  (compo%transversalDeltaH +               delta_entreEinterno_temp)
+                Sigma =   (sig_adyacente(i)       *(compo%transversalDeltaH + delta_entreEinterno_temp /2.0_RKIND)   + &
+                                   sigmatemp               *(delta_entreEinterno_temp  /2.0_RKIND)) / &
+                                  (compo%transversalDeltaH + delta_entreEinterno_temp)
+            else
                 epsilon = (epr_adyacente(i)* eps0 *compo%transversalDeltaH   + &
                            eprtemp         * eps0 *delta_entreEinterno_temp    ) / &
                           (compo%transversalDeltaH + delta_entreEinterno_temp)                
@@ -1260,7 +1263,7 @@ subroutine calc_g1g2gm1gm2_compo(sgg,compo,eps00,mu00,SGBCDispersive)
                            sigmatemp              *delta_entreEinterno_temp    ) / &
                           (compo%transversalDeltaH + delta_entreEinterno_temp)
                 
-            !!!!endif
+            endif
     !ajusta primero los g1 Y G2      !no preciso gm1 ni gm2 en los filo_placas
             call g1g2(sgg%dt,epsilon,sigma,g1,g2)
             compo%g1(i)=g1 
