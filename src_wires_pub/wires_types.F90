@@ -24,6 +24,7 @@
  
 module wiresHolland_constants
    use fdetypes
+   
    !Types definitions
    
    integer (kind=4), parameter             ::  MaxNumCurrentMinusPlus=9
@@ -65,6 +66,15 @@ module wiresHolland_constants
 
    END TYPE ChargeNodes
 
+   type container
+        real (kind=RKIND), pointer :: v
+   end type container
+#ifdef CompileWithThickWires
+   type :: thick_t
+      type (container), dimension(:), allocatable ::  field_wire2main,field_main2wire
+      real (kind=RKIND), dimension(:), allocatable :: theta
+   end type thick_t
+#endif       
    type, public  ::  CurrentSegments
       integer (kind=4)                        ::  IndexSegment,NumParallel,OrigIndex
       type (wires_t), pointer              ::  TipoWire
@@ -82,7 +92,9 @@ module wiresHolland_constants
       !at the desired time step in observation.f90
       REAL (KIND=RKIND) , pointer                 ::  field_wire2main
       REAL (KIND=RKIND) , pointer                 ::  field_main2wire
-     
+#ifdef CompileWithThickWires      
+      type (thick_t) :: thick
+#endif
 !      REAL (KIND=RKIND_wires)                           ::  field_wire2main_past  !no sirve para nada 171216
       integer (kind=4)   ::  i,j,k,indexmed,ILIBRE,JLIBRE,KLIBRE
       !dama

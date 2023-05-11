@@ -38,6 +38,10 @@ module HollandWires
    use wiresHolland_devia
 #endif
 
+
+#ifdef CompileWithThickWires  
+    use Thick_m
+#endif    
    !
    implicit none
    
@@ -142,6 +146,7 @@ contains
       REAL (KIND=RKIND_wires)           ::  df1,df3,df2,Ddf1,Ddf3,Ddf2,vf1,vf3,vf2,runit
       character (len=14)  ::  whoami
       character (len=3), dimension(1:3) :: DIR
+      
       !!!
 !
       eps0=eps00; mu0=mu00; !chapuz para convertir la variables de paso en globales
@@ -1297,6 +1302,10 @@ contains
                         ! default
                         HWires%CurrentSegment(conta)%field_wire2main => Ex(i1,j1,k1) 
                         HWires%CurrentSegment(conta)%field_main2wire => Ex(i1,j1,k1) 
+
+#ifdef CompileWithThickWires                          
+                        call init_thick(sgg,Ex,Ey,Ez,i1,j1,k1,HWires%CurrentSegment(conta))
+#endif
                         !
                         HWires%CurrentSegment(conta)%delta=1.0_RKIND_wires / Idxe(i1)    !ojo esto de los delta habra que corregirlo  para uniones
                         HWires%CurrentSegment(conta)%deltaTransv1=1.0_RKIND_wires / Idyh(j1)

@@ -40,7 +40,7 @@ module SGBC_nostoch
 
 
 #ifdef CompileWithSGBC
-
+#ifndef CompileWithStochastic
    use Report
 
    use fdetypes
@@ -693,6 +693,11 @@ subroutine calc_SGBCconstants(sgg,G1,G2,Gm1,Gm2,eps00,mu00,stochastic)
 !!!allocateo todas las matrices de constantes
     do conta=1,malon%numnodes
         compo => malon%Nodes(conta)  
+        !!!rellamo a depth para que recalcule bien el deltaentreEinterno !110523 necesario para stochastic
+        !not really needed for the non-stoch version. just added for traceability !110523
+        jmed=compo%jmed
+        call depth(compo,sgg,jmed,SGBCFreq,SGBCresol,SGBCdepth)
+        
         if (.not.allocated(compo%GM1_interno)) then !!!sobran extremos de g y gm pero lo dejo asi para no toquetear mas 0121
             allocate(compo%GM1_interno (-compo%depth  :compo%depth-1) ,&   !se ajustan bien los extremos        
                      compo%GM2_interno (-compo%depth  :compo%depth-1) ,&
@@ -903,6 +908,12 @@ end subroutine calc_SGBCconstants
       REAL (KIND=RKIND), intent(IN)     :: dt
       logical :: SGBCDispersive
       integer (kind=4)  ::  conta
+      
+      if (stochastic.or.simu_devia) then
+          print *,'Buggy Error: no support for stochastic analysis'
+          stop
+      endif
+      
 !       call AdvanceSGBCE_single_node(dt,SGBCDispersive)
 #ifdef CompileWithOpenMP
 !$OMP  PARALLEL DO DEFAULT(SHARED) private (conta) schedule(guided) 
@@ -1570,16 +1581,25 @@ subroutine depth(compo,sgg,jmed,SGBCFreq,SGBCresol,SGBCdepth)
                     compo%depth=compo%depth+anchocapa
                 endif
             elseif (precuenta==1) then
-                celdainicial=celdafinal+1
-                celdafinal=celdainicial+anchocapa-1
-                if ((i==numcapas).and.ultimacapamas1) then
-!rellena el sobrante con la ultima capa si no es una division cabal
-                        anchocapa=anchocapa+1
-                        celdafinal=celdafinal+1
-                endif
-                compo%capa(celdainicial:celdafinal) = i
-                compo%delta_entreEinterno(celdainicial:celdafinal)=width/anchocapa
-                continue
+               if (SGBCDepth==0) then      !!!bug corregido a 040523
+                    celdainicial=0
+                    celdafinal=0
+                    anchocapa=1
+                    compo%capa(celdainicial:celdafinal) = i
+                    compo%delta_entreEinterno(celdainicial:celdafinal)=width/anchocapa
+                    continue
+                else  
+	                celdainicial=celdafinal+1
+	                celdafinal=celdainicial+anchocapa-1
+	                if ((i==numcapas).and.ultimacapamas1) then
+	!rellena el sobrante con la ultima capa si no es una division cabal
+	                        anchocapa=anchocapa+1
+	                        celdafinal=celdafinal+1
+	                endif
+	                compo%capa(celdainicial:celdafinal) = i
+	                compo%delta_entreEinterno(celdainicial:celdafinal)=width/anchocapa
+	                continue
+	            endif
             endif
         end do
         if (precuenta==1) then
@@ -1696,6 +1716,7 @@ end subroutine solve_tridiag_distintos
       return
       end subroutine solve_tridiag_iguales
             
+#endif   
 #endif
 
 end module SGBC_nostoch
