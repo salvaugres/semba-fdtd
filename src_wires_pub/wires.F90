@@ -305,8 +305,10 @@ contains
 !!!chequeo previo 210323 para que no haya conectores dispersivos
          
       do iwi=1,HWires%NumDifferentWires
-            if (allocated(sgg%Med(HWires%WireTipoMedio(iwi))%wire(1)%disp)) then
-                write (buff,'(a)')  'Dispersive connectors unsupported in Holland wires'
+            if ((allocated(sgg%Med(HWires%WireTipoMedio(iwi))%wire(1)%disp)).or. &
+                (allocated(sgg%Med(HWires%WireTipoMedio(iwi))%wire(1)%disp_RightEnd )).or. &
+                (allocated(sgg%Med(HWires%WireTipoMedio(iwi))%wire(1)%disp_LeftEnd  ))) then
+                write (buff,'(a)')  'Dispersive wire or connectors unsupported in Holland wires'
                 call WarnErrReport(buff,.true.)
             endif
       end do
