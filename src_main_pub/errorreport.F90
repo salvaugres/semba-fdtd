@@ -110,7 +110,7 @@ contains
 
       call print11(layoutnumber,trim(adjustl(whoami))//' ERROR: '//trim(adjustl(message)),.true.)
 
-      !19/12/14 bug OLD1812. Un stoponerror creado por un nodal source embebido llega aquí en MPI. El closewarn... hace un barrier e impide morir al proceso.
+      !19/12/14 bug OLD1812. Un stoponerror creado por un nodal source embebido llega aqu? en MPI. El closewarn... hace un barrier e impide morir al proceso.
       !hay que revisar los stoponerror y hacerlos mas elegantes. De momento aborto a lo bestia comentanod sin cerrar ni warning ni dxf (To do)
 
       !CALL CLOSEWARNINGFILE(layoutnumber,size)
@@ -815,7 +815,7 @@ contains
              dontwritevtk=.true.
          endif
          if (stop_only) then
-             open(newunit=thefilenoflu,FILE = 'stop_only',READONLY)
+             open(newunit=thefilenoflu,FILE = 'stop_only',action="read")
              read(thefilenoflu,*) quien_es
              if (trim(adjustl(quien_es))==trim(adjustl(nentradaroot))) then
                  pararNOflushing=.true.
@@ -841,7 +841,7 @@ contains
              dontwritevtk=.true.
          endif
          if (stopflushing_only) then
-             open(newunit=thefilenoflu,FILE = 'stopflushing_only',READONLY)
+             open(newunit=thefilenoflu,FILE = 'stopflushing_only',action="read")
              read(thefilenoflu,*) quien_es
              if (trim(adjustl(quien_es))==trim(adjustl(nentradaroot))) then
                  pararflushing=.true.
@@ -867,7 +867,7 @@ contains
              dontwritevtk=.true.
          endif
          if (flush_only) then
-             open(newunit=thefilenoflu,FILE = 'flush_only',READONLY)
+             open(newunit=thefilenoflu,FILE = 'flush_only',action="read")
              read(thefilenoflu,*) quien_es
              if (trim(adjustl(quien_es))==trim(adjustl(nentradaroot))) then
                  mustflushFIELDS=.true.
@@ -893,7 +893,7 @@ contains
              dontwritevtk=.true.
          endif
          if (flushdata_only) then
-             open(newunit=thefilenoflu,FILE = 'flushdata_only',READONLY)
+             open(newunit=thefilenoflu,FILE = 'flushdata_only',action="read")
              read(thefilenoflu,*) quien_es
              if (trim(adjustl(quien_es))==trim(adjustl(nentradaroot))) then
                  mustflushdata=.true.
