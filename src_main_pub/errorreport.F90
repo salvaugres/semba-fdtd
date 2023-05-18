@@ -192,7 +192,7 @@ contains
    subroutine InitReporting(sgg,nEntradaRoot,resume,layoutnumber,size,nresumeable2,resume_fromold)
       !!!!!!!PML params!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       integer (kind=4), intent(in) :: layoutnumber,size
-      type (SGGFDTDINFO), intent(IN)         ::  sgg
+      type (SGGFDTDINFO), intent(INout)         ::  sgg
       !!!!!!!
       character (len=*), INTENT(IN)  ::  nEntradaRoot
       logical  ::  resume,resume_fromold
@@ -2384,7 +2384,7 @@ contains
 
    function creaPuntos(sgg)  result(punto) !crea coordenadas fisicas
       !
-      type (SGGFDTDINFO), intent(IN)         ::  sgg
+      type (SGGFDTDINFO), intent(INout)         ::  sgg
       type (coorsxyzP)  ::  Punto
       integer (Kind=4) :: i,j,k,field
 
@@ -2462,6 +2462,7 @@ contains
          Punto%PhysCoor(field)%z(k)=sgg%LineZ(k)
       end do
       !
+      sgg%Punto = Punto
       return
    end function
 

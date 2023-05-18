@@ -610,6 +610,7 @@ module  FDETYPES
       logical  :: thereAreMagneticMedia
       logical  :: thereArePMLMagneticMedia
       CHARACTER (LEN=1024) :: nEntradaRoot
+      type (coorsxyzP)  ::  Punto
    end type
 
    type nf2ff_t

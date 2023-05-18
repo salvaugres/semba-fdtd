@@ -1304,7 +1304,7 @@ contains
                         HWires%CurrentSegment(conta)%field_main2wire => Ex(i1,j1,k1) 
 
 #ifdef CompileWithThickWires                          
-                        call init_thick(sgg,Ex,Ey,Ez,i1,j1,k1,HWires%CurrentSegment(conta))
+                        call init_thick(sgg,Ex,Ey,Ez,i1,j1,k1,HWires%CurrentSegment(conta),'Ex')
 #endif
                         !
                         HWires%CurrentSegment(conta)%delta=1.0_RKIND_wires / Idxe(i1)    !ojo esto de los delta habra que corregirlo  para uniones
@@ -1326,7 +1326,10 @@ contains
                       case (iEy)
                         ! default
                         HWires%CurrentSegment(conta)%field_wire2main => Ey(i1,j1,k1) 
-                        HWires%CurrentSegment(conta)%field_main2wire => Ey(i1,j1,k1) 
+                        HWires%CurrentSegment(conta)%field_main2wire => Ey(i1,j1,k1)      
+#ifdef CompileWithThickWires                          
+                        call init_thick(sgg,Ex,Ey,Ez,i1,j1,k1,HWires%CurrentSegment(conta),'Ey')
+#endif
                         !
                         HWires%CurrentSegment(conta)%delta=1.0_RKIND_wires / Idye(j1)
                         if (k1 <= sgg%ALLOC(iEz)%ZE) then !esta corriente en el limite de los alloc nunca se precisa
@@ -1347,7 +1350,10 @@ contains
                       case (iEz)
                         ! default
                         HWires%CurrentSegment(conta)%field_wire2main => Ez(i1,j1,k1) 
-                        HWires%CurrentSegment(conta)%field_main2wire => Ez(i1,j1,k1) 
+                        HWires%CurrentSegment(conta)%field_main2wire => Ez(i1,j1,k1)  
+#ifdef CompileWithThickWires                          
+                        call init_thick(sgg,Ex,Ey,Ez,i1,j1,k1,HWires%CurrentSegment(conta),'Ez')
+#endif
                         !
                         HWires%CurrentSegment(conta)%delta=1.0_RKIND_wires / Idze(k1)
                         HWires%CurrentSegment(conta)%deltaTransv1=1.0_RKIND_wires / Idxh(i1)
