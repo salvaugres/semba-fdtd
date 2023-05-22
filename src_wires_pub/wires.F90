@@ -5108,7 +5108,7 @@ subroutine resume_casuistics
 
    subroutine AdvanceWiresE(sgg,timeinstant, layoutnumber,wiresflavor,simu_devia,stochastic,experimentalVideal,wirethickness,eps0)
                     
-      REAL (KIND=RKIND_wires), intent(IN)           ::  eps0
+      REAL (KIND=RKIND), intent(IN)           ::  eps0
       integer, intent(IN) :: wirethickness
       logical :: simu_devia,stochastic,experimentalVideal
       type (SGGFDTDINFO), intent(IN)      ::  sgg
