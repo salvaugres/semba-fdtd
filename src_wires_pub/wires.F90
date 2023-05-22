@@ -5106,8 +5106,9 @@ subroutine resume_casuistics
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
-   subroutine AdvanceWiresE(sgg,timeinstant, layoutnumber,wiresflavor,simu_devia,stochastic,experimentalVideal,wirethickness)
-   
+   subroutine AdvanceWiresE(sgg,timeinstant, layoutnumber,wiresflavor,simu_devia,stochastic,experimentalVideal,wirethickness,eps0)
+                    
+      REAL (KIND=RKIND_wires), intent(IN)           ::  eps0
       integer, intent(IN) :: wirethickness
       logical :: simu_devia,stochastic,experimentalVideal
       type (SGGFDTDINFO), intent(IN)      ::  sgg
@@ -5305,7 +5306,7 @@ subroutine resume_casuistics
 !171216quitado            Segmento%field_wire2main_past = real(Segmento%field_wire2main,KIND=RKIND_wires)
 #ifdef CompileWithThickWires
              if (wirethickness/=1) then
-                call advanceThickWire_field_wire2main(Segmento)
+                call Advance_Thick_field_wire2main(sgg,Segmento,eps0)
              endif 
 #endif                      
              if (wirethickness/=1) then

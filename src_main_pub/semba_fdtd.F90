@@ -852,7 +852,7 @@ PROGRAM SEMBA_FDTD_launcher
       if ((finaltimestep >= 0).and.(.not.skindepthpre)) then
          CALL launch_simulation (sgg,sggMtag,sggMiNo,sggMiEx,sggMiEy,sggMiEz,sggMiHx,sggMiHy,sggMiHz, cfl,SINPML_fullsize,fullsize, nEntradaRoot, finaltimestep, resume, saveall, &
          & makeholes,connectendings, isolategroupgroups,dontsplitnodes,stableradholland, flushsecondsFields,mtlnberenger, &
-         & flushsecondsData, layoutnumber, size, createmap, inductance_model, inductance_order, wirethicknes, maxCPUtime,time_desdelanzamiento, &
+         & flushsecondsData, layoutnumber, size, createmap, inductance_model, inductance_order, wirethickness, maxCPUtime,time_desdelanzamiento, &
          & nresumeable2, resume_fromold,groundwires,noSlantedcrecepelo,SGBC,SGBCDispersive,mibc,attfactorc,attfactorw,&
          & alphamaxpar,alphaOrden,kappamaxpar,mur_second,MurAfterPML,MEDIOEXTRA,singlefilewrite,maxSourceValue,NOcompomur,ADE, &
          & conformalskin,strictOLD,TAPARRABOS,wiresflavors,mindistwires,facesNF2FF,NF2FFDECIM,vtkindex,createh5bin,wirecrank,opcionestotales,SGBCFreq,SGBCresol,SGBCcrank,SGBCDepth,fatalerror,fieldtotl,finishedwithsuccess,permitscaling, &
