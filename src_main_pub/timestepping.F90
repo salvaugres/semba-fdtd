@@ -122,11 +122,11 @@ contains
    subroutine launch_simulation(sgg,sggMtag,sggMiNo,sggMiEx,sggMiEy,sggMiEz,sggMiHx,sggMiHy,sggMiHz,cfl,SINPML_Fullsize,fullsize,nEntradaRoot,finaltimestep,resume,saveall,makeholes,  &
    connectendings,isolategroupgroups,dontsplitnodes,stableradholland,flushsecondsFields,mtlnberenger, &
    flushsecondsData,layoutnumber,size,createmap, &
-   inductance_model, inductance_order, maxCPUtime,time_desdelanzamiento,nresumeable2,resume_fromold,  &
+   inductance_model, inductance_order, wirethickness, maxCPUtime,time_desdelanzamiento,nresumeable2,resume_fromold,  &
    groundwires,noSlantedcrecepelo , SGBC,SGBCDispersive,mibc,attfactorc,attfactorw, &
    alphamaxpar,alphaOrden,kappamaxpar,mur_second,murafterpml,MEDIOEXTRA, &
    singlefilewrite,maxSourceValue,NOcompomur,ADE,conformalskin,&
-   strictOLD,TAPARRABOS,wiresflavor,mindistwires,facesNF2FF,NF2FFDecim,vtkindex,createh5bin,wirecrank,opcionestotales,SGBCFreq,SGBCresol,SGBCcrank,SGBCDepth,fatalerror,fieldtotl,finishedwithsuccess,permitscaling, &
+   strictOLD,TAPARRABOS,wiresflavor,wiresflavor,mindistwires,facesNF2FF,NF2FFDecim,vtkindex,createh5bin,wirecrank,opcionestotales,SGBCFreq,SGBCresol,SGBCcrank,SGBCDepth,fatalerror,fieldtotl,finishedwithsuccess,permitscaling, &
    Eps0,Mu0, EpsMuTimeScale_input_parameters &
    , simu_devia,stochastic,mpidir,verbose,precision,hopf,ficherohopf,niapapostprocess,planewavecorr,tagtype,dontwritevtk,experimentalVideal,forceresampled,factorradius,factordelta &
    )
@@ -185,6 +185,7 @@ contains
       TYPE (MedioExtra_t), INTENT (IN) :: MEDIOEXTRA
       logical :: mur_second,MurAfterPML,stableradholland,singlefilewrite,NF2FFDecim,SGBCcrank,fieldtotl,finishedwithsuccess,permitscaling,mtlnberenger,niapapostprocess,planewavecorr
       REAL (KIND=RKIND), intent (in)  ::  alphamaxpar,alphaOrden,kappamaxpar, mindistwires,SGBCFreq,SGBCresol
+      integer (kind=4), intent(in) :: wirethickness
       !!!!!!!
       integer (kind=4), intent(in) :: layoutnumber,size,mpidir
       integer (kind=4) :: precision
@@ -574,7 +575,7 @@ contains
          call WarnErrReport(buff)
          write(buff,*) 'connectendings=',connectendings,', isolategroupgroups=',isolategroupgroups,', dontsplitnodes=',dontsplitnodes
          call WarnErrReport(buff)
-         write(buff,*) 'stableradholland=',stableradholland,'mtlnberenger=',mtlnberenger,' inductance_model=',inductance_model,', inductance_order=',inductance_order,', groundwires=',groundwires,' ,fieldtotl=',fieldtotl,' noSlantedcrecepelo =',noSlantedcrecepelo 
+         write(buff,*) 'wirethickness ', wirethickness, 'stableradholland=',stableradholland,'mtlnberenger=',mtlnberenger,' inductance_model=',inductance_model,', inductance_order=',inductance_order,', groundwires=',groundwires,' ,fieldtotl=',fieldtotl,' noSlantedcrecepelo =',noSlantedcrecepelo 
          call WarnErrReport(buff)
          write(buff,*) 'SGBC=',SGBC,', mibc=',mibc,', attfactorc=',attfactorc,', attfactorw=',attfactorw
          call WarnErrReport(buff)
@@ -687,8 +688,8 @@ contains
 #endif
          write(dubuf,*) 'Init Holland Wires...';  call print11(layoutnumber,dubuf)
          call InitWires       (sgg,sggMiNo,sggMiEx,sggMiEy,sggMiEz,sggMiHx,sggMiHy,sggMiHz,layoutnumber,size,Thereare%Wires,resume,makeholes,connectendings,isolategroupgroups,dontsplitnodes,stableradholland,fieldtotl, &
-         Ex,Ey,Ez,Idxe,Idye,Idze,Idxh,Idyh,Idzh, &
-         inductance_model,groundwires,strictOLD,TAPARRABOS,g2,wiresflavor,SINPML_fullsize,fullsize,wirecrank,dtcritico,eps0,mu0,simu_devia,stochastic,verbose,factorradius,factordelta)
+         Ex,Ey,Ez,Hx,Hy,Hz,Idxe,Idye,Idze,Idxh,Idyh,Idzh, &
+         inductance_mode,wirethickness,groundwires,strictOLD,TAPARRABOS,g2,wiresflavor,SINPML_fullsize,fullsize,wirecrank,dtcritico,eps0,mu0,simu_devia,stochastic,verbose,factorradius,factordelta)
       l_auxinput=thereare%Wires
       l_auxoutput=l_auxinput
 #ifdef CompileWithMPI
@@ -1301,7 +1302,7 @@ contains
                if (wirecrank) then
                   call AdvanceWiresEcrank(sgg,n, layoutnumber,wiresflavor,simu_devia,stochastic)
                else
-                  call AdvanceWiresE(sgg,n, layoutnumber,wiresflavor,simu_devia,stochastic,experimentalVideal)
+                  call AdvanceWiresE(sgg,n, layoutnumber,wiresflavor,simu_devia,stochastic,experimentalVideal,wirethickness)
                endif
             endif
          endif

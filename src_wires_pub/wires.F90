@@ -68,9 +68,10 @@ contains
    ! Subroutine to initialize the parameters
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
    subroutine InitWires(sgg,sggMiNo,sggMiEx,sggMiEy,sggMiEz,sggMiHx,sggMiHy,sggMiHz,layoutnumber,size,ThereAreWires,resume,makeholes,connectendings,isolategroupgroups,dontsplitnodes,stableradholland,fieldtotl, &
-   Ex,Ey,Ez,Idxe,Idye,Idze,Idxh,Idyh,Idzh, &
-   inductance_model,groundwires,strictOLD,TAPARRABOS,g2,wiresflavor,SINPML_fullsize,fullsize,wirecrank,dtcritico, &
-   eps00,mu00,simu_devia,stochastic,verbose,factorradius,factordelta)
+   Ex,Ey,Ez,Hx,Hy,Hz,Idxe,Idye,Idze,Idxh,Idyh,Idzh, &
+   inductance_model,wirethickness,groundwires,strictOLD,TAPARRABOS,g2,wiresflavor,SINPML_fullsize,fullsize,wirecrank,dtcritico, &
+   eps00,mu00,simu_devia,stochastic,verbose,factorradius,factordelta)     
+      integer, intent(IN) :: wirethickness
       logical :: simu_devia,stochastic,verbose
       REAL (KIND=RKIND), intent(in)           ::  eps00,mu00
       REAL (KIND=RKIND)           ::  eps000,mu000  !son dummies
@@ -88,11 +89,14 @@ contains
            Idxh(sgg%ALLOC(iEx)%XI : sgg%ALLOC(iEx)%XE), &
            Idyh(sgg%ALLOC(iEy)%YI : sgg%ALLOC(iEy)%YE), &
            Idzh(sgg%ALLOC(iEz)%ZI : sgg%ALLOC(iEz)%ZE)
-      
-      REAL (KIND=RKIND)   , intent(in), target      :: &
-           Ex(sgg%Alloc(iEx)%XI : sgg%Alloc(iEx)%XE,sgg%Alloc(iEx)%YI : sgg%Alloc(iEx)%YE,sgg%Alloc(iEx)%ZI : sgg%Alloc(iEx)%ZE),&
-           Ey(sgg%Alloc(iEy)%XI : sgg%Alloc(iEy)%XE,sgg%Alloc(iEy)%YI : sgg%Alloc(iEy)%YE,sgg%Alloc(iEy)%ZI : sgg%Alloc(iEy)%ZE),&
-           Ez(sgg%Alloc(iEz)%XI : sgg%Alloc(iEz)%XE,sgg%Alloc(iEz)%YI : sgg%Alloc(iEz)%YE,sgg%Alloc(iEz)%ZI : sgg%Alloc(iEz)%ZE)
+                                                           
+        REAL (KIND=RKIND)   , intent(in), target      :: &
+            Ex(sgg%Alloc(iEx)%XI : sgg%Alloc(iEx)%XE,sgg%Alloc(iEx)%YI : sgg%Alloc(iEx)%YE,sgg%Alloc(iEx)%ZI : sgg%Alloc(iEx)%ZE),&
+            Ey(sgg%Alloc(iEy)%XI : sgg%Alloc(iEy)%XE,sgg%Alloc(iEy)%YI : sgg%Alloc(iEy)%YE,sgg%Alloc(iEy)%ZI : sgg%Alloc(iEy)%ZE),&
+            Ez(sgg%Alloc(iEz)%XI : sgg%Alloc(iEz)%XE,sgg%Alloc(iEz)%YI : sgg%Alloc(iEz)%YE,sgg%Alloc(iEz)%ZI : sgg%Alloc(iEz)%ZE),&
+            Hx(sgg%alloc(iHx)%XI : sgg%alloc(iHx)%XE,sgg%alloc(iHx)%YI : sgg%alloc(iHx)%YE,sgg%alloc(iHx)%ZI : sgg%alloc(iHx)%ZE),&
+            Hy(sgg%alloc(iHy)%XI : sgg%alloc(iHy)%XE,sgg%alloc(iHy)%YI : sgg%alloc(iHy)%YE,sgg%alloc(iHy)%ZI : sgg%alloc(iHy)%ZE),&
+            Hz(sgg%alloc(iHz)%XI : sgg%alloc(iHz)%XE,sgg%alloc(iHz)%YI : sgg%alloc(iHz)%YE,sgg%alloc(iHz)%ZI : sgg%alloc(iHz)%ZE)
 
 
       integer (KIND=INTEGERSIZEOFMEDIAMATRICES), intent(in) :: &
@@ -1304,7 +1308,7 @@ contains
                         HWires%CurrentSegment(conta)%field_main2wire => Ex(i1,j1,k1) 
 
 #ifdef CompileWithThickWires                          
-                        call init_thick(sgg,Ex,Ey,Ez,i1,j1,k1,HWires%CurrentSegment(conta),'Ex')
+                        call init_thick(sgg,Ex,Ey,Ez,Hx,Hy,Hz,Idxe,Idye,Idze,Idxh,Idyh,Idzh,i1,j1,k1,HWires%CurrentSegment(conta),'Ex',wirethickness)
 #endif
                         !
                         HWires%CurrentSegment(conta)%delta=1.0_RKIND_wires / Idxe(i1)    !ojo esto de los delta habra que corregirlo  para uniones
@@ -1328,7 +1332,7 @@ contains
                         HWires%CurrentSegment(conta)%field_wire2main => Ey(i1,j1,k1) 
                         HWires%CurrentSegment(conta)%field_main2wire => Ey(i1,j1,k1)      
 #ifdef CompileWithThickWires                          
-                        call init_thick(sgg,Ex,Ey,Ez,i1,j1,k1,HWires%CurrentSegment(conta),'Ey')
+                        call init_thick(sgg,Ex,Ey,Ez,Hx,Hy,Hz,Idxe,Idye,Idze,Idxh,Idyh,Idzh,i1,j1,k1,HWires%CurrentSegment(conta),'Ey',wirethickness)
 #endif
                         !
                         HWires%CurrentSegment(conta)%delta=1.0_RKIND_wires / Idye(j1)
@@ -1352,7 +1356,7 @@ contains
                         HWires%CurrentSegment(conta)%field_wire2main => Ez(i1,j1,k1) 
                         HWires%CurrentSegment(conta)%field_main2wire => Ez(i1,j1,k1)  
 #ifdef CompileWithThickWires                          
-                        call init_thick(sgg,Ex,Ey,Ez,i1,j1,k1,HWires%CurrentSegment(conta),'Ez')
+                        call init_thick(sgg,Ex,Ey,Ez,Hx,Hy,Hz,Idxe,Idye,Idze,Idxh,Idyh,Idzh,i1,j1,k1,HWires%CurrentSegment(conta),'Ez',wirethickness)
 #endif
                         !
                         HWires%CurrentSegment(conta)%delta=1.0_RKIND_wires / Idze(k1)
@@ -5102,7 +5106,9 @@ subroutine resume_casuistics
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
-   subroutine AdvanceWiresE(sgg,timeinstant, layoutnumber,wiresflavor,simu_devia,stochastic,experimentalVideal)
+   subroutine AdvanceWiresE(sgg,timeinstant, layoutnumber,wiresflavor,simu_devia,stochastic,experimentalVideal,wirethickness)
+   
+      integer, intent(IN) :: wirethickness
       logical :: simu_devia,stochastic,experimentalVideal
       type (SGGFDTDINFO), intent(IN)      ::  sgg
 
@@ -5297,7 +5303,14 @@ subroutine resume_casuistics
          Segmento => HWires%CurrentSegment(n)
          if (.not.Segmento%IsShielded) then
 !171216quitado            Segmento%field_wire2main_past = real(Segmento%field_wire2main,KIND=RKIND_wires)
-            Segmento%field_wire2main=real(Segmento%field_wire2main,KIND=RKIND_wires) - Segmento%cte5 * Segmento%Current
+#ifdef CompileWithThickWires
+             if (wirethickness/=1) then
+                call advanceThickWire_field_wire2main(Segmento)
+             endif 
+#endif                      
+             if (wirethickness/=1) then
+                Segmento%field_wire2main=real(Segmento%field_wire2main,KIND=RKIND_wires) - Segmento%cte5 * Segmento%Current
+             endif
          endif
       end do
 

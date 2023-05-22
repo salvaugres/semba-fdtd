@@ -70,9 +70,11 @@ module wiresHolland_constants
         real (kind=RKIND), pointer :: punt
    end type container
 #ifdef CompileWithThickWires
-   type :: thick_t
-      type (container), dimension(:), allocatable ::  field_wire2main,field_main2wire
-      REAL (kind=RKIND), dimension(:), allocatable :: Area,rArea
+   type :: thick_t    
+      integer (kind=4)                        ::  Enumero,Hnumero
+      type (container), dimension(:), allocatable ::  Efield_wire2main,Efield_main2wire
+      type (container), dimension(:), allocatable ::  Hfield_wire2main,Hfield_main2wire
+      REAL (kind=RKIND), dimension(:), allocatable :: EArea,rEArea,HArea,rHArea
    end type thick_t
 #endif       
    type, public  ::  CurrentSegments

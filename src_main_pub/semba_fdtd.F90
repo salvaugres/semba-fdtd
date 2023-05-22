@@ -91,7 +91,7 @@ PROGRAM SEMBA_FDTD_launcher
    integer (KIND=INTEGERSIZEOFMEDIAMATRICES) , allocatable , dimension(:,:,:) ::  sggMiNo,sggMiEx,sggMiEy,sggMiEz,sggMiHx,sggMiHy,sggMiHz
    character (len=5)  :: NFDEEXTENSION='.nfde',CONFEXTENSION='.conf',CMSHEXTENSION='.cmsh'
    CHARACTER (LEN=20) :: inductance_model,wiresflavor
-   integer (kind=4)   :: inductance_order
+   integer (kind=4)   :: inductance_order,wirethickness
    LOGICAL :: makeholes,connectendings, isolategroupgroups, dontsplitnodes,resume_fromold, pausar, l_aux,skindepthpre,groundwires,noSlantedcrecepelo ,mibc,ade,SGBC,SGBCDispersive,SGBCcrank, &
    conformalskin,CLIPREGION,boundwireradius,vtkindex,createh5bin,wirecrank,ignoreerrors,fatalerror,fatalerror_aux,dummylog,fatalerrornfde2sgg,fieldtotl,finishedwithsuccess,ignoresamplingerrors,l_auxinput, l_auxoutput, &
        ThereArethinslots
@@ -852,10 +852,10 @@ PROGRAM SEMBA_FDTD_launcher
       if ((finaltimestep >= 0).and.(.not.skindepthpre)) then
          CALL launch_simulation (sgg,sggMtag,sggMiNo,sggMiEx,sggMiEy,sggMiEz,sggMiHx,sggMiHy,sggMiHz, cfl,SINPML_fullsize,fullsize, nEntradaRoot, finaltimestep, resume, saveall, &
          & makeholes,connectendings, isolategroupgroups,dontsplitnodes,stableradholland, flushsecondsFields,mtlnberenger, &
-         & flushsecondsData, layoutnumber, size, createmap, inductance_model, inductance_order, maxCPUtime,time_desdelanzamiento, &
+         & flushsecondsData, layoutnumber, size, createmap, inductance_model, inductance_order, wirethicknes, maxCPUtime,time_desdelanzamiento, &
          & nresumeable2, resume_fromold,groundwires,noSlantedcrecepelo,SGBC,SGBCDispersive,mibc,attfactorc,attfactorw,&
          & alphamaxpar,alphaOrden,kappamaxpar,mur_second,MurAfterPML,MEDIOEXTRA,singlefilewrite,maxSourceValue,NOcompomur,ADE, &
-         & conformalskin,strictOLD,TAPARRABOS,wiresflavor,mindistwires,facesNF2FF,NF2FFDECIM,vtkindex,createh5bin,wirecrank,opcionestotales,SGBCFreq,SGBCresol,SGBCcrank,SGBCDepth,fatalerror,fieldtotl,finishedwithsuccess,permitscaling, &
+         & conformalskin,strictOLD,TAPARRABOS,wiresflavors,mindistwires,facesNF2FF,NF2FFDECIM,vtkindex,createh5bin,wirecrank,opcionestotales,SGBCFreq,SGBCresol,SGBCcrank,SGBCDepth,fatalerror,fieldtotl,finishedwithsuccess,permitscaling, &
          & Eps0,Mu0, EpsMuTimeScale_input_parameters &
    , simu_devia &
    , stochastic,mpidir,verbose,precision,hopf,ficherohopf,niapapostprocess,planewavecorr,tagtype,dontwritevtk,experimentalVideal,forceresampled,factorradius,factordelta &
@@ -1857,7 +1857,19 @@ contains
           !!    opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))
           case ('-forceresampled') !a menos que se pida explicitamente, no se resamplea 120123
               forceresampled=.true.
-              opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))
+              opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))   
+              
+          CASE ('-wirethickness')
+            i = i + 1
+            CALL getcommandargument (chaininput, i, f, length,  statuse)
+            ! Converts the characters to real
+            READ (f,*, ERR=7416) wirethickness
+            GO TO 8416
+7416        CALL stoponerror (layoutnumber, size, 'Invalid wirethickness ',.true.); statuse=-1; !return
+8416        IF (SGBCdepth < -1 ) THEN
+               CALL stoponerror (layoutnumber, size, 'Invalid wirethickness',.true.); statuse=-1; !return
+            END IF
+            opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))// ' ' // trim (adjustl(f))              
           CASE ('-wiresflavor')
             i = i + 1
             CALL getcommandargument (chaininput, i, f, length,  statuse)
@@ -3273,6 +3285,7 @@ end subroutine cargaNFDE
       inductance_model = 'boutayeb'
       inductance_order = 8
       wiresflavor='holland'
+      wirethickness=1
       mindistwires = 0.5_RKIND
       !
       MurAfterPML = .false.
