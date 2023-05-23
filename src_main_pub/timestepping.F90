@@ -1302,7 +1302,7 @@ contains
                if (wirecrank) then
                   call AdvanceWiresEcrank(sgg,n, layoutnumber,wiresflavor,simu_devia,stochastic)
                else
-                  call AdvanceWiresE(sgg,n, layoutnumber,wiresflavor,simu_devia,stochastic,experimentalVideal,wirethickness,eps0)
+                  call AdvanceWiresE(sgg,n, layoutnumber,wiresflavor,simu_devia,stochastic,experimentalVideal,wirethickness,eps0,mu0)
                endif
             endif
          endif
@@ -1575,7 +1575,19 @@ contains
          !**************************************************************************************************
          !**************************************************************************************************
          !**************************************************************************************************
-
+#ifdef CompileWithWires
+         !Wires (only updated here. No need to update in the H-field part)
+         if ((trim(adjustl(wiresflavor))=='holland') .or. &
+             (trim(adjustl(wiresflavor))=='transition')) then
+            IF (Thereare%Wires) then
+               if (wirecrank) then
+                  continue
+               else
+                  call AdvanceWiresH(sgg,n, layoutnumber,wiresflavor,simu_devia,stochastic,experimentalVideal,wirethickness,eps0,mu0)
+               endif
+            endif
+         endif
+#endif
 
          !!!!!!!!!!end H advancing
          !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

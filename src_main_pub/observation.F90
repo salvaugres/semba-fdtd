@@ -2793,7 +2793,7 @@ contains
                         if (wirecrank) then !no hay que promediar nada porque estan co-locados en tiempo
                            output( ii)%item(i)%valor(nTime-nInit)= output(ii)%item(i)%valorsigno* &
                                  SegmDumm%Currentpast
-                           output( ii)%item(i)%valor2(nTime-nInit)= -SegmDumm%field_wire2main * SegmDumm%delta                           
+                           output( ii)%item(i)%valor2(nTime-nInit)= -SegmDumm%Efield_wire2main * SegmDumm%delta                           
                            output( ii)%item(i)%valor3(nTime-nInit)= output(ii)%item(i)%valorsigno* &
                                  (((SegmDumm%ChargePlus%ChargePresent)))* SegmDumm%Lind * ( InvMu(SegmDumm%indexmed) * InvEps( SegmDumm%indexmed))
                            output( ii)%item(i)%valor4(nTime-nInit)= output(ii)%item(i)%valorsigno*&
@@ -2804,7 +2804,7 @@ contains
 !!saco el potencial calculado con E*delta !051115 !!y aniado el vdrop antinugo porque la Z se hacien bien con este 030719
                            output( ii)%item(i)%valor(nTime-nInit)= output(ii)%item(i)%valorsigno* &
                                  SegmDumm%currentpast
-                           output( ii)%item(i)%valor2(nTime-nInit)= -SegmDumm%field_wire2main * SegmDumm%delta
+                           output( ii)%item(i)%valor2(nTime-nInit)= -SegmDumm%Efield_wire2main * SegmDumm%delta
                            output( ii)%item(i)%valor3(nTime-nInit)= output(ii)%item(i)%valorsigno*&
                                  (((SegmDumm%ChargePlus%ChargePresent + SegmDumm%ChargePlus%ChargePast))/2.0_RKIND)  * &
                                                                               SegmDumm%Lind * (InvMu(SegmDumm%indexmed) * InvEps( SegmDumm%indexmed)) 

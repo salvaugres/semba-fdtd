@@ -1913,11 +1913,29 @@ contains
                   (trim(adjustl(wiresflavor)) == 'slanted').xor.  &
                   (trim(adjustl(wiresflavor)) =='semistructured')) )  THEN
                CALL stoponerror (layoutnumber, size, 'Invalid wires flavor->'//trim(adjustl(wiresflavor)),.true.); statuse=-1; !return
-            END IF
-#ifndef CompileWithWires
+            END IF    
+#ifndef CompileWithThickWires
             select case (trim(adjustl(wiresflavor)))
             case ('holland','transition')
-                CALL stoponerror (layoutnumber, size, 'Holland wire flavor not available in this compilation',.true.); statuse=-1; !return
+                if (wirethickness/=1) then
+                    CALL stoponerror (layoutnumber, size, 'Holland wire flavor not available in this compilation',.true.); statuse=-1; !return
+                endif
+            end select   
+#endif    
+#ifndef CompileWithThickWires
+            select case (trim(adjustl(wiresflavor)))
+            case ('holland')
+                if (wirethickness/=1) then
+                    CALL stoponerror (layoutnumber, size, 'Holland wire flavor thickness>1 requires recompiling',.true.); statuse=-1; !return
+                endif
+            end select   
+#endif
+#ifdef CompileWithWires
+            select case (trim(adjustl(wiresflavor)))
+            case ('berenger','slanted','experimental','transition')   
+                if (wirethickness/=1) then
+                    CALL stoponerror (layoutnumber, size, 'Thickness>1 unsupported for this wireflavor',.true.); statuse=-1; !return
+                endif    
             end select   
 #endif
 #ifndef CompileWithBerengerWires

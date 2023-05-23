@@ -91,13 +91,12 @@ module wiresHolland_constants
       REAL (KIND=RKIND_wires)                           ::  cte1,cte2,cte3,cte5,FractionPlus,FractionMinus
       REAL (KIND=RKIND_wires)                           ::  Current,qplus_qminus
       REAL (KIND=RKIND_wires)                           ::  CurrentPast !added just for right observation
-      !at the desired time step in observation.f90
-      REAL (KIND=RKIND) , pointer                 ::  field_wire2main
-      REAL (KIND=RKIND) , pointer                 ::  field_main2wire
+      !at the desired time step in observation.f90       
+      REAL (KIND=RKIND) , pointer                 ::  Efield_wire2main,Efield_main2wire
 #ifdef CompileWithThickWires      
       type (thick_t) :: thick
 #endif
-!      REAL (KIND=RKIND_wires)                           ::  field_wire2main_past  !no sirve para nada 171216
+!      REAL (KIND=RKIND_wires)                           ::  Efield_wire2main_past  !no sirve para nada 171216
       integer (kind=4)   ::  i,j,k,indexmed,ILIBRE,JLIBRE,KLIBRE
       !dama
       integer (kind=4)   ::  ie,je,ke
@@ -120,7 +119,7 @@ module wiresHolland_constants
       real    (kind=RKIND_wires) :: upperdiag, diag, lowerdiag, rightCHminus, rightCHplus,rightCU,rightCUminus,rightCUplus
       !!!!!!!!!!end crank-nicolson
 !!!se aniade siempre aunque solo lo use stochastic
-      REAL (KIND=RKIND_wires)      ::  qplus_qminus_for_devia,current_for_devia,field_main2wire_for_devia ,Lind_devia
+      REAL (KIND=RKIND_wires)      ::  qplus_qminus_for_devia,current_for_devia,Efield_main2wire_for_devia ,Lind_devia
       REAL (KIND=RKIND_wires)                           ::  cte1_for_devia ,cte2_for_devia ,cte3_for_devia  
    END TYPE CurrentSegments
    !
