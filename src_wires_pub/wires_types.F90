@@ -66,15 +66,17 @@ module wiresHolland_constants
 
    END TYPE ChargeNodes
 
+#ifdef CompileWithThickWires    
    type container
         real (kind=RKIND), pointer :: punt
    end type container
-#ifdef CompileWithThickWires
    type :: thick_t    
       integer (kind=4)                        ::  Enumero,Hnumero
       type (container), dimension(:), allocatable ::  Efield_wire2main,Efield_main2wire
       type (container), dimension(:), allocatable ::  Hfield_wire2main,Hfield_main2wire
+      real (kind=RKIND_wires), pointer :: Charge
       REAL (kind=RKIND), dimension(:), allocatable :: EArea,rEArea,HArea,rHArea
+      logical :: Hplus
    end type thick_t
 #endif       
    type, public  ::  CurrentSegments
