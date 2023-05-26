@@ -75,7 +75,7 @@ module wiresHolland_constants
       type (container), dimension(:), allocatable ::  Efield_wire2main,Efield_main2wire
       type (container), dimension(:), allocatable ::  Hfield_wire2main,Hfield_main2wire
       real (kind=RKIND_wires), pointer :: Charge
-      REAL (kind=RKIND), dimension(:), allocatable :: EArea,rEArea,HArea,rHArea
+      REAL (kind=RKIND_wires), dimension(:), allocatable :: EArea,rEArea,HArea,rHArea,rEfractionArea,cte5,cte2,cte0
       logical :: Hplus
    end type thick_t
 #endif       

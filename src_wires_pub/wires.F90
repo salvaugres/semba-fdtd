@@ -1615,6 +1615,10 @@ contains
          desp=HWires%CurrentSegment(i1)%delta
          despT1=HWires%CurrentSegment(i1)%deltaTransv1
          despT2=HWires%CurrentSegment(i1)%deltaTransv2
+         if (wirethickness>1) then   
+             despT1=wirethickness*despT1
+             despT2=wirethickness*despT2
+         endif
          r0=HWires%CurrentSegment(i1)%TipoWire%Radius   ! CON SU RADIO
          if ((r0 < 1e-9*desp)) then
             write(BUFF,'(a,e12.2e3)') 'wir0_WARNING: WIRE radius too small ',r0
@@ -5315,7 +5319,8 @@ subroutine resume_casuistics
              endif 
 #endif                      
              if (wirethickness==1) then
-                Segmento%Efield_wire2main=real(Segmento%Efield_wire2main,KIND=RKIND_wires) - Segmento%cte5 * Segmento%Current
+                Segmento%Efield_wire2main=real(Segmento%Efield_wire2main,KIND=RKIND_wires) &
+                    - Segmento%cte5 * Segmento%Current
              endif
          endif
       end do
@@ -5391,7 +5396,15 @@ subroutine resume_casuistics
                Segmento%qplus_qminus=Segmento%fractionPlus*Qplus-Segmento%fractionMinus*QMinus
                Segmento%Current=Segmento%cte1*Segmento%Current - Segmento%cte3*(Segmento%qplus_qminus)
                if (.not.Segmento%IsShielded) then
-    !!!ojooo                Segmento%Current = Segmento%Current + Segmento%cte2*real(Segmento%Efield_main2wire,KIND=RKIND_wires)
+#ifdef CompileWithThickWires
+                     if (wirethickness/=1) then
+                        call Advance_Thick_Efield_main2wire(sgg,Segmento,eps0,mu0)
+                     endif 
+#endif                      
+                     if (wirethickness==1) then   
+                        Segmento%Current = Segmento%Current + &
+                            Segmento%cte2*real(Segmento%Efield_main2wire,KIND=RKIND_wires)
+                     endif
                endif
             endif
          end do
