@@ -1615,6 +1615,7 @@ contains
          desp=HWires%CurrentSegment(i1)%delta
          despT1=HWires%CurrentSegment(i1)%deltaTransv1
          despT2=HWires%CurrentSegment(i1)%deltaTransv2
+         !si no reparto como mas abajo, se inestabiliza
          if (wirethickness>1) then   
              despT1=wirethickness*despT1
              despT2=wirethickness*despT2
@@ -3726,33 +3727,26 @@ contains
 
       call resume_casuistics
     
-      
-!!!init extra thick stuff !hay que hacerlo aqui casi al final porque los %ChargePlus%CurrentPlus_1 
-      !tienen que estar ya apuntados  
-
-#ifdef CompileWithThickWires
-      do conta=1,HWires%NumCurrentSegments
-            if (wirethickness>1) &
-                call init_thick(sgg,Ex,Ey,Ez,Hx,Hy,Hz,Idxe,Idye,Idze,Idxh,Idyh,Idzh,HWires%CurrentSegment(conta),wirethickness)
-         end do
-#endif      
-      !!
-      
-      
       !!!!!!!!find crank-nicolson coefficients
-
-      
-      
+       
       if (wirecrank) then
           call init_wirecrank
       endif
 
 
-
-
 !!!!Se arregla lo del resuming permit scaling 221118 pero realmente no se por que. deberia ser lo mismo. Es redundante, pero....
        eps000=eps0;mu000=mu0; !niapa para evitar lo del rkind 020719
        call calc_wirehollandconstants(sgg,G2,fieldtotl,wiresflavor,mu000,eps000,simu_devia)
+       
+#ifdef CompileWithThickWires
+!!!init extra thick stuff !hay que hacerlo aqui al final con toda la info
+!!!ojo si permittivity scaling y si mpi.... habra que rehacer
+      do conta=1,HWires%NumCurrentSegments
+            if (wirethickness>1) &
+                call init_thick(sgg,Ex,Ey,Ez,Hx,Hy,Hz,Idxe,Idye,Idze,Idxh,Idyh,Idzh,HWires%CurrentSegment(conta),wirethickness)
+      end do
+#endif      
+      !!
       return
 
    contains
@@ -5314,13 +5308,13 @@ subroutine resume_casuistics
          if (.not.Segmento%IsShielded) then
 !171216quitado            Segmento%Efield_wire2main_past = real(Segmento%Efield_wire2main,KIND=RKIND_wires)
 #ifdef CompileWithThickWires
-             if (wirethickness/=1) then
-                call Advance_Thick_Efield_wire2main(sgg,Segmento,eps0,mu0)
+             if (wirethickness>1) then
+                call Advance_Thick_Efield_wire2main(sgg,segmento,eps0,mu0)
              endif 
 #endif                      
              if (wirethickness==1) then
-                Segmento%Efield_wire2main=real(Segmento%Efield_wire2main,KIND=RKIND_wires) &
-                    - Segmento%cte5 * Segmento%Current
+                segmento%efield_wire2main=real(segmento%efield_wire2main,kind=rkind_wires) &
+                    - segmento%cte5 * segmento%current
              endif
          endif
       end do
@@ -5364,7 +5358,9 @@ subroutine resume_casuistics
                   Multiline%b1I(is1,is2)* Segmento2%CurrentPast            + &
                   Multiline%b2I(is1,is2)*(Segmento2%fractionPlus*Qplus-Segmento2%fractionMinus*QMinus)
                   if(.not.(Segmento%IsShielded.and.Segmento2%IsShielded)) then
+                      !!!lo he descomentado a 300523 porque creo que estaba mal. ojo si algun dia se usa el flavor transition. pongo un stop para avisar
                      Segmento%Current = Segmento%Current + Multiline%b3I(is1,is2)*real(Segmento2%Efield_main2wire,KIND=RKIND_wires)
+                     stop
                   end if
                end do
             end do
@@ -5397,14 +5393,14 @@ subroutine resume_casuistics
                Segmento%Current=Segmento%cte1*Segmento%Current - Segmento%cte3*(Segmento%qplus_qminus)
                if (.not.Segmento%IsShielded) then
 #ifdef CompileWithThickWires
-                     if (wirethickness/=1) then
-                        call Advance_Thick_Efield_main2wire(sgg,Segmento,eps0,mu0)
-                     endif 
-#endif                      
-                     if (wirethickness==1) then   
+                    if (wirethickness>1) then
+                        call Advance_Thick_Efield_main2wire(sgg,segmento,eps0,mu0)
+                    endif 
+#endif                             
+                    if (wirethickness==1) then
                         Segmento%Current = Segmento%Current + &
                             Segmento%cte2*real(Segmento%Efield_main2wire,KIND=RKIND_wires)
-                     endif
+                    endif           
                endif
             endif
          end do
@@ -5543,7 +5539,7 @@ subroutine resume_casuistics
       do n=1,HWires%NumCurrentSegments
          Segmento => HWires%CurrentSegment(n)
 #ifdef CompileWithThickWires
-         if (wirethickness/=1) then
+         if (wirethickness>1) then
             call Advance_Thick_Hfield_wire2main(sgg,Segmento,eps0,mu0)
          endif 
 #endif                      

@@ -72,10 +72,10 @@ module wiresHolland_constants
    end type container
    type :: thick_t    
       integer (kind=4)                        ::  Enumero,Hnumero
-      type (container), dimension(:), allocatable ::  Efield_wire2main,Efield_main2wire
-      type (container), dimension(:), allocatable ::  Hfield_wire2main,Hfield_main2wire
-      real (kind=RKIND_wires), pointer :: Charge
-      REAL (kind=RKIND_wires), dimension(:), allocatable :: EArea,rEArea,HArea,rHArea,rEfractionArea,cte5,cte2,cte0
+      type (container), dimension(:), allocatable ::  Efield_wire2main
+      type (container), dimension(:), allocatable ::  Hfield_wire2main, H_Efield_wire2main
+      REAL (kind=RKIND_wires), dimension(:), allocatable :: EArea,rEArea,HArea,rHArea,rEfractionArea,Hsigno,Hcte  
+      INTEGER, dimension(:), allocatable ::  i, j, k, field
       logical :: Hplus
    end type thick_t
 #endif       

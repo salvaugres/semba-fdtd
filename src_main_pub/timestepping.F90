@@ -1554,7 +1554,20 @@ contains
 #endif
 
          !Must be called here again at the end to enforce any of the previous changes
-         !NO Wire advancing in the H-field part
+         !Posible Wire for thickwires advancing in the H-field part    
+#ifdef CompileWithWires
+         !Wires (only updated here. No need to update in the H-field part)
+         if ((trim(adjustl(wiresflavor))=='holland') .or. &
+             (trim(adjustl(wiresflavor))=='transition')) then
+            IF (Thereare%Wires) then
+               if (wirecrank) then
+                  continue
+               else
+                  call AdvanceWiresH(sgg,n, layoutnumber,wiresflavor,simu_devia,stochastic,experimentalVideal,wirethickness,eps0,mu0)
+               endif
+            endif
+         endif
+#endif
          !PMC BORDERS  H-field advancing (duplicates the H-fields at the interface changing their sign)
          If (Thereare%PMCBorders)     call MinusCloneMagneticPMC(sgg%alloc,sgg%Border,Hx,Hy,Hz,sgg%sweep,layoutnumber,size)
          !Periodic BORDERS  H-field mirroring
@@ -1575,19 +1588,7 @@ contains
          !**************************************************************************************************
          !**************************************************************************************************
          !**************************************************************************************************
-#ifdef CompileWithWires
-         !Wires (only updated here. No need to update in the H-field part)
-         if ((trim(adjustl(wiresflavor))=='holland') .or. &
-             (trim(adjustl(wiresflavor))=='transition')) then
-            IF (Thereare%Wires) then
-               if (wirecrank) then
-                  continue
-               else
-                  call AdvanceWiresH(sgg,n, layoutnumber,wiresflavor,simu_devia,stochastic,experimentalVideal,wirethickness,eps0,mu0)
-               endif
-            endif
-         endif
-#endif
+
 
          !!!!!!!!!!end H advancing
          !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -2230,7 +2231,7 @@ contains
          Do k=1,b%sweepHx%NZ
             Do j=1,b%sweepHx%NY
                Do i=1,b%sweepHx%NX
-            Idzek=Idze(k)
+               Idzek=Idze(k)
                Idyej=Idye(j)
                   medio =sggMiHx(i,j,k)
                   Hx(i,j,k)=GM1(MEDIO)*Hx(i,j,k)+GM2(MEDIO)*((Ey(i,j,k+1)-Ey(i,j,k))*Idzek-(Ez(i,j+1,k)-Ez(i,j,k))*Idyej)
