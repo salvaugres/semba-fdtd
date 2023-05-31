@@ -3743,7 +3743,7 @@ contains
 !!!ojo si permittivity scaling y si mpi.... habra que rehacer
       do conta=1,HWires%NumCurrentSegments
             if (wirethickness>1) &
-                call init_thick(sgg,Ex,Ey,Ez,Hx,Hy,Hz,Idxe,Idye,Idze,Idxh,Idyh,Idzh,HWires%CurrentSegment(conta),wirethickness)
+                call init_thick(sgg,eps000,mu000,Ex,Ey,Ez,Hx,Hy,Hz,Idxe,Idye,Idze,Idxh,Idyh,Idzh,HWires%CurrentSegment(conta),wirethickness)
       end do
 #endif      
       !!

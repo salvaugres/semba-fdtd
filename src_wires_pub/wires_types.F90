@@ -69,13 +69,15 @@ module wiresHolland_constants
 #ifdef CompileWithThickWires    
    type container
         real (kind=RKIND), pointer :: punt
+        REAL (kind=RKIND), dimension(:), allocatable :: Hist_current
    end type container
    type :: thick_t    
       integer (kind=4)                        ::  Enumero,Hnumero
       type (container), dimension(:), allocatable ::  Efield_wire2main
       type (container), dimension(:), allocatable ::  Hfield_wire2main, H_Efield_wire2main
       REAL (kind=RKIND_wires), dimension(:), allocatable :: EArea,rEArea,HArea,rHArea,rEfractionArea,Hsigno,Hcte  
-      INTEGER, dimension(:), allocatable ::  i, j, k, field
+      INTEGER, dimension(:), allocatable ::  i, j, k, field     
+      INTEGER :: retardo
       logical :: Hplus
    end type thick_t
 #endif       
