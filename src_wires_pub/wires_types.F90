@@ -67,9 +67,10 @@ module wiresHolland_constants
    END TYPE ChargeNodes
 
 #ifdef CompileWithThickWires    
-   type container
+   type container                
         real (kind=RKIND), pointer :: punt
-        REAL (kind=RKIND), dimension(:), allocatable :: Hist_current
+        real (kind=RKIND)          :: retardo      
+        REAL (kind=RKIND), dimension(:), allocatable :: field_retard  
    end type container
    type :: thick_t    
       integer (kind=4)                        ::  Enumero,Hnumero
@@ -77,8 +78,9 @@ module wiresHolland_constants
       type (container), dimension(:), allocatable ::  Hfield_wire2main, H_Efield_wire2main
       REAL (kind=RKIND_wires), dimension(:), allocatable :: EArea,rEArea,HArea,rHArea,rEfractionArea,Hsigno,Hcte  
       INTEGER, dimension(:), allocatable ::  i, j, k, field     
-      INTEGER :: retardo
-      logical :: Hplus
+      logical :: Hplus         
+      REAL (kind=RKIND), dimension(:), allocatable :: Current_ret    
+      integer          :: maxretardo
    end type thick_t
 #endif       
    type, public  ::  CurrentSegments

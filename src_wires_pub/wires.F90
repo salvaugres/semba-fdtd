@@ -1615,11 +1615,11 @@ contains
          desp=HWires%CurrentSegment(i1)%delta
          despT1=HWires%CurrentSegment(i1)%deltaTransv1
          despT2=HWires%CurrentSegment(i1)%deltaTransv2
-         !si no reparto como mas abajo, se inestabiliza
-         if (wirethickness>1) then   
-             despT1=wirethickness*despT1
-             despT2=wirethickness*despT2
-         endif
+         ! Esto no debe ser preciso. la hipotesis es que vuelve promediando a una celda
+         !!!if (wirethickness>1) then   
+         !!!    despT1=wirethickness*despT1
+         !!!    despT2=wirethickness*despT2
+         !!!endif
          r0=HWires%CurrentSegment(i1)%TipoWire%Radius   ! CON SU RADIO
          if ((r0 < 1e-9*desp)) then
             write(BUFF,'(a,e12.2e3)') 'wir0_WARNING: WIRE radius too small ',r0
@@ -2216,7 +2216,7 @@ contains
          dummy%L_devia = givenautoin_devia
          dummy%givenautoin_devia =givenautoin_devia
               dummy%resist_devia =     resist_devia
-!!!ojooooo \E7\E7\E7\E7110517 acumulo en %lind toda la autoinduccion para que los calculos de capacidad la tengan en cuenta completa    
+!!!ojooooo  acumulo en %lind toda la autoinduccion para que los calculos de capacidad la tengan en cuenta completa    
          if (.not.fieldtotl) then
              dummy%Lind=dummy%Lind+givenautoin
 !
@@ -5309,7 +5309,7 @@ subroutine resume_casuistics
 !171216quitado            Segmento%Efield_wire2main_past = real(Segmento%Efield_wire2main,KIND=RKIND_wires)
 #ifdef CompileWithThickWires
              if (wirethickness>1) then
-                call Advance_Thick_Efield_wire2main(sgg,segmento,eps0,mu0)
+                call Advance_Thick_Efield_wire2main(sgg,segmento,eps0,mu0,wirethickness)
              endif 
 #endif                      
              if (wirethickness==1) then
@@ -5393,14 +5393,14 @@ subroutine resume_casuistics
                Segmento%Current=Segmento%cte1*Segmento%Current - Segmento%cte3*(Segmento%qplus_qminus)
                if (.not.Segmento%IsShielded) then
 #ifdef CompileWithThickWires
-                    if (wirethickness>1) then
-                        call Advance_Thick_Efield_main2wire(sgg,segmento,eps0,mu0)
-                    endif 
-#endif                             
-                    if (wirethickness==1) then
-                        Segmento%Current = Segmento%Current + &
-                            Segmento%cte2*real(Segmento%Efield_main2wire,KIND=RKIND_wires)
-                    endif           
+                   if (wirethickness>1) then
+                       call Advance_Thick_Efield_main2wire(sgg,segmento,eps0,mu0,wirethickness)
+                   endif 
+#endif                            
+                   if (wirethickness==1) then
+                     Segmento%Current = Segmento%Current + &
+                         Segmento%cte2*real(Segmento%Efield_main2wire,KIND=RKIND_wires)
+                   endif           
                endif
             endif
          end do
