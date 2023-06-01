@@ -1616,10 +1616,10 @@ contains
          despT1=HWires%CurrentSegment(i1)%deltaTransv1
          despT2=HWires%CurrentSegment(i1)%deltaTransv2
          ! Esto no debe ser preciso. la hipotesis es que vuelve promediando a una celda
-         !!!if (wirethickness>1) then   
-         !!!    despT1=wirethickness*despT1
-         !!!    despT2=wirethickness*despT2
-         !!!endif
+         if (wirethickness>1) then        !solo tiene impacto en la %cte2 de acople y en la fuente de carga para que sea de voltaje
+             despT1=wirethickness*despT1
+             despT2=wirethickness*despT2
+         endif
          r0=HWires%CurrentSegment(i1)%TipoWire%Radius   ! CON SU RADIO
          if ((r0 < 1e-9*desp)) then
             write(BUFF,'(a,e12.2e3)') 'wir0_WARNING: WIRE radius too small ',r0
@@ -5432,9 +5432,10 @@ subroutine resume_casuistics
                    !!!    endif
                    !!!else
                        !lo de siempre. aniado lo anterior para ver lo de las fuentes duras !C=Q/V-> C=c^-2/L-> Q=V*C=V/(L c^2)
-                       if (Segmento%Vsource%soft) then !fuentes blandas usuales 230323
+                       if (Segmento%Vsource%soft) then !fuentes blandas usuales 230323 
+                           !fuentes de voltaje. para que sean de carga hay que comentar el Lind
                            Segmento%Current = Segmento%Current + &
-                                 Segmento%cte3 * Vincid  / (Segmento%Lind * InvMu(Segmento%indexmed)*InvEps(Segmento%indexmed))
+                                 Segmento%cte3 * Vincid  ! / (Segmento%Lind * InvMu(Segmento%indexmed)*InvEps(Segmento%indexmed))
                            !I use the capacitance to find the incident charge
                            !assuming that the evolution file contains a voltage, not a charge
                        else !nuevas fuentes duras 230323
