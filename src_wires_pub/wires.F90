@@ -1617,8 +1617,8 @@ contains
          despT2=HWires%CurrentSegment(i1)%deltaTransv2
          ! Esto no debe ser preciso. la hipotesis es que vuelve promediando a una celda
          if (wirethickness>1) then        !solo tiene impacto en la %cte2 de acople y en la fuente de carga para que sea de voltaje
-             despT1=wirethickness*despT1
-             despT2=wirethickness*despT2
+           despT1=wirethickness*despT1
+           despT2=wirethickness*despT2
          endif
          r0=HWires%CurrentSegment(i1)%TipoWire%Radius   ! CON SU RADIO
          if ((r0 < 1e-9*desp)) then
