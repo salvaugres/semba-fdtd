@@ -5435,7 +5435,7 @@ subroutine resume_casuistics
                        if (Segmento%Vsource%soft) then !fuentes blandas usuales 230323 
                            !fuentes de voltaje. para que sean de carga hay que comentar el Lind
                            Segmento%Current = Segmento%Current + &
-                                 Segmento%cte3 * Vincid  ! / (Segmento%Lind * InvMu(Segmento%indexmed)*InvEps(Segmento%indexmed))
+                                 Segmento%cte3 * Vincid  / (Segmento%Lind * InvMu(Segmento%indexmed)*InvEps(Segmento%indexmed))
                            !I use the capacitance to find the incident charge
                            !assuming that the evolution file contains a voltage, not a charge
                        else !nuevas fuentes duras 230323
