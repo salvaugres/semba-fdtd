@@ -112,6 +112,9 @@ module Solver
    USE P_rescale
 #endif   
 !!
+#ifdef CompileWithProfiling
+   use nvtx
+#endif
    implicit none
    private
 
@@ -1214,6 +1217,10 @@ contains
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+#ifdef CompileWithProfiling
+      call nvtxStartRange("Antes del bucle N")
+#endif
       ciclo_temporal :  DO while (N <= finaltimestep)
       
       !!Flush the plane-wave logical switching off variable (saves CPU!)
@@ -1248,15 +1255,31 @@ contains
 !!!!!!!#endif
          !call get_secnds( time_ElecInit)
          !!
-         call Advance_Ex          (Ex, Hy, Hz, Idyh, Idzh, sggMiEx, b,g1,g2)
+
+#ifdef CompileWithProfiling
+      call nvtxStartRange("Antes del bucle EX")
+#endif
+         call Advance_Ex          (Ex, Hy, Hz, Idyh, Idzh, sggMiEx, b,g1,g2)    
+#ifdef CompileWithProfiling
+      call nvtxEndRange
+      call nvtxStartRange("Antes del bucle EY")
+#endif
          call Advance_Ey          (Ey, Hz, Hx, Idzh, Idxh, sggMiEy, b,g1,g2)
+         
+#ifdef CompileWithProfiling    
+      call nvtxEndRange
+      call nvtxStartRange("Antes del bucle EZ")
+#endif
          call Advance_Ez          (Ez, Hx, Hy, Idxh, Idyh, sggMiEz, b,g1,g2)
 
-         if (planewavecorr) then
-             call FreeSpace_Advance_Ex          (Exvac, Hyvac, Hzvac, Idyh, Idzh,       b,g1,g2)
-             call FreeSpace_Advance_Ey          (Eyvac, Hzvac, Hxvac, Idzh, Idxh,       b,g1,g2)
-             call FreeSpace_Advance_Ez          (Ezvac, Hxvac, Hyvac, Idxh, Idyh,       b,g1,g2)
-         endif
+#ifdef CompileWithProfiling    
+      call nvtxEndRange
+#endif
+         !!if (planewavecorr) then
+         !!    call FreeSpace_Advance_Ex          (Exvac, Hyvac, Hzvac, Idyh, Idzh,       b,g1,g2)
+         !!    call FreeSpace_Advance_Ey          (Eyvac, Hzvac, Hxvac, Idzh, Idxh,       b,g1,g2)
+         !!    call FreeSpace_Advance_Ez          (Ezvac, Hxvac, Hyvac, Idxh, Idyh,       b,g1,g2)
+         !!endif
           
 !!! no se ganada nada de tiempo        Call Advance_ExEyEz(Ex,Ey,Ez,Hx,Hy,Hz,Idxh,Idyh,Idzh,sggMiEx,sggMiEy,sggMiEz,b,g1,g2)
 
@@ -1440,9 +1463,24 @@ contains
          !!
 
 !         if (sgg%thereareMagneticMedia) then
-            call Advance_Hx           (Hx, Ey, Ez, Idye, Idze, sggMiHx, b,gm1,gm2)
-            call Advance_Hy           (Hy, Ez, Ex, Idze, Idxe, sggMiHy, b,gm1,gm2)
-            call Advance_Hz           (Hz, Ex, Ey, Idxe, Idye, sggMiHz, b,gm1,gm2)
+
+#ifdef CompileWithProfiling    
+      call nvtxStartRange("Antes del bucle HX")
+#endif
+            call Advance_Hx           (Hx, Ey, Ez, Idye, Idze, sggMiHx, b,gm1,gm2)        
+#ifdef CompileWithProfiling    
+      call nvtxEndRange
+      call nvtxStartRange("Antes del bucle HY")
+#endif
+            call Advance_Hy           (Hy, Ez, Ex, Idze, Idxe, sggMiHy, b,gm1,gm2)     
+#ifdef CompileWithProfiling    
+      call nvtxEndRange
+      call nvtxStartRange("Antes del bucle HZ")
+#endif
+            call Advance_Hz           (Hz, Ex, Ey, Idxe, Idye, sggMiHz, b,gm1,gm2)  
+#ifdef CompileWithProfiling    
+      call nvtxEndRange
+#endif
          !else
          !   call FreeSpace_Advance_Hx(Hx, Ey, Ez, Idye, Idze,           b,gm1,gm2)
          !   call FreeSpace_Advance_Hy(Hy, Ez, Ex, Idze, Idxe,           b,gm1,gm2)
@@ -1913,6 +1951,12 @@ contains
          !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
          n=n+1 !sube de iteracion
       end do ciclo_temporal ! End of the time-stepping loop
+      
+
+#ifdef CompileWithProfiling
+      call nvtxEndRange
+#endif      
+      
 #ifdef CompileWithConformal
       if(input_conformal_flag)then
             call conformal_final_simulation  (conf_timeSteps, n)
@@ -2105,9 +2149,10 @@ contains
          real (kind = RKIND)  ::  Idzhk, Idyhj
          integer(kind = 4)  ::  i, j, k
          integer(kind = INTEGERSIZEOFMEDIAMATRICES)  ::  medio
+         
 #ifdef CompileWithOpenMP
-!$OMP  PARALLEL DO DEFAULT(SHARED) collapse (2) private (i,j,k,medio,Idzhk,Idyhj)
-!$axcc parallel loop 
+!$OxMP  PARALLEL DO DEFAULT(SHARED) collapse (2) private (i,j,k,medio,Idzhk,Idyhj)
+!$ACC parallel loop DEFAULT(present) collapse (2) private (i,j,k,medio,Idzhk,Idyhj)  copyin(Ex,Hy,Hz,sggMiEx,Idzh,Idyh,b) copyout(Ex)
 #endif
          Do k=1,b%sweepEx%NZ
             Do j=1,b%sweepEx%NY
@@ -2120,8 +2165,8 @@ contains
                End do
             End do
          End do
-#ifdef CompileWithOpenMP
-!$OMP  END PARALLEL DO
+#ifdef CompileWithOpenMP   
+!$OxMP  END PARALLEL DO
 #endif
          return
       end subroutine Advance_Ex
@@ -2145,7 +2190,8 @@ contains
          integer(kind = 4)  ::  i, j, k
          integer(kind = INTEGERSIZEOFMEDIAMATRICES)  ::  medio
 #ifdef CompileWithOpenMP
-!$OMP  PARALLEL DO DEFAULT(SHARED) collapse (2) private (i,j,k,medio,Idzhk)
+!$OxMP  PARALLEL DO DEFAULT(SHARED) collapse (2) private (i,j,k,medio,Idzhk)
+!$ACC parallel loop  DEFAULT(present) collapse (2) private (i,j,k,medio,Idzhk)       copyin(Ey,Hx,Hz,sggMiEy,Idzh,Idxh,b) copyout(Ey)
 #endif
          Do k=1,b%sweepEy%NZ
             Do j=1,b%sweepEy%NY
@@ -2157,7 +2203,7 @@ contains
             End do
          End do
 #ifdef CompileWithOpenMP
-!$OMP  END PARALLEL DO
+!$OxMP  END PARALLEL DO
 #endif
 
 
@@ -2186,7 +2232,8 @@ contains
          integer(kind = 4)  ::  i, j, k
          integer(kind = INTEGERSIZEOFMEDIAMATRICES)  ::  medio
 #ifdef CompileWithOpenMP
-!$OMP  PARALLEL DO  DEFAULT(SHARED) collapse (2) private (i,j,k,medio,Idyhj)
+!$OxMP  PARALLEL DO  DEFAULT(SHARED) collapse (2) private (i,j,k,medio,Idyhj) 
+!$ACC parallel loop   DEFAULT(present) collapse (2) private (i,j,k,medio,Idyhj)       copyin(Ez,Hx,Hy,sggMiEz,Idxh,Idyh,b) copyout(Ez)
 #endif
          Do k=1,b%sweepEz%NZ
             Do j=1,b%sweepEz%NY
@@ -2198,7 +2245,7 @@ contains
             End do
          End do
 #ifdef CompileWithOpenMP
-!$OMP  END PARALLEL DO
+!$OxMP  END PARALLEL DO
 #endif
          return
       end subroutine Advance_Ez
@@ -2227,7 +2274,8 @@ contains
          integer(kind = 4)  ::  i, j, k
          integer(kind = INTEGERSIZEOFMEDIAMATRICES)  ::  medio
 #ifdef CompileWithOpenMP
-!$OMP  PARALLEL DO  DEFAULT(SHARED) collapse (2) private (i,j,k,medio,Idzek,Idyej)
+!$OxMP  PARALLEL DO  DEFAULT(SHARED) collapse (2) private (i,j,k,medio,Idzek,Idyej)    
+!$ACC parallel loop  DEFAULT(present) collapse (2) private (i,j,k,medio,Idzek,Idyej)        copyin(Hx,Ey,Ez,sggMiHx,Idze,Idye,b,GM1,GM2) copyout(Hx) 
 #endif
          Do k=1,b%sweepHx%NZ
             Do j=1,b%sweepHx%NY
@@ -2240,7 +2288,7 @@ contains
             End do
          End do
 #ifdef CompileWithOpenMP
-!$OMP  END PARALLEL DO
+!$OxMP  END PARALLEL DO
 #endif
          return
       end subroutine Advance_Hx
@@ -2264,7 +2312,8 @@ contains
          integer(kind = 4)  ::  i, j, k
          integer(kind = INTEGERSIZEOFMEDIAMATRICES)  ::  medio
 #ifdef CompileWithOpenMP
-!$OMP  PARALLEL DO DEFAULT(SHARED) collapse (2) private (i,j,k,medio,Idzek)
+!$OxMP  PARALLEL DO DEFAULT(SHARED) collapse (2) private (i,j,k,medio,Idzek)  
+!$ACC parallel loop DEFAULT(present) collapse (2) private (i,j,k,medio,Idzek)       copyin(Hy,Ez,Ex,sggMiHy,Idze,Idxe,b) copyout(Hy)  
 #endif
          Do k=1,b%sweepHy%NZ
             Do j=1,b%sweepHy%NY
@@ -2276,7 +2325,7 @@ contains
             End do
          End do
 #ifdef CompileWithOpenMP
-!$OMP  END PARALLEL DO
+!$OxMP  END PARALLEL DO
 #endif
          return
       end subroutine Advance_Hy
@@ -2301,7 +2350,8 @@ contains
          integer(kind = 4)  ::  i, j, k
          integer(kind = INTEGERSIZEOFMEDIAMATRICES)  ::  medio
 #ifdef CompileWithOpenMP
-!$OMP  PARALLEL DO DEFAULT(SHARED) collapse (2) private (i,j,k,medio,Idyej)
+!$OxMP  PARALLEL DO DEFAULT(SHARED) collapse (2) private (i,j,k,medio,Idyej) 
+!$ACC parallel loop  DEFAULT(present) collapse (2) private (i,j,k,medio,Idyej)        copyin(Hz,Ex,Ey,sggMiHz,Idze,Idxe,b) copyout(Hz)  
 #endif
          Do k=1,b%sweepHz%NZ
             Do j=1,b%sweepHz%NY
@@ -2313,7 +2363,7 @@ contains
             End do
          End do
 #ifdef CompileWithOpenMP
-!$OMP  END PARALLEL DO
+!$OxMP  END PARALLEL DO
 #endif
          return
       end subroutine Advance_Hz
