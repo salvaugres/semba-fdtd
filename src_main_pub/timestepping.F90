@@ -2107,6 +2107,7 @@ contains
          integer(kind = INTEGERSIZEOFMEDIAMATRICES)  ::  medio
 #ifdef CompileWithOpenMP
 !$OMP  PARALLEL DO DEFAULT(SHARED) collapse (2) private (i,j,k,medio,Idzhk,Idyhj)
+!$axcc parallel loop 
 #endif
          Do k=1,b%sweepEx%NZ
             Do j=1,b%sweepEx%NY
