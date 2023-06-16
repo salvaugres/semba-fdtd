@@ -1217,7 +1217,9 @@ contains
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
+                           
+!$ACC enter data copyin(Ex,Ey,Ez,sggMiEx,sggMiEy,sggMiEz,Hx,Hy,Hz,sggMiHx,sggMiHy,sggMiHz,Idzxe,Idye,Idze,Idzxh,Idyh,Idzh,b,G1,G2,GM1,GM2)  
+      
 #ifdef CompileWithProfiling
       call nvtxStartRange("Antes del bucle N")
 #endif
@@ -2152,7 +2154,7 @@ contains
          
 #ifdef CompileWithOpenMP
 !$OxMP  PARALLEL DO DEFAULT(SHARED) collapse (2) private (i,j,k,medio,Idzhk,Idyhj)
-!$ACC parallel loop DEFAULT(present) collapse (2) private (i,j,k,medio,Idzhk,Idyhj)  copyin(Ex,Hy,Hz,sggMiEx,Idzh,Idyh,b) copyout(Ex)
+!$ACC parallel loop DEFAULT(present) collapse (2) private (i,j,k,medio,Idzhk,Idyhj) 
 #endif
          Do k=1,b%sweepEx%NZ
             Do j=1,b%sweepEx%NY
@@ -2191,7 +2193,7 @@ contains
          integer(kind = INTEGERSIZEOFMEDIAMATRICES)  ::  medio
 #ifdef CompileWithOpenMP
 !$OxMP  PARALLEL DO DEFAULT(SHARED) collapse (2) private (i,j,k,medio,Idzhk)
-!$ACC parallel loop  DEFAULT(present) collapse (2) private (i,j,k,medio,Idzhk)       copyin(Ey,Hx,Hz,sggMiEy,Idzh,Idxh,b) copyout(Ey)
+!$ACC parallel loop  DEFAULT(present) collapse (2) private (i,j,k,medio,Idzhk)
 #endif
          Do k=1,b%sweepEy%NZ
             Do j=1,b%sweepEy%NY
@@ -2233,7 +2235,7 @@ contains
          integer(kind = INTEGERSIZEOFMEDIAMATRICES)  ::  medio
 #ifdef CompileWithOpenMP
 !$OxMP  PARALLEL DO  DEFAULT(SHARED) collapse (2) private (i,j,k,medio,Idyhj) 
-!$ACC parallel loop   DEFAULT(present) collapse (2) private (i,j,k,medio,Idyhj)       copyin(Ez,Hx,Hy,sggMiEz,Idxh,Idyh,b) copyout(Ez)
+!$ACC parallel loop   DEFAULT(present) collapse (2) private (i,j,k,medio,Idyhj) 
 #endif
          Do k=1,b%sweepEz%NZ
             Do j=1,b%sweepEz%NY
@@ -2275,7 +2277,7 @@ contains
          integer(kind = INTEGERSIZEOFMEDIAMATRICES)  ::  medio
 #ifdef CompileWithOpenMP
 !$OxMP  PARALLEL DO  DEFAULT(SHARED) collapse (2) private (i,j,k,medio,Idzek,Idyej)    
-!$ACC parallel loop  DEFAULT(present) collapse (2) private (i,j,k,medio,Idzek,Idyej)        copyin(Hx,Ey,Ez,sggMiHx,Idze,Idye,b,GM1,GM2) copyout(Hx) 
+!$ACC parallel loop  DEFAULT(present) collapse (2) private (i,j,k,medio,Idzek,Idyej)
 #endif
          Do k=1,b%sweepHx%NZ
             Do j=1,b%sweepHx%NY
@@ -2313,7 +2315,7 @@ contains
          integer(kind = INTEGERSIZEOFMEDIAMATRICES)  ::  medio
 #ifdef CompileWithOpenMP
 !$OxMP  PARALLEL DO DEFAULT(SHARED) collapse (2) private (i,j,k,medio,Idzek)  
-!$ACC parallel loop DEFAULT(present) collapse (2) private (i,j,k,medio,Idzek)       copyin(Hy,Ez,Ex,sggMiHy,Idze,Idxe,b) copyout(Hy)  
+!$ACC parallel loop DEFAULT(present) collapse (2) private (i,j,k,medio,Idzek) 
 #endif
          Do k=1,b%sweepHy%NZ
             Do j=1,b%sweepHy%NY
@@ -2350,8 +2352,8 @@ contains
          integer(kind = 4)  ::  i, j, k
          integer(kind = INTEGERSIZEOFMEDIAMATRICES)  ::  medio
 #ifdef CompileWithOpenMP
-!$OxMP  PARALLEL DO DEFAULT(SHARED) collapse (2) private (i,j,k,medio,Idyej) 
-!$ACC parallel loop  DEFAULT(present) collapse (2) private (i,j,k,medio,Idyej)        copyin(Hz,Ex,Ey,sggMiHz,Idze,Idxe,b) copyout(Hz)  
+!$OxMP  PARALLEL DO DEFAULT(SHARED) collapse (2) private (i,j,k,medio,Idyej)     
+!$ACC parallel loop  DEFAULT(present) collapse (2) private (i,j,k,medio,Idyej)  
 #endif
          Do k=1,b%sweepHz%NZ
             Do j=1,b%sweepHz%NY
