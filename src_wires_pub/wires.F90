@@ -1984,9 +1984,9 @@ contains
                       call WarnErrReport(buff,.true.)
                    endif
                 endif
-                if (isLossy) then !alguno extremo lossy con conductividad desconocida (multiports de sabrina)
+                if (isLossy) then !alguno extremo lossy con conductividad desconocida (multiports de ss)
                    if (abs(sigt) < 1.0e-19_RKIND_wires) then
-                      sigt=1e4 ! asignale una resistencia de contacto por defecto si es nula !tipico de los composites de Sabrina !habra algun dia que afinar esto
+                      sigt=1e4 ! asignale una resistencia de contacto por defecto si es nula !tipico de los composites de ss !habra algun dia que afinar esto
                       write (buff,*)  'wir1_WARNING:  A Lossy segment with unknown conductivity. Assuming a STANDARD value of 1e4 S/m ', i,j,k,sigt,ispec,isLossy
                       call WarnErrReport(buff)
                    endif
