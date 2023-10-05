@@ -110,7 +110,7 @@ contains
 
       call print11(layoutnumber,trim(adjustl(whoami))//' ERROR: '//trim(adjustl(message)),.true.)
 
-      !19/12/14 bug OLD1812. Un stoponerror creado por un nodal source embebido llega aqu? en MPI. El closewarn... hace un barrier e impide morir al proceso.
+      !19/12/14 bug OLD1812. Un stoponerror creado por un nodal source embebido llega aqui en MPI. El closewarn... hace un barrier e impide morir al proceso.
       !hay que revisar los stoponerror y hacerlos mas elegantes. De momento aborto a lo bestia comentanod sin cerrar ni warning ni dxf (To do)
 
       !CALL CLOSEWARNINGFILE(layoutnumber,size)
