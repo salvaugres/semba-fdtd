@@ -75,8 +75,8 @@ module Observa
       character (len=1024)  ::  path
       integer (kind=4) :: unit,unitmaster !to store the unit of the file y en caso de singlefileginario el unitmaster que escribe
       integer (kind=4) :: columnas !number of columns in the output file
-      REAL (KIND=RKIND), pointer, dimension( : )   ::  valor,valor2,valor3,valor5 !stored values at each time step !not read but calculate !210521 also store -edl+vdrop
-      REAL (KIND=RKIND)    ::  valor4 !just to store the sign of the current for the wires
+      REAL (KIND=RKIND), pointer, dimension( : )   ::  valor,valor2,valor3,valor4,valor5 !stored values at each time step !not read but calculate !210521 also store -edl+vdrop
+      REAL (KIND=RKIND)    ::  valorsigno !just to store the sign of the current for the wires
       REAL (KIND=RKIND), pointer, dimension( :, :, :, : )   ::  valor3D !stored values at each time step !not read but calculate
       type (Serialized_t)  ::  Serialized !para almecenar valores serializados en volumenes en vez de bulk
       !freqdomain probles
@@ -619,7 +619,7 @@ contains
                   (sgg%NumPlaneWaves>=1)) then
                      output(ii)%item(i)%columnas=2
                   elseif ((field == iJx).or.(field == iJy).or.(field == iJz)) then
-                     output(ii)%item(i)%columnas=4 ! corriente vdrop=e*dl vdrop=vplux-vminus !la orientacion no se cuenta !200621 !saco en valor5 el -edl+vdrop
+                     output(ii)%item(i)%columnas=5 ! corriente -e*dl vplus vminus vplus-vminus
                   elseif ((field == iVx).or.(field == iVy).or.(field == iVz)) then
                      output(ii)%item(i)%columnas=1
                   else
@@ -763,13 +763,16 @@ contains
                            call stoponerror(layoutnumber,size,'Recompile: excesive memory for probes.'// &
                            &                                   'Increase MaxMemoryProbes')
                         endif
-                        allocate (output(ii)%item(i)%valor2(0 : BuffObse), &
+                        allocate (&
+                        output(ii)%item(i)%valor2(0 : BuffObse), &
                         output(ii)%item(i)%valor3(0 : BuffObse), &
+                        output(ii)%item(i)%valor4(0 : BuffObse), &
                         output(ii)%item(i)%valor5(0 : BuffObse))
                         output(ii)%item(i)%valor2(0 : BuffObse)=0.0_RKIND
                         output(ii)%item(i)%valor3(0 : BuffObse)=0.0_RKIND
+                        output(ii)%item(i)%valor4(0 : BuffObse)=0.0_RKIND
                         output(ii)%item(i)%valor5(0 : BuffObse)=0.0_RKIND
-                        output(ii)%item(i)%valor4=+1
+                        output(ii)%item(i)%valorsigno=+1
                         !en caso de hilos se necesitan
                         !parsea los hilos
                         found=.false.
@@ -782,7 +785,7 @@ contains
                            (HWireslocal%CurrentSegment(n)%tipofield*10==field))  then
                               !I have chosen IJx=10 IEx, etc. !do not change
                               output(ii)%item(i)%segmento => HWireslocal%CurrentSegment(n)
-                              if (output(ii)%item(i)%segmento%orientadoalreves) output(ii)%item(i)%valor4=-1
+                              if (output(ii)%item(i)%segmento%orientadoalreves) output(ii)%item(i)%valorsigno=-1
                               found=.true.
                            endif
                         end do
@@ -796,7 +799,7 @@ contains
                                        if (HWireslocal%CurrentSegment(n)%origindex==no2) then !el nodo tambien debe coincidir aunque no necesariamente coordenadas ni campo porque se ha cortado el rabo original
                                           !I have chosen IJx=10 IEx, etc. !do not change
                                           output(ii)%item(i)%segmento => HWireslocal%CurrentSegment(n)
-                                          if (output(ii)%item(i)%segmento%orientadoalreves) output(ii)%item(i)%valor4=-1
+                                          if (output(ii)%item(i)%segmento%orientadoalreves) output(ii)%item(i)%valorsigno=-1
                                           found=.true.
                                        endif
                                     end do
@@ -809,8 +812,9 @@ contains
                      endif
                      if ((.not.found).and.((((field==iJx).or.(field==iJy).or.(field==iJz))))) then
                         sgg%Observation(ii)%P(i)%What=nothing
-                        !  write(buff,'(a,4i7,a)') 'WARNING: WIRE probe ',no,i1,j1,k1,' DOES NOT EXIST'
-                        !  CALL WarnErrReport (buff)
+                          !ojoo 010423 para debugeo lbb1
+                          write(buff,'(a,4i7,a)') 'ERROR: WIRE probe ',no,i1,j1,k1,' DOES NOT EXIST'
+                          CALL WarnErrReport (buff,.true.)
                      endif
                   endif
 #endif
@@ -824,13 +828,16 @@ contains
                            call stoponerror(layoutnumber,size,'Recompile: excesive memory for probes.'// &
                            &                                   'Increase MaxMemoryProbes')
                         endif
-                        allocate (output(ii)%item(i)%valor2(0 : BuffObse), &
+                        allocate (&
+                        output(ii)%item(i)%valor2(0 : BuffObse), &
                         output(ii)%item(i)%valor3(0 : BuffObse), &
+                        output(ii)%item(i)%valor4(0 : BuffObse), &
                         output(ii)%item(i)%valor5(0 : BuffObse))
                         output(ii)%item(i)%valor2(0 : BuffObse)=0.0_RKIND
                         output(ii)%item(i)%valor3(0 : BuffObse)=0.0_RKIND
+                        output(ii)%item(i)%valor4(0 : BuffObse)=0.0_RKIND
                         output(ii)%item(i)%valor5(0 : BuffObse)=0.0_RKIND
-                        output(ii)%item(i)%valor4=+1
+                        output(ii)%item(i)%valorsigno=+1
                         !en caso de hilos se necesitan
                         !parsea los hilos
                         found=.false.
@@ -844,15 +851,15 @@ contains
 !                           (Hwireslocal_Berenger%Segments(n)%orient*10==field))  then
                               !I have chosen IJx=10 IEx, etc. !do not change
                               output(ii)%item(i)%segmento_Berenger => Hwireslocal_Berenger%Segments(n)
-                              if (output(ii)%item(i)%segmento_Berenger%orientadoalreves) output(ii)%item(i)%valor4=-1
+                              if (output(ii)%item(i)%segmento_Berenger%orientadoalreves) output(ii)%item(i)%valorsigno=-1
                               found=.true.
                            endif
                         end do
                      endif
                      if ((.not.found).and.((((field==iJx).or.(field==iJy).or.(field==iJz))))) then
                         sgg%Observation(ii)%P(i)%What=nothing
-                        write(buff,'(a,4i7,a)') 'SEVEREWARNING: WIRE probe ',no,i1,j1,k1,' DOES NOT EXIST'
-                        CALL WarnErrReport (buff)
+                        write(buff,'(a,4i7,a)') 'ERROR: WIRE probe ',no,i1,j1,k1,' DOES NOT EXIST'
+                        CALL WarnErrReport (buff,.TRUE.)
                      endif
                   endif
 #endif
@@ -866,13 +873,16 @@ contains
                            call stoponerror(layoutnumber,size,'Recompile: excesive memory for probes.'// &
                            &                                   'Increase MaxMemoryProbes')
                         endif
-                        allocate (output(ii)%item(i)%valor2(0 : BuffObse), &
+                        allocate (&
+                        output(ii)%item(i)%valor2(0 : BuffObse), &
                         output(ii)%item(i)%valor3(0 : BuffObse), &
+                        output(ii)%item(i)%valor4(0 : BuffObse), &
                         output(ii)%item(i)%valor5(0 : BuffObse))
                         output(ii)%item(i)%valor2(0 : BuffObse)=0.0_RKIND
                         output(ii)%item(i)%valor3(0 : BuffObse)=0.0_RKIND
+                        output(ii)%item(i)%valor4(0 : BuffObse)=0.0_RKIND
                         output(ii)%item(i)%valor5(0 : BuffObse)=0.0_RKIND
-                        output(ii)%item(i)%valor4=+1
+                        output(ii)%item(i)%valorsigno=+1
                         !en caso de hilos se necesitan
                         !parsea los hilos
                         found=.false.
@@ -883,11 +893,22 @@ contains
                               found=.true.
                            endif
                         end do
-                     endif
+                     endif 
+                     !010423  creo que si no lo encuentra es porque el indice es el exterior bug lbb1 epg 0323
+                     if (.not.found) then   
+                         do n=1,Hwireslocal_Slanted%NumSegments
+                           if (Hwireslocal_Slanted%Segments(n)%ptr%elotroindice ==no)  then
+                              output(ii)%item(i)%segmento_Slanted => Hwireslocal_Slanted%Segments(n)%ptr
+                              found=.true.
+                           endif
+                         end do
+                     endif                       
                      if ((.not.found).and.((((field==iJx).or.(field==iJy).or.(field==iJz))))) then
                         sgg%Observation(ii)%P(i)%What=nothing
-                        !  write(buff,'(a,4i7,a)') 'WARNING: WIRE probe ',no,i1,j1,k1,' DOES NOT EXIST'
-                        !  CALL WarnErrReport (buff)
+                        
+                          !ojoo 010423 para debugeo lbb1
+                          write(buff,'(a,4i7,a)') 'ERROR: WIRE probe ',no,i1,j1,k1,' DOES NOT EXIST'
+                          CALL WarnErrReport (buff,.true.)
                      endif
                   endif   
 #endif            
@@ -2770,23 +2791,28 @@ contains
                         output( ii)%item( i)%valor(nTime-nInit) = 0.0_RKIND !wipe value
                         SegmDumm => output( ii)%item( i)%Segmento
                         if (wirecrank) then !no hay que promediar nada porque estan co-locados en tiempo
-                           output( ii)%item(i)%valor(nTime-nInit)= SegmDumm%Currentpast
-                           output( ii)%item(i)%valor2(nTime-nInit)=SegmDumm%field_wire2main * SegmDumm%delta
-                           ! output( ii)%item(i)%valor2(nTime-nInit)= (((SegmDumm%ChargePlus%ChargePresent)))* SegmDumm%Lind * ( InvMu(SegmDumm%indexmed) * InvEps( SegmDumm%indexmed))
-                           ! output( ii)%item(i)%valortres(nTime-nInit)= (((SegmDumm%ChargeMinus%ChargePresent)))*SegmDumm%Lind * (InvMu( SegmDumm%indexmed) * InvEps( SegmDumm%indexmed))
-                           output( ii)%item(i)%valor3(nTime-nInit)= (((SegmDumm%ChargePlus%ChargePresent)))* SegmDumm%Lind * ( InvMu(SegmDumm%indexmed) * InvEps( SegmDumm%indexmed))- &
-                                                                    (((SegmDumm%ChargeMinus%ChargePresent)))*SegmDumm%Lind * (InvMu( SegmDumm%indexmed) * InvEps( SegmDumm%indexmed))
-                           output( ii)%item(i)%valor5(nTime-nInit)= -output( ii)%item(i)%valor2(nTime-nInit)+output( ii)%item(i)%valor3(nTime-nInit)
+                           output( ii)%item(i)%valor(nTime-nInit)= output(ii)%item(i)%valorsigno* &
+                                 SegmDumm%Currentpast
+                           output( ii)%item(i)%valor2(nTime-nInit)= -SegmDumm%field_wire2main * SegmDumm%delta                           
+                           output( ii)%item(i)%valor3(nTime-nInit)= output(ii)%item(i)%valorsigno* &
+                                 (((SegmDumm%ChargePlus%ChargePresent)))* SegmDumm%Lind * ( InvMu(SegmDumm%indexmed) * InvEps( SegmDumm%indexmed))
+                           output( ii)%item(i)%valor4(nTime-nInit)= output(ii)%item(i)%valorsigno*&
+                                 (((SegmDumm%ChargeMinus%ChargePresent)))*SegmDumm%Lind * (InvMu( SegmDumm%indexmed) * InvEps( SegmDumm%indexmed))
+                           output( ii)%item(i)%valor5(nTime-nInit)=output( ii)%item(i)%valor3(nTime-nInit)-output( ii)%item(i)%valor4(nTime-nInit)
+    
                         else
 !!saco el potencial calculado con E*delta !051115 !!y aniado el vdrop antinugo porque la Z se hacien bien con este 030719
-                           output( ii)%item(i)%valor(nTime-nInit)= SegmDumm%currentpast
-                           output( ii)%item(i)%valor2(nTime-nInit)=SegmDumm%field_wire2main * SegmDumm%delta
-                           ! output( ii)%item(i)%valor(nTime-nInit)= SegmDumm%currentPast
-                           ! output( ii)%item(i)%valor2(nTime-nInit)=  (((SegmDumm%ChargePlus%ChargePresent + SegmDumm%ChargePlus%ChargePast))/2.0_RKIND)* SegmDumm%Lind * ( InvMu(SegmDumm%indexmed) * InvEps( SegmDumm%indexmed))
-                           ! output( ii)%item(i)%valortres(nTime-nInit)=  (((SegmDumm%ChargeMinus%ChargePresent + SegmDumm%ChargeMinus%ChargePast))/2.0_RKIND)*   SegmDumm%Lind * (InvMu( SegmDumm%indexmed) * InvEps( SegmDumm%indexmed))
-                           output( ii)%item(i)%valor3(nTime-nInit)= (((SegmDumm%ChargePlus%ChargePresent + SegmDumm%ChargePlus%ChargePast))/2.0_RKIND)  * SegmDumm%Lind * (InvMu(SegmDumm%indexmed) * InvEps( SegmDumm%indexmed)) - &
-                                                                    (((SegmDumm%ChargeMinus%ChargePresent + SegmDumm%ChargeMinus%ChargePast))/2.0_RKIND)* SegmDumm%Lind * (InvMu(SegmDumm%indexmed) * InvEps( SegmDumm%indexmed))
-                           output( ii)%item(i)%valor5(nTime-nInit)= -output( ii)%item(i)%valor2(nTime-nInit)+output( ii)%item(i)%valor3(nTime-nInit)
+                           output( ii)%item(i)%valor(nTime-nInit)= output(ii)%item(i)%valorsigno* &
+                                 SegmDumm%currentpast
+                           output( ii)%item(i)%valor2(nTime-nInit)= -SegmDumm%field_wire2main * SegmDumm%delta
+                           output( ii)%item(i)%valor3(nTime-nInit)= output(ii)%item(i)%valorsigno*&
+                                 (((SegmDumm%ChargePlus%ChargePresent + SegmDumm%ChargePlus%ChargePast))/2.0_RKIND)  * &
+                                                                              SegmDumm%Lind * (InvMu(SegmDumm%indexmed) * InvEps( SegmDumm%indexmed)) 
+                           output( ii)%item(i)%valor4(nTime-nInit)= output(ii)%item(i)%valorsigno*&
+                                 (((SegmDumm%ChargeMinus%ChargePresent + SegmDumm%ChargeMinus%ChargePast))/2.0_RKIND)* &
+                                                                              SegmDumm%Lind * (InvMu(SegmDumm%indexmed) * InvEps( SegmDumm%indexmed))
+                           output( ii)%item(i)%valor5(nTime-nInit)=output( ii)%item(i)%valor3(nTime-nInit)-output( ii)%item(i)%valor4(nTime-nInit)
+
                         endif
                         !!!!!!!!!!!!!!!!!!
                      endif   
@@ -2794,32 +2820,29 @@ contains
 #ifdef CompileWithBerengerWires
                      if (trim(adjustl(wiresflavor))=='berenger') then 
                         SegmDumm_Berenger => output( ii)%item( i)%Segmento_Berenger
-                        output( ii)%item(i)%valor(nTime-nInit)= SegmDumm_Berenger%Currentpast
-                        output( ii)%item(i)%valor2(nTime-nInit)=SegmDumm_Berenger%field * SegmDumm_Berenger%dl
-                        ! output( ii)%item(i)%valor2(nTime-nInit)=   (((SegmDumm_Berenger%VoltagePlus%Voltage + SegmDumm_Berenger%VoltagePlus%VoltagePast))/2.0_RKIND)
-                        ! output( ii)%item(i)%valortres(nTime-nInit)=   (((SegmDumm_Berenger%VoltageMinus%Voltage + SegmDumm_Berenger%VoltageMinus%VoltagePast))/2.0_RKIND)
-                        ! output( ii)%item(i)%valortres(nTime-nInit)=   (((SegmDumm_Berenger%VoltagePlus%Voltage + SegmDumm_Berenger%VoltagePlus%VoltagePast))/2.0_RKIND) - & 
-                        !                                           (((SegmDumm_Berenger%VoltageMinus%Voltage + SegmDumm_Berenger%VoltageMinus%VoltagePast))/2.0_RKIND)
-                        !!!ojo con esto : tomo el %L pero no tengo claro lo que pasaa en multilines. carregir y pensar 030719
-                           output( ii)%item(i)%valor3(nTime-nInit)= (((SegmDumm_Berenger%ChargePlus  + SegmDumm_Berenger%ChargePlusPast))/2.0_RKIND)  * &
-                                                                       SegmDumm_Berenger%L *    (InvMu(SegmDumm_Berenger%imed) * &
-                                                                                               InvEps( SegmDumm_Berenger%imed)) - &
-                                                                    (((SegmDumm_Berenger%ChargeMinus + SegmDumm_Berenger%ChargeMinusPast))/2.0_RKIND) * &
-                                                                       SegmDumm_Berenger%L *    (InvMu(SegmDumm_Berenger%imed) * &
-                                                                                               InvEps( SegmDumm_Berenger%imed))
-                           output( ii)%item(i)%valor5(nTime-nInit)= -output( ii)%item(i)%valor2(nTime-nInit)+output( ii)%item(i)%valor3(nTime-nInit)
+                        output( ii)%item(i)%valor(nTime-nInit)= output(ii)%item(i)%valorsigno* &
+                                 SegmDumm_Berenger%Currentpast
+                        output( ii)%item(i)%valor2(nTime-nInit)= -SegmDumm_Berenger%field * SegmDumm_Berenger%dl                          
+                        output( ii)%item(i)%valor3(nTime-nInit)= output(ii)%item(i)%valorsigno*&
+                                  (((SegmDumm_Berenger%ChargePlus  + SegmDumm_Berenger%ChargePlusPast))/2.0_RKIND)  * &
+                                   SegmDumm_Berenger%L *    (InvMu(SegmDumm_Berenger%imed) * InvEps( SegmDumm_Berenger%imed))                                                                  
+                        output( ii)%item(i)%valor4(nTime-nInit)= output(ii)%item(i)%valorsigno*&
+                                 (((SegmDumm_Berenger%ChargeMinus + SegmDumm_Berenger%ChargeMinusPast))/2.0_RKIND) * &
+                                   SegmDumm_Berenger%L *    (InvMu(SegmDumm_Berenger%imed) * InvEps( SegmDumm_Berenger%imed))
+                        output( ii)%item(i)%valor5(nTime-nInit)=output( ii)%item(i)%valor3(nTime-nInit)-output( ii)%item(i)%valor4(nTime-nInit)
                      endif
 #endif
 #ifdef CompileWithSlantedWires
                      if((trim(adjustl(wiresflavor))=='slanted').or.(trim(adjustl(wiresflavor))=='semistructured')) then !del wiresflavor
                         SegmDumm_Slanted => output( ii)%item( i)%Segmento_Slanted
-                        output( ii)%item(i)%valor(nTime-nInit)= SegmDumm_Slanted%Currentpast
-                        output( ii)%item(i)%valor2(nTime-nInit)=SegmDumm_Slanted%field * SegmDumm_Slanted%dl
-                        ! output( ii)%item(i)%valor2(nTime-nInit)=   (((SegmDumm_Slanted%Voltage(iPlus )%ptr%Voltage + SegmDumm_Slanted%Voltage(iPlus )%ptr%VoltagePast))/2.0_RKIND)
-                        ! output( ii)%item(i)%valortres(nTime-nInit)=   (((SegmDumm_Slanted%Voltage(iMinus)%ptr%Voltage + SegmDumm_Slanted%Voltage(iMinus)%ptr%VoltagePast))/2.0_RKIND)
-                        output( ii)%item(i)%valor3(nTime-nInit)=   (((SegmDumm_Slanted%Voltage(iPlus)%ptr%Voltage + SegmDumm_Slanted%Voltage(iPlus)%ptr%VoltagePast))/2.0_RKIND) - & 
-                                                                   (((SegmDumm_Slanted%Voltage(iMinus)%ptr%Voltage + SegmDumm_Slanted%Voltage(iMinus)%ptr%VoltagePast))/2.0_RKIND)
-                        output( ii)%item(i)%valor5(nTime-nInit)= -output( ii)%item(i)%valor2(nTime-nInit)+output( ii)%item(i)%valor3(nTime-nInit)
+                        output( ii)%item(i)%valor(nTime-nInit)= & !ojo: slanted ya los orienta bien y no hay que multiplicar por valorsigno
+                                 SegmDumm_Slanted%Currentpast
+                        output( ii)%item(i)%valor2(nTime-nInit)= -SegmDumm_Slanted%field * SegmDumm_Slanted%dl                        
+                        output( ii)%item(i)%valor3(nTime-nInit)= &
+                                 (((SegmDumm_Slanted%Voltage(iPlus)%ptr%Voltage + SegmDumm_Slanted%Voltage(iPlus)%ptr%VoltagePast))/2.0_RKIND)                  
+                        output( ii)%item(i)%valor4(nTime-nInit)= &
+                                 (((SegmDumm_Slanted%Voltage(iMinus)%ptr%Voltage + SegmDumm_Slanted%Voltage(iMinus)%ptr%VoltagePast))/2.0_RKIND)
+                        output( ii)%item(i)%valor5(nTime-nInit)=output( ii)%item(i)%valor3(nTime-nInit)-output( ii)%item(i)%valor4(nTime-nInit)
                      endif
 #endif
                      !Volumic probes
@@ -3831,16 +3854,19 @@ contains
                             case(iJx,iJy,iJz)
                               if (singlefilewrite) then
                                  unidad=output(ii)%item(i)%unitmaster
-                                 WRITE (unidad) output(ii)%item(i)%unit,at, output(ii)%item(i)%valor4*output(ii)%item(i)%valor(n-nInit), &
-                                                output(ii)%item(i)%valor4*output(ii)%item(i)%valor2(n-nInit)  , & !saco el valor2 que contiene ya el vdrop com e*dl
-                                                output(ii)%item(i)%valor4*output(ii)%item(i)%valor3(n-nInit), & ! como ddp entre nodos 
-                                                output(ii)%item(i)%valor4*output(ii)%item(i)%valor5(n-nInit) 
+                                 WRITE (unidad) output(ii)%item(i)%unit,at, &
+                                                output(ii)%item(i)%valor(n-nInit), &
+                                                output(ii)%item(i)%valor2(n-nInit), & !saco el valor2 -e*dl
+                                                output(ii)%item(i)%valor3(n-nInit), & ! VpluS
+                                                output(ii)%item(i)%valor4(n-nInit), & ! Vminus
+                                                output(ii)%item(i)%valor5(n-nInit) ! vplus-vminus
                               else
                                  unidad=output(ii)%item(i)%unit
-                                 WRITE (unidad,fmt) at, output(ii)%item(i)%valor4*output(ii)%item(i)%valor(n-nInit), &
-                                                                    output(ii)%item(i)%valor4*output(ii)%item(i)%valor2(n-nInit) , & !saco el valor2 que contiene ya el vdrop
-                                                                    output(ii)%item(i)%valor4*output(ii)%item(i)%valor3(n-nInit) , & ! como ddp entre nodos 
-                                                                    output(ii)%item(i)%valor4*output(ii)%item(i)%valor5(n-nInit) 
+                                 WRITE (unidad,fmt) at, output(ii)%item(i)%valor(n-nInit), &
+                                                        output(ii)%item(i)%valor2(n-nInit) , & !saco el valor2 -e*dl
+                                                        output(ii)%item(i)%valor3(n-nInit) , & ! VPLUS 
+                                                        output(ii)%item(i)%valor4(n-nInit) , & ! Vminus 
+                                                        output(ii)%item(i)%valor5(n-nInit) ! vplus-vminus
                               endif
 #endif
                            end select
@@ -4036,8 +4062,9 @@ contains
                   !    output(ii)%item(i)%valor3D = 0.0_RKIND
                 case (iJx,iJy,iJz)
                   output(ii)%item(i)%valor(0:BuffObse)=0.0_RKIND
-                  output(ii)%item(i)%valor2(0:BuffObse)=0.0_RKIND
+                  output(ii)%item(i)%valor2(0:BuffObse)=0.0_RKIND   
                   output(ii)%item(i)%valor3(0:BuffObse)=0.0_RKIND
+                  output(ii)%item(i)%valor4(0:BuffObse)=0.0_RKIND
                   output(ii)%item(i)%valor5(0:BuffObse)=0.0_RKIND
                 case (iBloqueMx,iBloqueMz,iBloqueMy,iBloqueJx,iBloqueJz,iBloqueJy,iEx,iEy,iEz,iHx,iHy,iHz)
                   output(ii)%item(i)%valor(0:BuffObse)=0.0_RKIND
@@ -4079,7 +4106,7 @@ contains
              case (iJx,iJy,iJz)
 #ifdef CompileWithWires
                deallocate (output(ii)%item(i)%valor)
-               deallocate (output(ii)%item(i)%valor2,output(ii)%item(i)%valor3,output(ii)%item(i)%valor5)  !en caso de hilos se necesitan
+               deallocate (output(ii)%item(i)%valor2,output(ii)%item(i)%valor3,output(ii)%item(i)%valor4,output(ii)%item(i)%valor5)  !en caso de hilos se necesitan
 #endif
              case (iBloqueJx,iBloqueJy,iBloqueMx,iBloqueMy)
                deallocate (output(ii)%item(i)%valor)
@@ -4224,7 +4251,7 @@ contains
        case (iEx,iEy,iEz,iHx,iHy,iHz)
          if (incid) ext='incid'
        case (iJx,iJy,iJz)
-         ext=' E*dl   Vplus-Vminus -E*dl+Vplus-Vminus' ! Orient'
+         ext=' -E*dl Vplus Vminus Vplus-Vminus' 
       end select
 
 

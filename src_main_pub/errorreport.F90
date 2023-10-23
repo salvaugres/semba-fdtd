@@ -67,7 +67,8 @@ Module Report
 
    public StopOnError,InitReporting,ReportExistence,InitTiming,Timing,CloseReportingFiles, &
    print11,Onprint,Offprint,file10isopen,file11isopen
-   public WarnErrReport,INITWARNINGFILE,CLOSEWARNINGFILE,get_secnds,openfile_mpi,writefile_mpi,closefile_mpi,reportmedia,erasesignalingfiles,openclosedelete,openclose
+   public WarnErrReport,INITWARNINGFILE,CLOSEWARNINGFILE,get_secnds,openfile_mpi,writefile_mpi, &
+          closefile_mpi,reportmedia,erasesignalingfiles,openclosedelete,openclose
 
    !part of the dxf
    !!!public dxfwrite,INITdxfFILE,CLOSEdxfFILE,writemmdxf,TRIMNULLCHAR
@@ -109,7 +110,7 @@ contains
 
       call print11(layoutnumber,trim(adjustl(whoami))//' ERROR: '//trim(adjustl(message)),.true.)
 
-      !19/12/14 bug OLD1812. Un stoponerror creado por un nodal source embebido llega aquí en MPI. El closewarn... hace un barrier e impide morir al proceso.
+      !19/12/14 bug OLD1812. Un stoponerror creado por un nodal source embebido llega aquÃ­ en MPI. El closewarn... hace un barrier e impide morir al proceso.
       !hay que revisar los stoponerror y hacerlos mas elegantes. De momento aborto a lo bestia comentanod sin cerrar ni warning ni dxf (To do)
 
       !CALL CLOSEWARNINGFILE(layoutnumber,size)
@@ -126,7 +127,8 @@ contains
                WRITE (38, '(a)') '!END'
                CLOSE (38)
             endif
-            call print11(layoutnumber,'Trying to relaunch. Correct error, create launch, and remove pause/warning file (or kill the process)',.true.)
+            call print11(layoutnumber,'Trying to relaunch. Correct error, create launch, and remove pause/warning '// &
+                                      'file (or kill the process)',.true.)
 !!!            call CloseReportingFiles !sgg 240817 no se deben cerrar los reporting files
             return
          endif
@@ -136,7 +138,8 @@ contains
             WRITE (38, '(a)') '!END'
             CLOSE (38)
          endif
-         call print11(layoutnumber,'Stopping, but creating the signal file pause to prevent queuing losses!!! (correct error and remove to continue)',.true.)
+         call print11(layoutnumber,'Stopping, but creating the signal file pause to prevent queuing losses!!! '// & '
+                                   '(correct error and remove to continue)',.true.)
       endif
 #else
       IF (layoutnumber == 0) THEN
@@ -367,11 +370,12 @@ contains
 #else
 #ifdef CompileWithSlantedWires
          continue
-#endif
-#endif
-#endif
-         buff=trim(adjustl(whoami))// 'WIREs unsupported. Recompile'
+#else
+         buff=trim(adjustl(whoami))// ' WIREs unsupported. Recompile'
          call stoponerror(layoutnumber,size,buff)
+#endif
+#endif
+#endif
       endif
       !
       !!!!!!!!!!!!!
@@ -496,7 +500,8 @@ contains
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-   subroutine InitTiming(layoutnumber,size,maxCPUtime,timedummy_desdelanzamiento,flushsecondsFields,flushsecondsData,initialtimestep,finaltimestep,c,maxSourceValue,sgg)
+   subroutine InitTiming(layoutnumber,size,maxCPUtime,timedummy_desdelanzamiento, &
+                         flushsecondsFields,flushsecondsData,initialtimestep,finaltimestep,c,maxSourceValue,sgg)
       type (SGGFDTDINFO), intent(IN)       :: sgg
       TYPE (tiempo_t) :: time_out2,time_comienzo
       type (XYZlimit_t), dimension(1:6)  ::  c
@@ -522,7 +527,8 @@ contains
       countersnap=0
       !
 
-      megaceldas=(1.0_RKIND*C(iEx)%ZE-1.0_RKIND*C(iEx)%ZI)*(1.0_RKIND*C(iEx)%YE-1.0_RKIND*C(iEx)%YI)*(1.0_RKIND*C(iEy)%XE-1.0_RKIND*C(iEy)%XI)/1.0e6_RKIND
+      megaceldas=(1.0_RKIND*C(iEx)%ZE-1.0_RKIND*C(iEx)%ZI)*(1.0_RKIND*C(iEx)%YE-1.0_RKIND*C(iEx)%YI)* &
+                 (1.0_RKIND*C(iEy)%XE-1.0_RKIND*C(iEy)%XI)/1.0e6_RKIND
 
 
 #ifdef CompileWithMPI
@@ -549,7 +555,8 @@ contains
          endif
       endif
       IF (flushsecondsDATA/=0) then
-         write(dubuf,*)  'Flushing observation DATA every  ',int(flushsecondsDATA/60.0_RKIND),' minutes and every ',BuffObse,' steps'
+         write(dubuf,*)  'Flushing observation DATA every  ',int(flushsecondsDATA/60.0_RKIND),' minutes and every ', &
+                          BuffObse,' steps'
          call print11(layoutnumber,dubuf)
       else
          call print11(layoutnumber,'WARNING: NO flushing of observation DATA scheduled')
@@ -562,10 +569,11 @@ contains
 #endif
       call get_secnds(time_out2)
       call print11(layoutnumber,SEPARADOR//separador//separador)
-      write(dubuf,'(a,i7,a,e19.9e3,a,i9,a,e19.9e3)')  'Simulation from n=',initialtimestep,', t=',sgg%tiempo(initialtimestep),' to n=',finaltimestep,', t=',sgg%tiempo(finaltimestep)
+      write(dubuf,'(a,i7,a,e19.9e3,a,i9,a,e19.9e3)')  'Simulation from n=',initialtimestep,', t=',sgg%tiempo(initialtimestep),&
+                                                      ' to n=',finaltimestep,', t=',sgg%tiempo(finaltimestep)
       call print11(layoutnumber,dubuf)
-      write(dubuf,*)  'Date/time ', time_out2%fecha( 7: 8),'/',time_out2%fecha( 5: 6),'/',time_out2%fecha(1:4),'   ',time_out2%hora( 1: 2), &
-      ':',time_out2%hora( 3: 4),':',time_out2%hora( 5: 6)
+      write(dubuf,*)  'Date/time ', time_out2%fecha( 7: 8),'/',time_out2%fecha( 5: 6),'/',time_out2%fecha(1:4),'   ', &
+                                    time_out2%hora( 1: 2), ':',time_out2%hora( 3: 4),':',time_out2%hora( 5: 6)
       call print11(layoutnumber,dubuf)
       time_begin_absoluto = time_out2%segundos
       time_begin = time_begin_absoluto
@@ -631,7 +639,8 @@ contains
       read( caux2( 7: 8), '(i2)') day 
 
       if ((mod(year,4)==0).and.(year/=00)) then
-         time_out = diasenbisiesto(month-1) * 86400 + (day-1) * 86400 + 3600.0 * h + 60.0 * m + s - t_0  + (year-2000.) * 365 * 86400.
+         time_out = diasenbisiesto(month-1) * 86400 + (day-1) * 86400 + 3600.0 * h + 60.0 * m + s - t_0  + &
+                    (year-2000.) * 365 * 86400.
       else
          time_out = diasen(month-1) * 86400 + (day-1) * 86400 + 3600.0 * h + 60.0 * m + s - t_0  + (year-2000.) * 365 * 86400.
       endif
@@ -654,8 +663,8 @@ contains
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
    !**************************************************************************************************
    subroutine Timing(sgg, b, n, n_info, layoutnumber, size, maxCPUtime,flushsecondsFields, flushsecondsData, initialtimestep, &
-   finaltimestep, performflushFields, performflushData,performUnpack, performpostprocess,performflushXdmf,performflushVTK, parar, forcetiming,  &
-   Ex, Ey, Ez,  everflushed, nentradaroot,maxSourceValue,opcionestotales,simu_devia,dontwritevtk,permitscaling)
+   finaltimestep, performflushFields, performflushData,performUnpack, performpostprocess,performflushXdmf,performflushVTK, &
+   parar, forcetiming,Ex,Ey,Ez,everflushed, nentradaroot,maxSourceValue,opcionestotales,simu_devia,dontwritevtk,permitscaling)
    
       logical :: simu_devia,dontwritevtk,stopdontwritevtk,stopflushingdontwritevtk,flushdontwritevtk,stoponlydontwritevtk
       !---------------------------> inputs <----------------------------------------------------------
@@ -680,10 +689,12 @@ contains
       integer (kind=4), intent( INOUT)  ::  n_info
       logical, intent( INOUT)  ::  parar
       !---------------------------> outputS <---------------------------------------------------------
-      logical, intent( OUT)  ::  performflushFIELDS, performflushDATA,performUnpack,performpostprocess,performflushXdmf,performflushVTK
+      logical, intent( OUT)  ::  performflushFIELDS, performflushDATA,performUnpack,performpostprocess,&
+                                 performflushXdmf,performflushVTK
       !---------------------------> variables locales <-----------------------------------------------
       real (kind=rKIND)  ::  valor,maxSourceValue,LA,LV,LB
-      logical  ::  hay_timing, l_aux, hay_flushFIELDS, hay_flushDATA, mustflushFIELDS, mustflushDATA,mustUnpack, mustPostprocess,mustflushXdmf , mustflushVTK ,   &
+      logical  ::  hay_timing, l_aux, hay_flushFIELDS, hay_flushDATA, mustflushFIELDS, mustflushDATA,mustUnpack, &
+                   mustPostprocess,mustflushXdmf , mustflushVTK ,   &
       pararflushing, pararNOflushing, stoponNaN , stoponNaN_aux,mustSnap,stop_only,stopflushing_only,flush_only,flushdata_only
       logical :: stopflushingonlydontwritevtk,flushonlydontwritevtk,flushdataonlydontwritevtk,flushdatadontwritevtk
       integer( kind = 4)  ::  in_aux, ini_i, fin_i, ini_j, fin_j, ini_k, fin_k, i, j, k
@@ -804,7 +815,7 @@ contains
              dontwritevtk=.true.
          endif
          if (stop_only) then
-             open(newunit=thefilenoflu,FILE = 'stop_only',READONLY)
+             open(newunit=thefilenoflu,FILE = 'stop_only',action="read")
              read(thefilenoflu,*) quien_es
              if (trim(adjustl(quien_es))==trim(adjustl(nentradaroot))) then
                  pararNOflushing=.true.
@@ -830,7 +841,7 @@ contains
              dontwritevtk=.true.
          endif
          if (stopflushing_only) then
-             open(newunit=thefilenoflu,FILE = 'stopflushing_only',READONLY)
+             open(newunit=thefilenoflu,FILE = 'stopflushing_only',action="read")
              read(thefilenoflu,*) quien_es
              if (trim(adjustl(quien_es))==trim(adjustl(nentradaroot))) then
                  pararflushing=.true.
@@ -856,7 +867,7 @@ contains
              dontwritevtk=.true.
          endif
          if (flush_only) then
-             open(newunit=thefilenoflu,FILE = 'flush_only',READONLY)
+             open(newunit=thefilenoflu,FILE = 'flush_only',action="read")
              read(thefilenoflu,*) quien_es
              if (trim(adjustl(quien_es))==trim(adjustl(nentradaroot))) then
                  mustflushFIELDS=.true.
@@ -882,7 +893,7 @@ contains
              dontwritevtk=.true.
          endif
          if (flushdata_only) then
-             open(newunit=thefilenoflu,FILE = 'flushdata_only',READONLY)
+             open(newunit=thefilenoflu,FILE = 'flushdata_only',action="read")
              read(thefilenoflu,*) quien_es
              if (trim(adjustl(quien_es))==trim(adjustl(nentradaroot))) then
                  mustflushdata=.true.
@@ -1163,7 +1174,8 @@ contains
             dimxsnap=int((fin_ibox-ini_ibox)/snapstep) + 1
             dimysnap=int((fin_jbox-ini_jbox)/snapstep) + 1
             dimzsnap=int((fin_kbox-ini_kbox)/snapstep) + 1
-            if (.not.allocated(snap)) allocate (snap(ini_ibox:ini_ibox+dimxsnap,ini_jbox:ini_jbox+dimysnap,ini_kbox:ini_kbox+dimzsnap,1))
+            if (.not.allocated(snap)) allocate (snap(ini_ibox:ini_ibox+dimxsnap, &
+                                                     ini_jbox:ini_jbox+dimysnap,ini_kbox:ini_kbox+dimzsnap,1))
             snap=0.0_RKIND
             !
             !!!!             k = ini_kbox - snapStep
@@ -1181,14 +1193,16 @@ contains
             !!!!                        do j1=0,snapstep-1
             !!!!                        do i1=0,snapstep-1
             !!!!                        if ((i+i1 <= fin_ibox).and.(j+j1 <= fin_jbox).and.(k+k1 <= fin_kbox)) then
-            !!!!                            valor = valor+sqrt(Ex(i+i1, j+j1, k+k1) * Ex( i+i1, j+j1, k+k1) + Ey( i+i1, j+j1, k+k1) * Ey(i+i1, j+j1, k+k1)+ &
+            !!!!                            valor = valor+sqrt(Ex(i+i1, j+j1, k+k1) * Ex( i+i1, j+j1, k+k1) + &
+            !!!!                                               Ey( i+i1, j+j1, k+k1) * Ey(i+i1, j+j1, k+k1)+ &
             !!!!                                            Ez(i+i1, j+j1, k+k1) * Ez( i+i1, j+j1, k+k1))
             !!!!                            veces=veces+1
             !!!!                        endif
             !!!!                        end do
             !!!!                        end do
             !!!!                        end do
-            !!!!                        snap(ini_ibox+int((i-ini_ibox)/snapstep),ini_jbox+int((j-ini_jbox)/snapstep),ini_kbox+int((k-ini_kbox)/snapstep),1) = valor/veces
+            !!!!                        snap(ini_ibox+int((i-ini_ibox)/snapstep),ini_jbox+int((j-ini_jbox)/snapstep), &
+            !!!!                            ini_kbox+int((k-ini_kbox)/snapstep),1) = valor/veces
             !!!!                    enddo
             !!!!                enddo
             !!!!             enddo
@@ -1202,14 +1216,16 @@ contains
                         do j1=0,snapstep-1
                            do i1=0,snapstep-1
                               if ((i+i1 <= fin_ibox).and.(j+j1 <= fin_jbox).and.(k+k1 <= fin_kbox)) then
-                                 valor = valor+sqrt(Ex(i+i1, j+j1, k+k1) * Ex( i+i1, j+j1, k+k1) + Ey( i+i1, j+j1, k+k1) * Ey(i+i1, j+j1, k+k1)+ &
+                                 valor = valor+sqrt(Ex(i+i1, j+j1, k+k1) * Ex( i+i1, j+j1, k+k1) + &
+                                                    Ey( i+i1, j+j1, k+k1) * Ey(i+i1, j+j1, k+k1)+ &
                                  Ez(i+i1, j+j1, k+k1) * Ez( i+i1, j+j1, k+k1))
                                  veces=veces+1
                               endif
                            end do
                         end do
                      end do
-                     snap(ini_ibox+int((i-ini_ibox)/snapstep),ini_jbox+int((j-ini_jbox)/snapstep),ini_kbox+int((k-ini_kbox)/snapstep),1) = valor/veces
+                     snap(ini_ibox+int((i-ini_ibox)/snapstep),ini_jbox+int((j-ini_jbox)/snapstep), &
+                          ini_kbox+int((k-ini_kbox)/snapstep),1) = valor/veces
                   enddo
                enddo
             enddo
@@ -1285,7 +1301,8 @@ contains
             call print11(layoutnumber,dubuf)
             !
             if (permitscaling) then
-                write(dubuf,'(a,e19.9e3,a,e19.9e3,a,e19.9e3)') 'Time= ',sgg%tiempo(n),', dt0 (original)= ',dt0,', dt(pscaled)= ',sgg%dt
+                write(dubuf,'(a,e19.9e3,a,e19.9e3,a,e19.9e3)') 'Time= ',sgg%tiempo(n),', dt0 (original)= ',dt0, &
+                                                               ', dt(pscaled)= ',sgg%dt
             else
                 write(dubuf,'(a,e19.9e3,a,e19.9e3,a,e19.9e3)') 'Time= ',sgg%tiempo(n),', dt0 = ',sgg%dt
             endif
@@ -1553,7 +1570,7 @@ contains
       integer(kind=MPI_OFFSET_KIND) disp
       integer (kind=4) :: ierr
 #endif
-      logical verbosete,ignoreerrors1
+      logical verbosete,ignoreerrors1       , itsopen2
       integer :: my_iostat
       character (len=1024) :: ficherito
       verbose=verbosete
@@ -1563,7 +1580,10 @@ contains
       write(whoami,'(a,i5,a,i5,a)') '(',layoutnumber+1,'/',size,') '
       write(whoamishort,'(i5)') layoutnumber+1
 
-      IF (layoutnumber == 0) THEN
+      IF (layoutnumber == 0) THEN          
+
+      !!!inquire(unit=17, opened=itsopen2)
+      !!!if (itsopen2) print *,'----------->17 open!!!'
         ficherito=trim(adjustl(nEntradaRoot))//trim(adjustl(whoamishort))//'_tmpWarnings.txt'
         call openclosedelete(ficherito)
       endif
@@ -1583,6 +1603,9 @@ contains
       !!!    open (17,file=trim(adjustl(nEntradaRoot))//'_tmpWarnings.txt',form='formatted')
       !!!ENDIF
       !!!#else
+      
+      inquire(unit=17, opened=itsopen2)
+      !!!if (itsopen2) print *,'----------->17 open!!!'
       ficherito=trim(adjustl(nEntradaRoot))//trim(adjustl(whoamishort))//'_tmpWarnings.txt'
       call opensolo(17,ficherito)
       !!!#endif
@@ -1619,7 +1642,8 @@ contains
       call trimnullchar(buff2)
       !!!#ifdef CompileWithMPI
       !!!    CONTADORDEMENSAJES = CONTADORDEMENSAJES +1
-      !!!    IF (CONTADORDEMENSAJES > maxmessages) call StopOnError(0,0,'ERROR: Relaunch with -maxmessages ',CONTADORDEMENSAJES*10 )
+      !!!    IF (CONTADORDEMENSAJES > maxmessages) call StopOnError(0,0,'ERROR: Relaunch with -maxmessages ', &
+      !!!               CONTADORDEMENSAJES*10 )
       !!!    call MPI_FILE_WRITE(thefile, buff2  , BUFSIZE, MPI_CHARACTER, MPI_STATUS_IGNORE, ierr)
       !!!#else
       write (17,'(a)',err=154) trim(adjustl(buff3))
@@ -1640,7 +1664,7 @@ contains
       integer (kind=4) :: ierr,posic,i
       character (len=BUFSIZE) :: buf2
       character (len=1024)     ::  dubuf
-      logical :: fatalerror_final , lexis,stoch_undivided,simu_devia
+      logical :: fatalerror_final , lexis,stoch_undivided,simu_devia        , itsopen2
       character( len = 14)  ::  whoamishort,whoami,chinstant
       integer :: my_iostat,file87
       character (len=1024) :: ficherito
@@ -1677,7 +1701,9 @@ contains
                endif
             endif 
             inquire(file=trim(adjustl(WarningFile))//trim(adjustl(whoamishort))//'_tmpWarnings.txt',exist=lexis)
-            if (lexis) then
+            if (lexis) then         
+      !!!inquire(unit=87, opened=itsopen2)
+      !!!if (itsopen2) print *,'----------->87 open!!!'
                ficherito=trim(adjustl(WarningFile))//trim(adjustl(whoamishort))//'_tmpWarnings.txt'
                call opensolo(87,ficherito)
                !
@@ -1694,8 +1720,10 @@ contains
                call closesolo(87)
 #ifndef CorregirBugBorrado
 !!               my_iostat=0
-!!3467           if(my_iostat /= 0) print '(i5,a1,i4,2x,a)',3467,'.',layoutnumber,trim(adjustl(WarningFile))//trim(adjustl(whoamishort))//'_tmpWarnings.txt'
-!!               open (newunit=file87,file=trim(adjustl(WarningFile))//trim(adjustl(whoamishort))//'_tmpWarnings.txt',err=3467,iostat=my_iostat,status='new',action='write')
+!!3467           if(my_iostat /= 0) print '(i5,a1,i4,2x,a)',3467,'.',layoutnumber,&
+!!!                         trim(adjustl(WarningFile))//trim(adjustl(whoamishort))//'_tmpWarnings.txt'
+!!               open (newunit=file87,file=trim(adjustl(WarningFile))//trim(adjustl(whoamishort))//'_tmpWarnings.txt',&
+!!                           err=3467,iostat=my_iostat,status='new',action='write')
                ficherito=trim(adjustl(WarningFile))//trim(adjustl(whoamishort))//'_tmpWarnings.txt'
                call openclosedelete(ficherito)
 #endif
@@ -1780,7 +1808,9 @@ contains
          
       endif
       goto 112
-111   continue !fort.11 a veces lo intentan escribir 2 a la vez de los que dan fallos en writing restarting fields. asi que ignora y continua
+111   continue 
+      !fort.11 a veces lo intentan escribir 2 a la vez de los que dan fallos en writing restarting fields. 
+      !asi que ignora y continua
 112   return
 
    end subroutine
@@ -2253,7 +2283,8 @@ contains
         goto 666
     endif
         if (borratedeunaputavez2) then
-        print *,whoamishort,'--> no hay cojones con inquire file fichero ',trim(adjustl(nombrefich))//trim(adjustl(whoamishort))//'_tmp'
+        print *,whoamishort,'--> no hay cojones con inquire file fichero ',& 
+                      trim(adjustl(nombrefich))//trim(adjustl(whoamishort))//'_tmp'
         call sleep(2)
         goto 666
     endif

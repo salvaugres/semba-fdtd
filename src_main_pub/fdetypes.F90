@@ -331,6 +331,7 @@ module  FDETYPES
       type (fichevol_t_wires)  ::  Fichero
       REAL (KIND=RKIND_wires)  ::  Resistance
       REAL (KIND=RKIND_wires)   ::  Multiplier
+      logical :: soft
       integer (kind=4)  ::  i,j,k
    end type
 
@@ -366,7 +367,8 @@ module  FDETYPES
       type (source), pointer, dimension( : )  ::  Vsource
       type (source), pointer, dimension( : )  ::  Isource
       logical  ::  VsourceExists ,IsourceExists
-      logical  ::  HasParallel_LeftEnd ,HasParallel_RightEnd ,HasSeries_LeftEnd ,HasSeries_RightEnd,HasAbsorbing_LeftEnd,HasAbsorbing_RightEnd
+      logical  ::  HasParallel_LeftEnd ,HasParallel_RightEnd ,&
+                   HasSeries_LeftEnd ,HasSeries_RightEnd,HasAbsorbing_LeftEnd,HasAbsorbing_RightEnd
       REAL (KIND=RKIND_wires)   ::  Parallel_R_RightEnd,Parallel_R_LeftEnd
       REAL (KIND=RKIND_wires)   ::  Series_R_RightEnd,Series_R_LeftEnd
       REAL (KIND=RKIND_wires)   ::  Parallel_L_RightEnd,Parallel_L_LeftEnd

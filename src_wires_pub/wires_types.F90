@@ -38,7 +38,8 @@ module wiresHolland_constants
       type (CurrentSegments), pointer         ::  CurrentPlus_7,CurrentMinus_7  !neighbours in the plus and Minus direction
       type (CurrentSegments), pointer         ::  CurrentPlus_8,CurrentMinus_8  !neighbours in the plus and Minus direction
       type (CurrentSegments), pointer         ::  CurrentPlus_9,CurrentMinus_9  !neighbours in the plus and Minus direction
-      logical                                 ::  IsMur,IsPeriodic,IsAttachedtoVoltage,IsPEC,HasIsource,Exists,Is_LeftEnd,Is_RightEnd,IsLossy
+      logical                                 ::  IsMur,IsPeriodic,IsAttachedtoVoltage,IsPEC,HasIsource,Exists,&
+                                                  Is_LeftEnd,Is_RightEnd,IsLossy
       logical                                 ::  IsBackDownLeftMur,IsFrontUpRightMur
       logical                                         ::  proc !dama
       logical                                 ::  IsHeterogeneousJunction,IsInSingleRLCsegment   
@@ -72,7 +73,8 @@ module wiresHolland_constants
       REAL (KIND=RKIND_wires)                    ::  givenautoin, resist
       REAL (KIND=RKIND_wires)                    ::  givenautoin_devia, resist_devia
       type (ChargeNodes), pointer          ::  ChargePlus ,ChargeMinus !neighbours in the plus and Minus direction
-      logical                              ::  IsPMC,HasVsource,IsShielded,HasParallel_RightEnd,HasParallel_LeftEnd,HasSeries_RightEnd,HasSeries_LeftEnd,HasAbsorbing_RightEnd,HasAbsorbing_LeftEnd
+      logical                              ::  IsPMC,HasVsource,IsShielded,HasParallel_RightEnd,HasParallel_LeftEnd, &
+                                               HasSeries_RightEnd,HasSeries_LeftEnd,HasAbsorbing_RightEnd,HasAbsorbing_LeftEnd
       logical                              ::  Is_LeftEnd, Is_RightEnd,IsEnd_norLeft_norRight,proc,IsConformal
       REAL (KIND=RKIND_wires)                           ::  cte1,cte2,cte3,cte5,FractionPlus,FractionMinus
       REAL (KIND=RKIND_wires)                           ::  Current,qplus_qminus
@@ -80,6 +82,7 @@ module wiresHolland_constants
       !at the desired time step in observation.f90
       REAL (KIND=RKIND) , pointer                 ::  field_wire2main
       REAL (KIND=RKIND) , pointer                 ::  field_main2wire
+     
 !      REAL (KIND=RKIND_wires)                           ::  field_wire2main_past  !no sirve para nada 171216
       integer (kind=4)   ::  i,j,k,indexmed,ILIBRE,JLIBRE,KLIBRE
       !dama
@@ -89,7 +92,7 @@ module wiresHolland_constants
       real    (kind=RKIND_wires)                            ::  L_devia, C_devia, R_devia
       real    (kind=RKIND_wires)                            ::  cI
       real    (kind=RKIND_wires)                            ::  bI
-      real    (kind=RKIND_wires)                            ::  Lstab
+      real    (kind=RKIND_wires)                            ::  Lintrinsic
       !fin dama
       integer (kind=4)   ::  tipofield !iEx,iEy o iEz
       logical :: orientadoalreves
