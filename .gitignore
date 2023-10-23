@@ -36,3 +36,5 @@
 build
 CMakeSettings.json
 /CppProperties.json
+
+out/

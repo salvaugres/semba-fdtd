@@ -1,3 +1,0 @@
-[submodule "src_opensemba_parser/external/opensemba-core"]
-	path = src_opensemba_parser/external/opensemba-core
-	url = https://github.com/OpenSEMBA/core

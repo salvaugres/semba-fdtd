@@ -28,8 +28,14 @@ endfunction()
 
 message(STATUS ${CMAKE_Fortran_COMPILER_ID})
 
+option(CompileWithJSON "Compile JSON format parser" OFF)
+if (CompileWithJSON)
+	add_subdirectory(src_json_parser)
+endif()
+
 message(STATUS "Adding source files...")
-add_sources(. SRCS)
+add_sources(src_main_pub SRCS)
+add_sources(src_wires_pub SRCS)
 message(STATUS ${SRCS})
 
 add_executable(semba-fdtd ${SRCS})
