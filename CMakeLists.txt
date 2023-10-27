@@ -4,7 +4,6 @@ cmake_minimum_required(VERSION 3.0)
 ENABLE_LANGUAGE(Fortran)
 project(semba-fdtd Fortran)
 
-
 function(add_sources dir srcs)
     set(curdir ${CMAKE_CURRENT_LIST_DIR}/${dir})
     file(GLOB children RELATIVE ${curdir} ${curdir}/*)
@@ -30,13 +29,13 @@ message(STATUS ${CMAKE_Fortran_COMPILER_ID})
 
 option(CompileWithJSON "Compile JSON format parser" OFF)
 if (CompileWithJSON)
+	message(STATUS "Compiling JSON format parser")
 	add_subdirectory(src_json_parser)
 endif()
 
 message(STATUS "Adding source files...")
 add_sources(src_main_pub SRCS)
 add_sources(src_wires_pub SRCS)
-message(STATUS ${SRCS})
 
 add_executable(semba-fdtd ${SRCS})
 

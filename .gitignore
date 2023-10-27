@@ -38,3 +38,5 @@ CMakeSettings.json
 /CppProperties.json
 
 out/
+Testing/
+/SEMBA_FDTD_temp.log
