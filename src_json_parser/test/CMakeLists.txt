@@ -29,6 +29,7 @@ function (add_fortran_test_executable TARGET)
     create_test_sourcelist (_ main.c ${TEST_FILES_MANGLED})
 
     add_library (${TARGET}_fortran ${TEST_FILES})
+    target_link_libraries (${TARGET}_fortran smbjson)
     add_executable (${TARGET} main.c)
     target_link_libraries (${TARGET} ${TARGET}_fortran)
 
@@ -47,15 +48,19 @@ function (add_fortran_test_executable TARGET)
 endfunction ()
 
 # ctest is sensible to extension. ONLY WORKS with ".f90" AND NOT with ".F90"
-add_fortran_test_executable (fortran_ctest
-    "test_fails_1.f90"
-    "test_succeeds_1.f90"
-    "test_jsonfortran.f90"
+add_fortran_test_executable (smbjson_tests
+    "test_read_planewave.f90"
 )
 
-target_sources(fortran_ctest_fortran PRIVATE "utils.F90")
+target_sources(smbjson_tests_fortran PRIVATE "utils.F90")
 
-include_directories(fortran_ctest PRIVATE ${jsonfortran_INCLUDE_DIRS})
-target_link_directories(fortran_ctest PRIVATE ${jsonfortran_LIBRARY_DIRS})
-target_link_libraries(fortran_ctest jsonfortran)
+get_target_property(SMBJSON_INCLUDES smbjson INCLUDE_DIRECTORIES)
+
+include_directories    (smbjson_tests PRIVATE 
+    ${jsonfortran_INCLUDE_DIRS} 
+    ${SMBJSON_INCLUDES}
+)
+
+target_link_directories(smbjson_tests PRIVATE ${jsonfortran_LIBRARY_DIRS})
+target_link_libraries  (smbjson_tests smbjson jsonfortran semba-types)
 
