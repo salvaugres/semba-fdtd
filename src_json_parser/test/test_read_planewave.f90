@@ -2,6 +2,7 @@ integer function test_read_planewave() result(error_cnt)
     
     use smbjson
     use NFDETypes
+    use NFDETypes_extension
     
     use, intrinsic :: iso_fortran_env , only: error_unit, output_unit
     
@@ -19,20 +20,8 @@ integer function test_read_planewave() result(error_cnt)
     
     problem = readProblemDescription(filename)
     
-    if (.not. associated(problem%despl)) then
-        error_cnt = 1
-        return
-    end if
-    
-    areSame = .true.
-    areSame = areSame .and. (expectedGrid%nX == problem%despl%nX)
-    areSame = areSame .and. (expectedGrid%nY == problem%despl%nY)
-    areSame = areSame .and. (expectedGrid%nZ == problem%despl%nZ)
-    
-    if (.not. areSame) then
-        error_cnt = 1
-        return
-    end if
+    if (.not. associated(problem%despl)) stop 'Despl not initialized.'  
+    if (.not. expectedGrid == problem%despl) stop 'Expected and read grids do not match'
         
 end function
     

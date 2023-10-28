@@ -69,3 +69,24 @@ contains
 
     end subroutine print_json_variable
 end module
+    
+module NFDETypes_extension
+    use NFDETypes
+    
+    implicit none 
+    
+    public
+    
+    interface operator(==)
+        module procedure desplazamiento_equal
+    end interface
+    
+contains
+    logical function desplazamiento_equal(a, b) result (res)
+        type(Desplazamiento), intent(in) :: a, b
+        
+        res = .false.
+        
+        return 
+    end function
+end module

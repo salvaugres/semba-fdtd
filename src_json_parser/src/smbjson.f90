@@ -12,20 +12,20 @@ module smbjson
     
 contains
     function readGrid(p) result (res)
-        type(Desplazamiento), intent(out) :: res
+        type(Desplazamiento) :: res
         
         type(json_value),pointer,intent(in) :: p
         type(json_value), pointer :: q
         
         
-        call json%get(p,'grid',q)
+        !call json%get(p,'grid',q)
         
         return
     end function
     
-    function readProblemDescription(filename) result (problemDescription)
+    function readProblemDescription(filename) result (res)
         character (len=*), intent(in) :: filename
-        type(Parseador) :: pD !! Problem Description
+        type(Parseador) :: res !! Problem Description
         
         type(json_file) :: jsonFile       !! the JSON structure read from the file
         type(json_core) :: json
@@ -35,29 +35,29 @@ contains
             call jsonFile%print_error_message(error_unit)
         end if
         
-        allocate(pD%general) 
-        allocate(pD%matriz)  
-        allocate(pD%despl)   
-        allocate(pD%front) 
-        allocate(pD%Mats)  
-        allocate(pD%pecRegs) 
-        allocate(pD%pmcRegs) 
-        allocate(pD%DielRegs) 
-        allocate(pD%LossyThinSurfs) 
-        allocate(pD%frqDepMats) 
-        allocate(pD%aniMats)
-        allocate(pD%nodSrc) 
-        allocate(pD%Sonda) 
-        allocate(pD%oldSONDA)
-        allocate(pD%BloquePrb)
-        allocate(pD%VolPrb) 
-        allocate(pD%tWires) 
-        allocate(pD%sWires) 
-        allocate(pD%tSlots) 
-        allocate(pD%boxSrc) 
-        allocate(pD%plnSrc) 
+        allocate(res%general) 
+        allocate(res%matriz)  
+        allocate(res%despl)   
+        allocate(res%front) 
+        allocate(res%Mats)  
+        allocate(res%pecRegs) 
+        allocate(res%pmcRegs) 
+        allocate(res%DielRegs) 
+        allocate(res%LossyThinSurfs) 
+        allocate(res%frqDepMats) 
+        allocate(res%aniMats)
+        allocate(res%nodSrc) 
+        allocate(res%Sonda) 
+        allocate(res%oldSONDA)
+        allocate(res%BloquePrb)
+        allocate(res%VolPrb) 
+        allocate(res%tWires) 
+        allocate(res%sWires) 
+        allocate(res%tSlots) 
+        allocate(res%boxSrc) 
+        allocate(res%plnSrc) 
         
-        pD%despl = readGrid(json)
+        !pD%despl = readGrid(json)
         
         return
     end function
