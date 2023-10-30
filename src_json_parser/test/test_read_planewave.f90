@@ -1,3 +1,15 @@
+subroutine buildExpectedGrid(res)
+    use NFDETypes
+
+    type(Desplazamiento), intent(out) :: res
+
+    res%nX = 10
+    res%nY = 10
+    res%nZ = 10
+
+    return
+end subroutine
+
 integer function test_read_planewave() result(error_cnt)
     
     use smbjson
@@ -14,9 +26,7 @@ integer function test_read_planewave() result(error_cnt)
     logical :: areSame
     error_cnt = 0
     
-    expectedGrid%nX = 10
-    expectedGrid%nY = 10
-    expectedGrid%nZ = 10
+    call buildExpectedGrid(expectedGrid)
     
     problem = readProblemDescription(filename)
     
@@ -24,4 +34,3 @@ integer function test_read_planewave() result(error_cnt)
     if (.not. expectedGrid == problem%despl) stop 'Expected and read grids do not match'
         
 end function
-    

@@ -1,7 +1,8 @@
 module smbjson
     
     use nfdetypes
-    use json_module, wp => json_RK, IK => json_IK, LK => json_LK
+    use json_module
+    use json_kinds
     use, intrinsic :: iso_fortran_env , only: error_unit, output_unit
     
     implicit none
@@ -11,15 +12,43 @@ module smbjson
     public :: readProblemDescription
     
 contains
-    function readGrid(p) result (res)
+    subroutine initializeProblemDescription(pD)
+        type(Parseador), intent(inout) :: pD
+
+        allocate(pD%general) 
+        allocate(pD%matriz)  
+        allocate(pD%despl)   
+        allocate(pD%front) 
+        allocate(pD%Mats)  
+        allocate(pD%pecRegs) 
+        allocate(pD%pmcRegs) 
+        allocate(pD%DielRegs) 
+        allocate(pD%LossyThinSurfs) 
+        allocate(pD%frqDepMats) 
+        allocate(pD%aniMats)
+        allocate(pD%nodSrc) 
+        allocate(pD%Sonda) 
+        allocate(pD%oldSONDA)
+        allocate(pD%BloquePrb)
+        allocate(pD%VolPrb) 
+        allocate(pD%tWires) 
+        allocate(pD%sWires) 
+        allocate(pD%tSlots) 
+        allocate(pD%boxSrc) 
+        allocate(pD%plnSrc) 
+
+    end subroutine
+
+    function readGrid(json) result (res)
         type(Desplazamiento) :: res
+        type(json_file) :: json
         
-        type(json_value),pointer,intent(in) :: p
-        type(json_value), pointer :: q
+        call json%get('grid.numberOfCells(1)',res%nX)
+        call json%get('grid.numberOfCells(2)',res%nY)
+        call json%get('grid.numberOfCells(3)',res%nZ)
         
-        
-        !call json%get(p,'grid',q)
-        
+
+
         return
     end function
     
@@ -27,38 +56,24 @@ contains
         character (len=*), intent(in) :: filename
         type(Parseador) :: res !! Problem Description
         
-        type(json_file) :: jsonFile       !! the JSON structure read from the file
-        type(json_core) :: json
+        type(json_file) :: json       !! the JSON structure read from the file
         
-        call jsonFile%initialize()
-        if (jsonFile%failed()) then
-            call jsonFile%print_error_message(error_unit)
+        call json%initialize()
+        if (json%failed()) then
+            call json%print_error_message(error_unit)
+            stop
         end if
         
-        allocate(res%general) 
-        allocate(res%matriz)  
-        allocate(res%despl)   
-        allocate(res%front) 
-        allocate(res%Mats)  
-        allocate(res%pecRegs) 
-        allocate(res%pmcRegs) 
-        allocate(res%DielRegs) 
-        allocate(res%LossyThinSurfs) 
-        allocate(res%frqDepMats) 
-        allocate(res%aniMats)
-        allocate(res%nodSrc) 
-        allocate(res%Sonda) 
-        allocate(res%oldSONDA)
-        allocate(res%BloquePrb)
-        allocate(res%VolPrb) 
-        allocate(res%tWires) 
-        allocate(res%sWires) 
-        allocate(res%tSlots) 
-        allocate(res%boxSrc) 
-        allocate(res%plnSrc) 
+        call json%load(filename = filename)
+        if (json%failed()) then
+            call json%print_error_message(error_unit)
+            stop
+        end if
         
-        !pD%despl = readGrid(json)
+        call initializeProblemDescription(res)
         
+        res%despl = readGrid(json)
+
         return
     end function
 end module
