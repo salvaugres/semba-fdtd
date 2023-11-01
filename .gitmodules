@@ -1,0 +1,3 @@
+[submodule "src_json_parser/json-fortran"]
+	path = src_json_parser/external/json-fortran
+	url = git@github.com:lmdiazangulo/json-fortran.git

@@ -15,7 +15,7 @@ integer function test_read_planewave() result(error_cnt)
     use smbjson
     use NFDETypes
     use NFDETypes_extension
-    
+
     use, intrinsic :: iso_fortran_env , only: error_unit, output_unit
     
     implicit none
@@ -25,12 +25,11 @@ integer function test_read_planewave() result(error_cnt)
     type(Desplazamiento) :: expectedGrid
     logical :: areSame
     error_cnt = 0
-    
-    call buildExpectedGrid(expectedGrid)
-    
+        
     problem = readProblemDescription(filename)
     
     if (.not. associated(problem%despl)) stop 'Despl not initialized.'  
+    call buildExpectedGrid(expectedGrid)
     if (.not. expectedGrid == problem%despl) stop 'Expected and read grids do not match'
         
 end function

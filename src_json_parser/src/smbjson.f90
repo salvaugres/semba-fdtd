@@ -70,8 +70,8 @@ contains
             stop
         end if
         
-        call initializeProblemDescription(res)
-        
+        ! call initializeProblemDescription(res)
+        allocate(res%despl)
         res%despl = readGrid(json)
 
         return

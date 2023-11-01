@@ -52,8 +52,6 @@ add_fortran_test_executable (smbjson_tests
     "test_read_planewave.f90"
 )
 
-target_sources(smbjson_tests_fortran PRIVATE "utils.F90")
-
 get_target_property(SMBJSON_INCLUDES smbjson INCLUDE_DIRECTORIES)
 
 include_directories    (smbjson_tests PRIVATE 
@@ -62,5 +60,5 @@ include_directories    (smbjson_tests PRIVATE
 )
 
 target_link_directories(smbjson_tests PRIVATE ${jsonfortran_LIBRARY_DIRS})
-target_link_libraries  (smbjson_tests smbjson jsonfortran semba-types)
+target_link_libraries  (smbjson_tests smbjson)
 
