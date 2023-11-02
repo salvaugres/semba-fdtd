@@ -38,7 +38,10 @@ add_library(semba-types
 	"src_main_pub/errorreport.F90"
 )
 
+option(CompileWithHDF "Use HDF" ON)
+option(CompileWithMPI "Use MPI" ON)
 option(CompileWithJSON "Compile JSON format parser" OFF)
+
 if (CompileWithJSON)
 	message(STATUS "Compiling JSON format parser")
 	add_subdirectory(src_json_parser)
@@ -72,7 +75,6 @@ else()
 	endif()
 endif()
 
-option (CompileWithHDF "Use HDF" ON)
 if (CompileWithHDF)
 	message(STATUS "HDF libraries needed")
 	add_definitions(-DCompileWithHDF)
@@ -84,7 +86,6 @@ else()
 	message(STATUS "HDF libraries NOT needed.")
 endif()
 
-option(CompileWithMPI "Use MPI" ON)
 if (CompileWithMPI)
 	message(STATUS "MPI libraries neeeded")
 	add_definitions(-DCompileWithMPI)

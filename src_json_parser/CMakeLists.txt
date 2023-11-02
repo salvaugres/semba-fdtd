@@ -14,8 +14,11 @@ add_library(smbjson
 	"src/nfdetypes_extension.f90" 
 )
 
+message(STATUS "json-fortran include dirs: " ${jsonfortran_INCLUDE_DIRS})
+message(STATUS "json-fortran lib dirs: " ${jsonfortran_LIBRARY_DIRS})
+
 include_directories    (smbjson PRIVATE ${jsonfortran_INCLUDE_DIRS})
 target_link_directories(smbjson PRIVATE ${jsonfortran_LIBRARY_DIRS})
-target_link_libraries  (smbjson jsonfortran semba-types)
+target_link_libraries  (smbjson PRIVATE jsonfortran semba-types)
 
 add_subdirectory(test)

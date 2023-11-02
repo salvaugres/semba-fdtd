@@ -40,3 +40,6 @@ CMakeSettings.json
 out/
 Testing/
 /SEMBA_FDTD_temp.log
+.vscode/launch.json
+.vscode/settings.json
+.vscode/tasks.json
