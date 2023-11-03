@@ -6,10 +6,15 @@ module NFDETypes_extension
     public
     
     interface operator(==)
-        module procedure desplazamiento_eq
         module procedure NFDEGeneral_eq
+        
+        module procedure desplazamiento_eq
+        
         module procedure frontera_eq
         module procedure fronteraPML_eq
+        
+        module procedure planewaves_eq
+        module procedure planewave_eq
     end interface
 
 contains
@@ -48,6 +53,40 @@ contains
         res = .true.
     end function
 
+    logical function planewave_eq(a,b) result(res)
+        type(PlaneWave), intent(in) :: a, b
+        res = .false.
+        if (a%nombre_fichero /= b%nombre_fichero) return
+        if (a%atributo /= b%atributo) return
+        if (any(a%coor1 /= b%coor1)) return
+        if (any(a%coor2 /= b%coor2)) return
+        if (a%theta /= b%theta) return
+        if (a%phi /= b%phi) return
+        if (a%alpha /= b%alpha) return
+        if (a%beta /= b%beta) return
+        if (a%isRC .neqv. b%isRC) return
+        if (a%INCERTMAX /= b%INCERTMAX) return
+        if (a%numModes /= b%numModes) return
+        res = .true.
+    end function
+
+    logical function planewaves_eq(a,b) result(res)
+        type(Planewaves), intent(in) :: a, b
+        integer :: i
+        res = .false.
+        if (.not. associated(a%collection)) return
+        if (.not. associated(b%collection)) return
+
+        if (size(a%collection) /= size(b%collection)) return
+        do i = 1, size(a%collection) 
+            if (.not. a%collection(i) == b%collection(i)) return
+        end do
+
+        if (a%nc /= b%nc) return
+        if (a%nC_max /= b%nC_max) return
+        res = .true.
+    end function
+
     logical function FronteraPML_eq(a, b) result (res)
         type(FronteraPML), intent(in) :: a, b
         res = .false.        
@@ -61,7 +100,7 @@ contains
         type(Frontera), intent(in) :: a, b
         integer :: i
         res = .false.        
-        if (any(a%tipoFrontera   /= b%tipoFrontera)) return
+        if (any(a%tipoFrontera /= b%tipoFrontera)) return
         do i=1, size(a%propiedadesPML)
             if (.not. (a%propiedadesPML(i) == b%propiedadesPML(i))) return
         end do

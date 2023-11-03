@@ -23,10 +23,7 @@
         {
             "type": "planewave",
             "magnitudeFile": "gauss_100MHz.exc",
-            "voxelRegion": [
-                [2, 2, 2],
-                [9, 9, 9]
-            ],
+            "voxelRegion": [ [2, 2, 2], [9, 9, 9] ],
             "direction": {
                 "theta": 0.0,
                 "phi": 0.0

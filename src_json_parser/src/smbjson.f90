@@ -11,14 +11,20 @@ module smbjson
    public :: readProblemDescription
 
    ! LABELS
+   ! -- shared labels
+   character (len=*), parameter :: J_MAGNITUDE_FILE  = "magnitudeFile"
+   character (len=*), parameter :: J_VOXEL_REGION    = "voxelRegion"
+   
    ! type(NFDEGeneral)
    character (len=*), parameter :: J_GENERAL         = "general"
    character (len=*), parameter :: J_TIME_STEP       = "timeStep"
    character (len=*), parameter :: J_NUMBER_OF_STEPS = "numberOfSteps"
+   
    ! type(Desplazamiento)
    character (len=*), parameter :: J_GRID            = "grid"
    character (len=*), parameter :: J_NUMBER_OF_CELLS = "numberOfCells"
    character (len=*), parameter :: J_STEPS           = "steps"
+   
    ! type(Frontera)
    character (len=*), parameter :: J_BOUNDARY        = "boundary"
    character (len=*), parameter :: J_ALL             = "all"
@@ -27,6 +33,16 @@ module smbjson
    character (len=*), parameter :: J_PERIODIC        = "periodic"
    character (len=*), parameter :: J_MUR             = "mur"
    character (len=*), parameter :: J_PML             = "pml"
+   
+   ! -- source types
+   character (len=*), parameter :: J_SOURCES         = "sources"
+   character (len=*), parameter :: J_SOURCE_TYPE     = "type"
+   ! type(Planewave)
+   character (len=*), parameter :: J_DIRECTION_THETA = "theta"
+   character (len=*), parameter :: J_DIRECTION_PHI   = "phi"
+   character (len=*), parameter :: J_POLARIZATION_ALPHA = "alpha"
+   character (len=*), parameter :: J_POLARIZATION_BETA  = "beta"
+   
 
 contains
 
@@ -78,19 +94,36 @@ contains
          character(kind=json_CK, len=:), allocatable :: str
          integer(kind=4) :: type
          select case (str)
-         case (J_PEC)
+          case (J_PEC)
             type = F_PEC
-        case (J_PMC)
+          case (J_PMC)
             type = F_PMC
-        case (J_PERIODIC)
+          case (J_PERIODIC)
             type = F_PER
-        case (J_MUR)
+          case (J_MUR)
             type = F_MUR
-        case (J_PML)
+          case (J_PML)
             type = F_PML
          end select
       end function
    end function
+
+
+   function readPlanewaves(json) result (res)
+      type(PlaneWaves) :: res
+      type(json_file) :: json
+      type(json_value), pointer :: sourceEntry
+      integer(IK) :: varType
+      integer(IK) :: nChildren
+      character(kind=json_CK, len=:), allocatable :: str
+      
+      call json%info(J_SOURCES//'(1)', var_type=varType, n_children=nChildren)
+      call json%get(J_SOURCES//'(1)', sourceEntry)
+      call json%get(J_SOURCES//'(1)'//J_SOURCE_TYPE, str)
+      
+      
+   end function
+
 
    function readGeneral(json) result (res)
       type(NFDEGeneral) :: res
@@ -124,5 +157,6 @@ contains
       res%general = readGeneral(json)
       res%despl   = readGrid(json)
       res%front   = readBoundary(json)
+      res%plnSrc  = readPlanewaves(json)
    end function
 end module
