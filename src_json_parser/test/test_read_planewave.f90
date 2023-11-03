@@ -20,6 +20,8 @@ integer function test_read_planewave() result(error_cnt)
         call testFails(error_cnt, 'Expected and read "general" do not match')    
     if (.not. expected%despl == problem%despl) &
         call testFails(error_cnt, 'Expected and read "grid" do not match')
+    if (.not. expected%front == problem%front) &
+        call testFails(error_cnt, 'Expected and read "boundary" do not match')
 end function
 
 subroutine expectedProblemDescription(expected)
@@ -45,7 +47,8 @@ subroutine expectedProblemDescription(expected)
     expected%despl%desY = (/0.1/)
     expected%despl%desZ = (/0.1/)
 
-    ! --
+    ! Expected "front"
+    expected%front%tipoFrontera(:) = F_MUR
 
 end subroutine
 

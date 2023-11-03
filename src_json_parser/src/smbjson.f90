@@ -1,87 +1,128 @@
 module smbjson
-    
-    use NFDETypes
-    use NFDETypes_extension
 
-    use json_module
-    use json_kinds
-    
-    implicit none
-    private
-    public :: readProblemDescription
+   use NFDETypes
+   use NFDETypes_extension
 
-    ! LABELS
-    ! type(NFDEGeneral) 
-    character (len=*), parameter :: GENERAL         = "general"  
-    character (len=*), parameter :: TIME_STEP       = "timeStep"  
-    character (len=*), parameter :: NUMBER_OF_STEPS = "numberOfSteps"  
-    ! type(Desplazamiento) 
-    character (len=*), parameter :: GRID            = "grid"  
-    character (len=*), parameter :: NUMBER_OF_CELLS = "numberOfCells" 
-    character (len=*), parameter :: STEPS           = "steps" 
-    
+   use json_module
+   use json_kinds
+
+   implicit none
+   private
+   public :: readProblemDescription
+
+   ! LABELS
+   ! type(NFDEGeneral)
+   character (len=*), parameter :: J_GENERAL         = "general"
+   character (len=*), parameter :: J_TIME_STEP       = "timeStep"
+   character (len=*), parameter :: J_NUMBER_OF_STEPS = "numberOfSteps"
+   ! type(Desplazamiento)
+   character (len=*), parameter :: J_GRID            = "grid"
+   character (len=*), parameter :: J_NUMBER_OF_CELLS = "numberOfCells"
+   character (len=*), parameter :: J_STEPS           = "steps"
+   ! type(Frontera)
+   character (len=*), parameter :: J_BOUNDARY        = "boundary"
+   character (len=*), parameter :: J_ALL             = "all"
+   character (len=*), parameter :: J_PEC             = "pec"
+   character (len=*), parameter :: J_PMC             = "pmc"
+   character (len=*), parameter :: J_PERIODIC        = "periodic"
+   character (len=*), parameter :: J_MUR             = "mur"
+   character (len=*), parameter :: J_PML             = "pml"
+
 contains
-    
-    subroutine getRealVecAndStore(json, place, dest)
-        type(json_file) :: json
-        character (len=*), intent(in) :: place
-        REAL (KIND=RK), DIMENSION (:), POINTER :: dest
 
-        real(RK),dimension(:),allocatable :: vec
-        logical :: found = .false.
+   subroutine getRealVecAndStore(json, place, dest)
+      type(json_file) :: json
+      character (len=*), intent(in) :: place
+      REAL (KIND=RK), DIMENSION (:), POINTER :: dest
 
-        call json%get(place, vec, found)
-        if (found) then
-            allocate(dest(size(vec)))
-            dest = vec
-        endif
-    end subroutine
+      real(RK),dimension(:),allocatable :: vec
+      logical :: found = .false.
 
-    function readGrid(json) result (res)
-        type(Desplazamiento) :: res
-        type(json_file) :: json
-        
-        call json%get(GRID//'.'//NUMBER_OF_CELLS//'(1)',res%nX)
-        call json%get(GRID//'.'//NUMBER_OF_CELLS//'(2)',res%nY)
-        call json%get(GRID//'.'//NUMBER_OF_CELLS//'(3)',res%nZ)
-        
-        call getRealVecAndStore(json ,GRID//'.'//STEPS//'.x', res%desX)
-        call getRealVecAndStore(json ,GRID//'.'//STEPS//'.y', res%desY)
-        call getRealVecAndStore(json ,GRID//'.'//STEPS//'.z', res%desZ)
+      call json%get(place, vec, found)
+      if (found) then
+         allocate(dest(size(vec)))
+         dest = vec
+      endif
+   end subroutine
 
-        return
-    end function
+   function readGrid(json) result (res)
+      type(Desplazamiento) :: res
+      type(json_file) :: json
 
-    function readGeneral(json) result (res)
-        type(NFDEGeneral) :: res
-        type(json_file) :: json
-        
-        call json%get(GENERAL//'.'//TIME_STEP,       res%dt)
-        call json%get(GENERAL//'.'//NUMBER_OF_STEPS, res%nmax)
-    end function 
+      call json%get(J_GRID//'.'//J_NUMBER_OF_CELLS//'(1)',res%nX)
+      call json%get(J_GRID//'.'//J_NUMBER_OF_CELLS//'(2)',res%nY)
+      call json%get(J_GRID//'.'//J_NUMBER_OF_CELLS//'(3)',res%nZ)
 
-    function readProblemDescription(filename) result (res)
-        use, intrinsic :: iso_fortran_env , only: error_unit
+      call getRealVecAndStore(json ,J_GRID//'.'//J_STEPS//'.x', res%desX)
+      call getRealVecAndStore(json ,J_GRID//'.'//J_STEPS//'.y', res%desY)
+      call getRealVecAndStore(json ,J_GRID//'.'//J_STEPS//'.z', res%desZ)
+   end function
 
-        character (len=*), intent(in) :: filename
-        type(Parseador) :: res !! Problem Description
-        
-        type(json_file) :: json       !! the JSON structure read from the file
-        
-        call json%initialize()
-        if (json%failed()) then
-            call json%print_error_message(error_unit)
-            stop
-        end if
-        
-        call json%load(filename = filename)
-        if (json%failed()) then
-            call json%print_error_message(error_unit)
-            stop
-        end if
-        
-        call initializeProblemDescription(res)
-        res%general = readGeneral(json)
-        res%despl   = readGrid(json)
-    end function
+   function readBoundary(json) result (res)
+      type(Frontera) :: res
+      type(json_file) :: json
+
+      character(kind=json_CK,len=:), allocatable :: boundaryTypeLabel
+      logical(LK) :: allLabelFound = .false.
+
+      call json%get(J_BOUNDARY//'.'//J_ALL,  boundaryTypeLabel, allLabelFound)
+      if (allLabelFound) then
+         res%tipoFrontera(:) = labelToBoundaryType(boundaryTypeLabel)
+         if (all(res%tipoFrontera == F_PML)) then
+            !! TODO fill pml properties.
+         end if
+         return
+      end if
+   contains
+      function labelToBoundaryType(str) result (type)
+         character(kind=json_CK, len=:), allocatable :: str
+         integer(kind=4) :: type
+         select case (str)
+         case (J_PEC)
+            type = F_PEC
+        case (J_PMC)
+            type = F_PMC
+        case (J_PERIODIC)
+            type = F_PER
+        case (J_MUR)
+            type = F_MUR
+        case (J_PML)
+            type = F_PML
+         end select
+      end function
+   end function
+
+   function readGeneral(json) result (res)
+      type(NFDEGeneral) :: res
+      type(json_file) :: json
+
+      call json%get(J_GENERAL//'.'//J_TIME_STEP,       res%dt)
+      call json%get(J_GENERAL//'.'//J_NUMBER_OF_STEPS, res%nmax)
+   end function
+
+   function readProblemDescription(filename) result (res)
+      use, intrinsic :: iso_fortran_env , only: error_unit
+
+      character (len=*), intent(in) :: filename
+      type(Parseador) :: res !! Problem Description
+
+      type(json_file) :: json       !! the JSON structure read from the file
+
+      call json%initialize()
+      if (json%failed()) then
+         call json%print_error_message(error_unit)
+         stop
+      end if
+
+      call json%load(filename = filename)
+      if (json%failed()) then
+         call json%print_error_message(error_unit)
+         stop
+      end if
+
+      call initializeProblemDescription(res)
+      res%general = readGeneral(json)
+      res%despl   = readGrid(json)
+      res%front   = readBoundary(json)
+   end function
 end module

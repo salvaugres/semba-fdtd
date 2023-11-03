@@ -7,12 +7,11 @@ module NFDETypes_extension
     
     interface operator(==)
         module procedure desplazamiento_eq
+        module procedure NFDEGeneral_eq
+        module procedure frontera_eq
+        module procedure fronteraPML_eq
     end interface
 
-    interface operator(==)
-        module procedure NFDEGeneral_eq
-    end interface
-    
 contains
     subroutine initializeProblemDescription(pD)
         type(Parseador), intent(inout) :: pD
@@ -46,6 +45,26 @@ contains
         res = .false.        
         if (a%dt /= b%dt) return
         if (a%nmax /= b%nmax) return
+        res = .true.
+    end function
+
+    logical function FronteraPML_eq(a, b) result (res)
+        type(FronteraPML), intent(in) :: a, b
+        res = .false.        
+        if (a%orden    /= b%orden) return
+        if (a%refl     /= b%refl) return
+        if (a%numCapas /= b%numCapas) return
+        res = .true.
+    end function
+
+    logical function frontera_eq(a, b) result (res)
+        type(Frontera), intent(in) :: a, b
+        integer :: i
+        res = .false.        
+        if (any(a%tipoFrontera   /= b%tipoFrontera)) return
+        do i=1, size(a%propiedadesPML)
+            if (.not. (a%propiedadesPML(i) == b%propiedadesPML(i))) return
+        end do
         res = .true.
     end function
 
