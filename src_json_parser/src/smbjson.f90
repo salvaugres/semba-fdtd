@@ -12,44 +12,49 @@ module smbjson
 
    ! LABELS
    ! -- shared labels
-   character (len=*), parameter :: J_MAGNITUDE_FILE  = "magnitudeFile"
-   character (len=*), parameter :: J_VOXEL_REGION    = "voxelRegion"
-   
+   character (len=*), parameter :: J_MAGNITUDE_FILE = "magnitudeFile"
+   character (len=*), parameter :: J_VOXEL_REGION = "voxelRegion"
+   character (len=*), parameter :: J_TYPE = "type"
+
    ! type(NFDEGeneral)
-   character (len=*), parameter :: J_GENERAL         = "general"
-   character (len=*), parameter :: J_TIME_STEP       = "timeStep"
+   character (len=*), parameter :: J_GENERAL = "general"
+   character (len=*), parameter :: J_TIME_STEP = "timeStep"
    character (len=*), parameter :: J_NUMBER_OF_STEPS = "numberOfSteps"
    
    ! type(Desplazamiento)
-   character (len=*), parameter :: J_GRID            = "grid"
+   character (len=*), parameter :: J_GRID = "grid"
    character (len=*), parameter :: J_NUMBER_OF_CELLS = "numberOfCells"
-   character (len=*), parameter :: J_STEPS           = "steps"
+   character (len=*), parameter :: J_STEPS = "steps"
    
    ! type(Frontera)
-   character (len=*), parameter :: J_BOUNDARY        = "boundary"
-   character (len=*), parameter :: J_ALL             = "all"
-   character (len=*), parameter :: J_PEC             = "pec"
-   character (len=*), parameter :: J_PMC             = "pmc"
-   character (len=*), parameter :: J_PERIODIC        = "periodic"
-   character (len=*), parameter :: J_MUR             = "mur"
-   character (len=*), parameter :: J_PML             = "pml"
+   character (len=*), parameter :: J_BOUNDARY = "boundary"
+   character (len=*), parameter :: J_ALL = "all"
+   character (len=*), parameter :: J_PEC = "pec"
+   character (len=*), parameter :: J_PMC = "pmc"
+   character (len=*), parameter :: J_PERIODIC = "periodic"
+   character (len=*), parameter :: J_MUR = "mur"
+   character (len=*), parameter :: J_PML = "pml"
    
    ! -- source types
-   character (len=*), parameter :: J_SOURCES         = "sources"
-   character (len=*), parameter :: J_SOURCE_TYPE     = "type"
+   character (len=*), parameter :: J_SOURCES = "sources"
    ! type(Planewave)
+   character (len=*), parameter :: J_TYPE_PLANEWAVE = "planewave"
+   character (len=*), parameter :: J_DIRECTION = "direction"
    character (len=*), parameter :: J_DIRECTION_THETA = "theta"
-   character (len=*), parameter :: J_DIRECTION_PHI   = "phi"
+   character (len=*), parameter :: J_DIRECTION_PHI = "phi"
+   character (len=*), parameter :: J_POLARIZATION = "polarization"
    character (len=*), parameter :: J_POLARIZATION_ALPHA = "alpha"
    character (len=*), parameter :: J_POLARIZATION_BETA  = "beta"
    
-
+   type, public :: VoxelRegion
+      real, dimension(3) :: c1, c2 
+   end type VoxelRegion
 contains
 
    subroutine getRealVecAndStore(json, place, dest)
-      type(json_file) :: json
+      type(json_core) :: json
       character (len=*), intent(in) :: place
-      REAL (KIND=RK), DIMENSION (:), POINTER :: dest
+      real (kind=RK), dimension (:), pointer :: dest
 
       real(RK),dimension(:),allocatable :: vec
       logical :: found = .false.
@@ -60,6 +65,47 @@ contains
          dest = vec
       endif
    end subroutine
+
+   subroutine getVoxelRegion(json, place, res)
+      type(json_core) :: json
+      character (len=*), intent(in) :: place
+      type(VoxelRegion), intent(out) :: res
+
+      real (kind=RK), dimension(:), pointer:: c1, c2
+      
+      call getRealVecAndStore(json, place//'(1)', c1)
+      call getRealVecAndStore(json, place//'(2)', c2)
+
+      if (size(c1) /= 3 .or. size(c2) /= 3) then
+         stop "Voxel regions are defined by two numerical vectors of size 3."
+      end if
+
+      res%c1 = c1
+      res%c2 = c2
+
+   end subroutine
+
+   function jsonValueFilterByKeyValue(core, srcs, key, value) result(out)
+      type(json_core) :: core
+      type(json_core) :: out
+      character (kind=JSON_CK, len=:), pointer :: key, value
+      type(json_value), pointer :: srcs, src, outSrcs
+      character (kind=JSON_CK, len=:), allocatable :: type
+      integer :: i
+      logical :: found
+
+      call out%create_object(outSrcs, J_SOURCES)
+
+      do i = 1, core%count(srcs)
+         call core%get_child(srcs, i, src)
+         call core%get(src, key, type, found)
+         if(found .and. type == value) then
+            call out%add(outSrcs, src)
+         end if
+      end do
+
+   end function
+
 
    function readGrid(json) result (res)
       type(Desplazamiento) :: res
@@ -108,20 +154,40 @@ contains
       end function
    end function
 
-
    function readPlanewaves(json) result (res)
       type(PlaneWaves) :: res
       type(json_file) :: json
-      type(json_value), pointer :: sourceEntry
-      integer(IK) :: varType
-      integer(IK) :: nChildren
-      character(kind=json_CK, len=:), allocatable :: str
-      
-      call json%info(J_SOURCES//'(1)', var_type=varType, n_children=nChildren)
-      call json%get(J_SOURCES//'(1)', sourceEntry)
-      call json%get(J_SOURCES//'(1)'//J_SOURCE_TYPE, str)
-      
-      
+
+      type(json_core) :: core, pws
+      type(json_value), pointer :: sourceEntry, sources, pw
+      integer(IK) :: nPlanewaves
+      integer :: i
+
+      call json%get_core(core)
+      call json%get(J_SOURCES, sources)
+      pws = jsonValueFilterByKeyValue(core, sources)
+      allocate(res%collection(pws%count(J_SOURCES)))
+      do i=1, pws%count(J_SOURCES)
+         ! call core%get_child(srcs, i, pw)
+         ! res%collection(i) = readPlanewave(core, pw)
+      end do
+   contains
+      function readPlanewave(pws, pw) result (res)
+         type(PlaneWave) :: res
+         type(json_core) :: pws
+         type(json_value), pointer :: pw
+
+         type(VoxelRegion) :: region 
+         call pws%get(pw, J_MAGNITUDE_FILE, res%nombre_fichero)
+         call pws%get(pw, J_DIRECTION//'.'//J_DIRECTION_THETA, res%theta)
+         call pws%get(pw, J_DIRECTION//'.'//J_DIRECTION_PHI, res%phi)
+         call pws%get(pw, J_POLARIZATION//'.'//J_POLARIZATION_ALPHA, res%alpha)
+         call pws%get(pw, J_POLARIZATION//'.'//J_POLARIZATION_BETA, res%beta)
+         call getVoxelRegion(pw, J_VOXEL_REGION, region)
+         res%coor1 = int (region%c1)
+         res%coor2 = int (region%c2)
+      end function
+
    end function
 
 
