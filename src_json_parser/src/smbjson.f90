@@ -50,39 +50,73 @@ module smbjson
       real, dimension(3) :: c1, c2 
    end type VoxelRegion
 contains
+   function readProblemDescription(filename) result (res)
+      use, intrinsic :: iso_fortran_env , only: error_unit
 
-   subroutine getRealVecAndStore(json, place, dest)
-      type(json_core) :: json
-      character (len=*), intent(in) :: place
+      character (len=*), intent(in) :: filename
+      type(Parseador) :: res !! Problem Description
+
+      type(json_file) :: json       !! the JSON structure read from the file
+      type(json_core) :: core
+      type(json_value), pointer :: root
+
+      call json%initialize()
+      if (json%failed()) then
+         call json%print_error_message(error_unit)
+         stop
+      end if
+
+      call json%load(filename = filename)
+      if (json%failed()) then
+         call json%print_error_message(error_unit)
+         stop
+      end if
+      
+      call json%get_core(core)
+      call core%deserialize(root, '.')
+      
+      call initializeProblemDescription(res)
+      res%general = readGeneral(core, root)
+      res%despl = readGrid(core, root)
+      res%front = readBoundary(core, root)
+      res%plnSrc = readPlanewaves(core, root)
+   end function
+
+   subroutine getRealVecAndStore(core, place, path, dest)
+      type(json_core) :: core
+      type(json_value), pointer :: place
+      character(kind=CK, len=:) :: path
       real (kind=RK), dimension (:), pointer :: dest
-
-      real(RK),dimension(:),allocatable :: vec
+      
+      real(RK), dimension(:), allocatable :: vec
       logical :: found = .false.
 
-      call json%get(place, vec, found)
+      call core%get(place, path, vec, found)
       if (found) then
          allocate(dest(size(vec)))
          dest = vec
       endif
    end subroutine
 
-   subroutine getVoxelRegion(json, place, res)
-      type(json_core) :: json
-      character (len=*), intent(in) :: place
+   subroutine getVoxelRegion(core, place, res)
+      type(json_core) :: core
+      type(json_value), pointer :: place
       type(VoxelRegion), intent(out) :: res
 
-      real (kind=RK), dimension(:), pointer:: c1, c2
-      
-      call getRealVecAndStore(json, place//'(1)', c1)
-      call getRealVecAndStore(json, place//'(2)', c2)
+      integer :: i
+      type(json_value), pointer :: coordEntry
+      real (kind=RK), dimension(2, :), pointer:: coords
 
-      if (size(c1) /= 3 .or. size(c2) /= 3) then
-         stop "Voxel regions are defined by two numerical vectors of size 3."
-      end if
+      do i = i, core%count(place)
+         call core%get_child(place, i, coordEntry)
+         call getRealVecAndStore(core, coordEntry, '.', coords(i))
+         if (size(c1) /= 3) then
+            stop "Voxel regions are defined by two numerical vectors of size 3."
+         end if
+      end do     
 
       res%c1 = c1
       res%c2 = c2
-
    end subroutine
 
    function jsonValueFilterByKeyValue(core, srcs, key, value) result(out)
@@ -107,27 +141,29 @@ contains
    end function
 
 
-   function readGrid(json) result (res)
+   function readGrid(core, root) result (res)
       type(Desplazamiento) :: res
-      type(json_file) :: json
+      type(json_core) :: core
+      type(json_value), pointer :: root
 
-      call json%get(J_GRID//'.'//J_NUMBER_OF_CELLS//'(1)',res%nX)
-      call json%get(J_GRID//'.'//J_NUMBER_OF_CELLS//'(2)',res%nY)
-      call json%get(J_GRID//'.'//J_NUMBER_OF_CELLS//'(3)',res%nZ)
+      call core%get(root, J_GRID//'.'//J_NUMBER_OF_CELLS//'(1)',res%nX)
+      call core%get(root, J_GRID//'.'//J_NUMBER_OF_CELLS//'(2)',res%nY)
+      call core%get(root, J_GRID//'.'//J_NUMBER_OF_CELLS//'(3)',res%nZ)
 
-      call getRealVecAndStore(json ,J_GRID//'.'//J_STEPS//'.x', res%desX)
-      call getRealVecAndStore(json ,J_GRID//'.'//J_STEPS//'.y', res%desY)
-      call getRealVecAndStore(json ,J_GRID//'.'//J_STEPS//'.z', res%desZ)
+      call getRealVecAndStore(core, root, J_GRID//'.'//J_STEPS//'.x', res%desX)
+      call getRealVecAndStore(core, root, J_GRID//'.'//J_STEPS//'.y', res%desY)
+      call getRealVecAndStore(core, root, J_GRID//'.'//J_STEPS//'.z', res%desZ)
    end function
 
-   function readBoundary(json) result (res)
+   function readBoundary(core, root) result (res)
       type(Frontera) :: res
-      type(json_file) :: json
+      type(json_core) :: core
+      type(json_value), pointer :: root
 
       character(kind=json_CK,len=:), allocatable :: boundaryTypeLabel
       logical(LK) :: allLabelFound = .false.
 
-      call json%get(J_BOUNDARY//'.'//J_ALL,  boundaryTypeLabel, allLabelFound)
+      call core%get(root, J_BOUNDARY//'.'//J_ALL,  boundaryTypeLabel, allLabelFound)
       if (allLabelFound) then
          res%tipoFrontera(:) = labelToBoundaryType(boundaryTypeLabel)
          if (all(res%tipoFrontera == F_PML)) then
@@ -154,17 +190,17 @@ contains
       end function
    end function
 
-   function readPlanewaves(json) result (res)
+   function readPlanewaves(core, root) result (res)
       type(PlaneWaves) :: res
-      type(json_file) :: json
+      type(json_core) :: core
+      type(json_value), pointer :: root
 
-      type(json_core) :: core, pws
+      type(json_core) :: pws
       type(json_value), pointer :: sourceEntry, sources, pw
       integer(IK) :: nPlanewaves
       integer :: i
 
-      call json%get_core(core)
-      call json%get(J_SOURCES, sources)
+      call core%get(root, J_SOURCES, sources)
       pws = jsonValueFilterByKeyValue(core, sources)
       allocate(res%collection(pws%count(J_SOURCES)))
       do i=1, pws%count(J_SOURCES)
@@ -191,38 +227,14 @@ contains
    end function
 
 
-   function readGeneral(json) result (res)
+   function readGeneral(json, root) result (res)
       type(NFDEGeneral) :: res
-      type(json_file) :: json
-
-      call json%get(J_GENERAL//'.'//J_TIME_STEP,       res%dt)
-      call json%get(J_GENERAL//'.'//J_NUMBER_OF_STEPS, res%nmax)
+      type(json_core) :: json
+      type(json_value), pointer :: root
+      
+      call json%get(root, J_GENERAL//'.'//J_TIME_STEP,       res%dt)
+      call json%get(root, J_GENERAL//'.'//J_NUMBER_OF_STEPS, res%nmax)
    end function
 
-   function readProblemDescription(filename) result (res)
-      use, intrinsic :: iso_fortran_env , only: error_unit
 
-      character (len=*), intent(in) :: filename
-      type(Parseador) :: res !! Problem Description
-
-      type(json_file) :: json       !! the JSON structure read from the file
-
-      call json%initialize()
-      if (json%failed()) then
-         call json%print_error_message(error_unit)
-         stop
-      end if
-
-      call json%load(filename = filename)
-      if (json%failed()) then
-         call json%print_error_message(error_unit)
-         stop
-      end if
-
-      call initializeProblemDescription(res)
-      res%general = readGeneral(json)
-      res%despl   = readGrid(json)
-      res%front   = readBoundary(json)
-      res%plnSrc  = readPlanewaves(json)
-   end function
 end module
