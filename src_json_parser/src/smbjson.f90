@@ -85,7 +85,7 @@ contains
    subroutine getRealVecAndStore(core, place, path, dest)
       type(json_core) :: core
       type(json_value), pointer :: place
-      character(kind=CK, len=:) :: path
+      character(kind=CK, len=*) :: path
       real (kind=RK), dimension (:), pointer :: dest
       
       real(RK), dimension(:), allocatable :: vec
@@ -105,30 +105,31 @@ contains
 
       integer :: i
       type(json_value), pointer :: coordEntry
-      real (kind=RK), dimension(2, :), pointer:: coords
+      real (kind=RK), dimension(2, 3) :: coords
+      
+      ! call core%get(place, J_VOXEL_REGION, voxelRegion)
+      ! do i = i, core%count(voxelRegion)
+      !    call core%get_child(voxelRegion, i, coordEntry)
+      !    call getRealVecAndStore(core, coordEntry, '.', coords(i,:))
+      !    if (size(coords(i,:)) /= 3) then
+      !       stop "Voxel regions are defined by two numerical vectors of size 3."
+      !    end if
+      ! end do     
 
-      do i = i, core%count(place)
-         call core%get_child(place, i, coordEntry)
-         call getRealVecAndStore(core, coordEntry, '.', coords(i))
-         if (size(c1) /= 3) then
-            stop "Voxel regions are defined by two numerical vectors of size 3."
-         end if
-      end do     
-
-      res%c1 = c1
-      res%c2 = c2
+      res%c1 = coords(1,:)
+      res%c2 = coords(2,:)
    end subroutine
 
    function jsonValueFilterByKeyValue(core, srcs, key, value) result(out)
       type(json_core) :: core
       type(json_core) :: out
-      character (kind=JSON_CK, len=:), pointer :: key, value
+      character (kind=JSON_CK, len=*) :: key, value
       type(json_value), pointer :: srcs, src, outSrcs
       character (kind=JSON_CK, len=:), allocatable :: type
       integer :: i
       logical :: found
 
-      call out%create_object(outSrcs, J_SOURCES)
+      call out%create_object(outSrcs, '.')
 
       do i = 1, core%count(srcs)
          call core%get_child(srcs, i, src)
@@ -196,30 +197,34 @@ contains
       type(json_value), pointer :: root
 
       type(json_core) :: pws
-      type(json_value), pointer :: sourceEntry, sources, pw
+      type(json_value), pointer :: pwsRoot, sources, pw
       integer(IK) :: nPlanewaves
       integer :: i
 
       call core%get(root, J_SOURCES, sources)
-      pws = jsonValueFilterByKeyValue(core, sources)
-      allocate(res%collection(pws%count(J_SOURCES)))
-      do i=1, pws%count(J_SOURCES)
-         ! call core%get_child(srcs, i, pw)
-         ! res%collection(i) = readPlanewave(core, pw)
+
+      pws = jsonValueFilterByKeyValue(core, sources, J_TYPE, J_TYPE_PLANEWAVE)      
+      call pws%deserialize(pwsRoot, '.')
+      allocate(res%collection(pws%count(pwsRoot)))
+      do i=1, pws%count(pwsRoot)
+         call pws%get_child(pwsRoot, i, pw)
+         res%collection(i) = readPlanewave(pws, pw)
       end do
    contains
       function readPlanewave(pws, pw) result (res)
          type(PlaneWave) :: res
          type(json_core) :: pws
          type(json_value), pointer :: pw
-
+         
+         character (len=:), allocatable :: magnitudeFile
          type(VoxelRegion) :: region 
-         call pws%get(pw, J_MAGNITUDE_FILE, res%nombre_fichero)
+         call pws%get(pw, J_MAGNITUDE_FILE, magnitudeFile)
+         res%nombre_fichero = magnitudeFile
          call pws%get(pw, J_DIRECTION//'.'//J_DIRECTION_THETA, res%theta)
          call pws%get(pw, J_DIRECTION//'.'//J_DIRECTION_PHI, res%phi)
          call pws%get(pw, J_POLARIZATION//'.'//J_POLARIZATION_ALPHA, res%alpha)
          call pws%get(pw, J_POLARIZATION//'.'//J_POLARIZATION_BETA, res%beta)
-         call getVoxelRegion(pw, J_VOXEL_REGION, region)
+         call getVoxelRegion(pws, pw, region)
          res%coor1 = int (region%c1)
          res%coor2 = int (region%c2)
       end function

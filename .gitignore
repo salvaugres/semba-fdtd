@@ -43,3 +43,4 @@ Testing/
 .vscode/launch.json
 .vscode/settings.json
 .vscode/tasks.json
+src_json_parser/external/json-fortran
