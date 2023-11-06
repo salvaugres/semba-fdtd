@@ -13,7 +13,8 @@ module smbjson
    ! LABELS
    ! -- shared labels
    character (len=*), parameter :: J_MAGNITUDE_FILE = "magnitudeFile"
-   character (len=*), parameter :: J_VOXEL_REGION = "voxelRegion"
+   character (len=*), parameter :: J_CELL_REGION = "cellRegion"
+   character (len=*), parameter :: J_CELL = "cell"
    character (len=*), parameter :: J_TYPE = "type"
 
    ! type(NFDEGeneral)
@@ -112,7 +113,7 @@ contains
       type(json_value), pointer :: coordEntry, voxelRegionEntry
       real (kind=RK), pointer :: vec(:)
       
-      call core%get(place, J_VOXEL_REGION, voxelRegionEntry)
+      call core%get(place, J_CELL_REGION, voxelRegionEntry)
       do i = 1, core%count(voxelRegionEntry)
          call core%get_child(voxelRegionEntry, i, coordEntry)
          call getRealVecAndStore(core, coordEntry, '.', vec)

@@ -24,6 +24,8 @@ integer function test_read_planewave() result(error_cnt)
         call testFails(error_cnt, 'Expected and read "boundary" do not match')
     if (.not. expected%plnSrc == problem%plnSrc) &
         call testFails(error_cnt, 'Expected and read "planewave sources" do not match')
+    if (.not. expected%oldSONDA == problem%oldSonda) &
+        call testFails(error_cnt, 'Expected and read "planewave sources" do not match')
 
 contains   
     function expectedProblemDescription() result (expected)
