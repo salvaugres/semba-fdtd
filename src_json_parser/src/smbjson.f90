@@ -39,6 +39,7 @@ module smbjson
    character (len=*), parameter :: J_SOURCES = "sources"
    ! type(Planewave)
    character (len=*), parameter :: J_TYPE_PLANEWAVE = "planewave"
+   character (len=*), parameter :: J_ATTRIBUTE = "attribute"
    character (len=*), parameter :: J_DIRECTION = "direction"
    character (len=*), parameter :: J_DIRECTION_THETA = "theta"
    character (len=*), parameter :: J_DIRECTION_PHI = "phi"
@@ -46,9 +47,13 @@ module smbjson
    character (len=*), parameter :: J_POLARIZATION_ALPHA = "alpha"
    character (len=*), parameter :: J_POLARIZATION_BETA  = "beta"
    
-   type, public :: VoxelRegion
-      real, dimension(3) :: c1, c2 
-   end type VoxelRegion
+   type, public :: VoxelRegion_t
+      real, dimension(2,3) :: coords
+   end type VoxelRegion_t
+
+   type, private :: json_value_ptr
+      type(json_value), pointer :: p
+   end type
 contains
    function readProblemDescription(filename) result (res)
       use, intrinsic :: iso_fortran_env , only: error_unit
@@ -73,7 +78,7 @@ contains
       end if
       
       call json%get_core(core)
-      call core%deserialize(root, '.')
+      call json%get('.', root)
       
       call initializeProblemDescription(res)
       res%general = readGeneral(core, root)
@@ -86,9 +91,9 @@ contains
       type(json_core) :: core
       type(json_value), pointer :: place
       character(kind=CK, len=*) :: path
-      real (kind=RK), dimension (:), pointer :: dest
+      real (kind=RK), pointer :: dest(:)
       
-      real(RK), dimension(:), allocatable :: vec
+      real(RK), allocatable :: vec(:)
       logical :: found = .false.
 
       call core%get(place, path, vec, found)
@@ -98,44 +103,52 @@ contains
       endif
    end subroutine
 
-   subroutine getVoxelRegion(core, place, res)
+   function getVoxelRegion(core, place) result (res)
       type(json_core) :: core
       type(json_value), pointer :: place
-      type(VoxelRegion), intent(out) :: res
+      type(VoxelRegion_t) :: res
 
-      integer :: i
-      type(json_value), pointer :: coordEntry
-      real (kind=RK), dimension(2, 3) :: coords
+      integer :: i, n
+      type(json_value), pointer :: coordEntry, voxelRegionEntry
+      real (kind=RK), pointer :: vec(:)
       
-      ! call core%get(place, J_VOXEL_REGION, voxelRegion)
-      ! do i = i, core%count(voxelRegion)
-      !    call core%get_child(voxelRegion, i, coordEntry)
-      !    call getRealVecAndStore(core, coordEntry, '.', coords(i,:))
-      !    if (size(coords(i,:)) /= 3) then
-      !       stop "Voxel regions are defined by two numerical vectors of size 3."
-      !    end if
-      ! end do     
+      call core%get(place, J_VOXEL_REGION, voxelRegionEntry)
+      do i = 1, core%count(voxelRegionEntry)
+         call core%get_child(voxelRegionEntry, i, coordEntry)
+         call getRealVecAndStore(core, coordEntry, '.', vec)
+         if (size(vec) /= 3) then
+            stop "Voxel regions are defined by two numerical vectors of size 3."
+         end if
+         res%coords(i,:) = vec(1:3)
+      end do     
+   end function
 
-      res%c1 = coords(1,:)
-      res%c2 = coords(2,:)
-   end subroutine
-
-   function jsonValueFilterByKeyValue(core, srcs, key, value) result(out)
+   function jsonValueFilterByKeyValue(core, srcs, key, value) result (out)
+      type(json_value_ptr), allocatable :: out(:)
       type(json_core) :: core
-      type(json_core) :: out
       character (kind=JSON_CK, len=*) :: key, value
-      type(json_value), pointer :: srcs, src, outSrcs
+      type(json_value), pointer :: srcs, src
       character (kind=JSON_CK, len=:), allocatable :: type
-      integer :: i
+      integer :: i, j, n
       logical :: found
 
-      call out%create_object(outSrcs, '.')
-
+      n = 0
       do i = 1, core%count(srcs)
          call core%get_child(srcs, i, src)
          call core%get(src, key, type, found)
          if(found .and. type == value) then
-            call out%add(outSrcs, src)
+           n = n + 1 
+         end if
+      end do
+      
+      allocate(out(n))
+      j = 1
+      do i = 1, core%count(srcs)
+         call core%get_child(srcs, i, src)
+         call core%get(src, key, type, found)
+         if(found .and. type == value) then
+           out(j)%p => src
+           j = j + 1
          end if
       end do
 
@@ -196,37 +209,49 @@ contains
       type(json_core) :: core
       type(json_value), pointer :: root
 
-      type(json_core) :: pws
-      type(json_value), pointer :: pwsRoot, sources, pw
+      type(json_value), pointer :: sources
+      type(json_value_ptr), allocatable :: pws(:)
       integer(IK) :: nPlanewaves
       integer :: i
 
       call core%get(root, J_SOURCES, sources)
-
       pws = jsonValueFilterByKeyValue(core, sources, J_TYPE, J_TYPE_PLANEWAVE)      
-      call pws%deserialize(pwsRoot, '.')
-      allocate(res%collection(pws%count(pwsRoot)))
-      do i=1, pws%count(pwsRoot)
-         call pws%get_child(pwsRoot, i, pw)
-         res%collection(i) = readPlanewave(pws, pw)
+      allocate(res%collection(size(pws)))
+      do i=1, size(pws)
+         res%collection(i) = readPlanewave(core, pws(i)%p)
       end do
    contains
-      function readPlanewave(pws, pw) result (res)
+      function readPlanewave(core, pw) result (res)
          type(PlaneWave) :: res
-         type(json_core) :: pws
+         type(json_core) :: core
          type(json_value), pointer :: pw
          
-         character (len=:), allocatable :: magnitudeFile
-         type(VoxelRegion) :: region 
-         call pws%get(pw, J_MAGNITUDE_FILE, magnitudeFile)
-         res%nombre_fichero = magnitudeFile
-         call pws%get(pw, J_DIRECTION//'.'//J_DIRECTION_THETA, res%theta)
-         call pws%get(pw, J_DIRECTION//'.'//J_DIRECTION_PHI, res%phi)
-         call pws%get(pw, J_POLARIZATION//'.'//J_POLARIZATION_ALPHA, res%alpha)
-         call pws%get(pw, J_POLARIZATION//'.'//J_POLARIZATION_BETA, res%beta)
-         call getVoxelRegion(pws, pw, region)
-         res%coor1 = int (region%c1)
-         res%coor2 = int (region%c2)
+         character (len=:), allocatable :: label
+         type(VoxelRegion_t) :: region 
+         logical :: found
+
+         call core%get(pw, J_MAGNITUDE_FILE, label)
+         res%nombre_fichero = trim(adjustl(label))
+
+         call core%get(pw, J_ATTRIBUTE, label, found)
+         if (found) then
+            res%atributo = trim(adjustl(label))
+         else 
+            res%atributo = ""
+         endif
+
+         call core%get(pw, J_DIRECTION//'.'//J_DIRECTION_THETA, res%theta)
+         call core%get(pw, J_DIRECTION//'.'//J_DIRECTION_PHI, res%phi)
+         call core%get(pw, J_POLARIZATION//'.'//J_POLARIZATION_ALPHA, res%alpha)
+         call core%get(pw, J_POLARIZATION//'.'//J_POLARIZATION_BETA, res%beta)
+         
+         region = getVoxelRegion(core, pw)
+         res%coor1 = region%coords(1,:)
+         res%coor2 = region%coords(2,:)
+         
+         res%isRC = .false.
+         res%nummodes = 1
+         res%incertmax = 0.0
       end function
 
    end function

@@ -55,13 +55,17 @@ contains
         ! Expected sources.
         allocate(expected%plnSrc%collection(1))
         expected%plnSrc%collection(1)%nombre_fichero = "gauss_100MHz.exc"
+        expected%plnSrc%collection(1)%atributo = ""
         expected%plnSrc%collection(1)%coor1 = (/2, 2, 2/)
         expected%plnSrc%collection(1)%coor2 = (/9, 9, 9/)
         expected%plnSrc%collection(1)%theta = 0.0
         expected%plnSrc%collection(1)%phi = 0.0
         expected%plnSrc%collection(1)%alpha = 1.5708
         expected%plnSrc%collection(1)%beta = 0.0
-
+        expected%plnSrc%collection(1)%isRC=.false.
+        expected%plnSrc%collection(1)%nummodes=1
+        expected%plnSrc%collection(1)%INCERTMAX=0.0
+        
     end function
 end function
 
