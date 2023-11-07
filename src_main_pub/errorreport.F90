@@ -110,7 +110,8 @@ contains
 
       call print11(layoutnumber,trim(adjustl(whoami))//' ERROR: '//trim(adjustl(message)),.true.)
 
-      !19/12/14 bug OLD1812. Un stoponerror creado por un nodal source embebido llega aqu? en MPI. El closewarn... hace un barrier e impide morir al proceso.
+      !19/12/14 bug OLD1812. Un stoponerror creado por un nodal source embebido llega aqui en MPI. El closewarn... hace un barrier e impide morir al proceso.
+
       !hay que revisar los stoponerror y hacerlos mas elegantes. De momento aborto a lo bestia comentanod sin cerrar ni warning ni dxf (To do)
 
       !CALL CLOSEWARNINGFILE(layoutnumber,size)
@@ -1444,12 +1445,12 @@ contains
 !!      if (IsNaNd(energy)) then
 !!#endif
 !!!#else
-     !! if (IsNaN (energy)) then !quitado a mano para que PGI no se queje a 150623 !fm
+      if (IsNaN (energy)) then
 !!!#endif
 !!!#endif
          !
-     !!    stoponNaN_aux=.true.
-     !! endif
+         stoponNaN_aux=.true.
+      endif
 #ifdef CompileWithMPI
       call MPI_AllReduce( stoponNaN_aux, stoponNaN, 1_4, MPI_LOGICAL, MPI_LOR, MPI_COMM_WORLD, ierr)
 #else
@@ -2275,19 +2276,19 @@ contains
       !!!                           MPI_CHARACTER, 'native', &
       !!!                           MPI_INFO_NULL, ierr)
       !!!#else
-!!666     inquire (unit=thefile8,exist=borratedeunaputavez1)
-!!        inquire (file=trim(adjustl(nombrefich))//trim(adjustl(whoamishort))//'_tmp' ,exist=borratedeunaputavez2)
-!!    if (borratedeunaputavez1) then
-!!        print *,whoamishort,'--> no hay cojones con inquire unidad ',thefile8
-!!        call sleep(2)
-!!        goto 666
-!!    endif
-!!    if (borratedeunaputavez2) then
-!!        print *,whoamishort,'--> no hay cojones con inquire file fichero ',& 
-!!                      trim(adjustl(nombrefich))//trim(adjustl(whoamishort))//'_tmp'
-!!        call sleep(2)
-!!        goto 666
-!!    endif
+666     inquire (unit=thefile8,exist=borratedeunaputavez1)
+        inquire (file=trim(adjustl(nombrefich))//trim(adjustl(whoamishort))//'_tmp' ,exist=borratedeunaputavez2)
+    if (borratedeunaputavez1) then
+        print *,whoamishort,'--> no hay cojones con inquire unidad ',thefile8
+        call sleep(2)
+        goto 666
+    endif
+        if (borratedeunaputavez2) then
+        print *,whoamishort,'--> no hay cojones con inquire file fichero ',& 
+                      trim(adjustl(nombrefich))//trim(adjustl(whoamishort))//'_tmp'
+        call sleep(2)
+        goto 666
+    endif
       open (newunit=thefile8,file=trim(adjustl(nombrefich))//trim(adjustl(whoamishort))//'_tmp',err=767 )
          goto 768
 767      print *,whoamishort,'--> no hay cojones con open definitivo unidad ',thefile8

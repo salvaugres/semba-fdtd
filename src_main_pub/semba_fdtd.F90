@@ -386,7 +386,7 @@ PROGRAM SEMBA_FDTD_launcher
    length=len(trim(adjustl(chaindummy)))
    chain2=trim(adjustl(trim(adjustl(chaindummy))//' '//trim(adjustl(sgg%extraswitches))//' '//trim(adjustl(chain2(length+1:)))))
 !!!!
-!!!fm   call interpretswitches(chain2,status)
+   call interpretswitches(chain2,status)
 !!!!tunel a lo bestia para crear el .h5 a 021219
 
 #ifdef CompileWithXDMF   

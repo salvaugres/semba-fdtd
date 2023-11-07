@@ -112,9 +112,6 @@ module Solver
    USE P_rescale
 #endif   
 !!
-#ifdef CompileWithProfiling
-   use nvtx
-#endif
    implicit none
    private
 
@@ -1217,11 +1214,6 @@ contains
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                           
-      
-#ifdef CompileWithProfiling
-      call nvtxStartRange("Antes del bucle N")
-#endif
       ciclo_temporal :  DO while (N <= finaltimestep)
       
       !!Flush the plane-wave logical switching off variable (saves CPU!)
@@ -1256,31 +1248,15 @@ contains
 !!!!!!!#endif
          !call get_secnds( time_ElecInit)
          !!
-
-#ifdef CompileWithProfiling
-      call nvtxStartRange("Antes del bucle EX")
-#endif
          call Advance_Ex          (Ex, Hy, Hz, Idyh, Idzh, sggMiEx, b,g1,g2)    
-#ifdef CompileWithProfiling
-      call nvtxEndRange
-      call nvtxStartRange("Antes del bucle EY")
-#endif
          call Advance_Ey          (Ey, Hz, Hx, Idzh, Idxh, sggMiEy, b,g1,g2)
-         
-#ifdef CompileWithProfiling    
-      call nvtxEndRange
-      call nvtxStartRange("Antes del bucle EZ")
-#endif
          call Advance_Ez          (Ez, Hx, Hy, Idxh, Idyh, sggMiEz, b,g1,g2)
 
-#ifdef CompileWithProfiling    
-      call nvtxEndRange
-#endif
-         !!if (planewavecorr) then
-         !!    call FreeSpace_Advance_Ex          (Exvac, Hyvac, Hzvac, Idyh, Idzh,       b,g1,g2)
-         !!    call FreeSpace_Advance_Ey          (Eyvac, Hzvac, Hxvac, Idzh, Idxh,       b,g1,g2)
-         !!    call FreeSpace_Advance_Ez          (Ezvac, Hxvac, Hyvac, Idxh, Idyh,       b,g1,g2)
-         !!endif
+         if (planewavecorr) then
+             call FreeSpace_Advance_Ex          (Exvac, Hyvac, Hzvac, Idyh, Idzh,       b,g1,g2)
+             call FreeSpace_Advance_Ey          (Eyvac, Hzvac, Hxvac, Idzh, Idxh,       b,g1,g2)
+             call FreeSpace_Advance_Ez          (Ezvac, Hxvac, Hyvac, Idxh, Idyh,       b,g1,g2)
+         endif
           
 !!! no se ganada nada de tiempo        Call Advance_ExEyEz(Ex,Ey,Ez,Hx,Hy,Hz,Idxh,Idyh,Idzh,sggMiEx,sggMiEy,sggMiEz,b,g1,g2)
 
@@ -1464,35 +1440,20 @@ contains
          !!
 
 !         if (sgg%thereareMagneticMedia) then
-
-#ifdef CompileWithProfiling    
-      call nvtxStartRange("Antes del bucle HX")
-#endif
             call Advance_Hx           (Hx, Ey, Ez, Idye, Idze, sggMiHx, b,gm1,gm2)        
-#ifdef CompileWithProfiling    
-      call nvtxEndRange
-      call nvtxStartRange("Antes del bucle HY")
-#endif
             call Advance_Hy           (Hy, Ez, Ex, Idze, Idxe, sggMiHy, b,gm1,gm2)     
-#ifdef CompileWithProfiling    
-      call nvtxEndRange
-      call nvtxStartRange("Antes del bucle HZ")
-#endif
             call Advance_Hz           (Hz, Ex, Ey, Idxe, Idye, sggMiHz, b,gm1,gm2)  
-#ifdef CompileWithProfiling    
-      call nvtxEndRange
-#endif
          !else
          !   call FreeSpace_Advance_Hx(Hx, Ey, Ez, Idye, Idze,           b,gm1,gm2)
          !   call FreeSpace_Advance_Hy(Hy, Ez, Ex, Idze, Idxe,           b,gm1,gm2)
          !   call FreeSpace_Advance_Hz(Hz, Ex, Ey, Idxe, Idye,           b,gm1,gm2)
          !endif
          
-         !!!if (planewavecorr) then !.and.still_planewave_time) then
-         !!!   call FreeSpace_Advance_Hx           (Hxvac, Eyvac, Ezvac, Idye, Idze,      b,gm1,gm2)
-         !!!   call FreeSpace_Advance_Hy           (Hyvac, Ezvac, Exvac, Idze, Idxe,      b,gm1,gm2)
-         !!!   call FreeSpace_Advance_Hz           (Hzvac, Exvac, Eyvac, Idxe, Idye,      b,gm1,gm2)
-         !!!endif
+         if (planewavecorr) then !.and.still_planewave_time) then
+            call FreeSpace_Advance_Hx           (Hxvac, Eyvac, Ezvac, Idye, Idze,      b,gm1,gm2)
+            call FreeSpace_Advance_Hy           (Hyvac, Ezvac, Exvac, Idze, Idxe,      b,gm1,gm2)
+            call FreeSpace_Advance_Hz           (Hzvac, Exvac, Eyvac, Idxe, Idye,      b,gm1,gm2)
+         endif
 
 !!! no se ganada nada de tiempo                 Call Advance_HxHyHz(Hx,Hy,Hz,Ex,Ey,Ez,IdxE,IdyE,IdzE,sggMiHx,sggMiHy,sggMiHz,b,gm1,gm2)
 
@@ -1952,13 +1913,6 @@ contains
          !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
          n=n+1 !sube de iteracion
       end do ciclo_temporal ! End of the time-stepping loop
-      
-                        
-      
-#ifdef CompileWithProfiling
-      call nvtxEndRange
-#endif      
-      
 #ifdef CompileWithConformal
       if(input_conformal_flag)then
             call conformal_final_simulation  (conf_timeSteps, n)
@@ -2151,12 +2105,8 @@ contains
          real (kind = RKIND)  ::  Idzhk, Idyhj
          integer(kind = 4)  ::  i, j, k
          integer(kind = INTEGERSIZEOFMEDIAMATRICES)  ::  medio
-         
 #ifdef CompileWithOpenMP
 !$OMP  PARALLEL DO DEFAULT(SHARED) collapse (2) private (i,j,k,medio,Idzhk,Idyhj) 
-#endif
-#ifdef CompileWithACC   
-!$ACC parallel loop DEFAULT(present) collapse (2) private (i,j,k,medio,Idzhk,Idyhj)  copyin(Ex,sggMiEx,Hy,Hz,Idyh,Idzh,b,G1,G2) copyout(Ex) 
 #endif
          Do k=1,b%sweepEx%NZ
             Do j=1,b%sweepEx%NY
@@ -2195,9 +2145,6 @@ contains
          integer(kind = INTEGERSIZEOFMEDIAMATRICES)  ::  medio
 #ifdef CompileWithOpenMP
 !$OMP  PARALLEL DO DEFAULT(SHARED) collapse (2) private (i,j,k,medio,Idzhk)  
-#endif
-#ifdef CompileWithACC   
-!$ACC parallel loop  DEFAULT(present) collapse (2) private (i,j,k,medio,Idzhk)     copyin(Ey,sggMiEy,Hz,Hx,Idzh,Idxh,b,G1,G2) copyout(Ey) 
 #endif
          Do k=1,b%sweepEy%NZ
             Do j=1,b%sweepEy%NY
@@ -2240,9 +2187,6 @@ contains
 #ifdef CompileWithOpenMP
 !$OMP  PARALLEL DO  DEFAULT(SHARED) collapse (2) private (i,j,k,medio,Idyhj)    
 #endif
-#ifdef CompileWithACC   
-!$ACC parallel loop   DEFAULT(present) collapse (2) private (i,j,k,medio,Idyhj)        copyin(Ez,sggMiEz,Hx,Hy,Idxh,Idyh,b,G1,G2) copyout(Ez) 
-#endif
          Do k=1,b%sweepEz%NZ
             Do j=1,b%sweepEz%NY
                Do i=1,b%sweepEz%NX
@@ -2284,9 +2228,6 @@ contains
 #ifdef CompileWithOpenMP
 !$OMP  PARALLEL DO  DEFAULT(SHARED) collapse (2) private (i,j,k,medio,Idzek,Idyej)     
 #endif
-#ifdef CompileWithACC   
-!$ACC parallel loop  DEFAULT(present) collapse (2) private (i,j,k,medio,Idzek,Idyej)       copyin(Hx,sggMiHx,Ey,Ez,Idye,Idze,b,GM1,GM2) copyout(Hx) 
-#endif
          Do k=1,b%sweepHx%NZ
             Do j=1,b%sweepHx%NY
                Do i=1,b%sweepHx%NX
@@ -2323,9 +2264,6 @@ contains
          integer(kind = INTEGERSIZEOFMEDIAMATRICES)  ::  medio
 #ifdef CompileWithOpenMP
 !$OMP  PARALLEL DO DEFAULT(SHARED) collapse (2) private (i,j,k,medio,Idzek)     
-#endif
-#ifdef CompileWithACC   
-!$ACC parallel loop DEFAULT(present) collapse (2) private (i,j,k,medio,Idzek)         copyin(Hy,sggMiHy,Ez,Ex,Idze,Idxe,b,GM1,GM2) copyout(Hy) 
 #endif
          Do k=1,b%sweepHy%NZ
             Do j=1,b%sweepHy%NY
@@ -2364,9 +2302,6 @@ contains
 #ifdef CompileWithOpenMP
 !$OMP  PARALLEL DO DEFAULT(SHARED) collapse (2) private (i,j,k,medio,Idyej)  
 #endif
-#ifdef CompileWithACC   
-!$ACC parallel loop  DEFAULT(present) collapse (2) private (i,j,k,medio,Idyej)       copyin(Hz,sggMiHz,Ex,Ey,Idxe,Idye,b,GM1,GM2) copyout(Hz)
-#endif
          Do k=1,b%sweepHz%NZ
             Do j=1,b%sweepHz%NY
                Do i=1,b%sweepHz%NX
@@ -2377,7 +2312,7 @@ contains
             End do
          End do
 #ifdef CompileWithOpenMP
-!$OxMP  END PARALLEL DO
+!$OMP  END PARALLEL DO
 #endif
          return
       end subroutine Advance_Hz
@@ -2385,233 +2320,233 @@ contains
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
 
 
-!!!      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!      subroutine FreeSpace_Advance_Ex(Ex,Hy,Hz,Idyh,Idzh,b,g1,g2)
-!!!
-!!!         !------------------------>
-!!!         type (bounds_t), intent( IN)  ::  b
-!!!         REAL (KIND=RKIND)     , pointer, dimension ( : )  ::  g1, g2
-!!!         !
-!!!         real (kind = RKIND), dimension    ( 0 :     b%dyh%NY-1     )  , intent( IN)  ::  Idyh
-!!!         real (kind = RKIND), dimension    ( 0 :     b%dzh%NZ-1     )  , intent( IN)  ::  Idzh
-!!!         real (kind = RKIND), dimension    ( 0 :      b%Ex%NX-1 , 0 :      b%Ex%NY-1 , 0 :      b%Ex%NZ-1 )  , intent( INOUT)  ::  Ex
-!!!         real (kind = RKIND), dimension    ( 0 :      b%Hy%NX-1 , 0 :      b%Hy%NY-1 , 0 :      b%Hy%NZ-1 )  , intent( IN)  ::  HY
-!!!         real (kind = RKIND), dimension    ( 0 :      b%Hz%NX-1 , 0 :      b%Hz%NY-1 , 0 :      b%Hz%NZ-1 )  , intent( IN)  ::  HZ
-!!!         !------------------------> Variables locales
-!!!         real (kind = RKIND)  ::  Idzhk, Idyhj
-!!!         integer(kind = 4)  ::  i, j, k
-!!!         real (kind = RKIND)  ::  GE1_1,GE2_1
-!!!         integer(kind = INTEGERSIZEOFMEDIAMATRICES)  ::  medio
-!!!         ! GE1_1=G1(1)
-!!!         GE2_1=G2(1)
-!!!#ifdef CompileWithOpenMP
-!!!!$OMP  PARALLEL DO DEFAULT(SHARED) collapse (2) private (i,j,k,medio,Idzhk,Idyhj)
-!!!#endif
-!!!         Do k=1,b%sweepEx%NZ
-!!!            Do j=1,b%sweepEx%NY
-!!!               Do i=1,b%sweepEx%NX
-!!!                  Idzhk=Idzh(k)
-!!!                  Idyhj=Idyh(j)
-!!!                  Ex(i,j,k)=Ex(i,j,k)+GE2_1*((Hz(i,j,k)-Hz(i,j-1,k))*Idyhj-(Hy(i,j,k)-Hy(i,j,k-1))*Idzhk)
-!!!               End do
-!!!            End do
-!!!         End do
-!!!#ifdef CompileWithOpenMP
-!!!!$OMP  END PARALLEL DO
-!!!#endif
-!!!         return
-!!!      end subroutine FreeSpace_Advance_Ex
-!!!      
-!!!      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!      subroutine FreeSpace_Advance_Ey(Ey,Hz,Hx,Idzh,Idxh,b,g1,g2)
-!!!
-!!!         !------------------------>
-!!!         type (bounds_t), intent( IN)  ::  b
-!!!         REAL (KIND=RKIND)     , pointer, dimension ( : )   ::  g1, g2
-!!!         !
-!!!         real (kind = RKIND), dimension    ( 0 :     b%dzh%NZ-1     )  , intent( IN)  ::  Idzh
-!!!         real (kind = RKIND), dimension    ( 0 :     b%dxh%NX-1     )  , intent( IN)  ::  Idxh
-!!!         real (kind = RKIND), dimension    ( 0 :      b%Ey%NX-1 , 0 :      b%Ey%NY-1 , 0 :      b%Ey%NZ-1 )  , intent( INOUT)  ::  EY
-!!!         real (kind = RKIND), dimension    ( 0 :      b%Hz%NX-1 , 0 :      b%Hz%NY-1 , 0 :      b%Hz%NZ-1 )  , intent( IN)  ::  HZ
-!!!         real (kind = RKIND), dimension    ( 0 :      b%Hx%NX-1 , 0 :      b%Hx%NY-1 , 0 :      b%Hx%NZ-1 )  , intent( IN)  ::  HX
-!!!         !------------------------> Variables locales
-!!!         real (kind = RKIND)  ::  Idzhk
-!!!         integer(kind = 4)  ::  i, j, k
-!!!         integer(kind = INTEGERSIZEOFMEDIAMATRICES)  ::  medio
-!!!         real (kind = RKIND)  ::  GE1_1,GE2_1
-!!!         !GE1_1=G1(1)
-!!!         GE2_1=G2(1)
-!!!#ifdef CompileWithOpenMP
-!!!!$OMP  PARALLEL DO DEFAULT(SHARED) collapse (2) private (i,j,k,medio,Idzhk)
-!!!#endif
-!!!         Do k=1,b%sweepEy%NZ
-!!!            Do j=1,b%sweepEy%NY
-!!!               Do i=1,b%sweepEy%NX
-!!!                  Idzhk=Idzh(k)
-!!!                  Ey(i,j,k)=Ey(i,j,k)+GE2_1*((Hx(i,j,k)-Hx(i,j,k-1))*Idzhk-(Hz(i,j,k)-Hz(i-1,j,k))*Idxh(i))
-!!!               End do
-!!!            End do
-!!!         End do
-!!!#ifdef CompileWithOpenMP
-!!!!$OMP  END PARALLEL DO
-!!!#endif
-!!!
-!!!
-!!!
-!!!         return
-!!!      end subroutine FreeSpace_Advance_Ey
-!!!      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!      subroutine FreeSpace_Advance_Ez(Ez,Hx,Hy,Idxh,Idyh,b,g1,g2)
-!!!
-!!!         !------------------------>
-!!!         type (bounds_t), intent( IN)  ::  b
-!!!         REAL (KIND=RKIND)     , pointer, dimension ( : )   ::  g1, g2
-!!!         !
-!!!         real (kind = RKIND), dimension    ( 0 :     b%dyh%NY-1     )  , intent( IN)  ::  Idyh
-!!!         real (kind = RKIND), dimension    ( 0 :     b%dxh%NX-1     )  , intent( IN)  ::  Idxh
-!!!         real (kind = RKIND), dimension    ( 0 :      b%Ez%NX-1 , 0 :      b%Ez%NY-1 , 0 :      b%Ez%NZ-1 )  , intent( INOUT)  ::  Ez
-!!!         real (kind = RKIND), dimension    ( 0 :      b%HX%NX-1 , 0 :      b%HX%NY-1 , 0 :      b%HX%NZ-1 )  , intent( IN)  ::  HX
-!!!         real (kind = RKIND), dimension    ( 0 :      b%Hy%NX-1 , 0 :      b%Hy%NY-1 , 0 :      b%Hy%NZ-1 )  , intent( IN)  ::  HY
-!!!         !------------------------> Variables locales
-!!!         real (kind = RKIND)  ::   Idyhj
-!!!         integer(kind = 4)  ::  i, j, k
-!!!         real (kind = RKIND)  ::  GE1_1,GE2_1
-!!!         integer(kind = INTEGERSIZEOFMEDIAMATRICES)  ::  medio
-!!!         !GE1_1=G1(1)
-!!!         GE2_1=G2(1)
-!!!#ifdef CompileWithOpenMP
-!!!!$OMP  PARALLEL DO  DEFAULT(SHARED) collapse (2) private (i,j,k,medio,Idyhj)
-!!!#endif
-!!!         Do k=1,b%sweepEz%NZ
-!!!            Do j=1,b%sweepEz%NY
-!!!               Do i=1,b%sweepEz%NX
-!!!                  Idyhj=Idyh(j)
-!!!                  Ez(i,j,k)=Ez(i,j,k)+GE2_1*((Hy(i,j,k)-Hy(i-1,j,k))*Idxh(i)-(Hx(i,j,k)-Hx(i,j-1,k))*Idyhj)
-!!!               End do
-!!!            End do
-!!!         End do
-!!!#ifdef CompileWithOpenMP
-!!!!$OMP  END PARALLEL DO
-!!!#endif
-!!!         return
-!!!      end subroutine FreeSpace_Advance_Ez
-!!!
-!!!
-!!!      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!
-!!!      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!      subroutine FreeSpace_Advance_Hx(Hx,Ey,Ez,IdyE,IdzE,b,gm1,gm2)
-!!!
-!!!         !------------------------>
-!!!         type (bounds_t), intent( IN)  ::  b
-!!!         REAL (KIND=RKIND)     , pointer, dimension ( : )   ::  gm1 ,gm2
-!!!         !!
-!!!         real (kind = RKIND), dimension    ( 0 :     b%dyE%NY-1    )  , intent( IN)  ::  IdyE
-!!!         real (kind = RKIND), dimension    ( 0 :     b%dzE%NZ-1    )  , intent( IN)  ::  IdzE
-!!!         real (kind = RKIND), dimension    ( 0 :      b%Hx%NX-1 , 0 :      b%Hx%NY-1 , 0 :      b%Hx%NZ-1 )  , intent( INOUT)  ::  Hx
-!!!         real (kind = RKIND), dimension    ( 0 :      b%Ey%NX-1 , 0 :      b%Ey%NY-1 , 0 :      b%Ey%NZ-1 )  , intent( IN)  ::  EY
-!!!         real (kind = RKIND), dimension    ( 0 :      b%Ez%NX-1 , 0 :      b%Ez%NY-1 , 0 :      b%Ez%NZ-1 )  , intent( IN)  ::  EZ
-!!!         !------------------------> Variables locales
-!!!         real (kind = RKIND)  ::  Idzek, Idyej
-!!!         integer(kind = 4)  ::  i, j, k
-!!!         real (kind = RKIND)  ::  GM1_1,GM2_1
-!!!         ! GM1_1=GM1(1)
-!!!         GM2_1=GM2(1)
-!!!#ifdef CompileWithOpenMP
-!!!!$OMP  PARALLEL DO  DEFAULT(SHARED) collapse (2) private (i,j,k,Idzek,Idyej)
-!!!#endif
-!!!         Do k=1,b%sweepHx%NZ
-!!!            Do j=1,b%sweepHx%NY
-!!!               Do i=1,b%sweepHx%NX
-!!!               Idzek=Idze(k)
-!!!               Idyej=Idye(j)
-!!!                  Hx(i,j,k)=Hx(i,j,k)+GM2_1*((Ey(i,j,k+1)-Ey(i,j,k))*Idzek-(Ez(i,j+1,k)-Ez(i,j,k))*Idyej)
-!!!               End do
-!!!            End do
-!!!         End do
-!!!#ifdef CompileWithOpenMP
-!!!!$OMP  END PARALLEL DO
-!!!#endif
-!!!         return
-!!!      end subroutine FreeSpace_Advance_Hx
-!!!
-!!!      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!      subroutine FreeSpace_Advance_Hy(Hy,Ez,Ex,IdzE,IdxE,b,gm1,gm2)
-!!!
-!!!         !------------------------>
-!!!         type (bounds_t), intent( IN)  ::  b
-!!!         REAL (KIND=RKIND)     , pointer, dimension ( : )   ::  gm1 ,gm2
-!!!         !
-!!!         real (kind = RKIND), dimension    ( 0 :     b%dzE%NZ-1     )  , intent( IN)  ::  IdzE
-!!!         real (kind = RKIND), dimension    ( 0 :     b%dxE%NX-1     )  , intent( IN)  ::  IdxE
-!!!         real (kind = RKIND), dimension    ( 0 :      b%Hy%NX-1 , 0 :      b%Hy%NY-1 , 0 :      b%Hy%NZ-1 )  , intent( INOUT)  ::  HY
-!!!         real (kind = RKIND), dimension    ( 0 :      b%Ez%NX-1 , 0 :      b%Ez%NY-1 , 0 :      b%Ez%NZ-1 )  , intent( IN)  ::  EZ
-!!!         real (kind = RKIND), dimension    ( 0 :      b%Ex%NX-1 , 0 :      b%Ex%NY-1 , 0 :      b%Ex%NZ-1 )  , intent( IN)  ::  EX
-!!!         !------------------------> Variables locales
-!!!         real (kind = RKIND)  ::  Idzek
-!!!         integer(kind = 4)  ::  i, j, k
-!!!         real (kind = RKIND)  ::  GM1_1,GM2_1
-!!!         ! GM1_1=GM1(1)
-!!!         GM2_1=GM2(1)
-!!!#ifdef CompileWithOpenMP
-!!!!$OMP  PARALLEL DO DEFAULT(SHARED) collapse (2) private (i,j,k,Idzek)
-!!!#endif
-!!!         Do k=1,b%sweepHy%NZ
-!!!            Do j=1,b%sweepHy%NY
-!!!               Do i=1,b%sweepHy%NX
-!!!                  Idzek=Idze(k)
-!!!                  Hy(i,j,k)=Hy(i,j,k)+GM2_1*((Ez(i+1,j,k)-Ez(i,j,k))*Idxe(i)-(Ex(i,j,k+1)-Ex(i,j,k))*Idzek)
-!!!               End do
-!!!            End do
-!!!         End do
-!!!#ifdef CompileWithOpenMP
-!!!!$OMP  END PARALLEL DO
-!!!#endif
-!!!         return
-!!!      end subroutine FreeSpace_Advance_Hy
-!!!
-!!!
-!!!      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!      subroutine FreeSpace_Advance_Hz(Hz,Ex,Ey,IdxE,IdyE,b,gm1,gm2)
-!!!
-!!!         !------------------------>
-!!!         type (bounds_t), intent( IN)  ::  b
-!!!         REAL (KIND=RKIND)     , pointer, dimension ( : )   ::  gm1 ,gm2
-!!!         !
-!!!         real (kind = RKIND), dimension    ( 0 :     b%dyE%NY-1     )  , intent( IN)  ::  IdyE
-!!!         real (kind = RKIND), dimension    ( 0 :     b%dxE%NX-1     )  , intent( IN)  ::  IdxE
-!!!         real (kind = RKIND), dimension    ( 0 :      b%Hz%NX-1 , 0 :      b%Hz%NY-1 , 0 :      b%Hz%NZ-1 )  , intent( INOUT)  ::  Hz
-!!!         real (kind = RKIND), dimension    ( 0 :      b%EX%NX-1 , 0 :      b%EX%NY-1 , 0 :      b%EX%NZ-1 )  , intent( IN)  ::  EX
-!!!         real (kind = RKIND), dimension    ( 0 :      b%Ey%NX-1 , 0 :      b%Ey%NY-1 , 0 :      b%Ey%NZ-1 )  , intent( IN)  ::  EY
-!!!         !------------------------> Variables locales
-!!!         real (kind = RKIND)  ::  Idyej
-!!!         integer(kind = 4)  ::  i, j, k
-!!!         real (kind = RKIND)  ::  GM1_1,GM2_1
-!!!         ! GM1_1=GM1(1)
-!!!         GM2_1=GM2(1)
-!!!#ifdef CompileWithOpenMP
-!!!!$OMP  PARALLEL DO DEFAULT(SHARED) collapse (2) private (i,j,k,Idyej)
-!!!#endif
-!!!         Do k=1,b%sweepHz%NZ
-!!!            Do j=1,b%sweepHz%NY
-!!!               Do i=1,b%sweepHz%NX
-!!!               Idyej=Idye(j)
-!!!                  Hz(i,j,k)=Hz(i,j,k)+GM2_1*((Ex(i,j+1,k)-Ex(i,j,k))*Idyej-(Ey(i+1,j,k)-Ey(i,j,k))*Idxe(i))
-!!!               End do
-!!!            End do
-!!!         End do
-!!!#ifdef CompileWithOpenMP
-!!!!$OMP  END PARALLEL DO
-!!!#endif
-!!!         return
-!!!      end subroutine FreeSpace_Advance_Hz
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      subroutine FreeSpace_Advance_Ex(Ex,Hy,Hz,Idyh,Idzh,b,g1,g2)
+
+         !------------------------>
+         type (bounds_t), intent( IN)  ::  b
+         REAL (KIND=RKIND)     , pointer, dimension ( : )  ::  g1, g2
+         !
+         real (kind = RKIND), dimension    ( 0 :     b%dyh%NY-1     )  , intent( IN)  ::  Idyh
+         real (kind = RKIND), dimension    ( 0 :     b%dzh%NZ-1     )  , intent( IN)  ::  Idzh
+         real (kind = RKIND), dimension    ( 0 :      b%Ex%NX-1 , 0 :      b%Ex%NY-1 , 0 :      b%Ex%NZ-1 )  , intent( INOUT)  ::  Ex
+         real (kind = RKIND), dimension    ( 0 :      b%Hy%NX-1 , 0 :      b%Hy%NY-1 , 0 :      b%Hy%NZ-1 )  , intent( IN)  ::  HY
+         real (kind = RKIND), dimension    ( 0 :      b%Hz%NX-1 , 0 :      b%Hz%NY-1 , 0 :      b%Hz%NZ-1 )  , intent( IN)  ::  HZ
+         !------------------------> Variables locales
+         real (kind = RKIND)  ::  Idzhk, Idyhj
+         integer(kind = 4)  ::  i, j, k
+         real (kind = RKIND)  ::  GE1_1,GE2_1
+         integer(kind = INTEGERSIZEOFMEDIAMATRICES)  ::  medio
+         ! GE1_1=G1(1)
+         GE2_1=G2(1)
+#ifdef CompileWithOpenMP
+!$OMP  PARALLEL DO DEFAULT(SHARED) collapse (2) private (i,j,k,medio,Idzhk,Idyhj)
+#endif
+         Do k=1,b%sweepEx%NZ
+            Do j=1,b%sweepEx%NY
+               Do i=1,b%sweepEx%NX
+                  Idzhk=Idzh(k)
+                  Idyhj=Idyh(j)
+                  Ex(i,j,k)=Ex(i,j,k)+GE2_1*((Hz(i,j,k)-Hz(i,j-1,k))*Idyhj-(Hy(i,j,k)-Hy(i,j,k-1))*Idzhk)
+               End do
+            End do
+         End do
+#ifdef CompileWithOpenMP
+!$OMP  END PARALLEL DO
+#endif
+         return
+      end subroutine FreeSpace_Advance_Ex
+      
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      subroutine FreeSpace_Advance_Ey(Ey,Hz,Hx,Idzh,Idxh,b,g1,g2)
+
+         !------------------------>
+         type (bounds_t), intent( IN)  ::  b
+         REAL (KIND=RKIND)     , pointer, dimension ( : )   ::  g1, g2
+         !
+         real (kind = RKIND), dimension    ( 0 :     b%dzh%NZ-1     )  , intent( IN)  ::  Idzh
+         real (kind = RKIND), dimension    ( 0 :     b%dxh%NX-1     )  , intent( IN)  ::  Idxh
+         real (kind = RKIND), dimension    ( 0 :      b%Ey%NX-1 , 0 :      b%Ey%NY-1 , 0 :      b%Ey%NZ-1 )  , intent( INOUT)  ::  EY
+         real (kind = RKIND), dimension    ( 0 :      b%Hz%NX-1 , 0 :      b%Hz%NY-1 , 0 :      b%Hz%NZ-1 )  , intent( IN)  ::  HZ
+         real (kind = RKIND), dimension    ( 0 :      b%Hx%NX-1 , 0 :      b%Hx%NY-1 , 0 :      b%Hx%NZ-1 )  , intent( IN)  ::  HX
+         !------------------------> Variables locales
+         real (kind = RKIND)  ::  Idzhk
+         integer(kind = 4)  ::  i, j, k
+         integer(kind = INTEGERSIZEOFMEDIAMATRICES)  ::  medio
+         real (kind = RKIND)  ::  GE1_1,GE2_1
+         !GE1_1=G1(1)
+         GE2_1=G2(1)
+#ifdef CompileWithOpenMP
+!$OMP  PARALLEL DO DEFAULT(SHARED) collapse (2) private (i,j,k,medio,Idzhk)
+#endif
+         Do k=1,b%sweepEy%NZ
+            Do j=1,b%sweepEy%NY
+               Do i=1,b%sweepEy%NX
+                  Idzhk=Idzh(k)
+                  Ey(i,j,k)=Ey(i,j,k)+GE2_1*((Hx(i,j,k)-Hx(i,j,k-1))*Idzhk-(Hz(i,j,k)-Hz(i-1,j,k))*Idxh(i))
+               End do
+            End do
+         End do
+#ifdef CompileWithOpenMP
+!$OMP  END PARALLEL DO
+#endif
+
+
+
+         return
+      end subroutine FreeSpace_Advance_Ey
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      subroutine FreeSpace_Advance_Ez(Ez,Hx,Hy,Idxh,Idyh,b,g1,g2)
+
+         !------------------------>
+         type (bounds_t), intent( IN)  ::  b
+         REAL (KIND=RKIND)     , pointer, dimension ( : )   ::  g1, g2
+         !
+         real (kind = RKIND), dimension    ( 0 :     b%dyh%NY-1     )  , intent( IN)  ::  Idyh
+         real (kind = RKIND), dimension    ( 0 :     b%dxh%NX-1     )  , intent( IN)  ::  Idxh
+         real (kind = RKIND), dimension    ( 0 :      b%Ez%NX-1 , 0 :      b%Ez%NY-1 , 0 :      b%Ez%NZ-1 )  , intent( INOUT)  ::  Ez
+         real (kind = RKIND), dimension    ( 0 :      b%HX%NX-1 , 0 :      b%HX%NY-1 , 0 :      b%HX%NZ-1 )  , intent( IN)  ::  HX
+         real (kind = RKIND), dimension    ( 0 :      b%Hy%NX-1 , 0 :      b%Hy%NY-1 , 0 :      b%Hy%NZ-1 )  , intent( IN)  ::  HY
+         !------------------------> Variables locales
+         real (kind = RKIND)  ::   Idyhj
+         integer(kind = 4)  ::  i, j, k
+         real (kind = RKIND)  ::  GE1_1,GE2_1
+         integer(kind = INTEGERSIZEOFMEDIAMATRICES)  ::  medio
+         !GE1_1=G1(1)
+         GE2_1=G2(1)
+#ifdef CompileWithOpenMP
+!$OMP  PARALLEL DO  DEFAULT(SHARED) collapse (2) private (i,j,k,medio,Idyhj)
+#endif
+         Do k=1,b%sweepEz%NZ
+            Do j=1,b%sweepEz%NY
+               Do i=1,b%sweepEz%NX
+                  Idyhj=Idyh(j)
+                  Ez(i,j,k)=Ez(i,j,k)+GE2_1*((Hy(i,j,k)-Hy(i-1,j,k))*Idxh(i)-(Hx(i,j,k)-Hx(i,j-1,k))*Idyhj)
+               End do
+            End do
+         End do
+#ifdef CompileWithOpenMP
+!$OMP  END PARALLEL DO
+#endif
+         return
+      end subroutine FreeSpace_Advance_Ez
+
+
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      subroutine FreeSpace_Advance_Hx(Hx,Ey,Ez,IdyE,IdzE,b,gm1,gm2)
+
+         !------------------------>
+         type (bounds_t), intent( IN)  ::  b
+         REAL (KIND=RKIND)     , pointer, dimension ( : )   ::  gm1 ,gm2
+         !!
+         real (kind = RKIND), dimension    ( 0 :     b%dyE%NY-1    )  , intent( IN)  ::  IdyE
+         real (kind = RKIND), dimension    ( 0 :     b%dzE%NZ-1    )  , intent( IN)  ::  IdzE
+         real (kind = RKIND), dimension    ( 0 :      b%Hx%NX-1 , 0 :      b%Hx%NY-1 , 0 :      b%Hx%NZ-1 )  , intent( INOUT)  ::  Hx
+         real (kind = RKIND), dimension    ( 0 :      b%Ey%NX-1 , 0 :      b%Ey%NY-1 , 0 :      b%Ey%NZ-1 )  , intent( IN)  ::  EY
+         real (kind = RKIND), dimension    ( 0 :      b%Ez%NX-1 , 0 :      b%Ez%NY-1 , 0 :      b%Ez%NZ-1 )  , intent( IN)  ::  EZ
+         !------------------------> Variables locales
+         real (kind = RKIND)  ::  Idzek, Idyej
+         integer(kind = 4)  ::  i, j, k
+         real (kind = RKIND)  ::  GM1_1,GM2_1
+         ! GM1_1=GM1(1)
+         GM2_1=GM2(1)
+#ifdef CompileWithOpenMP
+!$OMP  PARALLEL DO  DEFAULT(SHARED) collapse (2) private (i,j,k,Idzek,Idyej)
+#endif
+         Do k=1,b%sweepHx%NZ
+            Do j=1,b%sweepHx%NY
+               Do i=1,b%sweepHx%NX
+               Idzek=Idze(k)
+               Idyej=Idye(j)
+                  Hx(i,j,k)=Hx(i,j,k)+GM2_1*((Ey(i,j,k+1)-Ey(i,j,k))*Idzek-(Ez(i,j+1,k)-Ez(i,j,k))*Idyej)
+               End do
+            End do
+         End do
+#ifdef CompileWithOpenMP
+!$OMP  END PARALLEL DO
+#endif
+         return
+      end subroutine FreeSpace_Advance_Hx
+
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      subroutine FreeSpace_Advance_Hy(Hy,Ez,Ex,IdzE,IdxE,b,gm1,gm2)
+
+         !------------------------>
+         type (bounds_t), intent( IN)  ::  b
+         REAL (KIND=RKIND)     , pointer, dimension ( : )   ::  gm1 ,gm2
+         !
+         real (kind = RKIND), dimension    ( 0 :     b%dzE%NZ-1     )  , intent( IN)  ::  IdzE
+         real (kind = RKIND), dimension    ( 0 :     b%dxE%NX-1     )  , intent( IN)  ::  IdxE
+         real (kind = RKIND), dimension    ( 0 :      b%Hy%NX-1 , 0 :      b%Hy%NY-1 , 0 :      b%Hy%NZ-1 )  , intent( INOUT)  ::  HY
+         real (kind = RKIND), dimension    ( 0 :      b%Ez%NX-1 , 0 :      b%Ez%NY-1 , 0 :      b%Ez%NZ-1 )  , intent( IN)  ::  EZ
+         real (kind = RKIND), dimension    ( 0 :      b%Ex%NX-1 , 0 :      b%Ex%NY-1 , 0 :      b%Ex%NZ-1 )  , intent( IN)  ::  EX
+         !------------------------> Variables locales
+         real (kind = RKIND)  ::  Idzek
+         integer(kind = 4)  ::  i, j, k
+         real (kind = RKIND)  ::  GM1_1,GM2_1
+         ! GM1_1=GM1(1)
+         GM2_1=GM2(1)
+#ifdef CompileWithOpenMP
+!$OMP  PARALLEL DO DEFAULT(SHARED) collapse (2) private (i,j,k,Idzek)
+#endif
+         Do k=1,b%sweepHy%NZ
+            Do j=1,b%sweepHy%NY
+               Do i=1,b%sweepHy%NX
+                  Idzek=Idze(k)
+                  Hy(i,j,k)=Hy(i,j,k)+GM2_1*((Ez(i+1,j,k)-Ez(i,j,k))*Idxe(i)-(Ex(i,j,k+1)-Ex(i,j,k))*Idzek)
+               End do
+            End do
+         End do
+#ifdef CompileWithOpenMP
+!$OMP  END PARALLEL DO
+#endif
+         return
+      end subroutine FreeSpace_Advance_Hy
+
+
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      subroutine FreeSpace_Advance_Hz(Hz,Ex,Ey,IdxE,IdyE,b,gm1,gm2)
+
+         !------------------------>
+         type (bounds_t), intent( IN)  ::  b
+         REAL (KIND=RKIND)     , pointer, dimension ( : )   ::  gm1 ,gm2
+         !
+         real (kind = RKIND), dimension    ( 0 :     b%dyE%NY-1     )  , intent( IN)  ::  IdyE
+         real (kind = RKIND), dimension    ( 0 :     b%dxE%NX-1     )  , intent( IN)  ::  IdxE
+         real (kind = RKIND), dimension    ( 0 :      b%Hz%NX-1 , 0 :      b%Hz%NY-1 , 0 :      b%Hz%NZ-1 )  , intent( INOUT)  ::  Hz
+         real (kind = RKIND), dimension    ( 0 :      b%EX%NX-1 , 0 :      b%EX%NY-1 , 0 :      b%EX%NZ-1 )  , intent( IN)  ::  EX
+         real (kind = RKIND), dimension    ( 0 :      b%Ey%NX-1 , 0 :      b%Ey%NY-1 , 0 :      b%Ey%NZ-1 )  , intent( IN)  ::  EY
+         !------------------------> Variables locales
+         real (kind = RKIND)  ::  Idyej
+         integer(kind = 4)  ::  i, j, k
+         real (kind = RKIND)  ::  GM1_1,GM2_1
+         ! GM1_1=GM1(1)
+         GM2_1=GM2(1)
+#ifdef CompileWithOpenMP
+!$OMP  PARALLEL DO DEFAULT(SHARED) collapse (2) private (i,j,k,Idyej)
+#endif
+         Do k=1,b%sweepHz%NZ
+            Do j=1,b%sweepHz%NY
+               Do i=1,b%sweepHz%NX
+               Idyej=Idye(j)
+                  Hz(i,j,k)=Hz(i,j,k)+GM2_1*((Ex(i,j+1,k)-Ex(i,j,k))*Idyej-(Ey(i+1,j,k)-Ey(i,j,k))*Idxe(i))
+               End do
+            End do
+         End do
+#ifdef CompileWithOpenMP
+!$OMP  END PARALLEL DO
+#endif
+         return
+      end subroutine FreeSpace_Advance_Hz
 
       !!!!!!!!!sgg 051214 fill in the magnetic walls after the wireframe info
 
