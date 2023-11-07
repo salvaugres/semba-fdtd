@@ -21,6 +21,7 @@ module NFDETypes_extension
       module procedure sonda_eq
       module procedure sondas_eq
       module procedure massonda_eq
+      module procedure massondas_eq
    end interface
 
 contains
@@ -166,86 +167,79 @@ contains
       res = .true.
    end function
 
-   logical function abstractSonda_eq(a, b) result(equal)
-    type(abstractSonda), intent(in) :: a, b
-    integer(kind=4) :: i
-  
-    equal = .false. 
-  
-    if (a%n_FarField /= b%n_FarField) return
-    if (a%n_Electric /= b%n_Electric) return
-    if (a%n_Magnetic /= b%n_Magnetic) return
-    if (a%n_NormalElectric /= b%n_NormalElectric) return
-    if (a%n_NormalMagnetic /= b%n_NormalMagnetic) return
-    if (a%n_SurfaceElectricCurrent /= b%n_SurfaceElectricCurrent) return
-    if (a%n_SurfaceMagneticCurrent /= b%n_SurfaceMagneticCurrent) return
-  
-    ! Check arrays
-    if (allocated(a%FarField) /= allocated(b%FarField)) return
-    if (allocated(a%Electric) /= allocated(b%Electric)) return
-    if (allocated(a%Magnetic) /= allocated(b%Magnetic)) return
-    if (allocated(a%NormalElectric) /= allocated(b%NormalElectric)) return
-    if (allocated(a%NormalMagnetic) /= allocated(b%NormalMagnetic)) return
-    if (allocated(a%SurfaceElectricCurrent) /= allocated(b%SurfaceElectricCurrent)) return
-  
-    if (allocated(a%FarField)) then
+   logical function abstractSonda_eq(a, b) result(res)
+      type(abstractSonda), intent(in) :: a, b
+      integer(kind=4) :: i
+
+      res = .false.
+
+      if (a%n_FarField /= b%n_FarField) return
+      if (a%n_Electric /= b%n_Electric) return
+      if (a%n_Magnetic /= b%n_Magnetic) return
+      if (a%n_NormalElectric /= b%n_NormalElectric) return
+      if (a%n_NormalMagnetic /= b%n_NormalMagnetic) return
+      if (a%n_SurfaceElectricCurrent /= b%n_SurfaceElectricCurrent) return
+      if (a%n_SurfaceMagneticCurrent /= b%n_SurfaceMagneticCurrent) return
+
+      if (.not. associated(a%FarField)               .or. .not. associated(b%FarField)) return
+      if (.not. associated(a%Electric)               .or. .not. associated(b%Electric)) return
+      if (.not. associated(a%Magnetic)               .or. .not. associated(b%Magnetic)) return
+      if (.not. associated(a%NormalElectric)         .or. .not. associated(b%NormalElectric)) return
+      if (.not. associated(a%NormalMagnetic)         .or. .not. associated(b%NormalMagnetic)) return
+      if (.not. associated(a%SurfaceElectricCurrent) .or. .not. associated(b%SurfaceElectricCurrent)) return
+      if (.not. associated(a%SurfaceMagneticCurrent) .or. .not. associated(b%SurfaceMagneticCurrent)) return
+
       if (size(a%FarField) /= size(b%FarField)) return
       do i = 1, size(a%FarField)
-        if (.not. areFarField_SondaEqual(a%FarField(i), b%FarField(i))) return
+         if (.not. a%FarField(i)%probe == b%FarField(i)%probe) return
       end do
-    end if
-  
-    if (allocated(a%Electric)) then
+
       if (size(a%Electric) /= size(b%Electric)) return
       do i = 1, size(a%Electric)
-        if (.not. areElectric_SondaEqual(a%Electric(i), b%Electric(i))) return
+         if (.not. a%Electric(i)%probe == b%Electric(i)%probe) return
       end do
-    end if
-  
-    if (allocated(a%Magnetic)) then
+
       if (size(a%Magnetic) /= size(b%Magnetic)) return
       do i = 1, size(a%Magnetic)
-        if (.not. areMagnetic_SondaEqual(a%Magnetic(i), b%Magnetic(i))) return
+         if (.not. a%Magnetic(i)%probe == b%Magnetic(i)%probe) return
       end do
-    end if
-  
-    if (allocated(a%NormalElectric)) then
+
       if (size(a%NormalElectric) /= size(b%NormalElectric)) return
       do i = 1, size(a%NormalElectric)
-        if (.not. areNormalElectric_SondaEqual(a%NormalElectric(i), b%NormalElectric(i))) return
+         if (.not. a%NormalElectric(i)%probe == b%NormalElectric(i)%probe) return
       end do
-    end if
-  
-    if (allocated(a%NormalMagnetic)) then
+
       if (size(a%NormalMagnetic) /= size(b%NormalMagnetic)) return
       do i = 1, size(a%NormalMagnetic)
-        if (.not. areNormalMagnetic_SondaEqual(a%NormalMagnetic(i), b%NormalMagnetic(i))) return
+         if (.not. a%NormalMagnetic(i)%probe == b%NormalMagnetic(i)%probe) return
       end do
-    end if
-  
-    if (allocated(a%SurfaceElectricCurrent)) then
+
       if (size(a%SurfaceElectricCurrent) /= size(b%SurfaceElectricCurrent)) return
       do i = 1, size(a%SurfaceElectricCurrent)
-        if (.not. areSurfaceElectricCurrent_SondaEqual(a%SurfaceElectricCurrent(i), b%SurfaceElectricCurrent(i))) return
+         if (.not. a%SurfaceElectricCurrent(i)%probe == b%SurfaceElectricCurrent(i)%probe) return
       end do
-    end if
-  
-    equal = .true.
-  end function abstractSonda_eq
-  
+
+      if (size(a%SurfaceMagneticCurrent) /= size(b%SurfaceMagneticCurrent)) return
+      do i = 1, size(a%SurfaceMagneticCurrent)
+         if (.not. a%SurfaceMagneticCurrent(i)%probe == b%SurfaceMagneticCurrent(i)%probe) return
+      end do
+
+      res = .true.
+   end function abstractSonda_eq
 
    logical function sondas_eq(a, b) result(res)
       type(Sondas), intent(in) :: a, b
+      integer :: i
 
       res = .false.
 
       if (a%n_probes /= b%n_probes) return
       if (a%n_probes_max /= b%n_probes_max) return
 
-      if (allocated(a%probes) /= allocated(b%probes)) return
+      if (.not. associated(a%probes) .or. .not. associated(b%probes)) return
       if (size(a%probes) /= size(b%probes)) return
       do i = 1, size(a%probes)
-         if (.not. areAbstractSondaEqual(a%probes(i), b%probes(i))) return
+         if (.not.a%probes(i) == b%probes(i)) return
       end do
 
       res = .true.
@@ -307,10 +301,29 @@ contains
       if (a%tstart /= b%tstart) return
       if (a%tstop /= b%tstop) return
       if (a%tstep /= b%tstep) return
-      if (a%fstart     /= b%fstart) return
-      if (a%fstop      /= b%fstop) return
-      if (a%fstep      /= b%fstep) return
+      if (a%fstart /= b%fstart) return
+      if (a%fstop/= b%fstop) return
+      if (a%fstep /= b%fstep) return
       res = .true.
    end function
 
+   logical function MasSondas_eq(a, b)
+      type(MasSondas), intent(in) :: a, b
+      integer(kind=4) :: i
+
+      MasSondas_eq = .false.
+
+      if (a%length /= b%length) return
+      if (a%length_max /= b%length_max) return
+      if (a%len_cor_max /= b%len_cor_max) return
+
+      if (.not. associated(a%collection) .or. .not. associated(b%collection)) return
+
+      if (size(a%collection) /= size(b%collection)) return
+      do i = 1, size(a%collection)
+         if (.not. a%collection(i) == b%collection(i)) return
+      end do
+
+      MasSondas_eq = .true.
+   end function MasSondas_eq
 end module

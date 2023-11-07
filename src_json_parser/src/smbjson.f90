@@ -21,12 +21,12 @@ module smbjson
    character (len=*), parameter :: J_GENERAL = "general"
    character (len=*), parameter :: J_TIME_STEP = "timeStep"
    character (len=*), parameter :: J_NUMBER_OF_STEPS = "numberOfSteps"
-   
+
    ! type(Desplazamiento)
    character (len=*), parameter :: J_GRID = "grid"
    character (len=*), parameter :: J_NUMBER_OF_CELLS = "numberOfCells"
    character (len=*), parameter :: J_STEPS = "steps"
-   
+
    ! type(Frontera)
    character (len=*), parameter :: J_BOUNDARY = "boundary"
    character (len=*), parameter :: J_ALL = "all"
@@ -35,7 +35,7 @@ module smbjson
    character (len=*), parameter :: J_PERIODIC = "periodic"
    character (len=*), parameter :: J_MUR = "mur"
    character (len=*), parameter :: J_PML = "pml"
-   
+
    ! -- source types
    character (len=*), parameter :: J_SOURCES = "sources"
    ! type(Planewave)
@@ -47,7 +47,7 @@ module smbjson
    character (len=*), parameter :: J_POLARIZATION = "polarization"
    character (len=*), parameter :: J_POLARIZATION_ALPHA = "alpha"
    character (len=*), parameter :: J_POLARIZATION_BETA  = "beta"
-   
+
    type, public :: VoxelRegion_t
       real, dimension(2,3) :: coords
    end type VoxelRegion_t
@@ -62,7 +62,7 @@ contains
       character (len=*), intent(in) :: filename
       type(Parseador) :: res !! Problem Description
 
-      type(json_file) :: json       !! the JSON structure read from the file
+      type(json_file) :: json
       type(json_core) :: core
       type(json_value), pointer :: root
 
@@ -77,10 +77,10 @@ contains
          call json%print_error_message(error_unit)
          stop
       end if
-      
+
       call json%get_core(core)
       call json%get('.', root)
-      
+
       call initializeProblemDescription(res)
       res%general = readGeneral(core, root)
       res%despl = readGrid(core, root)
@@ -88,12 +88,12 @@ contains
       res%plnSrc = readPlanewaves(core, root)
    end function
 
-   subroutine getRealVecAndStore(core, place, path, dest)
+   subroutine getRealVec(core, place, path, dest)
       type(json_core) :: core
       type(json_value), pointer :: place
       character(kind=CK, len=*) :: path
       real (kind=RK), pointer :: dest(:)
-      
+
       real(RK), allocatable :: vec(:)
       logical :: found = .false.
 
@@ -112,16 +112,16 @@ contains
       integer :: i, n
       type(json_value), pointer :: coordEntry, voxelRegionEntry
       real (kind=RK), pointer :: vec(:)
-      
+
       call core%get(place, J_CELL_REGION, voxelRegionEntry)
       do i = 1, core%count(voxelRegionEntry)
          call core%get_child(voxelRegionEntry, i, coordEntry)
-         call getRealVecAndStore(core, coordEntry, '.', vec)
+         call getRealVec(core, coordEntry, '.', vec)
          if (size(vec) /= 3) then
             stop "Voxel regions are defined by two numerical vectors of size 3."
          end if
          res%coords(i,:) = vec(1:3)
-      end do     
+      end do
    end function
 
    function jsonValueFilterByKeyValue(core, srcs, key, value) result (out)
@@ -138,23 +138,22 @@ contains
          call core%get_child(srcs, i, src)
          call core%get(src, key, type, found)
          if(found .and. type == value) then
-           n = n + 1 
+            n = n + 1
          end if
       end do
-      
+
       allocate(out(n))
       j = 1
       do i = 1, core%count(srcs)
          call core%get_child(srcs, i, src)
          call core%get(src, key, type, found)
          if(found .and. type == value) then
-           out(j)%p => src
-           j = j + 1
+            out(j)%p => src
+            j = j + 1
          end if
       end do
 
    end function
-
 
    function readGrid(core, root) result (res)
       type(Desplazamiento) :: res
@@ -165,9 +164,9 @@ contains
       call core%get(root, J_GRID//'.'//J_NUMBER_OF_CELLS//'(2)',res%nY)
       call core%get(root, J_GRID//'.'//J_NUMBER_OF_CELLS//'(3)',res%nZ)
 
-      call getRealVecAndStore(core, root, J_GRID//'.'//J_STEPS//'.x', res%desX)
-      call getRealVecAndStore(core, root, J_GRID//'.'//J_STEPS//'.y', res%desY)
-      call getRealVecAndStore(core, root, J_GRID//'.'//J_STEPS//'.z', res%desZ)
+      call getRealVec(core, root, J_GRID//'.'//J_STEPS//'.x', res%desX)
+      call getRealVec(core, root, J_GRID//'.'//J_STEPS//'.y', res%desY)
+      call getRealVec(core, root, J_GRID//'.'//J_STEPS//'.z', res%desZ)
    end function
 
    function readBoundary(core, root) result (res)
@@ -216,7 +215,7 @@ contains
       integer :: i
 
       call core%get(root, J_SOURCES, sources)
-      pws = jsonValueFilterByKeyValue(core, sources, J_TYPE, J_TYPE_PLANEWAVE)      
+      pws = jsonValueFilterByKeyValue(core, sources, J_TYPE, J_TYPE_PLANEWAVE)
       allocate(res%collection(size(pws)))
       do i=1, size(pws)
          res%collection(i) = readPlanewave(core, pws(i)%p)
@@ -226,9 +225,9 @@ contains
          type(PlaneWave) :: res
          type(json_core) :: core
          type(json_value), pointer :: pw
-         
+
          character (len=:), allocatable :: label
-         type(VoxelRegion_t) :: region 
+         type(VoxelRegion_t) :: region
          logical :: found
 
          call core%get(pw, J_MAGNITUDE_FILE, label)
@@ -237,7 +236,7 @@ contains
          call core%get(pw, J_ATTRIBUTE, label, found)
          if (found) then
             res%atributo = trim(adjustl(label))
-         else 
+         else
             res%atributo = ""
          endif
 
@@ -245,24 +244,22 @@ contains
          call core%get(pw, J_DIRECTION//'.'//J_DIRECTION_PHI, res%phi)
          call core%get(pw, J_POLARIZATION//'.'//J_POLARIZATION_ALPHA, res%alpha)
          call core%get(pw, J_POLARIZATION//'.'//J_POLARIZATION_BETA, res%beta)
-         
+
          region = getVoxelRegion(core, pw)
          res%coor1 = region%coords(1,:)
          res%coor2 = region%coords(2,:)
-         
+
          res%isRC = .false.
          res%nummodes = 1
          res%incertmax = 0.0
       end function
-
    end function
-
 
    function readGeneral(json, root) result (res)
       type(NFDEGeneral) :: res
       type(json_core) :: json
       type(json_value), pointer :: root
-      
+
       call json%get(root, J_GENERAL//'.'//J_TIME_STEP,       res%dt)
       call json%get(root, J_GENERAL//'.'//J_NUMBER_OF_STEPS, res%nmax)
    end function
