@@ -610,6 +610,7 @@ module  FDETYPES
       logical  :: thereAreMagneticMedia
       logical  :: thereArePMLMagneticMedia
       CHARACTER (LEN=1024) :: nEntradaRoot
+      type (coorsxyzP)  ::  Punto
    end type
 
    type nf2ff_t
@@ -682,7 +683,7 @@ contains
       if (prioritizeCOMPOoverPEC) then  !Composite surface
          prior_CS=prior_PEC+2
       else
-         prior_CS=prior_PEC-2       !composites has lower than PEC to properly handle junctions PEC-composite !(Sabrina's 210312 mail)
+         prior_CS=prior_PEC-2       !composites has lower than PEC to properly handle junctions PEC-composite !(ss's 210312 mail)
       endif
       if (prioritizeISOTROPICBODYoverall) then  ! Isotropic body
          prior_IB      = 200   !SOLO PARA EL CASO DEL SIVA SACAR BOCADOS DE vacio 
