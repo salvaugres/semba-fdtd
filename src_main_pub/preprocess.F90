@@ -1728,8 +1728,9 @@ CONTAINS
          sgg%Med(contamedia)%wire(1)%C = this%twires%TW(j)%CAP
          sgg%Med(contamedia)%wire(1)%P_R = this%twires%TW(j)%P_RES
          sgg%Med(contamedia)%wire(1)%P_l = this%twires%TW(j)%P_IND
+
          sgg%Med(contamedia)%wire(1)%P_C = this%twires%TW(j)%P_CAP
-         if (this%twires%TW(j)%disp) then
+         if (this%twires%TW(j)%disp) then   
             allocate (sgg%Med(contamedia)%wire(1)%disp(1))
             call asignawiredisper(sgg%Med(contamedia)%wire(1)%disp(1), &
                                   this%twires%TW(j)%dispfile)
@@ -2406,7 +2407,7 @@ endif
          sgg%Med(contamedia)%SlantedWire(1)%P_L = this%swires%SW(j)%P_ind
          sgg%Med(contamedia)%SlantedWire(1)%P_C = this%swires%SW(j)%P_cap
          
-         if (this%swires%SW(j)%disp) then
+         if (this%swires%SW(j)%disp) then               
             allocate (sgg%Med(contamedia)%SlantedWire(1)%disp(1))
             call asignawiredisper(sgg%Med(contamedia)%SlantedWire(1)%disp(1), &
                                   this%swires%SW(j)%dispfile)

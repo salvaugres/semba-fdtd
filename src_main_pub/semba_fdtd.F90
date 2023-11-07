@@ -351,7 +351,8 @@ PROGRAM SEMBA_FDTD_launcher
       OPEN (9, file='launch', FORM='formatted',action='read')
       READ (9, '(a)') chain3
       chain3=trim(adjustl(chain3))
-      CLOSE (9)
+      CLOSE (9)               
+       print *,'----> launch input file '//trim(adjustl(chain3))
    endif
 #ifdef CompileWithMPI
    CALL MPI_Barrier (SUBCOMM_MPI, ierr)
@@ -1857,7 +1858,7 @@ contains
           !!    opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))
           case ('-forceresampled') !a menos que se pida explicitamente, no se resamplea 120123
               forceresampled=.true.
-              opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))
+              opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))   
               
           CASE ('-wirethickness')
             i = i + 1
@@ -1913,12 +1914,12 @@ contains
                   (trim(adjustl(wiresflavor)) == 'slanted').xor.  &
                   (trim(adjustl(wiresflavor)) =='semistructured')) )  THEN
                CALL stoponerror (layoutnumber, size, 'Invalid wires flavor->'//trim(adjustl(wiresflavor)),.true.); statuse=-1; !return
-            END IF
+            END IF    
 #ifndef CompileWithThickWires
             select case (trim(adjustl(wiresflavor)))
             case ('holland','transition')
                 if (wirethickness/=1) then
-                CALL stoponerror (layoutnumber, size, 'Holland wire flavor not available in this compilation',.true.); statuse=-1; !return
+                    CALL stoponerror (layoutnumber, size, 'Holland wire flavor not available in this compilation',.true.); statuse=-1; !return
                 endif
             end select   
 #endif    
