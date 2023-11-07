@@ -62,36 +62,38 @@ module smbjson
    character (len=*), parameter :: J_PR_TYPE = "type"
    character (len=*), parameter :: J_PR_OUTPUT_NAME = "outputName"
    character (len=*), parameter :: J_PR_DIRECTIONS = "directions"
+
+   ! domain stuff
    character (len=*), parameter :: J_PR_DOMAIN = "domain"
    character (len=*), parameter :: J_PR_DOMAIN_FILENAME = "filename"
    character (len=*), parameter :: J_PR_DOMAIN_TYPE = "type"
    character (len=*), parameter :: J_PR_DOMAIN_TIME = "time"
    character (len=*), parameter :: J_PR_DOMAIN_FREQ = "frequency"
    character (len=*), parameter :: J_PR_DOMAIN_TRANSFER = "transfer"
-   ! character (len=*), parameter :: J_PR_DOMAIN_TIMEFREQ = "timeFrequency"
-   ! character (len=*), parameter :: J_PR_DOMAIN_TIMETRANSF = "timeTransfer"
-   ! character (len=*), parameter :: J_PR_DOMAIN_FREQTRANSF = "frequencyTransfer"
-   ! character (len=*), parameter :: J_PR_DOMAIN_TIMEFREQTRANSF = "timeFrequencyTransfer"
+   character (len=*), parameter :: J_PR_DOMAIN_TIMEFREQ = "timeFrequency"
+   character (len=*), parameter :: J_PR_DOMAIN_TIMETRANSF = "timeTransfer"
+   character (len=*), parameter :: J_PR_DOMAIN_FREQTRANSF = "frequencyTransfer"
+   character (len=*), parameter :: J_PR_DOMAIN_TIMEFREQTRANSF = "all"
+   character (len=*), parameter :: J_PR_DOMAIN_TIME_START = "timeStart"
+   character (len=*), parameter :: J_PR_DOMAIN_TIME_STOP   = "timeEnd"
+   character (len=*), parameter :: J_PR_DOMAIN_TIME_STEP  = "timeStep"
+   character (len=*), parameter :: J_PR_DOMAIN_FREQ_START = "frequencyStart"
+   character (len=*), parameter :: J_PR_DOMAIN_FREQ_STOP   = "frequencyEnd"
+   character (len=*), parameter :: J_PR_DOMAIN_FREQ_STEP  = "frequencyStep"
+  
    ! type(MasSonda)
    character (len=*), parameter :: J_PR_ELECTRIC = "electric"
    character (len=*), parameter :: J_PR_MAGNETIC = "magnetic"
    character (len=*), parameter :: J_PR_CURRENT = "current"
    character (len=*), parameter :: J_PR_VOLTAGE = "voltage"
 
-   type, public :: VoxelRegion
+   type, private :: VoxelRegion
       real, dimension(2,3) :: coords
    end type VoxelRegion
 
-   type, public :: Cell
+   type, private :: Cell
       real, dimension(3) :: v
    end type Cell
-
-   type, public :: Domain
-      character (len=:) :: filename
-      real (kind=RK) :: tstart, tstop, tstep
-      real (kind=RK) :: fstart, fstop, fstep
-      integer (kind=4) :: type
-   end type
 
    type, private :: json_value_ptr
       type(json_value), pointer :: p
@@ -143,6 +145,24 @@ contains
       if (found) then
          allocate(dest(size(vec)))
          dest = vec
+      endif
+   end subroutine
+
+   subroutine setRealIfFound(core, place, path, dest, default)
+      type(json_core) :: core
+      type(json_value), pointer :: place
+      character(kind=CK, len=*) :: path
+
+      real (kind=RK), intent(inout) :: dest
+      real (kind=RK), optional :: default
+      logical :: found
+      real (kind=RK) :: val
+
+      call core%get(place, path, val, found)
+      if (found) then
+         dest = val
+      else
+         dest = default
       endif
    end subroutine
 
@@ -301,17 +321,14 @@ contains
       type(json_core) :: core
       type(json_value), pointer :: root
 
-      type(json_value), pointer :: probes
-      type(json_value_ptr), allocatable :: ps(:)
-      integer :: i, lastProbe
+      type(json_value), pointer :: probes, probe
+      integer :: i
 
       call core%get(root, J_PROBES, probes)
       allocate(res%collection(core%count(probes)))
-
-
-      ps = jsonValueFilterByKeyValue(core, probes, J_PR_TYPE, J_PR_ELECTRIC)
-      do i=1, size(ps)
-         res%collection(i + lastProbe) = readProbe(core, ps(i)%p)
+      do i=1, core%count(probes)
+         call core%get_child(probes, i, probe)
+         res%collection(i) = readProbe(core, probe)
       end do
 
    contains
@@ -321,46 +338,55 @@ contains
          type(json_value), pointer :: p, directions
 
          integer :: i, j
-         character (len=:), allocatable :: typeLabel, dirLabel, tag
+         character (len=:), allocatable :: typeLabel, tag
+         character(kind=CK,len=1), dimension(:), allocatable :: dirLabels
          type(Cell), dimension(:), allocatable :: cells
-         type(Domain) :: domain
-
+         
          call core%get(p, J_PR_OUTPUT_NAME, tag)
+         res%outputrequest = trim(adjustl(tag))
+         
          call core%get(p, J_PR_TYPE, typeLabel)
-         ! call getCells(core, p, cells)
+         
+         call getDomain(core, p, res)
+         
          call core%get(p, J_PR_DIRECTIONS, directions)
-
+         call getCells(core, p, cells) 
          allocate(res%cordinates(size(cells) * core%count(directions)))
          do i = 1, size(cells)
             res%cordinates(i)%tag = tag
-            res%cordinates(i)%Xi = cells(i)%v(1)
-            res%cordinates(i)%Yi = cells(i)%v(2)
-            res%cordinates(i)%Zi = cells(i)%v(3)
+            res%cordinates(i)%Xi = int (cells(i)%v(1))
+            res%cordinates(i)%Yi = int (cells(i)%v(2))
+            res%cordinates(i)%Zi = int (cells(i)%v(3))
+            call core%get(p, J_PR_DIRECTIONS, dirLabels)
             do j = 1, core%count(directions)
-               call core%get_child(p, j, dirLabel)
-               res%cordinates(i)%Or = strToProbeType(typeLabel, dirLabel)
+               res%cordinates(i)%Or = strToProbeType(typeLabel, dirLabels(i))
             end do
          end do
 
-         call getDomain(p, res)
 
       end function
 
-      subroutine getDomain(core, res)
-         type(MasSonda), pointer :: res
+      subroutine getDomain(core, p, res)
+         type(MasSonda), intent(inout) :: res
          type(json_core) :: core
          type(json_value), pointer :: p, domain
 
-         character (len=:), allocatable :: fn, domainType
+         character(kind=CK,len=:),allocatable :: fn
+         
+         character (len=:), allocatable :: domainType
          logical :: found
+         real :: val
 
          call core%get(p, J_PR_DOMAIN, domain)
          call core%get(domain, J_PR_TYPE, domainType)
          res%type2 = strToDomainType(domainType)
 
-         !    select ()
-         !    case
-         ! end select
+         call setRealIfFound(core, domain, J_PR_DOMAIN_TIME_START, res%tstart, default=0.0)
+         call setRealIfFound(core, domain, J_PR_DOMAIN_TIME_STOP,  res%tstop,  default=0.0)
+         call setRealIfFound(core, domain, J_PR_DOMAIN_TIME_STEP,  res%tstep,  default=0.0)
+         call setRealIfFound(core, domain, J_PR_DOMAIN_FREQ_START, res%fstart, default=0.0)
+         call setRealIfFound(core, domain, J_PR_DOMAIN_FREQ_STOP,  res%fstop,  default=0.0)
+         call setRealIfFound(core, domain, J_PR_DOMAIN_FREQ_STEP,  res%fstep,  default=0.0)
 
          call core%get(domain, J_PR_FILENAME, fn, found)
          if (found) then
@@ -381,20 +407,21 @@ contains
             res = NP_T2_FREQ
           case (J_PR_DOMAIN_TRANSFER)
             res = NP_T2_TRANSFER
-            ! case (J_PR_DOMAIN_TIMEFREQ)
-            !    res = NP_T2_TIMEFREQ
-            ! case (J_PR_DOMAIN_TIMETRANSF)
-            !    res = NP_T2_TIMETRANSF
-            ! case (J_PR_DOMAIN_FREQTRANSF)
-            !    res = NP_T2_FREQTRANSF
-            ! case (J_PR_DOMAIN_TIMEFREQTRANSF)
-            !    res = NP_T2_TIMEFRECTRANSF
+          case (J_PR_DOMAIN_TIMEFREQ)
+            res = NP_T2_TIMEFREQ
+          case (J_PR_DOMAIN_TIMETRANSF)
+            res = NP_T2_TIMETRANSF
+          case (J_PR_DOMAIN_FREQTRANSF)
+            res = NP_T2_FREQTRANSF
+          case (J_PR_DOMAIN_TIMEFREQTRANSF)
+            res = NP_T2_TIMEFRECTRANSF
          end select
       end function
 
       function strToProbeType(typeLabel, dirLabel) result(res)
          integer (kind=4) :: res
-         character (len=:), allocatable :: typeLabel, dirLabel
+         character (len=:), allocatable :: typeLabel
+         character (len=1) :: dirLabel
          select case (typeLabel)
           case (J_PR_ELECTRIC)
             select case (dirLabel)
