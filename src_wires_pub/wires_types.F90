@@ -97,7 +97,7 @@ module wiresHolland_constants
       REAL (KIND=RKIND_wires)                           ::  cte1,cte2,cte3,cte5,FractionPlus,FractionMinus
       REAL (KIND=RKIND_wires)                           ::  Current,qplus_qminus
       REAL (KIND=RKIND_wires)                           ::  CurrentPast !added just for right observation
-      !at the desired time step in observation.f90
+      !at the desired time step in observation.f90       
       REAL (KIND=RKIND) , pointer                 ::  Efield_wire2main,Efield_main2wire
 #ifdef CompileWithThickWires      
       type (thick_t) :: thick

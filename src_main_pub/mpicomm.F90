@@ -1273,7 +1273,7 @@ contains
                   if ((sggMiHz(i1,j1, 1+finZ)) == jmed) then
                        FlushExtraInfoUp    = .true.
                   endif
-                  !creo que esto no es necesario para multiports de ss pero no creo que cargue mucho y no se si Ian lo necesita
+                  !creo que esto no es necesario para multiports de Sabrina pero no creo que cargue mucho y no se si Ian lo necesita
                   !lo dejo por precaucion
                   if ((sggMiHz(i1,j1, 1+comZ)) == jmed) then
                        FlushExtraInfoDown  = .true.
@@ -1740,7 +1740,7 @@ contains
                   if ((sggMiHz(i1,j1, 1+finZ)) == jmed) then
                        FlushExtraInfoUp    = .true.
                   endif
-                  !creo que esto no es necesario para multiports de ss pero no creo que cargue mucho y no se si Ian lo necesita
+                  !creo que esto no es necesario para multiports de Sabrina pero no creo que cargue mucho y no se si Ian lo necesita
                   !lo dejo por precaucion
                   if ((sggMiHz(i1,j1, 1+comZ)) == jmed) then
                        FlushExtraInfoDown  = .true.
