@@ -7,16 +7,23 @@ module smbjson
    use json_kinds
 
    implicit none
-   private
+   
+   ! Typical use.
    public :: readProblemDescription
 
+   ! Set to public for testing.
+   public :: readProbes
+   
+   private
    ! LABELS
    ! -- shared labels
-   character (len=*), parameter :: J_MAGNITUDE_FILE = "magnitudeFile"
    character (len=*), parameter :: J_CELL_REGION = "cellRegion"
-   character (len=*), parameter :: J_CELL = "cell"
-   character (len=*), parameter :: J_TYPE = "type"
+   character (len=*), parameter :: J_CELLS = "cells"
 
+   character (len=*), parameter :: J_DIR_X = "x"
+   character (len=*), parameter :: J_DIR_Y = "y"
+   character (len=*), parameter :: J_DIR_Z = "z"
+   
    ! type(NFDEGeneral)
    character (len=*), parameter :: J_GENERAL = "general"
    character (len=*), parameter :: J_TIME_STEP = "timeStep"
@@ -38,19 +45,32 @@ module smbjson
 
    ! -- source types
    character (len=*), parameter :: J_SOURCES = "sources"
+   character (len=*), parameter :: J_MAGNITUDE_FILE = "magnitudeFile"
+   character (len=*), parameter :: J_SRC_TYPE = "type"
    ! type(Planewave)
-   character (len=*), parameter :: J_TYPE_PLANEWAVE = "planewave"
-   character (len=*), parameter :: J_ATTRIBUTE = "attribute"
-   character (len=*), parameter :: J_DIRECTION = "direction"
-   character (len=*), parameter :: J_DIRECTION_THETA = "theta"
-   character (len=*), parameter :: J_DIRECTION_PHI = "phi"
-   character (len=*), parameter :: J_POLARIZATION = "polarization"
-   character (len=*), parameter :: J_POLARIZATION_ALPHA = "alpha"
-   character (len=*), parameter :: J_POLARIZATION_BETA  = "beta"
+   character (len=*), parameter :: J_PW_TYPE = "planewave"
+   character (len=*), parameter :: J_PW_ATTRIBUTE = "attribute"
+   character (len=*), parameter :: J_PW_DIRECTION = "direction"
+   character (len=*), parameter :: J_PW_DIRECTION_THETA = "theta"
+   character (len=*), parameter :: J_PW_DIRECTION_PHI = "phi"
+   character (len=*), parameter :: J_PW_POLARIZATION = "polarization"
+   character (len=*), parameter :: J_PW_POLARIZATION_ALPHA = "alpha"
+   character (len=*), parameter :: J_PW_POLARIZATION_BETA  = "beta"
 
-   type, public :: VoxelRegion_t
+   ! --- probe types
+   character (len=*), parameter :: J_PROBES = "probes"
+   character (len=*), parameter :: J_PR_TYPE = "type"
+   character (len=*), parameter :: J_PR_OUTPUT_NAME = "outputName"
+   character (len=*), parameter :: J_PR_DIRECTIONS = "directions"
+   ! type(MasSonda)
+   character (len=*), parameter :: J_PR_ELECTRIC = "electric"
+   character (len=*), parameter :: J_PR_MAGNETIC = "magnetic"
+   character (len=*), parameter :: J_PR_CURRENT = "current"
+   character (len=*), parameter :: J_PR_VOLTAGE = "voltage"
+
+   type, public :: VoxelRegion
       real, dimension(2,3) :: coords
-   end type VoxelRegion_t
+   end type VoxelRegion
 
    type, private :: json_value_ptr
       type(json_value), pointer :: p
@@ -86,6 +106,7 @@ contains
       res%despl = readGrid(core, root)
       res%front = readBoundary(core, root)
       res%plnSrc = readPlanewaves(core, root)
+      res%sonda = readProbes(core, root)
    end function
 
    subroutine getRealVec(core, place, path, dest)
@@ -107,7 +128,7 @@ contains
    function getVoxelRegion(core, place) result (res)
       type(json_core) :: core
       type(json_value), pointer :: place
-      type(VoxelRegion_t) :: res
+      type(VoxelRegion) :: res
 
       integer :: i, n
       type(json_value), pointer :: coordEntry, voxelRegionEntry
@@ -211,11 +232,10 @@ contains
 
       type(json_value), pointer :: sources
       type(json_value_ptr), allocatable :: pws(:)
-      integer(IK) :: nPlanewaves
       integer :: i
 
       call core%get(root, J_SOURCES, sources)
-      pws = jsonValueFilterByKeyValue(core, sources, J_TYPE, J_TYPE_PLANEWAVE)
+      pws = jsonValueFilterByKeyValue(core, sources, J_SRC_TYPE, J_PW_TYPE)
       allocate(res%collection(size(pws)))
       do i=1, size(pws)
          res%collection(i) = readPlanewave(core, pws(i)%p)
@@ -227,23 +247,23 @@ contains
          type(json_value), pointer :: pw
 
          character (len=:), allocatable :: label
-         type(VoxelRegion_t) :: region
+         type(VoxelRegion) :: region
          logical :: found
 
          call core%get(pw, J_MAGNITUDE_FILE, label)
          res%nombre_fichero = trim(adjustl(label))
 
-         call core%get(pw, J_ATTRIBUTE, label, found)
+         call core%get(pw, J_PW_ATTRIBUTE, label, found)
          if (found) then
             res%atributo = trim(adjustl(label))
          else
             res%atributo = ""
          endif
 
-         call core%get(pw, J_DIRECTION//'.'//J_DIRECTION_THETA, res%theta)
-         call core%get(pw, J_DIRECTION//'.'//J_DIRECTION_PHI, res%phi)
-         call core%get(pw, J_POLARIZATION//'.'//J_POLARIZATION_ALPHA, res%alpha)
-         call core%get(pw, J_POLARIZATION//'.'//J_POLARIZATION_BETA, res%beta)
+         call core%get(pw, J_PW_DIRECTION//'.'//J_PW_DIRECTION_THETA, res%theta)
+         call core%get(pw, J_PW_DIRECTION//'.'//J_PW_DIRECTION_PHI, res%phi)
+         call core%get(pw, J_PW_POLARIZATION//'.'//J_PW_POLARIZATION_ALPHA, res%alpha)
+         call core%get(pw, J_PW_POLARIZATION//'.'//J_PW_POLARIZATION_BETA, res%beta)
 
          region = getVoxelRegion(core, pw)
          res%coor1 = region%coords(1,:)
@@ -253,6 +273,86 @@ contains
          res%nummodes = 1
          res%incertmax = 0.0
       end function
+   end function
+
+   function readProbes(core, root) result (res)
+      type(MasSondas) :: res
+      type(json_core) :: core
+      type(json_value), pointer :: root
+
+      type(json_value), pointer :: probes
+      type(json_value_ptr), allocatable :: ps(:)
+      integer :: i, lastProbe
+
+      call core%get(root, J_PROBES, probes)
+      allocate(res%collection(core%count(probes)))
+      
+      
+      ps = jsonValueFilterByKeyValue(core, probes, J_PR_TYPE, J_PR_ELECTRIC)
+      do i=1, size(ps)
+         res%collection(i + lastProbe) = readProbe(core, ps(i)%p)
+      end do
+      
+   contains
+      function readProbe(core, p) result (res)
+         type(MasSonda) :: res
+         type(json_core) :: core
+         type(json_value), pointer :: p, directions
+
+         integer :: i, j
+         character (len=:), allocatable :: typeLabel, dirLabel, tag
+         real, dimension(:,3), allocatable :: cells
+         
+         call core%get(p, J_PR_OUTPUT_NAME, tag)
+         call core%get(p, J_PR_TYPE, typeLabel)
+         ! call getCells(core, p, cells)
+         call core%get(p, J_PR_DIRECTIONS, directions)
+         
+         allocate(res%cordinates(size(cells, 1) * core%count(directions)))
+         do i = 1, size(res%cells, dim=1)
+            res%cordinates(i)%tag = tag
+            res%cordinates(i)%Xi = cells(i,1)
+            res%cordinates(i)%Yi = cells(i,2)
+            res%cordinates(i)%Zi = cells(i,3)
+            do j = 1, core%count(directions)
+               call core%get_child(p, j, dirLabel)
+               res%cordinates(i)%Or = getProbeType(typeLabel, dirLabel) 
+            end do
+         end do
+
+         res%filename = trim(adjustl(label))
+         
+      end function
+
+      function getProbeType(typeLabel, dirLabel) result(res)
+         integer (kind=4) :: res
+         character (len=:), allocatable :: typeLabel, dirLabel
+         select case (typeLabel)
+         case (J_PR_ELECTRIC)
+            select case (dirLabel)
+            case (J_DIR_X)
+               res = NP_COR_EX
+            case (J_DIR_Y)
+               res = NP_COR_EY
+            case (J_DIR_Z)
+               res = NP_COR_EZ
+            end select
+         case (J_PR_MAGNETIC)
+            select case (dirLabel)
+            case (J_DIR_X)
+               res = NP_COR_HX
+            case (J_DIR_Y)
+               res = NP_COR_HY
+            case (J_DIR_Z)
+               res = NP_COR_HZ
+            end select
+         case (J_PR_CURRENT)
+            res = NP_COR_WIRECURRENT
+         case (J_PR_VOLTAGE)
+            res = NP_COR_DDP
+         end select
+      end function
+      
    end function
 
    function readGeneral(json, root) result (res)

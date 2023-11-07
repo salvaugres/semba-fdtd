@@ -89,6 +89,13 @@ contains
       expected%Sonda%collection(1)%fstop = 0.0
       expected%Sonda%collection(1)%fstep = 0.0
       allocate(expected%Sonda%collection(1)%cordinates(1))
+      expected%Sonda%collection(1)%cordinates(1:3)%tag = tag
+      expected%Sonda%collection(1)%cordinates(1:3)%Xi = i
+      expected%Sonda%collection(1)%cordinates(1:3)%Yi = j
+      expected%Sonda%collection(1)%cordinates(1:3)%Zi = K
+      expected%Sonda%collection(1)%cordinates(1)%Or = NP_COR_EX
+      expected%Sonda%collection(1)%cordinates(2)%Or = NP_COR_EY
+      expected%Sonda%collection(1)%cordinates(3)%Or = NP_COR_EZ
 
    end function
 end function
