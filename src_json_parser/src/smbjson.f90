@@ -7,13 +7,13 @@ module smbjson
    use json_kinds
 
    implicit none
-   
+
    ! Typical use.
    public :: readProblemDescription
 
    ! Set to public for testing.
    public :: readProbes
-   
+
    private
    ! LABELS
    ! -- shared labels
@@ -23,7 +23,7 @@ module smbjson
    character (len=*), parameter :: J_DIR_X = "x"
    character (len=*), parameter :: J_DIR_Y = "y"
    character (len=*), parameter :: J_DIR_Z = "z"
-   
+
    ! type(NFDEGeneral)
    character (len=*), parameter :: J_GENERAL = "general"
    character (len=*), parameter :: J_TIME_STEP = "timeStep"
@@ -62,6 +62,16 @@ module smbjson
    character (len=*), parameter :: J_PR_TYPE = "type"
    character (len=*), parameter :: J_PR_OUTPUT_NAME = "outputName"
    character (len=*), parameter :: J_PR_DIRECTIONS = "directions"
+   character (len=*), parameter :: J_PR_DOMAIN = "domain"
+   character (len=*), parameter :: J_PR_DOMAIN_FILENAME = "filename"
+   character (len=*), parameter :: J_PR_DOMAIN_TYPE = "type"
+   character (len=*), parameter :: J_PR_DOMAIN_TIME = "time"
+   character (len=*), parameter :: J_PR_DOMAIN_FREQ = "frequency"
+   character (len=*), parameter :: J_PR_DOMAIN_TRANSFER = "transfer"
+   ! character (len=*), parameter :: J_PR_DOMAIN_TIMEFREQ = "timeFrequency"
+   ! character (len=*), parameter :: J_PR_DOMAIN_TIMETRANSF = "timeTransfer"
+   ! character (len=*), parameter :: J_PR_DOMAIN_FREQTRANSF = "frequencyTransfer"
+   ! character (len=*), parameter :: J_PR_DOMAIN_TIMEFREQTRANSF = "timeFrequencyTransfer"
    ! type(MasSonda)
    character (len=*), parameter :: J_PR_ELECTRIC = "electric"
    character (len=*), parameter :: J_PR_MAGNETIC = "magnetic"
@@ -71,6 +81,17 @@ module smbjson
    type, public :: VoxelRegion
       real, dimension(2,3) :: coords
    end type VoxelRegion
+
+   type, public :: Cell
+      real, dimension(3) :: v
+   end type Cell
+
+   type, public :: Domain
+      character (len=:) :: filename
+      real (kind=RK) :: tstart, tstop, tstep
+      real (kind=RK) :: fstart, fstop, fstep
+      integer (kind=4) :: type
+   end type
 
    type, private :: json_value_ptr
       type(json_value), pointer :: p
@@ -286,13 +307,13 @@ contains
 
       call core%get(root, J_PROBES, probes)
       allocate(res%collection(core%count(probes)))
-      
-      
+
+
       ps = jsonValueFilterByKeyValue(core, probes, J_PR_TYPE, J_PR_ELECTRIC)
       do i=1, size(ps)
          res%collection(i + lastProbe) = readProbe(core, ps(i)%p)
       end do
-      
+
    contains
       function readProbe(core, p) result (res)
          type(MasSonda) :: res
@@ -301,58 +322,105 @@ contains
 
          integer :: i, j
          character (len=:), allocatable :: typeLabel, dirLabel, tag
-         real, dimension(:,3), allocatable :: cells
-         
+         type(Cell), dimension(:), allocatable :: cells
+         type(Domain) :: domain
+
          call core%get(p, J_PR_OUTPUT_NAME, tag)
          call core%get(p, J_PR_TYPE, typeLabel)
          ! call getCells(core, p, cells)
          call core%get(p, J_PR_DIRECTIONS, directions)
-         
-         allocate(res%cordinates(size(cells, 1) * core%count(directions)))
-         do i = 1, size(res%cells, dim=1)
+
+         allocate(res%cordinates(size(cells) * core%count(directions)))
+         do i = 1, size(cells)
             res%cordinates(i)%tag = tag
-            res%cordinates(i)%Xi = cells(i,1)
-            res%cordinates(i)%Yi = cells(i,2)
-            res%cordinates(i)%Zi = cells(i,3)
+            res%cordinates(i)%Xi = cells(i)%v(1)
+            res%cordinates(i)%Yi = cells(i)%v(2)
+            res%cordinates(i)%Zi = cells(i)%v(3)
             do j = 1, core%count(directions)
                call core%get_child(p, j, dirLabel)
-               res%cordinates(i)%Or = getProbeType(typeLabel, dirLabel) 
+               res%cordinates(i)%Or = strToProbeType(typeLabel, dirLabel)
             end do
          end do
 
-         res%filename = trim(adjustl(label))
-         
+         call getDomain(p, res)
+
       end function
 
-      function getProbeType(typeLabel, dirLabel) result(res)
+      subroutine getDomain(core, res)
+         type(MasSonda), pointer :: res
+         type(json_core) :: core
+         type(json_value), pointer :: p, domain
+
+         character (len=:), allocatable :: fn, domainType
+         logical :: found
+
+         call core%get(p, J_PR_DOMAIN, domain)
+         call core%get(domain, J_PR_TYPE, domainType)
+         res%type2 = strToDomainType(domainType)
+
+         !    select ()
+         !    case
+         ! end select
+
+         call core%get(domain, J_PR_FILENAME, fn, found)
+         if (found) then
+            res%filename = trim(adjustl(fn))
+         else
+            res%filename = " "
+         endif
+
+      end subroutine
+
+      function strToDomainType(typeLabel) result(res)
+         integer (kind=4) :: res
+         character (len=:), allocatable :: typeLabel
+         select case (typeLabel)
+          case (J_PR_DOMAIN_TIME)
+            res = NP_T2_TIME
+          case (J_PR_DOMAIN_FREQ)
+            res = NP_T2_FREQ
+          case (J_PR_DOMAIN_TRANSFER)
+            res = NP_T2_TRANSFER
+            ! case (J_PR_DOMAIN_TIMEFREQ)
+            !    res = NP_T2_TIMEFREQ
+            ! case (J_PR_DOMAIN_TIMETRANSF)
+            !    res = NP_T2_TIMETRANSF
+            ! case (J_PR_DOMAIN_FREQTRANSF)
+            !    res = NP_T2_FREQTRANSF
+            ! case (J_PR_DOMAIN_TIMEFREQTRANSF)
+            !    res = NP_T2_TIMEFRECTRANSF
+         end select
+      end function
+
+      function strToProbeType(typeLabel, dirLabel) result(res)
          integer (kind=4) :: res
          character (len=:), allocatable :: typeLabel, dirLabel
          select case (typeLabel)
-         case (J_PR_ELECTRIC)
+          case (J_PR_ELECTRIC)
             select case (dirLabel)
-            case (J_DIR_X)
+             case (J_DIR_X)
                res = NP_COR_EX
-            case (J_DIR_Y)
+             case (J_DIR_Y)
                res = NP_COR_EY
-            case (J_DIR_Z)
+             case (J_DIR_Z)
                res = NP_COR_EZ
             end select
-         case (J_PR_MAGNETIC)
+          case (J_PR_MAGNETIC)
             select case (dirLabel)
-            case (J_DIR_X)
+             case (J_DIR_X)
                res = NP_COR_HX
-            case (J_DIR_Y)
+             case (J_DIR_Y)
                res = NP_COR_HY
-            case (J_DIR_Z)
+             case (J_DIR_Z)
                res = NP_COR_HZ
             end select
-         case (J_PR_CURRENT)
+          case (J_PR_CURRENT)
             res = NP_COR_WIRECURRENT
-         case (J_PR_VOLTAGE)
+          case (J_PR_VOLTAGE)
             res = NP_COR_DDP
          end select
       end function
-      
+
    end function
 
    function readGeneral(json, root) result (res)
