@@ -12,7 +12,7 @@ module smbjson
    public :: readProblemDescription
 
    ! Set to public for testing.
-   public :: readProbes
+   public :: readMoreProbes
 
    private
    ! LABELS
@@ -81,6 +81,8 @@ module smbjson
    character (len=*), parameter :: J_PR_DOMAIN_FREQ_STOP   = "frequencyEnd"
    character (len=*), parameter :: J_PR_DOMAIN_FREQ_STEP  = "frequencyStep"
   
+   ! type(Sonda)
+   character (len=*), parameter :: J_PR_FARFIELD = "farField" 
    ! type(MasSonda)
    character (len=*), parameter :: J_PR_ELECTRIC = "electric"
    character (len=*), parameter :: J_PR_MAGNETIC = "magnetic"
@@ -129,7 +131,8 @@ contains
       res%despl = readGrid(core, root)
       res%front = readBoundary(core, root)
       res%plnSrc = readPlanewaves(core, root)
-      res%sonda = readProbes(core, root)
+      res%oldSonda = readProbes(core, root)
+      res%sonda = readMoreProbes(core, root)
    end function
 
    subroutine getRealVec(core, place, path, dest)
@@ -184,6 +187,58 @@ contains
          end if
          res%coords(i,:) = vec(1:3)
       end do
+   end function
+
+   function getCells(core, place) result(res)
+      type(json_core) :: core
+      type(json_value), pointer :: place
+      type(Cell), dimension(:), allocatable :: res
+
+      integer :: i, n
+      type(json_value), pointer :: cellsEntry, coordEntry
+      real (kind=RK), pointer :: vec(:)
+
+      call core%get(place, J_CELLS, cellsEntry)
+      allocate(res(core%count(cellsEntry)))
+      do i = 1, core%count(cellsEntry)
+         call core%get_child(cellsEntry, i, coordEntry)
+         call getRealVec(core, coordEntry, '.', vec)
+         if (size(vec) /= 3) then
+            stop "Cells are defined by a vector of size 3."
+         end if
+         res(i)%v = vec
+      end do
+   end function
+
+   function jsonValueFilterByKeyValues(core, srcs, key, values) result (out)
+      type(json_value_ptr), allocatable :: out(:)
+      type(json_core) :: core
+      type(json_value), pointer :: srcs
+
+      character (kind=JSON_CK, len=*) :: key
+      character (kind=JSON_CK, len=*), dimension(:), allocatable :: values
+      
+      type(json_value_ptr), dimension (:), allocatable :: foundEntries, tmp
+      integer :: i, lastEntry, nEntries
+
+      do i = 1, size(values)
+         if (allocated(foundEntries)) deallocate(foundEntries)
+         foundEntries = jsonValueFilterByKeyValue(core, srcs, key, value(i))
+         if (size(foundEntries) == 0) continue
+         if (allocated(out)) then
+            allocate(tmp(size(out)))
+            tmp = out
+            deallocate(out)
+            allocate(out(size(tmp) + size(foundEntries)))
+            out(:size(tmp)) = tmp
+            out((size(tmp)+1):) = foundEntries
+            deallocate(tmp)
+         else 
+            allocate(out(size(foundEntries)))
+            out = foundEntries
+         end if
+      end do
+
    end function
 
    function jsonValueFilterByKeyValue(core, srcs, key, value) result (out)
@@ -317,27 +372,55 @@ contains
    end function
 
    function readProbes(core, root) result (res)
+      type(Sondas) :: res
+      type(json_core) :: core
+      type(json_value), pointer :: root
+      
+      type(json_value), pointer :: probes
+      type(json_value_ptr), allocatable :: ps(:)
+      integer :: i
+      character (len=*), dimension(4), parameter :: validTypes = &
+         (/J_PR_FARFIELD/)
+
+      call core%get(root, J_PROBES, probes)
+      ps = jsonValueFilterByKeyValue(core, probes, J_PR_TYPE, validTypes)
+      allocate(res%collection(size(ps)))
+      do i=1, size(ps) 
+         res%collection(i) = readProbe(core, ps(i)%p)
+      end do
+
+      res%n_probes = size(res%collection)
+      res%n_probes_max = size(res%collection)
+   end function
+
+   function readMoreProbes(core, root) result (res)
       type(MasSondas) :: res
       type(json_core) :: core
       type(json_value), pointer :: root
-
-      type(json_value), pointer :: probes, probe
+      
+      type(json_value), pointer :: probes
+      type(json_value_ptr), allocatable :: ps(:)
       integer :: i
+      character (len=*), dimension(4), parameter :: validTypes = &
+         (/J_PR_ELECTRIC, J_PR_MAGNETIC, J_PR_CURRENT, J_PR_VOLTAGE/)
 
       call core%get(root, J_PROBES, probes)
-      allocate(res%collection(core%count(probes)))
-      do i=1, core%count(probes)
-         call core%get_child(probes, i, probe)
-         res%collection(i) = readProbe(core, probe)
+      ps = jsonValueFilterByKeyValue(core, probes, J_PR_TYPE, validTypes)
+      allocate(res%collection(size(ps)))
+      do i=1, size(ps) 
+         res%collection(i) = readProbe(core, ps(i)%p)
       end do
 
+      res%length = size(res%collection)
+      res%length_max = size(res%collection)
+      res%len_cor_max = 0
    contains
       function readProbe(core, p) result (res)
          type(MasSonda) :: res
          type(json_core) :: core
-         type(json_value), pointer :: p, directions
+         type(json_value), pointer :: p
 
-         integer :: i, j
+         integer :: i, j, k
          character (len=:), allocatable :: typeLabel, tag
          character(kind=CK,len=1), dimension(:), allocatable :: dirLabels
          type(Cell), dimension(:), allocatable :: cells
@@ -349,21 +432,19 @@ contains
          
          call getDomain(core, p, res)
          
-         call core%get(p, J_PR_DIRECTIONS, directions)
-         call getCells(core, p, cells) 
-         allocate(res%cordinates(size(cells) * core%count(directions)))
+         cells = getCells(core, p) 
+         call core%get(p, J_PR_DIRECTIONS, dirLabels)
+         allocate(res%cordinates(size(cells) * size(dirLabels)))
          do i = 1, size(cells)
-            res%cordinates(i)%tag = tag
-            res%cordinates(i)%Xi = int (cells(i)%v(1))
-            res%cordinates(i)%Yi = int (cells(i)%v(2))
-            res%cordinates(i)%Zi = int (cells(i)%v(3))
-            call core%get(p, J_PR_DIRECTIONS, dirLabels)
-            do j = 1, core%count(directions)
-               res%cordinates(i)%Or = strToProbeType(typeLabel, dirLabels(i))
+            k = (i-1) * size(dirLabels)
+            do j = 1, size(dirLabels)
+               res%cordinates(k+j)%tag = tag
+               res%cordinates(k+j)%Xi = int (cells(i)%v(1))
+               res%cordinates(k+j)%Yi = int (cells(i)%v(2))
+               res%cordinates(k+j)%Zi = int (cells(i)%v(3))
+               res%cordinates(k+j)%Or = strToProbeType(typeLabel, dirLabels(j))
             end do
          end do
-
-
       end function
 
       subroutine getDomain(core, p, res)
@@ -371,13 +452,14 @@ contains
          type(json_core) :: core
          type(json_value), pointer :: p, domain
 
-         character(kind=CK,len=:),allocatable :: fn
-         
-         character (len=:), allocatable :: domainType
+         character (len=:),allocatable :: fn, domainType
          logical :: found
          real :: val
 
          call core%get(p, J_PR_DOMAIN, domain)
+         
+         res%type1 = NP_T1_PLAIN
+         
          call core%get(domain, J_PR_TYPE, domainType)
          res%type2 = strToDomainType(domainType)
 
@@ -388,7 +470,7 @@ contains
          call setRealIfFound(core, domain, J_PR_DOMAIN_FREQ_STOP,  res%fstop,  default=0.0)
          call setRealIfFound(core, domain, J_PR_DOMAIN_FREQ_STEP,  res%fstep,  default=0.0)
 
-         call core%get(domain, J_PR_FILENAME, fn, found)
+         call core%get(domain, J_PR_DOMAIN_FILENAME, fn, found)
          if (found) then
             res%filename = trim(adjustl(fn))
          else
