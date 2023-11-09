@@ -216,14 +216,14 @@ contains
       type(json_value), pointer :: srcs
 
       character (kind=JSON_CK, len=*) :: key
-      character (kind=JSON_CK, len=*), dimension(:), allocatable :: values
+      character (kind=JSON_CK, len=*), dimension(:) :: values
       
       type(json_value_ptr), dimension (:), allocatable :: foundEntries, tmp
       integer :: i, lastEntry, nEntries
 
       do i = 1, size(values)
          if (allocated(foundEntries)) deallocate(foundEntries)
-         foundEntries = jsonValueFilterByKeyValue(core, srcs, key, value(i))
+         foundEntries = jsonValueFilterByKeyValue(core, srcs, key, values(i))
          if (size(foundEntries) == 0) continue
          if (allocated(out)) then
             allocate(tmp(size(out)))
@@ -379,18 +379,51 @@ contains
       type(json_value), pointer :: probes
       type(json_value_ptr), allocatable :: ps(:)
       integer :: i
-      character (len=*), dimension(4), parameter :: validTypes = &
+      character (len=*), dimension(1), parameter :: validTypes = &
          (/J_PR_FARFIELD/)
 
       call core%get(root, J_PROBES, probes)
-      ps = jsonValueFilterByKeyValue(core, probes, J_PR_TYPE, validTypes)
-      allocate(res%collection(size(ps)))
+      ps = jsonValueFilterByKeyValues(core, probes, J_PR_TYPE, validTypes)
+      allocate(res%probes(size(ps)))
       do i=1, size(ps) 
-         res%collection(i) = readProbe(core, ps(i)%p)
+         res%probes(i) = readProbe(core, ps(i)%p)
       end do
 
-      res%n_probes = size(res%collection)
-      res%n_probes_max = size(res%collection)
+      res%n_probes = size(res%probes)
+      res%n_probes_max = size(res%probes)
+   contains
+      function readProbe(core, p) result (res)
+         type(abstractSonda) :: res
+         type(json_core) :: core
+         type(json_value), pointer :: p
+
+         stop 'read abstract sonda is TBD. TODO'
+         ! integer :: i, j, k
+         ! character (len=:), allocatable :: typeLabel, tag
+         ! character(kind=CK,len=1), dimension(:), allocatable :: dirLabels
+         ! type(Cell), dimension(:), allocatable :: cells
+         
+         ! call core%get(p, J_PR_OUTPUT_NAME, tag)
+         ! res%outputrequest = trim(adjustl(tag))
+         
+         ! call core%get(p, J_PR_TYPE, typeLabel)
+         
+         ! call getDomain(core, p, res)
+         
+         ! cells = getCells(core, p) 
+         ! call core%get(p, J_PR_DIRECTIONS, dirLabels)
+         ! allocate(res%cordinates(size(cells) * size(dirLabels)))
+         ! do i = 1, size(cells)
+         !    k = (i-1) * size(dirLabels)
+         !    do j = 1, size(dirLabels)
+         !       res%cordinates(k+j)%tag = tag
+         !       res%cordinates(k+j)%Xi = int (cells(i)%v(1))
+         !       res%cordinates(k+j)%Yi = int (cells(i)%v(2))
+         !       res%cordinates(k+j)%Zi = int (cells(i)%v(3))
+         !       res%cordinates(k+j)%Or = strToProbeType(typeLabel, dirLabels(j))
+         !    end do
+         ! end do
+      end function
    end function
 
    function readMoreProbes(core, root) result (res)
@@ -405,7 +438,7 @@ contains
          (/J_PR_ELECTRIC, J_PR_MAGNETIC, J_PR_CURRENT, J_PR_VOLTAGE/)
 
       call core%get(root, J_PROBES, probes)
-      ps = jsonValueFilterByKeyValue(core, probes, J_PR_TYPE, validTypes)
+      ps = jsonValueFilterByKeyValues(core, probes, J_PR_TYPE, validTypes)
       allocate(res%collection(size(ps)))
       do i=1, size(ps) 
          res%collection(i) = readProbe(core, ps(i)%p)
