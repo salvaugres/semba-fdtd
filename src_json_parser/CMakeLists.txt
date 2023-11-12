@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.5)
+cmake_minimum_required (VERSION 3.18)
 
 project (smbjson)
 
@@ -17,7 +17,7 @@ add_library(smbjson
 message(STATUS "json-fortran include dirs: " ${jsonfortran_INCLUDE_DIRS})
 message(STATUS "json-fortran lib dirs: " ${jsonfortran_LIBRARY_DIRS})
 
-include_directories    (smbjson PRIVATE ${jsonfortran_INCLUDE_DIRS})
+include_directories    (${jsonfortran_INCLUDE_DIRS})
 target_link_directories(smbjson PRIVATE ${jsonfortran_LIBRARY_DIRS})
 target_link_libraries  (smbjson PRIVATE jsonfortran semba-types)
 

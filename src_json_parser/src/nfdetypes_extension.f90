@@ -22,6 +22,15 @@ module NFDETypes_extension
       module procedure sondas_eq
       module procedure massonda_eq
       module procedure massondas_eq
+
+      module procedure FarField_Sonda_eq
+      module procedure Electric_Sonda_eq
+      module procedure Magnetic_Sonda_eq
+      module procedure NormalElectric_Sonda_eq
+      module procedure NormalMagnetic_Sonda_eq
+      module procedure SurfaceElectricCurrent_Sonda_eq
+      module procedure SurfaceMagneticCurrent_Sonda_eq
+         
    end interface
 
 contains
@@ -52,7 +61,7 @@ contains
 
    end subroutine
 
-   logical function NFDEGeneral_eq(a, b) result (res)
+   elemental logical function NFDEGeneral_eq(a, b) result (res)
       type(NFDEGeneral), intent(in) :: a, b
       res = .false.
       if (a%dt /= b%dt) return
@@ -60,7 +69,7 @@ contains
       res = .true.
    end function
 
-   logical function planewave_eq(a,b) result(res)
+   elemental logical function planewave_eq(a,b) result(res)
       type(PlaneWave), intent(in) :: a, b
       res = .false.
       if (a%nombre_fichero /= b%nombre_fichero) return
@@ -77,7 +86,7 @@ contains
       res = .true.
    end function
 
-   logical function planewaves_eq(a,b) result(res)
+   elemental logical function planewaves_eq(a,b) result(res)
       type(Planewaves), intent(in) :: a, b
       integer :: i
       res = .false.
@@ -94,7 +103,7 @@ contains
       res = .true.
    end function
 
-   logical function fronteraPML_eq(a, b) result (res)
+   elemental logical function fronteraPML_eq(a, b) result (res)
       type(FronteraPML), intent(in) :: a, b
       res = .false.
       if (a%orden    /= b%orden) return
@@ -103,7 +112,7 @@ contains
       res = .true.
    end function
 
-   logical function frontera_eq(a, b) result (res)
+   elemental logical function frontera_eq(a, b) result (res)
       type(Frontera), intent(in) :: a, b
       integer :: i
       res = .false.
@@ -114,7 +123,7 @@ contains
       res = .true.
    end function
 
-   logical function desplazamiento_eq(a, b) result (res)
+   elemental logical function desplazamiento_eq(a, b) result (res)
       type(Desplazamiento), intent(in) :: a, b
 
       res = .false.
@@ -149,7 +158,7 @@ contains
       res = .true.
    end function
 
-   logical function coords_eq(a, b) result(res)
+   elemental logical function coords_eq(a, b) result(res)
       type(coords), intent(in) :: a, b
       res = .false.
 
@@ -167,7 +176,43 @@ contains
       res = .true.
    end function
 
-   logical function abstractSonda_eq(a, b) result(res)
+   elemental logical function FarField_Sonda_eq(a, b)
+      type(FarField_Sonda), intent(in) :: a, b
+      FarField_Sonda_eq = a%probe == b%probe
+   end function FarField_Sonda_eq
+
+   elemental logical function Electric_Sonda_eq(a, b)
+      type(Electric_Sonda), intent(in) :: a, b
+      Electric_Sonda_eq = a%probe == b%probe
+   end function Electric_Sonda_eq
+
+   elemental logical function Magnetic_Sonda_eq(a, b)
+      type(Magnetic_Sonda), intent(in) :: a, b
+      Magnetic_Sonda_eq = a%probe == b%probe
+   end function Magnetic_Sonda_eq
+
+   elemental logical function NormalElectric_Sonda_eq(a, b)
+      type(NormalElectric_Sonda), intent(in) :: a, b
+      NormalElectric_Sonda_eq = a%probe == b%probe
+   end function NormalElectric_Sonda_eq
+
+   elemental logical function NormalMagnetic_Sonda_eq(a, b)
+      type(NormalMagnetic_Sonda), intent(in) :: a, b
+      NormalMagnetic_Sonda_eq = a%probe == b%probe
+   end function NormalMagnetic_Sonda_eq
+
+   elemental logical function SurfaceElectricCurrent_Sonda_eq(a, b)
+      type(SurfaceElectricCurrent_Sonda), intent(in) :: a, b
+      SurfaceElectricCurrent_Sonda_eq = a%probe == b%probe
+   end function SurfaceElectricCurrent_Sonda_eq
+
+   elemental logical function SurfaceMagneticCurrent_Sonda_eq(a, b)
+      type(SurfaceMagneticCurrent_Sonda), intent(in) :: a, b
+      SurfaceMagneticCurrent_Sonda_eq = a%probe == b%probe
+   end function SurfaceMagneticCurrent_Sonda_eq
+
+
+   elemental logical function abstractSonda_eq(a, b) result(res)
       type(abstractSonda), intent(in) :: a, b
       integer(kind=4) :: i
 
@@ -189,45 +234,18 @@ contains
       if (.not. associated(a%SurfaceElectricCurrent) .or. .not. associated(b%SurfaceElectricCurrent)) return
       if (.not. associated(a%SurfaceMagneticCurrent) .or. .not. associated(b%SurfaceMagneticCurrent)) return
 
-      if (size(a%FarField) /= size(b%FarField)) return
-      do i = 1, size(a%FarField)
-         if (.not. a%FarField(i)%probe == b%FarField(i)%probe) return
-      end do
-
-      if (size(a%Electric) /= size(b%Electric)) return
-      do i = 1, size(a%Electric)
-         if (.not. a%Electric(i)%probe == b%Electric(i)%probe) return
-      end do
-
-      if (size(a%Magnetic) /= size(b%Magnetic)) return
-      do i = 1, size(a%Magnetic)
-         if (.not. a%Magnetic(i)%probe == b%Magnetic(i)%probe) return
-      end do
-
-      if (size(a%NormalElectric) /= size(b%NormalElectric)) return
-      do i = 1, size(a%NormalElectric)
-         if (.not. a%NormalElectric(i)%probe == b%NormalElectric(i)%probe) return
-      end do
-
-      if (size(a%NormalMagnetic) /= size(b%NormalMagnetic)) return
-      do i = 1, size(a%NormalMagnetic)
-         if (.not. a%NormalMagnetic(i)%probe == b%NormalMagnetic(i)%probe) return
-      end do
-
-      if (size(a%SurfaceElectricCurrent) /= size(b%SurfaceElectricCurrent)) return
-      do i = 1, size(a%SurfaceElectricCurrent)
-         if (.not. a%SurfaceElectricCurrent(i)%probe == b%SurfaceElectricCurrent(i)%probe) return
-      end do
-
-      if (size(a%SurfaceMagneticCurrent) /= size(b%SurfaceMagneticCurrent)) return
-      do i = 1, size(a%SurfaceMagneticCurrent)
-         if (.not. a%SurfaceMagneticCurrent(i)%probe == b%SurfaceMagneticCurrent(i)%probe) return
-      end do
+      if (any(.not. a%FarField == b%FarField)) return
+      if (any(.not. a%Electric == b%Electric)) return
+      if (any(.not. a%Magnetic == b%Magnetic)) return
+      if (any(.not. a%NormalElectric == b%NormalElectric)) return
+      if (any(.not. a%NormalMagnetic == b%NormalMagnetic)) return
+      if (any(.not. a%SurfaceElectricCurrent == b%SurfaceElectricCurrent)) return
+      if (any(.not. a%SurfaceMagneticCurrent == b%SurfaceMagneticCurrent)) return
 
       res = .true.
    end function abstractSonda_eq
 
-   logical function sondas_eq(a, b) result(res)
+   elemental logical function sondas_eq(a, b) result(res)
       type(Sondas), intent(in) :: a, b
       integer :: i
 
@@ -245,7 +263,7 @@ contains
       res = .true.
    end function sondas_eq
 
-   logical function sonda_eq(a, b) result (res)
+   elemental logical function sonda_eq(a, b) result (res)
       type(Sonda), intent(in) :: a, b
       res = .false.
 
@@ -280,7 +298,7 @@ contains
       res = .true.
    end function
 
-   logical function masSonda_eq(a, b) result (res)
+   elemental logical function masSonda_eq(a, b) result (res)
       type(MasSonda), intent(in) :: a, b
       integer :: i
       res = .false.
@@ -291,12 +309,7 @@ contains
       if (a%outputrequest /= b%outputrequest) return
 
       if (.not. associated(a%cordinates) .or. .not. associated(b%cordinates)) return
-
-      if (size(a%cordinates) /= size(b%cordinates)) return
-      do i = 1, size(a%cordinates)
-         if (.not. a%cordinates(i) == b%cordinates(i)) return
-      end do
-      !   if (any(.not. a%cordinates == b%cordinates)) return
+      if (all(.not. a%cordinates == b%cordinates)) return
 
       if (a%tstart /= b%tstart) return
       if (a%tstop /= b%tstop) return

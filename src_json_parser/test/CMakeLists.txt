@@ -1,3 +1,4 @@
+cmake_minimum_required (VERSION 3.18)
 
 enable_language (C Fortran)
 enable_testing ()
@@ -54,7 +55,7 @@ add_fortran_test_executable (smbjson_tests
 
 get_target_property(SMBJSON_INCLUDES smbjson INCLUDE_DIRECTORIES)
 
-include_directories    (smbjson_tests PRIVATE 
+include_directories( 
     ${jsonfortran_INCLUDE_DIRS} 
     ${SMBJSON_INCLUDES}
 )

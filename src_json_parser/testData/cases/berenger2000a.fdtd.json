@@ -1,0 +1,52 @@
+{
+    "format": "FDTD Input file",
+    "__comments": "Two wires test case A for two wires collocated in a cell: Berenger, J. P. A Multiwire Formalism for the FDTD Method. 2000. IEEE-TEMC."
+
+    // "general": {
+    //     "timeStep": 1e-12,
+    //     "numberOfSteps": 1000
+    // },
+    
+    // "grid": {
+    //     "numberOfCells": [10, 10, 10],
+    //     "steps": {
+    //         "x": [0.1],
+    //         "y": [0.1],
+    //         "z": [0.1]
+    //     }
+    // },
+
+    // "boundary": {
+    //     "all": "mur"
+    // },
+
+    // "sources": [
+    //     {
+    //         "type": "planewave",
+    //         "magnitudeFile": "gauss_100MHz.exc",
+    //         "cellRegion": [ [2, 2, 2], [9, 9, 9] ],
+    //         "direction": {
+    //             "theta": 0.0,
+    //             "phi": 0.0
+    //         },
+    //         "polarization": {
+    //             "alpha": 1.5708,
+    //             "beta": 0.0
+    //         }
+    //     }
+    // ],
+
+    // "probes": [
+    //     {
+    //         "outputName": "electric_field_point_probe",
+    //         "type": "electric",
+    //         "cells": [
+    //             [5, 5, 5]
+    //         ],
+    //         "directions": ["x", "y", "z"],
+    //         "domain": { 
+    //             "type": "time" 
+    //         }
+    //     }
+    // ]
+}

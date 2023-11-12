@@ -5,7 +5,7 @@ integer function test_read_planewave() result(error_cnt)
 
    implicit none
 
-   character(len=*),parameter :: filename = 'planewave.fdtd.json'
+   character(len=*),parameter :: filename = 'cases/planewave.fdtd.json'
    type(Parseador) :: problem, expected
    logical :: areSame
    error_cnt = 0
@@ -73,7 +73,12 @@ contains
       expected%plnSrc%collection(1)%nummodes=1
       expected%plnSrc%collection(1)%INCERTMAX=0.0
 
-      ! Expected probe
+      ! Expected probes
+      ! oldSonda
+      expected%oldSONDA%n_probes = 0
+      expected%oldSONDA%n_probes_max = 0
+      allocate(expected%oldSONDA%probes(0))
+      ! sonda
       expected%Sonda%len_cor_max = 0
       expected%Sonda%length = 1
       expected%Sonda%length_max = 1
