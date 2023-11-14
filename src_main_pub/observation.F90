@@ -1735,12 +1735,15 @@ contains
                            do N=1,output(ii)%NumFreqs
                               read(output(ii)%item(i)%unit,end=6919) rdum
                               do compo=1,2
-                                 if (output(ii)%item(i)%columnas/=0) read(output(ii)%item(i)%unit,end=6919) & 
-                                     ((output(ii)%item(i)%Serialized%ValorComplex(N,compo,conta),&     
-                                       output(ii)%item(i)%Serialized%ValorComplex_x(N,compo,conta),&
-                                       output(ii)%item(i)%Serialized%ValorComplex_y(N,compo,conta),&
-                                       output(ii)%item(i)%Serialized%ValorComplex_z(N,compo,conta) ), &
-                                       conta=1,output(ii)%item(i)%columnas)
+                                 if (output(ii)%item(i)%columnas/=0) then
+                                     do conta=1,output(ii)%item(i)%columnas
+                                         read(output(ii)%item(i)%unit,end=6919) & 
+                                           output(ii)%item(i)%Serialized%ValorComplex  (N,compo,conta),&     
+                                           output(ii)%item(i)%Serialized%ValorComplex_x(N,compo,conta),&
+                                           output(ii)%item(i)%Serialized%ValorComplex_y(N,compo,conta),&
+                                           output(ii)%item(i)%Serialized%ValorComplex_z(N,compo,conta) 
+                                     end do
+                                 endif
                               end do
                               if (SGG%Observation(ii)%transfer)then   
                                   output(ii)%item(i)%Serialized%ValorComplex = output(ii)%item(i)%Serialized%ValorComplex * output(ii)%dftEntrada(N) !desnormaliza
@@ -4164,19 +4167,26 @@ contains
                      write(output(ii)%item(i)%unit) output(ii)%Freq(n)
                      do compo=1,2
                         IF (SGG%Observation(ii)%Transfer) then
-                           if (output(ii)%item(i)%columnas /=0) write(output(ii)%item(i)%unit) ( &     
-                                                               (output(ii)%item(i)%Serialized%valorComplex(N,compo,i1)/output(ii)%dftEntrada(n), &
-                                                                output(ii)%item(i)%Serialized%valorComplex_x(N,compo,i1)/output(ii)%dftEntrada(n), &
-                                                                output(ii)%item(i)%Serialized%valorComplex_y(N,compo,i1)/output(ii)%dftEntrada(n), &
-                                                                output(ii)%item(i)%Serialized%valorComplex_z(N,compo,i1)/output(ii)%dftEntrada(n) ), &
-                           &                                      i1=1,output(ii)%item(i)%columnas)
+                           if (output(ii)%item(i)%columnas /=0) then    
+                               do i1=1,output(ii)%item(i)%columnas
+                                  write(output(ii)%item(i)%unit) &     
+                                          output(ii)%item(i)%Serialized%valorComplex(N,compo,i1)/output(ii)%dftEntrada(n), &
+                                          output(ii)%item(i)%Serialized%valorComplex_x(N,compo,i1)/output(ii)%dftEntrada(n), &
+                                          output(ii)%item(i)%Serialized%valorComplex_y(N,compo,i1)/output(ii)%dftEntrada(n), &
+                                          output(ii)%item(i)%Serialized%valorComplex_z(N,compo,i1)/output(ii)%dftEntrada(n) 
+                               end do
+                            endif
                         ELSE
-                           if (output(ii)%item(i)%columnas /=0) write(output(ii)%item(i)%unit) ( & 
-                                                                (output(ii)%item(i)%Serialized%valorComplex(N,compo,i1), &
-                                                                 output(ii)%item(i)%Serialized%valorComplex_x(N,compo,i1), &
-                                                                 output(ii)%item(i)%Serialized%valorComplex_y(N,compo,i1), &
-                                                                 output(ii)%item(i)%Serialized%valorComplex_z(N,compo,i1)), &
-                           &                                      i1=1,output(ii)%item(i)%columnas)
+                           if (output(ii)%item(i)%columnas /=0) then
+                               
+                                do i1=1,output(ii)%item(i)%columnas
+                                    write(output(ii)%item(i)%unit) & 
+                                       output(ii)%item(i)%Serialized%valorComplex(N,compo,i1), &
+                                       output(ii)%item(i)%Serialized%valorComplex_x(N,compo,i1), &
+                                       output(ii)%item(i)%Serialized%valorComplex_y(N,compo,i1), &
+                                       output(ii)%item(i)%Serialized%valorComplex_z(N,compo,i1) 
+                                end do
+                            endif
 
                         ENDIF
                      end do
