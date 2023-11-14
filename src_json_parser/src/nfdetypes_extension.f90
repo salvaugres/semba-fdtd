@@ -117,7 +117,6 @@ contains
          (a%tSlots         == b%tSlots)
    end function parseador_eq
 
-
    elemental logical function MatrizMedios_eq(a, b)
       type(MatrizMedios), intent(in) :: a, b
       MatrizMedios_eq = &

@@ -1,11 +1,11 @@
 
-integer function test_read_planewave() result(error_cnt)
+integer function test_read_holland1981() result(error_cnt)
    use smbjson
    use testingTools
 
    implicit none
 
-   character(len=*),parameter :: filename = 'cases/planewave.fdtd.json'
+   character(len=*),parameter :: filename = 'cases/holland1981.fdtd.json'
    type(Parseador) :: problem, expected
    logical :: areSame
    error_cnt = 0
@@ -24,11 +24,6 @@ contains
       expected%general%dt = 1e-12
       expected%general%nmax = 1000
 
-      ! Excected media matrix.
-      expected%matriz%totalX =
-      expected%matriz%totalY =
-      expected%matriz%totalZ = 
-      
       ! Expected grid.
       expected%despl%nX = 10
       expected%despl%nY = 10

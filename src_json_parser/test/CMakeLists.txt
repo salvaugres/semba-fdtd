@@ -51,6 +51,7 @@ endfunction ()
 # ctest is sensible to extension. ONLY WORKS with ".f90" AND NOT with ".F90"
 add_fortran_test_executable (smbjson_tests
     "test_read_planewave.f90"
+    "test_read_holland1981.f90"
 )
 
 get_target_property(SMBJSON_INCLUDES smbjson INCLUDE_DIRECTORIES)
