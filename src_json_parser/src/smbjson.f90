@@ -18,7 +18,7 @@ module smbjson
    ! LABELS
    ! -- shared labels
    character (len=*), parameter :: J_CELL_REGION = "cellRegion"
-   character (len=*), parameter :: J_CELLS = "cells"
+   character (len=*), parameter :: J_VOXELS = "voxels"
    character (len=*), parameter :: J_SURFELS = "surfels"
    character (len=*), parameter :: J_LINELS = "linels"
    character (len=*), parameter :: J_PIXELS = "pixels"
@@ -86,9 +86,9 @@ module smbjson
    character (len=*), parameter :: J_PR_DOMAIN_FREQ_START = "frequencyStart"
    character (len=*), parameter :: J_PR_DOMAIN_FREQ_STOP   = "frequencyEnd"
    character (len=*), parameter :: J_PR_DOMAIN_FREQ_STEP  = "frequencyStep"
-  
+
    ! type(Sonda)
-   character (len=*), parameter :: J_PR_FARFIELD = "farField" 
+   character (len=*), parameter :: J_PR_FARFIELD = "farField"
    ! type(MasSonda)
    character (len=*), parameter :: J_PR_ELECTRIC = "electric"
    character (len=*), parameter :: J_PR_MAGNETIC = "magnetic"
@@ -133,12 +133,32 @@ contains
       call json%get('.', root)
 
       call initializeProblemDescription(res)
+      ! Basics
       res%general = readGeneral(core, root)
+      res%matriz = readMediaMatrix(core, root)
       res%despl = readGrid(core, root)
       res%front = readBoundary(core, root)
+      ! Materials
+      ! res%mats = readMaterials(core, root)
+      ! res%pecRegs = readPECRegions(core, root)
+      ! res%pmcRegs = readPMCRegions(core, root)
+      ! res%DielRegs = readDielectricRegions(core, root)
+      ! res%LossyThinSurfs = readLossyThinSurfaces(core, root)
+      ! res%frqDepMats = readFrequencyDependentMaterials(core, root)
+      ! res%aniMats = readAnisotropicMaterials(core, root)
+      ! Sources
+      ! res%boxSrc = readBoxSources(core, root)
       res%plnSrc = readPlanewaves(core, root)
+      ! res%nodSrc = readNodalSources(core, root)
+      ! Probes
       res%oldSonda = readProbes(core, root)
       res%sonda = readMoreProbes(core, root)
+      ! res%BloquePrb = readBlockProbes(core, root)
+      ! res%VolPrb = readVolumicProbes(core, root)
+      ! Thin elements
+      ! res%tWires = readThinWires(core, root)
+      ! res%sWires = readSlantedWires(core, root)
+      ! res%tSlots = readThinSlots(core, root)
    end function
 
    subroutine getRealVec(core, place, path, dest)
@@ -224,7 +244,7 @@ contains
 
       character (kind=JSON_CK, len=*) :: key
       character (kind=JSON_CK, len=*), dimension(:) :: values
-      
+
       type(json_value_ptr), dimension (:), allocatable :: foundEntries, tmp
       integer :: i, lastEntry, nEntries
 
@@ -240,7 +260,7 @@ contains
             out(:size(tmp)) = tmp
             out((size(tmp)+1):) = foundEntries
             deallocate(tmp)
-         else 
+         else
             allocate(out(size(foundEntries)))
             out = foundEntries
          end if
@@ -279,20 +299,41 @@ contains
 
    end function
 
+   function readGeneral(json, root) result (res)
+      type(NFDEGeneral) :: res
+      type(json_core) :: json
+      type(json_value), pointer :: root
+
+      call json%get(root, J_GENERAL//'.'//J_TIME_STEP,       res%dt)
+      call json%get(root, J_GENERAL//'.'//J_NUMBER_OF_STEPS, res%nmax)
+   end function
+
+   function readMediaMatrix(core, root) result(res)
+      type(MatrizMedios) :: res
+      type(json_core) :: core
+      type(json_value), pointer :: root
+
+      character (len=*), parameter :: P = J_MESH//'.'//J_GRID
+
+      call core%get(root, P//'.'//J_NUMBER_OF_CELLS//'(1)',res%totalX)
+      call core%get(root, P//'.'//J_NUMBER_OF_CELLS//'(2)',res%totalY)
+      call core%get(root, P//'.'//J_NUMBER_OF_CELLS//'(3)',res%totalZ)
+   end function
+
    function readGrid(core, root) result (res)
       type(Desplazamiento) :: res
       type(json_core) :: core
       type(json_value), pointer :: root
 
-      character (len=*), parameter :: J_PATH = J_MESH//'.'//J_GRID
+      character (len=*), parameter :: P = J_MESH//'.'//J_GRID
 
-      call core%get(root, J_PATH//'.'//J_NUMBER_OF_CELLS//'(1)',res%nX)
-      call core%get(root, J_PATH//'.'//J_NUMBER_OF_CELLS//'(2)',res%nY)
-      call core%get(root, J_PATH//'.'//J_NUMBER_OF_CELLS//'(3)',res%nZ)
+      call core%get(root, P//'.'//J_NUMBER_OF_CELLS//'(1)',res%nX)
+      call core%get(root, P//'.'//J_NUMBER_OF_CELLS//'(2)',res%nY)
+      call core%get(root, P//'.'//J_NUMBER_OF_CELLS//'(3)',res%nZ)
 
-      call getRealVec(core, root, J_PATH//'.'//J_STEPS//'.x', res%desX)
-      call getRealVec(core, root, J_PATH//'.'//J_STEPS//'.y', res%desY)
-      call getRealVec(core, root, J_PATH//'.'//J_STEPS//'.z', res%desZ)
+      call getRealVec(core, root, P//'.'//J_STEPS//'.x', res%desX)
+      call getRealVec(core, root, P//'.'//J_STEPS//'.y', res%desY)
+      call getRealVec(core, root, P//'.'//J_STEPS//'.z', res%desZ)
    end function
 
    function readBoundary(core, root) result (res)
@@ -310,6 +351,8 @@ contains
             !! TODO fill pml properties.
          end if
          return
+      else 
+         ! TODO Check every bound.
       end if
    contains
       function labelToBoundaryType(str) result (type)
@@ -328,6 +371,62 @@ contains
             type = F_PML
          end select
       end function
+   end function
+
+   function readMaterials(core, root) result (res)
+      type(Materials) :: res
+      type(json_core) :: core
+      type(json_value), pointer :: root
+      ! TODO
+   end function
+
+   function readPECRegions(core, root) result (res)
+      type(PECRegions) :: res
+      type(json_core) :: core
+      type(json_value), pointer :: root
+      ! TODO
+   end function
+
+   function readPMCRegions(core, root) result (res)
+      type(PECRegions) :: res
+      type(json_core) :: core
+      type(json_value), pointer :: root
+      ! TODO
+   end function
+
+   function readDielectricRegions(core, root) result (res)
+      type(DielectricRegions) :: res
+      type(json_core) :: core
+      type(json_value), pointer :: root
+      ! TODO
+   end function
+
+   function readLossyThinSurfaces(core, root) result (res)
+      type(LossyThinSurfaces) :: res
+      type(json_core) :: core
+      type(json_value), pointer :: root
+      ! TODO
+   end function
+
+   function readFrequencyDependentMaterials(core, root) result (res)
+      type(FreqDepenMaterials) :: res
+      type(json_core) :: core
+      type(json_value), pointer :: root
+      ! TODO
+   end function
+
+   function readAnisotropicMaterials(core, root) result (res)
+      type(ANISOTROPICelements_t) :: res
+      type(json_core) :: core
+      type(json_value), pointer :: root
+      ! TODO
+   end function
+
+   function readBoxSources(core, root) result (res)
+      type(Boxes) :: res
+      type(json_core) :: core
+      type(json_value), pointer :: root
+      ! TODO
    end function
 
    function readPlanewaves(core, root) result (res)
@@ -380,11 +479,18 @@ contains
       end function
    end function
 
+   function readNodalSources(core, root) result (res)
+      type(NodSource) :: res
+      type(json_core) :: core
+      type(json_value), pointer :: root
+      ! TODO
+   end function
+
    function readProbes(core, root) result (res)
       type(Sondas) :: res
       type(json_core) :: core
       type(json_value), pointer :: root
-      
+
       type(json_value), pointer :: probes
       type(json_value_ptr), allocatable :: ps(:)
       integer :: i
@@ -394,7 +500,7 @@ contains
       call core%get(root, J_PROBES, probes)
       ps = jsonValueFilterByKeyValues(core, probes, J_PR_TYPE, validTypes)
       allocate(res%probes(size(ps)))
-      do i=1, size(ps) 
+      do i=1, size(ps)
          res%probes(i) = readProbe(core, ps(i)%p)
       end do
 
@@ -411,15 +517,15 @@ contains
          ! character (len=:), allocatable :: typeLabel, tag
          ! character(kind=CK,len=1), dimension(:), allocatable :: dirLabels
          ! type(Cell), dimension(:), allocatable :: cells
-         
+
          ! call core%get(p, J_PR_OUTPUT_NAME, tag)
          ! res%outputrequest = trim(adjustl(tag))
-         
+
          ! call core%get(p, J_PR_TYPE, typeLabel)
-         
+
          ! call getDomain(core, p, res)
-         
-         ! cells = getCells(core, p, J_PIXELS) 
+
+         ! cells = getCells(core, p, J_PIXELS)
          ! call core%get(p, J_PR_DIRECTIONS, dirLabels)
          ! allocate(res%cordinates(size(cells) * size(dirLabels)))
          ! do i = 1, size(cells)
@@ -439,7 +545,7 @@ contains
       type(MasSondas) :: res
       type(json_core) :: core
       type(json_value), pointer :: root
-      
+
       type(json_value), pointer :: probes
       type(json_value_ptr), allocatable :: ps(:)
       integer :: i
@@ -449,7 +555,7 @@ contains
       call core%get(root, J_PROBES, probes)
       ps = jsonValueFilterByKeyValues(core, probes, J_PR_TYPE, validTypes)
       allocate(res%collection(size(ps)))
-      do i=1, size(ps) 
+      do i=1, size(ps)
          res%collection(i) = readProbe(core, ps(i)%p)
       end do
 
@@ -466,15 +572,15 @@ contains
          character (len=:), allocatable :: typeLabel, tag
          character(kind=CK,len=1), dimension(:), allocatable :: dirLabels
          type(Cell), dimension(:), allocatable :: cells
-         
+
          call core%get(p, J_PR_OUTPUT_NAME, tag)
          res%outputrequest = trim(adjustl(tag))
-         
+
          call core%get(p, J_PR_TYPE, typeLabel)
-         
+
          call getDomain(core, p, res)
-         
-         cells = getCells(core, p, J_PIXELS) 
+
+         cells = getCells(core, p, J_PIXELS)
          call core%get(p, J_PR_DIRECTIONS, dirLabels)
          allocate(res%cordinates(size(cells) * size(dirLabels)))
          do i = 1, size(cells)
@@ -499,9 +605,9 @@ contains
          real :: val
 
          call core%get(p, J_PR_DOMAIN, domain)
-         
+
          res%type1 = NP_T1_PLAIN
-         
+
          call core%get(domain, J_PR_TYPE, domainType)
          res%type2 = strToDomainType(domainType)
 
@@ -574,14 +680,38 @@ contains
 
    end function
 
-   function readGeneral(json, root) result (res)
-      type(NFDEGeneral) :: res
-      type(json_core) :: json
+   function readBlockProbes(core, root) result (res)
+      type(BloqueProbes) :: res
+      type(json_core) :: core
       type(json_value), pointer :: root
-
-      call json%get(root, J_GENERAL//'.'//J_TIME_STEP,       res%dt)
-      call json%get(root, J_GENERAL//'.'//J_NUMBER_OF_STEPS, res%nmax)
+      ! TODO
    end function
 
+   function readVolumicProbes(core, root) result (res)
+      type(VolProbes) :: res
+      type(json_core) :: core
+      type(json_value), pointer :: root
+      ! TODO
+   end function
 
+   function readThinWires(core, root) result (res)
+      type(ThinWires) :: res
+      type(json_core) :: core
+      type(json_value), pointer :: root
+      ! TODO
+   end function
+
+   function readSlantedWires(core, root) result (res)
+      type(SlantedWires) :: res
+      type(json_core) :: core
+      type(json_value), pointer :: root
+      ! TODO
+   end function
+
+   function readThinSlots(core, root) result (res)
+      type(ThinSlots) :: res
+      type(json_core) :: core
+      type(json_value), pointer :: root
+      ! TODO
+   end function
 end module

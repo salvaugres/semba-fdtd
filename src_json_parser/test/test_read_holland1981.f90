@@ -1,4 +1,3 @@
-
 integer function test_read_holland1981() result(error_cnt)
    use smbjson
    use testingTools
@@ -23,6 +22,11 @@ contains
       ! Expected general info.
       expected%general%dt = 1e-12
       expected%general%nmax = 1000
+
+      ! Excected media matrix.
+      expected%matriz%totalX = 10
+      expected%matriz%totalY = 10
+      expected%matriz%totalZ = 10
 
       ! Expected grid.
       expected%despl%nX = 10

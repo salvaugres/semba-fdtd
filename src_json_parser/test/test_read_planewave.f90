@@ -25,10 +25,10 @@ contains
       expected%general%nmax = 1000
 
       ! Excected media matrix.
-      expected%matriz%totalX =
-      expected%matriz%totalY =
-      expected%matriz%totalZ = 
-      
+      expected%matriz%totalX = 10
+      expected%matriz%totalY = 10
+      expected%matriz%totalZ = 10
+
       ! Expected grid.
       expected%despl%nX = 10
       expected%despl%nY = 10
@@ -37,9 +37,9 @@ contains
       allocate(expected%despl%desX(1))
       allocate(expected%despl%desY(1))
       allocate(expected%despl%desZ(1))
-      expected%despl%desX = (/0.1/)
-      expected%despl%desY = (/0.1/)
-      expected%despl%desZ = (/0.1/)
+      expected%despl%desX = [0.1]
+      expected%despl%desY = [0.1]
+      expected%despl%desZ = [0.1]
 
       ! Expected boundaries.
       expected%front%tipoFrontera(:) = F_MUR
@@ -48,8 +48,8 @@ contains
       allocate(expected%plnSrc%collection(1))
       expected%plnSrc%collection(1)%nombre_fichero = "gauss_100MHz.exc"
       expected%plnSrc%collection(1)%atributo = ""
-      expected%plnSrc%collection(1)%coor1 = (/2, 2, 2/)
-      expected%plnSrc%collection(1)%coor2 = (/9, 9, 9/)
+      expected%plnSrc%collection(1)%coor1 = [2, 2, 2]
+      expected%plnSrc%collection(1)%coor2 = [9, 9, 9]
       expected%plnSrc%collection(1)%theta = 0.0
       expected%plnSrc%collection(1)%phi = 0.0
       expected%plnSrc%collection(1)%alpha = 1.5708

@@ -82,7 +82,10 @@ contains
       allocate(pD%oldSONDA)
       allocate(pD%BloquePrb)
       allocate(pD%VolPrb)
+      
       allocate(pD%tWires)
+      allocate(pD%tWires%tw(0))
+
       allocate(pD%sWires)
       allocate(pD%tSlots)
       allocate(pD%boxSrc)
@@ -145,13 +148,25 @@ contains
 
    elemental logical function pecregions_eq(a, b)
       type(PECRegions), intent(in) :: a, b
+      logical :: allAssociated
+
+      allAssociated = &
+         associated(a%Lins) .and. associated(b%Lins) .and. & 
+         associated(a%Surfs) .and. associated(b%Surfs) .and. &
+         associated(a%Vols) .and. associated(b%Vols) 
+      if (.not. allAssociated) then
+         pecregions_eq = .false.
+         return
+      end if
+
       pecregions_eq = &
          (a%nVols == b%nVols) .and. &
          (a%nSurfs == b%nSurfs) .and. &
          (a%nLins == b%nLins) .and. &
+         all(a%Lins == b%Lins) .and. & 
          all(a%Vols == b%Vols) .and. &
-         all(a%Surfs == b%Surfs) .and. &
-         all(a%Lins == b%Lins)
+         all(a%Surfs == b%Surfs)
+          
    end function pecregions_eq
 
    elemental logical function dielectric_eq(a, b)
@@ -394,6 +409,13 @@ contains
 
    elemental logical function ThinWires_eq(a, b)
       type(ThinWires), intent(in) :: a, b
+      logical :: allAssociated
+      allAssociated = &
+         associated(a%tw) .and. associated(b%tw)
+      if (.not. allAssociated) then
+         ThinWires_eq = .false.
+         return
+      end if
 
       ThinWires_eq = all(a%tw == b%tw) .and. &
          (a%n_tw == b%n_tw) .and. &
@@ -616,7 +638,6 @@ contains
    elemental logical function coords_eq(a, b) result(res)
       type(coords), intent(in) :: a, b
       res = .false.
-
       if (a%xi /= b%xi) return
       if (a%xe /= b%xe) return
       if (a%yi /= b%yi) return
