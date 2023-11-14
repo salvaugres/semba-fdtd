@@ -29,7 +29,7 @@ function (add_fortran_test_executable TARGET)
 
     create_test_sourcelist (_ main.c ${TEST_FILES_MANGLED})
 
-    add_library (${TARGET}_fortran ${TEST_FILES})
+    add_library (${TARGET}_fortran ${TEST_FILES} "testingTools.f90")
     target_link_libraries (${TARGET}_fortran smbjson)
     add_executable (${TARGET} main.c)
     target_link_libraries (${TARGET} ${TARGET}_fortran)

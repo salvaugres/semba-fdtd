@@ -7,12 +7,25 @@ module NFDETypes_extension
 
    interface operator(==)
       module procedure NFDEGeneral_eq
-
       module procedure desplazamiento_eq
+
+      module procedure MatrizMedios_eq
+      module procedure Material_eq
+      module procedure Materials_eq
+      module procedure dielectric_eq
+      module procedure dielectricregions_eq
+      module procedure freqdepenmaterial_eq
+      module procedure freqdepenmaterials_eq
+      module procedure anisotropicbody_eq
+      module procedure anisotropicelements_eq
+      module procedure LossyThinSurface_eq
+      module procedure LossyThinSurfaces_eq
 
       module procedure frontera_eq
       module procedure fronteraPML_eq
 
+      module procedure box_eq
+      module procedure boxes_eq
       module procedure planewaves_eq
       module procedure planewave_eq
 
@@ -22,6 +35,10 @@ module NFDETypes_extension
       module procedure sondas_eq
       module procedure massonda_eq
       module procedure massondas_eq
+      module procedure bloqueprobe_eq
+      module procedure bloqueprobes_eq
+      module procedure volprobe_eq
+      module procedure volprobes_eq
 
       module procedure FarField_Sonda_eq
       module procedure Electric_Sonda_eq
@@ -30,8 +47,6 @@ module NFDETypes_extension
       module procedure NormalMagnetic_Sonda_eq
       module procedure SurfaceElectricCurrent_Sonda_eq
       module procedure SurfaceMagneticCurrent_Sonda_eq
-      module procedure LossyThinSurface_eq
-      module procedure LossyThinSurfaces_eq
       module procedure ThinWireComp_eq
       module procedure ThinWire_eq
       module procedure ThinWires_eq
@@ -41,7 +56,6 @@ module NFDETypes_extension
       module procedure ThinSlotComp_eq
       module procedure ThinSlot_eq
       module procedure ThinSlots_eq
-
    end interface
 
 contains
@@ -72,10 +86,214 @@ contains
 
    end subroutine
 
+   elemental logical function MatrizMedios_eq(a, b)
+      type(MatrizMedios), intent(in) :: a, b
+      MatrizMedios_eq = &
+         a%totalX == b%totalX .and. &
+         a%totalY == b%totalY .and. &
+         a%totalZ == b%totalZ
+   end function MatrizMedios_eq
+
+   elemental logical function Material_eq(a, b)
+      type(Material), intent(in) :: a, b
+      Material_eq = &
+         a%eps == b%eps .and. &
+         a%mu == b%mu .and. &
+         a%sigma == b%sigma .and. &
+         a%sigmam == b%sigmam .and. &
+         a%id == b%id
+   end function Material_eq
+
+   elemental logical function Materials_eq(a, b)
+      type(Materials), intent(in) :: a, b
+      Materials_eq = &
+         (a%n_Mats == b%n_Mats) .and. &
+         (a%n_Mats_max == b%n_Mats_max) .and. &
+         all(a%Mats == b%Mats)
+   end function Materials_eq
+
+   elemental logical function pecregions_eq(a, b)
+      type(PECRegions), intent(in) :: a, b
+      pecregions_eq = &
+         (a%nVols == b%nVols) .and. &
+         (a%nSurfs == b%nSurfs) .and. &
+         (a%nLins == b%nLins) .and. &
+         all(a%Vols == b%Vols) .and. &
+         all(a%Surfs == b%Surfs) .and. &
+         all(a%Lins == b%Lins)
+   end function pecregions_eq
+
+   elemental logical function dielectric_eq(a, b)
+      type(dielectric_t), intent(in) :: a, b
+      dielectric_eq = &
+         (a%n_C1P == b%n_C1P) .and. &
+         (a%n_C2P == b%n_C2P) .and. &
+         all(a%C1P == b%C1P) .and. &
+         all(a%C2P == b%C2P) .and. &
+         (a%sigma == b%sigma) .and. &
+         (a%eps == b%eps) .and. &
+         (a%mu == b%mu) .and. &
+         (a%sigmam == b%sigmam) .and. &
+         (a%Rtime_on == b%Rtime_on) .and. &
+         (a%Rtime_off == b%Rtime_off) .and. &
+         (a%R == b%R) .and. &
+         (a%L == b%L) .and. &
+         (a%C == b%C) .and. &
+         (a%R_devia == b%R_devia) .and. &
+         (a%L_devia == b%L_devia) .and. &
+         (a%C_devia == b%C_devia) .and. &
+         (a%DiodB == b%DiodB) .and. &
+         (a%DiodIsat == b%DiodIsat) .and. &
+         (a%DiodOri == b%DiodOri) .and. &
+         (a%orient == b%orient) .and. &
+         (a%resistor  .eqv. b%resistor) .and. &
+         (a%inductor  .eqv. b%inductor) .and. &
+         (a%capacitor .eqv. b%capacitor) .and. &
+         (a%diodo     .eqv. b%diodo) .and. &
+         (a%plain     .eqv. b%plain) .and. &
+         (a%PMLbody   .eqv. b%PMLbody)
+   end function dielectric_eq
+
+   elemental logical function freqdepenmaterial_eq(a, b)
+      type(FreqDepenMaterial), intent(in) :: a, b
+      freqdepenmaterial_eq = &
+         all(a%a11 == b%a11) .and. &
+         all(a%b11 == b%b11) .and. &
+         all(a%am11 == b%am11) .and. &
+         all(a%bm11 == b%bm11) .and. &
+         all(a%a12 == b%a12) .and. &
+         all(a%b12 == b%b12) .and. &
+         all(a%am12 == b%am12) .and. &
+         all(a%bm12 == b%bm12) .and. &
+         all(a%a13 == b%a13) .and. &
+         all(a%b13 == b%b13) .and. &
+         all(a%am13 == b%am13) .and. &
+         all(a%bm13 == b%bm13) .and. &
+         all(a%a22 == b%a22) .and. &
+         all(a%b22 == b%b22) .and. &
+         all(a%am22 == b%am22) .and. &
+         all(a%bm22 == b%bm22) .and. &
+         all(a%a23 == b%a23) .and. &
+         all(a%b23 == b%b23) .and. &
+         all(a%am23 == b%am23) .and. &
+         all(a%bm23 == b%bm23) .and. &
+         all(a%a33 == b%a33) .and. &
+         all(a%b33 == b%b33) .and. &
+         all(a%am33 == b%am33) .and. &
+         all(a%bm33 == b%bm33) .and. &
+         all(a%alpha == b%alpha) .and. &
+         all(a%beta == b%beta) .and. &
+         all(a%gamma == b%gamma) .and. &
+         all(a%alpham == b%alpham) .and. &
+         all(a%betam == b%betam) .and. &
+         all(a%gammam == b%gammam) .and. &
+         all(coords_eq(a%c(1:a%n_c), b%c(1:b%n_c))) .and. &
+         (a%eps11 == b%eps11) .and. &
+         (a%eps12 == b%eps12) .and. &
+         (a%eps13 == b%eps13) .and. &
+         (a%eps22 == b%eps22) .and. &
+         (a%eps23 == b%eps23) .and. &
+         (a%eps33 == b%eps33) .and. &
+         (a%mu11 == b%mu11) .and. &
+         (a%mu12 == b%mu12) .and. &
+         (a%mu13 == b%mu13) .and. &
+         (a%mu22 == b%mu22) .and. &
+         (a%mu23 == b%mu23) .and. &
+         (a%mu33 == b%mu33) .and. &
+         (a%sigma11 == b%sigma11) .and. &
+         (a%sigma12 == b%sigma12) .and. &
+         (a%sigma13 == b%sigma13) .and. &
+         (a%sigma22 == b%sigma22) .and. &
+         (a%sigma23 == b%sigma23) .and. &
+         (a%sigma33 == b%sigma33) .and. &
+         (a%sigmam11 == b%sigmam11) .and. &
+         (a%sigmam12 == b%sigmam12) .and. &
+         (a%sigmam13 == b%sigmam13) .and. &
+         (a%sigmam22 == b%sigmam22) .and. &
+         (a%sigmam23 == b%sigmam23) .and. &
+         (a%sigmam33 == b%sigmam33) .and. &
+         (a%K11 == b%K11) .and. &
+         (a%Km11 == b%Km11) .and. &
+         (a%K12 == b%K12) .and. &
+         (a%Km12 == b%Km12) .and. &
+         (a%K13 == b%K13) .and. &
+         (a%Km13 == b%Km13) .and. &
+         (a%K22 == b%K22) .and. &
+         (a%Km22 == b%Km22) .and. &
+         (a%K23 == b%K23) .and. &
+         (a%Km23 == b%Km23) .and. &
+         (a%K33 == b%K33) .and. &
+         (a%Km33 == b%Km33) .and. &
+         (a%L == b%L) .and. &
+         (a%Lm == b%Lm) .and. &
+         (a%n_c == b%n_c) .and. &
+         (a%files == b%files)
+   end function freqdepenmaterial_eq
+
+   elemental logical function freqdepenmaterials_eq(a, b)
+      type(FreqDepenMaterials), intent(in) :: a, b
+      freqdepenmaterials_eq = &
+         (a%nVols == b%nVols) .and. &
+         (a%nSurfs == b%nSurfs) .and. &
+         (a%nLins == b%nLins) .and. &
+         (a%nVols_max == b%nVols_max) .and. &
+         (a%nSurfs_max == b%nSurfs_max) .and. &
+         (a%nLins_max == b%nLins_max) .and. &
+         (a%n_c_max == b%n_c_max) .and. &
+         all(a%Vols  == b%Vols) .and. &
+         all(a%Surfs == b%Surfs) .and. &
+         all(a%Lins  == b%Lins)
+   end function freqdepenmaterials_eq
+
+   elemental logical function anisotropicbody_eq(a, b)
+      type(ANISOTROPICbody_t), intent(in) :: a, b
+      anisotropicbody_eq = &
+         all(a%c1P == b%c1P) .and. &
+         all(a%c2P == b%c2P) .and. &
+         all(a%sigma == b%sigma) .and. &
+         all(a%eps == b%eps) .and. &
+         all(a%mu == b%mu) .and. &
+         all(a%sigmam == b%sigmam) .and. &
+         (a%n_C1P == b%n_C1P) .and. &
+         (a%n_C2P == b%n_C2P)
+   end function anisotropicbody_eq
+
+   elemental logical function anisotropicelements_eq(a, b)
+      type(ANISOTROPICelements_t), intent(in) :: a, b
+      anisotropicelements_eq = &
+         (a%nVols == b%nVols) .and. &
+         (a%nSurfs == b%nSurfs) .and. &
+         (a%nLins == b%nLins) .and. &
+         (a%nVols_max == b%nVols_max) .and. &
+         (a%nSurfs_max == b%nSurfs_max) .and. &
+         (a%nLins_max == b%nLins_max) .and. &
+         (a%n_C1P_max == b%n_C1P_max) .and. &
+         (a%n_C2P_max == b%n_C2P_max) .and. &
+         all(a%Vols  == b%Vols ) .and. &
+         all(a%Surfs == b%Surfs) .and. &
+         all(a%Lins  == b%Lins )
+   end function anisotropicelements_eq
+
+   elemental logical function dielectricregions_eq(a, b)
+      type(DielectricRegions), intent(in) :: a, b
+      dielectricregions_eq = &
+         a%nVols == b%nVols .and. &
+         a%nSurfs == b%nSurfs .and. &
+         a%nLins == b%nLins .and. &
+         a%nVols_max == b%nVols_max .and. &
+         a%nSurfs_max == b%nSurfs_max .and. &
+         a%nLins_max == b%nLins_max .and. &
+         a%n_C1P_max == b%n_C1P_max .and. &
+         a%n_C2P_max == b%n_C2P_max .and. &
+         all(a%Vols == b%Vols) .and. &
+         all(a%Surfs == b%Surfs) .and. &
+         all(a%Lins == b%Lins)
+   end function dielectricregions_eq
+
    elemental logical function LossyThinSurface_eq(a, b)
       type(LossyThinSurface), intent(in) :: a, b
-
-      LossyThinSurface_eq = all(a%c == b%c) .and. &
+      LossyThinSurface_eq = &
+         all(a%c == b%c) .and. &
          all(a%sigma == b%sigma) .and. &
          all(a%eps == b%eps) .and. &
          all(a%mu == b%mu) .and. &
@@ -239,6 +457,22 @@ contains
       res = .true.
    end function
 
+   elemental logical function box_eq(a, b)
+      type(Box), intent(in) :: a, b
+      box_eq = &
+         (a%nombre_fichero == b%nombre_fichero) .and. &
+         all(a%coor1 == b%coor1) .and. &
+         all(a%coor2 == b%coor2)
+   end function box_eq
+
+   elemental logical function boxes_eq(a, b)
+      type(Boxes), intent(in) :: a, b
+      boxes_eq = &
+         (a%nVols == b%nVols) .and. &
+         (a%nVols_max == b%nVols_max) .and. &
+         all(a%Vols == b%Vols)
+   end function boxes_eq
+
    elemental logical function planewave_eq(a,b) result(res)
       type(PlaneWave), intent(in) :: a, b
       res = .false.
@@ -376,7 +610,6 @@ contains
       SurfaceMagneticCurrent_Sonda_eq = a%probe == b%probe
    end function SurfaceMagneticCurrent_Sonda_eq
 
-
    elemental logical function abstractSonda_eq(a, b) result(res)
       type(abstractSonda), intent(in) :: a, b
       integer(kind=4) :: i
@@ -482,7 +715,7 @@ contains
       res = .true.
    end function
 
-   logical function MasSondas_eq(a, b)
+   elemental logical function MasSondas_eq(a, b)
       type(MasSondas), intent(in) :: a, b
       integer(kind=4) :: i
 
@@ -497,4 +730,59 @@ contains
 
       MasSondas_eq = .true.
    end function MasSondas_eq
+
+   elemental logical function bloqueprobe_eq(a, b)
+      type(BloqueProbe), intent(in) :: a, b
+      bloqueprobe_eq = (a%tstart == b%tstart) .and. &
+         (a%tstop == b%tstop) .and. &
+         (a%tstep == b%tstep) .and. &
+         (a%fstart == b%fstart) .and. &
+         (a%fstop == b%fstop) .and. &
+         (a%fstep == b%fstep) .and. &
+         (trim(a%FileNormalize) == trim(b%FileNormalize)) .and. &
+         (a%type2 == b%type2) .and. &
+         (a%i1 == b%i1) .and. (a%i2 == b%i2) .and. &
+         (a%j1 == b%j1) .and. (a%j2 == b%j2) .and. &
+         (a%k1 == b%k1) .and. (a%k2 == b%k2) .and. &
+         (a%skip == b%skip) .and. &
+         (a%nml == b%nml) .and. &
+         (a%t .eqv. b%t) .and. &
+         (a%outputrequest == b%outputrequest) .and. &
+         (a%tag == b%tag)
+   end function bloqueprobe_eq
+
+   elemental logical function bloqueprobes_eq(a, b)
+      type(BloqueProbes), intent(in) :: a, b
+      bloqueprobes_eq = &
+         (a%n_bp == b%n_bp) .and. &
+         (a%n_bp_max == b%n_bp_max) .and. &
+         all(a%bp == b%bp)
+   end function bloqueprobes_eq
+
+   elemental logical function volprobe_eq(a, b)
+      type(VolProbe), intent(in) :: a, b
+      volprobe_eq = &
+         all(a%cordinates == b%cordinates(1:b%len_cor)) .and. &
+         (a%tstart == b%tstart) .and. &
+         (a%tstop == b%tstop) .and. &
+         (a%tstep == b%tstep) .and. &
+         (a%outputrequest == b%outputrequest) .and. &
+         (a%len_cor == b%len_cor) .and. &
+         (a%fstart == b%fstart) .and. &
+         (a%fstop == b%fstop) .and. &
+         (a%fstep == b%fstep) .and. &
+         (a%type2 == b%type2) .and. &
+         (a%filename == b%filename)
+   end function volprobe_eq
+
+   elemental logical function volprobes_eq(a, b)
+      type(VolProbes), intent(in) :: a, b
+      volprobes_eq = &
+         (a%length == b%length) .and. &
+         (a%length_max == b%length_max) .and. &
+         (a%len_cor_max == b%len_cor_max) .and. &
+         all(a%collection == b%collection)
+   end function volprobes_eq
+
+
 end module

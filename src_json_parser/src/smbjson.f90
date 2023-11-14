@@ -19,6 +19,9 @@ module smbjson
    ! -- shared labels
    character (len=*), parameter :: J_CELL_REGION = "cellRegion"
    character (len=*), parameter :: J_CELLS = "cells"
+   character (len=*), parameter :: J_SURFELS = "surfels"
+   character (len=*), parameter :: J_LINELS = "linels"
+   character (len=*), parameter :: J_PIXELS = "pixels"
 
    character (len=*), parameter :: J_DIR_X = "x"
    character (len=*), parameter :: J_DIR_Y = "y"
@@ -29,6 +32,8 @@ module smbjson
    character (len=*), parameter :: J_TIME_STEP = "timeStep"
    character (len=*), parameter :: J_NUMBER_OF_STEPS = "numberOfSteps"
 
+   ! -- Mesh
+   character (len=*), parameter :: J_MESH = "mesh"
    ! type(Desplazamiento)
    character (len=*), parameter :: J_GRID = "grid"
    character (len=*), parameter :: J_NUMBER_OF_CELLS = "numberOfCells"
@@ -36,6 +41,7 @@ module smbjson
 
    ! type(Frontera)
    character (len=*), parameter :: J_BOUNDARY = "boundary"
+   character (len=*), parameter :: J_BOUNDARY_TYPE = "type"
    character (len=*), parameter :: J_ALL = "all"
    character (len=*), parameter :: J_PEC = "pec"
    character (len=*), parameter :: J_PMC = "pmc"
@@ -189,16 +195,17 @@ contains
       end do
    end function
 
-   function getCells(core, place) result(res)
+   function getCells(core, place, path) result(res)
       type(json_core) :: core
       type(json_value), pointer :: place
+      character (len=*), intent(in) :: path
       type(Cell), dimension(:), allocatable :: res
 
       integer :: i, n
       type(json_value), pointer :: cellsEntry, coordEntry
       real (kind=RK), pointer :: vec(:)
 
-      call core%get(place, J_CELLS, cellsEntry)
+      call core%get(place, path, cellsEntry)
       allocate(res(core%count(cellsEntry)))
       do i = 1, core%count(cellsEntry)
          call core%get_child(cellsEntry, i, coordEntry)
@@ -277,13 +284,15 @@ contains
       type(json_core) :: core
       type(json_value), pointer :: root
 
-      call core%get(root, J_GRID//'.'//J_NUMBER_OF_CELLS//'(1)',res%nX)
-      call core%get(root, J_GRID//'.'//J_NUMBER_OF_CELLS//'(2)',res%nY)
-      call core%get(root, J_GRID//'.'//J_NUMBER_OF_CELLS//'(3)',res%nZ)
+      character (len=*), parameter :: J_PATH = J_MESH//'.'//J_GRID
 
-      call getRealVec(core, root, J_GRID//'.'//J_STEPS//'.x', res%desX)
-      call getRealVec(core, root, J_GRID//'.'//J_STEPS//'.y', res%desY)
-      call getRealVec(core, root, J_GRID//'.'//J_STEPS//'.z', res%desZ)
+      call core%get(root, J_PATH//'.'//J_NUMBER_OF_CELLS//'(1)',res%nX)
+      call core%get(root, J_PATH//'.'//J_NUMBER_OF_CELLS//'(2)',res%nY)
+      call core%get(root, J_PATH//'.'//J_NUMBER_OF_CELLS//'(3)',res%nZ)
+
+      call getRealVec(core, root, J_PATH//'.'//J_STEPS//'.x', res%desX)
+      call getRealVec(core, root, J_PATH//'.'//J_STEPS//'.y', res%desY)
+      call getRealVec(core, root, J_PATH//'.'//J_STEPS//'.z', res%desZ)
    end function
 
    function readBoundary(core, root) result (res)
@@ -294,7 +303,7 @@ contains
       character(kind=json_CK,len=:), allocatable :: boundaryTypeLabel
       logical(LK) :: allLabelFound = .false.
 
-      call core%get(root, J_BOUNDARY//'.'//J_ALL,  boundaryTypeLabel, allLabelFound)
+      call core%get(root, J_BOUNDARY//'.'//J_ALL//'.'//J_BOUNDARY_TYPE,  boundaryTypeLabel, allLabelFound)
       if (allLabelFound) then
          res%tipoFrontera(:) = labelToBoundaryType(boundaryTypeLabel)
          if (all(res%tipoFrontera == F_PML)) then
@@ -410,7 +419,7 @@ contains
          
          ! call getDomain(core, p, res)
          
-         ! cells = getCells(core, p) 
+         ! cells = getCells(core, p, J_PIXELS) 
          ! call core%get(p, J_PR_DIRECTIONS, dirLabels)
          ! allocate(res%cordinates(size(cells) * size(dirLabels)))
          ! do i = 1, size(cells)
@@ -465,7 +474,7 @@ contains
          
          call getDomain(core, p, res)
          
-         cells = getCells(core, p) 
+         cells = getCells(core, p, J_PIXELS) 
          call core%get(p, J_PR_DIRECTIONS, dirLabels)
          allocate(res%cordinates(size(cells) * size(dirLabels)))
          do i = 1, size(cells)
