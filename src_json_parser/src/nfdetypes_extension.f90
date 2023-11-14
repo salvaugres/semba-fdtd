@@ -12,6 +12,7 @@ module NFDETypes_extension
       module procedure MatrizMedios_eq
       module procedure Material_eq
       module procedure Materials_eq
+      module procedure pecregions_eq
       module procedure dielectric_eq
       module procedure dielectricregions_eq
       module procedure freqdepenmaterial_eq
@@ -28,8 +29,11 @@ module NFDETypes_extension
       module procedure boxes_eq
       module procedure planewaves_eq
       module procedure planewave_eq
+      module procedure curr_field_src_eq
+      module procedure nodsource_eq
 
       module procedure coords_eq
+      module procedure coords_scaled_eq
       module procedure abstractSonda_eq
       module procedure sonda_eq
       module procedure sondas_eq
@@ -85,6 +89,34 @@ contains
       allocate(pD%plnSrc)
 
    end subroutine
+
+   elemental logical function parseador_eq(a, b)
+      type(Parseador), intent(in) :: a, b
+      parseador_eq = &
+         (a%switches == b%switches) .and. &
+         (a%general        == b%general) .and. &
+         (a%matriz         == b%matriz) .and. &
+         (a%despl          == b%despl) .and. &
+         (a%front          == b%front) .and. &
+         (a%Mats           == b%Mats) .and. &
+         (a%pecRegs        == b%pecRegs) .and. &
+         (a%pmcRegs        == b%pmcRegs) .and. &
+         (a%DielRegs       == b%DielRegs) .and. &
+         (a%LossyThinSurfs == b%LossyThinSurfs) .and. &
+         (a%frqDepMats     == b%frqDepMats) .and. &
+         (a%aniMats        == b%aniMats) .and. &
+         (a%boxSrc         == b%boxSrc) .and. &
+         (a%plnSrc         == b%plnSrc) .and. &
+         (a%nodSrc         == b%nodSrc) .and. &
+         (a%oldSONDA       == b%oldSONDA) .and. &
+         (a%Sonda          == b%Sonda) .and. &
+         (a%BloquePrb      == b%BloquePrb) .and. &
+         (a%VolPrb         == b%VolPrb) .and. &
+         (a%tWires         == b%tWires) .and. &
+         (a%sWires         == b%sWires) .and. &
+         (a%tSlots         == b%tSlots)
+   end function parseador_eq
+
 
    elemental logical function MatrizMedios_eq(a, b)
       type(MatrizMedios), intent(in) :: a, b
@@ -504,6 +536,31 @@ contains
       res = .true.
    end function
 
+   elemental logical function curr_field_src_eq(a, b)
+      type(Curr_Field_Src), intent(in) :: a, b
+      curr_field_src_eq = &
+         all(a%c1P == b%c1P) .and. &
+         all(a%c2P == b%c2P) .and. &
+         (a%n_C1P == b%n_C1P) .and. &
+         (a%n_C2P == b%n_C2P) .and. &
+         (a%nombre == b%nombre) .and. &
+         (a%isElec .eqv. b%isElec) .and. &
+         (a%isMagnet  .eqv. b%isMagnet) .and. &
+         (a%isCurrent .eqv. b%isCurrent) .and. &
+         (a%isField .eqv. b%isField) .and. &
+         (a%isInitialValue .eqv. b%isInitialValue)
+   end function curr_field_src_eq
+
+   elemental logical function nodsource_eq(a, b)
+      type(NodSource), intent(in) :: a, b
+      nodsource_eq = &
+         (a%n_nodSrc == b%n_nodSrc) .and. &
+         (a%n_nodSrc_max == b%n_nodSrc_max) .and. &
+         (a%n_C1P_max == b%n_C1P_max) .and. &
+         (a%n_C2P_max == b%n_C2P_max) .and. &
+         all(a%NodalSource == b%NodalSource)
+   end function nodsource_eq
+
    elemental logical function fronteraPML_eq(a, b) result (res)
       type(FronteraPML), intent(in) :: a, b
       res = .false.
@@ -574,6 +631,22 @@ contains
       if (a%tag /= b%tag) return
       res = .true.
    end function
+
+   elemental logical function coords_scaled_eq(a, b)
+      type(coords_scaled), intent(in) :: a, b
+      coords_scaled_eq = &
+         (a%Xi == b%Xi) .and. &
+         (a%Xe == b%Xe) .and. &
+         (a%Yi == b%Yi) .and. &
+         (a%Ye == b%Ye) .and. &
+         (a%Zi == b%Zi) .and. &
+         (a%Ze == b%Ze) .and. &
+         (a%xc == b%xc) .and. &
+         (a%yc == b%yc) .and. &
+         (a%zc == b%zc) .and. &
+         (a%Or == b%Or) .and. &
+         (a%tag == b%tag)
+   end function coords_scaled_eq
 
    elemental logical function FarField_Sonda_eq(a, b)
       type(FarField_Sonda), intent(in) :: a, b
