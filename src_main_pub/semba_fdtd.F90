@@ -1283,7 +1283,7 @@ contains
 
    subroutine interpretswitches(chaininput,statuse)
    CHARACTER (LEN=1024) ::  chaininput
-   integer (kind=4) :: statuse
+   integer (kind=4) :: statuse,iconta,jconta
    logical :: existiarunningigual,mpidirset
    mpidirset=.false.
    existiarunningigual=.false.
@@ -1965,29 +1965,32 @@ contains
           CASE ('-groundwires')
             groundwires = .TRUE.
             opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))
-          CASE ('-noSlantedcrecepelo ') !opcion niapa excperimental 131219
+          CASE ('-noSlantedcrecepelo') !opcion niapa excperimental 131219
             noSlantedcrecepelo  = .TRUE.
             opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))
 
           CASE ('-externalinductance')
             i = i + 1
-            CALL getcommandargument (chaininput, i, f, length,  statuse)
-            READ (f, '(a)', ERR=361) inductance_file
-            
-            open (1712, file=inductance_file, action='READ')
+            CALL getcommandargument (chaininput, i, f, length,  statuse)        
+            opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))  // ' ' // trim (adjustl(f))
+            READ (f, '(a)', ERR=3611) inductance_file     
+            GO TO 4611
+3611        CALL stoponerror (layoutnumber, size, 'Invalid externalinductance file',.true.); statuse=-1; !return        
+4611        open (1712, file=inductance_file, action='READ')
             read (1712, *) LCdimension
             allocate(externalL(LCdimension, LCdimension))
             allocate(externalC(LCdimension, LCdimension))
             allocate(LCline(LCdimension))
-            do i = 1, LCdimension
+            do iconta = 1, LCdimension
                 read (1712, *) LCline
-                do j = 1, LCdimension
-                    externalL(i,j) = LCline(j)
+                do jconta = 1, LCdimension
+                    externalL(iconta,jconta) = LCline(jconta)
                 end do
             end do
-           
+            close(1712)
+            
             inductance_model = 'external'
-            opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))
+            opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(f))
             
           CASE ('-inductance')
             i = i + 1
@@ -2055,10 +2058,12 @@ contains
                EpsMuTimeScale_input_parameters%magnetic=.True.
             case default
                GO TO 33862
-            end select
-            i = i + 1
-            CALL getcommandargument (chaininput, i, f, length,  statuse)
+            end select        
             opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))// ' ' // trim (adjustl(f))
+            i = i + 1
+            CALL getcommandargument (chaininput, i, f, length,  statuse)                           
+            CALL getcommandargument (chaininput, i, f, length,  statuse)
+            opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(f))
             ! Converts the characters to real
             READ (f,*, ERR=33762) EpsMuTimeScale_input_parameters%tini
             i = i + 1
