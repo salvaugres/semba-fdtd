@@ -127,9 +127,8 @@ contains
    alphamaxpar,alphaOrden,kappamaxpar,mur_second,murafterpml,MEDIOEXTRA, &
    singlefilewrite,maxSourceValue,NOcompomur,ADE,conformalskin,&
    strictOLD,TAPARRABOS,wiresflavor,mindistwires,facesNF2FF,NF2FFDecim,vtkindex,createh5bin,wirecrank,opcionestotales,SGBCFreq,SGBCresol,SGBCcrank,SGBCDepth,fatalerror,fieldtotl,finishedwithsuccess,permitscaling, &
-   Eps0,Mu0, EpsMuTimeScale_input_parameters, &
-   simu_devia,stochastic,mpidir,verbose,precision,hopf,ficherohopf,niapapostprocess,planewavecorr,tagtype,dontwritevtk,experimentalVideal,forceresampled,factorradius,factordelta, &
-   externalL, externalC &
+   Eps0,Mu0, EpsMuTimeScale_input_parameters &
+   , simu_devia,stochastic,mpidir,verbose,precision,hopf,ficherohopf,niapapostprocess,planewavecorr,tagtype,dontwritevtk,experimentalVideal,forceresampled,factorradius,factordelta, externalL, externalC &
    )
       logical :: hopf,experimentalVideal,forceresampled
       character (len=100) :: ficherohopf
@@ -149,7 +148,7 @@ contains
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
       REAL (KIND=RKIND), intent(inout)              :: eps0,mu0
-      REAL (KIND=RKIND), dimension(:,:), intent(in)                 :: externalL, externalC 
+      REAL (KIND=RKIND), dimension(:,:)             :: externalL, externalC 
       type (EpsMuTimeScale_input_parameters_t)       :: EpsMuTimeScale_input_parameters     
       real (kind=RKIND_tiempo) :: tiempoinicial,lastexecutedtime,ultimodt
       type (SGGFDTDINFO), intent(INOUT)   ::  sgg
