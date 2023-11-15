@@ -127,8 +127,9 @@ contains
    alphamaxpar,alphaOrden,kappamaxpar,mur_second,murafterpml,MEDIOEXTRA, &
    singlefilewrite,maxSourceValue,NOcompomur,ADE,conformalskin,&
    strictOLD,TAPARRABOS,wiresflavor,mindistwires,facesNF2FF,NF2FFDecim,vtkindex,createh5bin,wirecrank,opcionestotales,SGBCFreq,SGBCresol,SGBCcrank,SGBCDepth,fatalerror,fieldtotl,finishedwithsuccess,permitscaling, &
-   Eps0,Mu0, EpsMuTimeScale_input_parameters &
-   , simu_devia,stochastic,mpidir,verbose,precision,hopf,ficherohopf,niapapostprocess,planewavecorr,tagtype,dontwritevtk,experimentalVideal,forceresampled,factorradius,factordelta &
+   Eps0,Mu0, EpsMuTimeScale_input_parameters, &
+   simu_devia,stochastic,mpidir,verbose,precision,hopf,ficherohopf,niapapostprocess,planewavecorr,tagtype,dontwritevtk,experimentalVideal,forceresampled,factorradius,factordelta, &
+   externalL, externalC &
    )
       logical :: hopf,experimentalVideal,forceresampled
       character (len=100) :: ficherohopf
@@ -148,6 +149,7 @@ contains
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
       REAL (KIND=RKIND), intent(inout)              :: eps0,mu0
+      REAL (KIND=RKIND), dimension(:,:), intent(in)                 :: externalL, externalC 
       type (EpsMuTimeScale_input_parameters_t)       :: EpsMuTimeScale_input_parameters     
       real (kind=RKIND_tiempo) :: tiempoinicial,lastexecutedtime,ultimodt
       type (SGGFDTDINFO), intent(INOUT)   ::  sgg
@@ -713,7 +715,7 @@ contains
          call InitWires_Berenger(sgg,sggMiNo,sggMiEx,sggMiEy,sggMiEz,sggMiHx,sggMiHy,sggMiHz,layoutnumber,size,Thereare%Wires,resume,makeholes, &
          isolategroupgroups,mtlnberenger,mindistwires, &
          groundwires,taparrabos,Ex,Ey,Ez, &
-         Idxe,Idye,Idze,Idxh,Idyh,Idzh,inductance_model,g2,SINPML_fullsize,fullsize,dtcritico,eps0,mu0,verbose)
+         Idxe,Idye,Idze,Idxh,Idyh,Idzh,inductance_model,g2,SINPML_fullsize,fullsize,dtcritico,eps0,mu0,verbose, externalL, externalC)
       l_auxinput= thereare%Wires
       l_auxoutput=l_auxinput
 #ifdef CompileWithMPI

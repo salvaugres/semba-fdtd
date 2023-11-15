@@ -85,12 +85,15 @@ PROGRAM SEMBA_FDTD_launcher
    character (len=100) :: ficherohopf
 !!!24118 pscaling
    REAL (KIND=RKIND)              ::  eps0,mu0
+   REAL (KIND=RKIND), allocatable, dimension(:,:)  ::  externalL, externalC
+   REAL (KIND=RKIND), allocatable, dimension(:)  ::  LCline
+   integer (kind=4)               ::  LCdimension
    REAL (KIND=RKIND)              ::  cluz
 !!!241018 fin pscaling
    integer (KIND=IKINDMTAG) , allocatable , dimension(:,:,:) ::  sggMtag
    integer (KIND=INTEGERSIZEOFMEDIAMATRICES) , allocatable , dimension(:,:,:) ::  sggMiNo,sggMiEx,sggMiEy,sggMiEz,sggMiHx,sggMiHy,sggMiHz
    character (len=5)  :: NFDEEXTENSION='.nfde',CONFEXTENSION='.conf',CMSHEXTENSION='.cmsh'
-   CHARACTER (LEN=20) :: inductance_model,wiresflavor
+   CHARACTER (LEN=20) :: inductance_model,wiresflavor, inductance_file
    integer (kind=4)   :: inductance_order,wirethickness
    LOGICAL :: makeholes,connectendings, isolategroupgroups, dontsplitnodes,resume_fromold, pausar, l_aux,skindepthpre,groundwires,noSlantedcrecepelo ,mibc,ade,SGBC,SGBCDispersive,SGBCcrank, &
    conformalskin,CLIPREGION,boundwireradius,vtkindex,createh5bin,wirecrank,ignoreerrors,fatalerror,fatalerror_aux,dummylog,fatalerrornfde2sgg,fieldtotl,finishedwithsuccess,ignoresamplingerrors,l_auxinput, l_auxoutput, &
@@ -743,6 +746,8 @@ PROGRAM SEMBA_FDTD_launcher
         CALL print11 (layoutnumber, '---> Wire model: '//trim(adjustl(dubuf)))
         write(dubuf,*) inductance_model
         CALL print11 (layoutnumber, '---> Inductance model: '//trim(adjustl(dubuf)))
+        write(dubuf,*) inductance_file
+        CALL print11 (layoutnumber, '---> Inductance file: '//trim(adjustl(dubuf)))
         if (trim(adjustl(wiresflavor))=='berenger') then
             write(dubuf,*) mindistwires
             CALL print11 (layoutnumber, '---> Berenger minimum distance between wires: '//trim(adjustl(dubuf)))
@@ -859,7 +864,7 @@ PROGRAM SEMBA_FDTD_launcher
          & conformalskin,strictOLD,TAPARRABOS,wiresflavor,mindistwires,facesNF2FF,NF2FFDECIM,vtkindex,createh5bin,wirecrank,opcionestotales,SGBCFreq,SGBCresol,SGBCcrank,SGBCDepth,fatalerror,fieldtotl,finishedwithsuccess,permitscaling, &
          & Eps0,Mu0, EpsMuTimeScale_input_parameters &
    , simu_devia &
-   , stochastic,mpidir,verbose,precision,hopf,ficherohopf,niapapostprocess,planewavecorr,tagtype,dontwritevtk,experimentalVideal,forceresampled,factorradius,factordelta &
+   , stochastic,mpidir,verbose,precision,hopf,ficherohopf,niapapostprocess,planewavecorr,tagtype,dontwritevtk,experimentalVideal,forceresampled,factorradius,factordelta, externalL, externalC &
    )
 
          deallocate (sggMiEx, sggMiEy, sggMiEz,sggMiHx, sggMiHy, sggMiHz,sggMiNo,sggMtag)
@@ -1963,6 +1968,27 @@ contains
           CASE ('-noSlantedcrecepelo ') !opcion niapa excperimental 131219
             noSlantedcrecepelo  = .TRUE.
             opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))
+
+          CASE ('-externalinductance')
+            i = i + 1
+            CALL getcommandargument (chaininput, i, f, length,  statuse)
+            READ (f, '(a)', ERR=361) inductance_file
+            
+            open (1712, file=inductance_file, action='READ')
+            read (1712, *) LCdimension
+            allocate(externalL(LCdimension, LCdimension))
+            allocate(externalC(LCdimension, LCdimension))
+            allocate(LCline(LCdimension))
+            do i = 1, LCdimension
+                read (1712, *) LCline
+                do j = 1, LCdimension
+                    externalL(i,j) = LCline(j)
+                end do
+            end do
+           
+            inductance_model = 'external'
+            opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))
+            
           CASE ('-inductance')
             i = i + 1
             CALL getcommandargument (chaininput, i, f, length,  statuse)
@@ -1970,7 +1996,7 @@ contains
             GO TO 461
 361         CALL stoponerror (layoutnumber, size, 'Invalid inductance model',.true.); statuse=-1; !return
 461         IF ((inductance_model /= 'ledfelt') .AND. (inductance_model /= 'berenger') .AND. &
-            &    (inductance_model /= 'boutayeb')) THEN
+            &    (inductance_model /= 'boutayeb') .AND. (inductance_model /= 'external')) THEN
                CALL stoponerror (layoutnumber, size, 'Invalid inductance model',.true.); statuse=-1; !return
             END IF
             opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain)) // ' ' // trim (adjustl(f))
