@@ -1,14 +1,101 @@
-   subroutine interpretswitches(chaininput,statuse)
-   CHARACTER (LEN=1024) ::  chaininput
+module interpreta_switchwes_m  
+
+   USE FDETYPES
+   USE Getargs   
+   use EpsMuTimeScale_m
+   use Report
+   use version
+   use ParseadorClass
+   IMPLICIT NONE
+   PRIVATE
+   !   
+   
+   PUBLIC interpreta,insertalogtmp,print_help,print_basic_help,print_credits,removeintraspaces
+   !                                        
+CONTAINS
+    
+   subroutine interpreta(sgg,chaininput,statuse, &
+     opcionestotales,opcionespararesumeo,prefixopci,prefixopci1, &
+     whoami,facesNF2FF, &
+     wirethickness,inductance_order,alphaOrden,finaltimestep,layoutnumber,size,length,n, &
+     pausetime,time_begin,time_end,newmpidir,mpidir,donde,j, &
+     fichin, f, chain, chain2,chdummy,chari, &
+     ficherohopf,conformal_file_input_name,wiresflavor,inductance_model,prefix,nEntradaRoot, &
+     nresumeable2,slicesoriginales,opcionesoriginales,geomfile,dubuf,fileH5, &   
+     maxCPUtime,flushminutesFields,flushminutesData,SGBCdepth,SGBCfreq,SGBCresol, &
+     maxwireradius,mindistwires,precision, &
+     alphamaxpar,kappamaxpar,attfactorc,attfactorw,cfltemp,cfl,factorradius, &
+     factordelta,flushsecondsFields ,flushsecondsData, &
+     forcing,singlefilewrite ,ignoresamplingerrors,ignoreerrors,updateshared, &
+     prioritizeISOTROPICBODYoverall,wirecrank ,CLIPREGION,verbose,resume,forcesteps,resume_fromold, &
+     freshstart,run,createmap,dontwritevtk,vtkindex,createmapvtk,hopf,run_with_dmma, &
+     run_with_abrezanjas,input_conformal_flag, pausar,l_aux, &
+     flag_conf_sgg,takeintcripte,skindepthpre,SGBC,conformalskin,ade,mibc,NOcompomur,MurAfterPML, &
+     SGBCcrank,sgbcDispersive,saveall,boundwireradius,makeholes,mur_first,mur_second, &
+     connectendings,strictOLD,mtlnberenger,stableradholland,TAPARRABOS,fieldtotl,forceresampled, &
+     isolategroupgroups,groundwires,noSlantedcrecepelo,forcecfl,niapapostprocess,planewavecorr, &
+     permitscaling,stochastic,chosenyesornostochastic,prioritizeCOMPOoverPEC,createh5bin,deleteintermediates, &
+     existeNFDE,forced,file11isopen,NF2FFDecim ,existeh5,resume3, &
+     existeconf,thereare_stoch,creditosyaprinteados , &
+     MEDIOEXTRA , EpsMuTimeScale_input_parameters ,time_out2,NFDE_FILE  )     
+   
+   type (SGGFDTDINFO), intent(INOUT)     ::  sgg
+   CHARACTER (LEN=1024) ::  chaininput,opcionestotales 
    integer (kind=4) :: statuse
+       
+   CHARACTER (LEN=65536) :: prefixopci, prefixopci1,opcionespararesumeo, opcionesoriginales, &
+   slicesoriginales, slices , chdummy 
+   CHARACTER (LEN=5) :: chari
+   CHARACTER (LEN=14) :: whoami, whoamishort
+   CHARACTER (LEN=1024) :: dubuf
+   
+   character (len=200) :: conformal_file_input_name    
+   character (len=100) :: ficherohopf     
+   CHARACTER (LEN=20) :: inductance_model,wiresflavor
+   
+   real (kind=RKIND_wires) :: factorradius,factordelta
+   
+   REAL (KIND=RKIND)  ::  alphamaxpar,kappamaxpar,alphaOrden
+   type (nf2ff_T) :: facesNF2FF
+   
+   integer (kind=4) :: i,wirethickness,inductance_order,finaltimestep,ierr,layoutnumber,size,length,n, &
+                       newmpidir,mpidir,donde,j,flushminutesFields,flushminutesData, &
+       flushsecondsFields ,flushsecondsData,forced, &
+       maxCPUtime,SGBCdepth,precision
+   CHARACTER (LEN=1024) :: fichin, f, chain, chain2, &
+       buff,prefix,nEntradaRoot, &
+       nresumeable2,geomfile,fileH5   
+   REAL (KIND=RKIND) ::  maxwireradius,mindistwires, &
+        attfactorc,attfactorw,cfltemp,pausetime,cfl,SGBCfreq,SGBCresol
+   
+   REAL (KIND=8) ::time_begin,time_end
+   logical ::  forcing,singlefilewrite ,ignoresamplingerrors,ignoreerrors,updateshared, &
+   prioritizeISOTROPICBODYoverall,wirecrank ,CLIPREGION,verbose,resume,forcesteps,resume_fromold, &
+   freshstart,run,createmap,dontwritevtk,vtkindex,createmapvtk,hopf,run_with_dmma, &
+   run_with_abrezanjas,input_conformal_flag,input_conformal_flag_abrezanjas, pausar,l_aux, &
+   flag_conf_sgg,takeintcripte,skindepthpre,SGBC,conformalskin,ade,mibc,NOcompomur,MurAfterPML, &
+   SGBCcrank,sgbcDispersive,saveall,boundwireradius,makeholes,mur_first,mur_second, &
+   connectendings,strictOLD,mtlnberenger,stableradholland,TAPARRABOS,fieldtotl,forceresampled, &
+   isolategroupgroups,groundwires,noSlantedcrecepelo,forcecfl,niapapostprocess,planewavecorr, &
+   permitscaling,stochastic,chosenyesornostochastic,prioritizeCOMPOoverPEC,createh5bin,deleteintermediates, &
+   existeNFDE,file11isopen,NF2FFDecim ,existeh5,faltalerror,resume3, &
+   fatalerror,existeconf,thereare_stoch,creditosyaprinteados
+   
+       
+   TYPE (MedioExtra_t) :: MEDIOEXTRA    
+   type (EpsMuTimeScale_input_parameters_t) :: EpsMuTimeScale_input_parameters
+   type (tiempo_t)  ::  time_out2 
+   TYPE (t_NFDE_FILE), POINTER :: NFDE_FILE
+   
    logical :: existiarunningigual,mpidirset
+   
    mpidirset=.false.
    existiarunningigual=.false.
    statuse=0
    !!!!!!!!!!!!!!!
    n = commandargumentcount (chaininput)
    IF (n == 0) THEN
-      call print_basic_help
+      call print_basic_help(layoutnumber,creditosyaprinteados,time_out2) 
       call stoponerror(layoutnumber,size,'Error: NO arguments neither command line nor in launch file. Correct and remove pause...',.true.)
       statuse=-1
       !return
@@ -70,7 +157,7 @@
             mpidirset=.true.
           endif
            
-#ifndef CompileWithGamusino              
+!!!!!!!#ifndef CompileWithGamusino              
           case ('-pause')
             i = i + 1
             CALL getcommandargument (chaininput, i, f, length,  statuse)
@@ -182,7 +269,7 @@
             CLIPREGION = .TRUE.
             opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))
 !endif del compileWithGamusino
-#endif        
+!!!!#endif        
 !     
   
           CASE ('-verbose')
@@ -1124,17 +1211,17 @@
          file11isopen=.false.
          OPEN (11, file=trim(adjustl(nEntradaRoot))//'_Report.txt', FORM='formatted', POSITION='append')
          file11isopen=.true.
-         if (layoutnumber==0) call insertalogtmp
+         if (layoutnumber==0) call insertalogtmp(layoutnumber)
       ELSE
          CLOSE (11)
          file11isopen=.false.
          OPEN (11, file=trim(adjustl(nEntradaRoot))//'_Report.txt', FORM='formatted')
          file11isopen=.true.
-         if (layoutnumber==0) call insertalogtmp
+         if (layoutnumber==0) call insertalogtmp(layoutnumber)
       END IF
       !
       CALL get_secnds (time_out2)
-      call print_credits
+      call print_credits(layoutnumber,creditosyaprinteados,time_out2)
 #ifdef CompileWithReal8
       WRITE (dubuf,*) 'Compiled with Double Precision (real*8)'
       CALL print11 (layoutnumber, dubuf)
@@ -1198,4 +1285,440 @@
    
     return !el unico return que he dejado !240817
    
-   end subroutine interpretswitches
+   end subroutine interpreta
+   
+   subroutine insertalogtmp(layoutnumber) !para 100920   
+           CHARACTER (LEN=1024) ::  dubuf
+           INTEGER :: MYUNIT11,LAYOUTNUMBER,ierr
+           CALL OffPrint !no reimprimas, esto ya estaba por pantalla
+            OPEN (newunit=myunit11, file='SEMBA_FDTD_temp.log')
+            do
+                read(myunit11,'(1024a)',end=7211) dubuf
+                dubuf='&'//dubuf !para respetar los espacios
+                CALL print11 (layoutnumber, dubuf)
+            end do
+7211        CLOSE (myunit11, status='delete')   
+            CALL OnPrint
+            return
+   end subroutine insertalogtmp
+   
+      subroutine print_basic_help(layoutnumber,creditosyaprinteados,time_out2)     
+      type (tiempo_t)  ::  time_out2 
+      CHARACTER (LEN=1024) :: buff
+      INTEGER :: LAYOUTNUMBER 
+      logical :: creditosyaprinteados
+      call print_credits(layoutnumber,creditosyaprinteados,time_out2)
+      CALL print11 (layoutnumber, '___________________________________________________________________________')
+      CALL print11 (layoutnumber, 'Basic usage: ')
+      CALL print11 (layoutnumber, '&   For help use          -h ')
+      CALL print11 (layoutnumber, '&   For launching use                     ')
+      CALL print11 (layoutnumber, '&                         -i inputfile (native)')
+      CALL print11 (layoutnumber, '___________________________________________________________________________')
+      return
+      end subroutine print_basic_help
+ 
+   subroutine print_credits(layoutnumber,creditosyaprinteados,time_out2)
+      TYPE (tiempo_t) :: time_out2
+      CHARACTER (LEN=1024) :: buff  , dubuf
+      integer :: layoutnumber
+      logical :: creditosyaprinteados
+      if (creditosyaprinteados) return
+      creditosyaprinteados=.true.
+      CALL print11 (layoutnumber, '=========================')
+      CALL print11 (layoutnumber, 'SEMBA-FDTD SOLVER')
+      CALL print11 (layoutnumber, '=========================')
+      
+      WRITE (dubuf,*) SEPARADOR // SEPARADOR // SEPARADOR
+      CALL print11 (layoutnumber, dubuf)
+      WRITE (dubuf,*) trim (adjustl(dataversion))
+      CALL print11 (layoutnumber, dubuf)
+      WRITE (dubuf,*) SEPARADOR // SEPARADOR // SEPARADOR
+      CALL print11 (layoutnumber, dubuf)
+      CALL print11 (layoutnumber, 'All rights reserved by the University of Granada (Spain)')
+      CALL print11 (layoutnumber, '       Contact person: Salvador G. Garcia <salva@ugr.es>')
+      CALL print11 (layoutnumber, ' ')
+      !*******************************************************************************
+
+
+      WRITE (dubuf,*) SEPARADOR // SEPARADOR // SEPARADOR
+      CALL print11 (layoutnumber, dubuf)
+#ifdef CompileWithMPI
+      CALL print11 (layoutnumber, 'Compiled WITH MPI support')
+#else
+      CALL print11 (layoutnumber, 'Compiled without MPI support')
+#endif
+#ifdef CompileWithHDF
+      CALL print11 (layoutnumber, 'Compiled WITH .h5 HDF support')
+#else
+      CALL print11 (layoutnumber, 'Compiled without .h5 HDF support')
+#endif
+#ifdef CompileWithConformal
+      CALL print11 (layoutnumber, 'Compiled WITH Conformal support')
+#else
+      CALL print11 (layoutnumber, 'Compiled without Conformal support')
+#endif
+      WRITE (dubuf,*) SEPARADOR // SEPARADOR // SEPARADOR
+      CALL print11 (layoutnumber, dubuf)
+      CALL get_secnds (time_out2)
+!      WRITE (dubuf,*) 'Launched on              ', time_out2%fecha(7:8), '/', time_out2%fecha(5:6), '/', &
+!      &                time_out2%fecha(1:4), ' ', time_out2%hora(1:2), ':', time_out2%hora(3:4)
+!      CALL print11 (layoutnumber, dubuf)
+!      print *, 'Highest integer ',huge(1_4)
+      return
+   end subroutine print_credits
+
+   subroutine print_help(layoutnumber)
+      integer :: layoutnumber,ierr
+      CHARACTER (LEN=1024) :: buff
+      CALL print11 (layoutnumber, '___________________________________________________________________________')
+      CALL print11 (layoutnumber, 'Command line arguments: ')
+      CALL print11 (layoutnumber, '___________________________________________________________________________')
+      CALL print11 (layoutnumber, '-i geometryfile        : Simulates the Native format input file            ')
+      CALL print11 (layoutnumber, '-r                     : Restarts a previous execution until a given step. ')
+      CALL print11 (layoutnumber, '&                        Needs -n                                          ')
+      CALL print11 (layoutnumber, '-run                   : Uses a semaphore running file and automatically   ')
+      CALL print11 (layoutnumber, '&                        relaunches simulation if ended or aborted (cluter)')
+#ifdef CompileWithOldSaving
+      CALL print11 (layoutnumber, '-old                   : Jointly with -r restarts from .fields.old files   ')
+      CALL print11 (layoutnumber, '&                        instead (for safety .fields.old fields are saved  ')
+      CALL print11 (layoutnumber, '&                        too if -flush is issued)                          ')
+#endif
+      CALL print11 (layoutnumber, '-cfl number            : Courant number (suggested<=0.8)  overriding input ')
+      CALL print11 (layoutnumber, '-n numberoftimesteps   : Run the simulation until a specified step         ')
+      CALL print11 (layoutnumber, '&                        either restarting if the necessary files are      ')
+      CALL print11 (layoutnumber, '&                        present, or starting a fresh new one otherwise    ')
+      CALL print11 (layoutnumber, '&                        Special cases: n=-1 -> Run only .h5/.nfde preproc.')
+      CALL print11 (layoutnumber, '&                        Special cases: n=-2 -> Run only .h5 preprocessing ')
+      CALL print11 (layoutnumber, '-s                     : Forces a fresh new simulation, erasing the        ')
+      CALL print11 (layoutnumber, '&                        restarting files if they are present              ')
+      CALL print11 (layoutnumber, '&                        Jointly with -n, it enforces a fresh restart      ')
+      CALL print11 (layoutnumber, '&                        (erases .fields files from previous simulations)  ')
+      CALL print11 (layoutnumber, '___________________________________________________________________________')
+      CALL print11 (layoutnumber, '-pause seconds         : Wait seconds to start simulation                  ')
+      CALL print11 (layoutnumber, '-prefix string         : Adds a string to the output filenames             ')
+      CALL print11 (layoutnumber, '-saveall               : Saves all the observation time steps              ')
+      CALL print11 (layoutnumber, '&                        (default saves only the specified windows of time)')
+      CALL print11 (layoutnumber, '-singlefile            : Compacts E, H, J probes in single files to        ')
+      CALL print11 (layoutnumber, '&                        overcome a large number of file openings          ')
+      !!#ifdef CompileWithMPI
+      !!          CALL print11 (layoutnumber, '-maxmessages number    : Buffer of messages for MPI Warnings file. Just    ')
+      !!          CALL print11 (layoutnumber, '&                        increase if requested at runtime                  ')
+      !!#endif
+
+      !*********************************************************************************************************************
+      !***[conformal] **************************************************************************************
+      !*********************************************************************************************************************
+      !conformal -help printf line   ref:  ##Confhelp##
+#ifdef CompileWithConformal
+      CALL print11 (layoutnumber, '-conf                    : Adds the conformal file to the simulation.'        )
+#endif
+      !*********************************************************************************************************************
+#ifdef CompileWithNIBC
+      CALL print11 (layoutnumber, '-skindepthpre          : Pre-processor for SGBC metals including skin depth.')
+      CALL print11 (layoutnumber, '-mibc                  : Uses pure MIBC to deal with composites.  ')
+      CALL print11 (layoutnumber, '-ade                   : Uses ADE-MIBC to deal with composites. ')
+      CALL print11 (layoutnumber, '&                        Alternative to -mibc.'      )
+      CALL print11 (layoutnumber, '-conformalskin         : Uses a conformal MIBC to deal with skin-depth')
+      CALL print11 (layoutnumber, '&                        Do not use this switch if the problem also involves ')
+      CALL print11 (layoutnumber, '&                        traditional composites, since these do not hold the right ')
+      CALL print11 (layoutnumber, '&                        thickness parameter. Only use it if the problem only ')
+      CALL print11 (layoutnumber, '&                        contains metals for which both the conductivity and ')
+      CALL print11 (layoutnumber, '&                        thickness are CORRECTLY specified in the .nfde file. ')
+      CALL print11 (layoutnumber, '-nocompomur            : Uses OLD (possibly unstable) upwinding scheme to deal with composites, ')
+      CALL print11 (layoutnumber, '&                        instead of the NEW default, which uses a causal time-domain extrapolation ')
+      CALL print11 (layoutnumber, '&                        of magnetic fields at the surface, by using the one-way ')
+      CALL print11 (layoutnumber, '&                        advection equation (similar to 1D Mur ABCs) for its ')
+      CALL print11 (layoutnumber, '&                        superior stability of the default new Mur formulation')
+      CALL print11 (layoutnumber, '-attc   dissipation    : Positive factor (under 1) for stable composites,   ')
+      CALL print11 (layoutnumber, '&                        permits to solve some instabilities in the simulation of MIBC materials.')
+      CALL print11 (layoutnumber, '&                        It just adds a 1 cell lossy magnetic coating to the MIBC composite.')
+      CALL print11 (layoutnumber, '&                        The dissipation factor is used to find the magnetic conductivity ')
+      CALL print11 (layoutnumber, '&                        from the coefficient updating the current magnetic ')
+      CALL print11 (layoutnumber, '&                        field from the previous one.  ')       
+!      write(buff,'(a,e10.2e3)')   '&                        Default= ',attfactorc
+      CALL print11 (layoutnumber, buff)
+#endif
+      CALL print11 (layoutnumber, '-prioritizeCOMPOoverPEC: Uses Composites instead of PEC in conflicts.       ')
+      CALL print11 (layoutnumber, '-prioritizeISOTROPICBODYoverall: Uses ISOTROPIC BODY FOR conflicts (JUST FOR SIVA).       ')
+#ifdef CompileWithSGBC
+      CALL print11 (layoutnumber, '-sgbc               : Enables the defaults SGBC model for composites. Default SGBC:')
+      CALL print11 (layoutnumber, '-nosgbc             : Disables the defaults SGBC model for composites. Default SGBC:')
+      CALL print11 (layoutnumber, '&                        -sgbfreq 3e9 -sgbresol 1 -sgbcrank      ')
+      CALL print11 (layoutnumber, '-sgbcfreq           : Maximum frequency to consider the skin-depth       ')
+      CALL print11 (layoutnumber, '-sgbcresol          : Number of cells per skin-depth a the Maximum frequency')
+      CALL print11 (layoutnumber, '-sgbcyee            : Uses pure Yee ETD SGBC instead of Crank-Nicolson')
+      CALL print11 (layoutnumber, '-sgbccrank          : Uses SGBC Crank-Nicolson (default)        ')
+      CALL print11 (layoutnumber, '-sgbcdepth number   : Overrides automatic calculation of number of cells ')
+      CALL print11 (layoutnumber, '&                        within SGBC                              ')
+#endif
+      CALL print11 (layoutnumber, '-pmlalpha factor order : CPML Alpha factor (>=0, <1 sug.) & polyn. grading.')
+      CALL print11 (layoutnumber, '&                        alpha=factor * maximum_PML_sigma , order=polynom. ')
+!      write(buff,'(a,2e10.2e3)')  '&                        Default= ',alphamaxpar,alphaOrden
+      CALL print11 (layoutnumber, buff)
+!      write(buff,'(a,e10.2e3)')   '-pmlkappa number       : CPML Kappa (>=1). Default= ',kappamaxpar
+      CALL print11 (layoutnumber, buff)
+      CALL print11 (layoutnumber, '-pmlcorr factor depth  : Factor for CPML enhanced stability (default none).')
+      CALL print11 (layoutnumber, '&                        sigma=factor * maximum_PML_sigma, depth= # layers ')
+      CALL print11 (layoutnumber, '-mur1                  : Supplement PMLs with 1st order Mur ABCs           ')
+      CALL print11 (layoutnumber, '-mur2                  : Supplement PMLs with 2nd order Mur ABCs           ')
+#ifdef CompileWithWires
+      CALL print11 (layoutnumber, '-wiresflavor {holland.or.old} : model for the wires    ')
+#endif
+#ifdef CompileWithBerengerWires
+      CALL print11 (layoutnumber, '-wiresflavor {berenger} : model for the wires    ')   
+#endif
+#ifdef CompileWithSlantedWires
+      CALL print11 (layoutnumber, '-wiresflavor {new/Slanted.or.experimental.or.slanted/transition/semistructured precision} : model for the wires    ')   
+#endif
+#ifdef CompileWithWires
+!      CALL print11 (layoutnumber, '&                        (default '//trim(adjustl(wiresflavor))//')   ')
+      CALL print11 (layoutnumber, '-notaparrabos          : Do not remove extra double tails at the end of the wires ')
+      CALL print11 (layoutnumber, '&                        only available for the native format.             ')
+      CALL print11 (layoutnumber, '-intrawiresimplify     : Disable strict interpretation of .NFDE topology.  ')
+      CALL print11 (layoutnumber, '&                        Collapse internal parallel wires and create       ')
+      CALL print11 (layoutnumber, '&                        intra-wire junctions.                             ')
+      CALL print11 (layoutnumber, '-nomtlnberenger        : Disables MTLN improvements for Berenger wiresflavor')
+      CALL print11 (layoutnumber, '-stableradholland             : Automatic correction of radii for Holland wiresflavor')
+      CALL print11 (layoutnumber, '&                        Use only in case of instabilities.  (experimental)')
+      CALL print11 (layoutnumber, '-groundwires           : Ground wires touching/embedded/crossing PEC/Lossy.')
+      CALL print11 (layoutnumber, '&                        Use with CAUTION. Revise *Warnings.txt file!      ')
+      CALL print11 (layoutnumber, '-noSlantedcrecepelo : Ground open nodes. Experimental. Do not use.')
+      CALL print11 (layoutnumber, '-connectendings        : Joins ohmicly endings nodes of adjacent segments  ')
+      CALL print11 (layoutnumber, '&                        from multiwires (segments do no collapse).        ')
+      CALL print11 (layoutnumber, '&                        regardless of whether they are actually connected ')
+      CALL print11 (layoutnumber, '&                        through the LeftEnd/RightEnd numbering ')
+      CALL print11 (layoutnumber, '&                        Automatic with -a                                 ')
+      CALL print11 (layoutnumber, '&                        Use with CAUTION. Revise *Warnings.txt file!      ')
+      CALL print11 (layoutnumber, '-isolategroupgroups    : Detach ohmicly endings nodes of adjacent segments ')
+      CALL print11 (layoutnumber, '&                        from multiwires if they are in different          ')
+      !!CALL print11 (layoutnumber, '-dontsplitnodes        : Detach ohmicly endings nodes of adjacent segments ')
+      !!CALL print11 (layoutnumber, '&                        with common RLC into separate RLCs                ')
+      !!CALL print11 (layoutnumber, '&                        Use with CAUTION. Revise *Warnings.txt! (experim.)')
+      CALL print11 (layoutnumber, '-makeholes             : Create a void 2-cell area around wire segments    ')
+      CALL print11 (layoutnumber, '&                        Use with CAUTION. Revise *Warnings.txt (experim.) ')
+      CALL print11 (layoutnumber, '-mindistwires dist     : Specify the min distance between wires in a       ')
+      CALL print11 (layoutnumber, '&                        multiwire in new and experimental wires flavors   ')
+!      write(buff,'(a,e10.2e3)')   '&                        Default= ',mindistwires
+      CALL print11 (layoutnumber, buff)
+      CALL print11 (layoutnumber, '-inductance {ledfelt/berenger/boutayeb} : model for the self-inductance    ')
+!      CALL print11 (layoutnumber, '&                        (default '//trim(adjustl(inductance_model))//')   ')
+      CALL print11 (layoutnumber, '-inductanceorder order : order for the self-inductance calculation for     ')
+      CALL print11 (layoutnumber, '&                        slanted wires in experimental wiresflavor         ')
+!      write(buff,'(a,i8)')   '&                        Default= ',inductance_order
+      CALL print11 (layoutnumber, '-attw   dissipation    : Positive factor (under 1) for stability in wires, ')
+!      write(buff,'(a,e10.2e3)')   '&                        Default= ',attfactorw                              
+      CALL print11 (layoutnumber, '-maxwireradius number  : Bounds globally the wire radius                   ')
+      CALL print11 (layoutnumber, '-clip                  : Permits to clip a bigger problem truncating wires.')
+      CALL print11 (layoutnumber, '-wirecrank             : Uses Crank-Nicolson for wires (development)       ')
+#endif
+#ifdef CompileWithNF2FF
+      CALL print11 (layoutnumber, '-noNF2FF string        : Supress a NF2FF plane for calculation             ')
+      CALL print11 (layoutnumber, '&                        String can be: up, down, left, right, back , front')
+      CALL print11 (layoutnumber, '-NF2FFdecim            : Uses decimation in NF2FF calculation (faster).    ')
+      CALL print11 (layoutnumber, '&                        WARNING: High-freq aliasing may occur             ')
+#endif
+      CALL print11 (layoutnumber, '-vtkindex              : Output index instead of real point in 3D slices.  ')
+      CALL print11 (layoutnumber, '-ignoreerrors          : Run even if errors reported in *Warnings.txt file.')
+      CALL print11 (layoutnumber, '___________________________________________________________________________')
+      CALL print11 (layoutnumber, '-cpumax minutes        : CPU runtime (useful for limited CPU queuing       ')
+      CALL print11 (layoutnumber, '-noshared              : Do not waste time with shared fields              ')
+      CALL print11 (layoutnumber, '-flush minutes         : Minutes between data flush of restarting fields   ')
+      CALL print11 (layoutnumber, '&                        (default 0=No flush)                              ')
+      CALL print11 (layoutnumber, '-flushdata minutes     : Minutes between flushing observation data         ')
+      CALL print11 (layoutnumber, '&                        (default is every 5 minutes)                      ')
+      CALL print11 (layoutnumber, '-map                   : Creates map ASCII files of the geometry           ')
+      CALL print11 (layoutnumber, '&                        with wires and PEC                ')
+      CALL print11 (layoutnumber, '&                        (in conjunction with -n 0 only creates the maps)  ')
+      CALL print11 (layoutnumber, '-mapvtk                : Creates .VTK map of the PEC/wires/Surface geometry')
+#ifdef CompileWithConformal
+      CALL print11 (layoutnumber, '-conf file             : conformal file  ')
+      CALL print11 (layoutnumber, '-abrezanjas            : Thin-gaps treated in conformal manner  ')
+#endif
+#ifdef CompileWithDMMA
+      CALL print11 (layoutnumber, '-dmma                  : Thin-gaps treated in DMMA manner  ')
+#endif
+#ifdef CompileWithMPI
+      CALL print11 (layoutnumber, '-mpidir {x,y,z}        : Rotate model to force MPI along z be the largest  ')
+      CALL print11 (layoutnumber, '-force    cutplane     : Force a MPI layout to begin at cutplane (debug!)  ')
+#endif
+      CALL print11 (layoutnumber, '___________________________________________________________________________')
+      CALL print11 (layoutnumber, 'Control through signaling files during the simulation: (after erased)      ')
+      CALL print11 (layoutnumber, '&  stop         : (void) Forces a graceful end (it Cannot be resumed)      ')
+      CALL print11 (layoutnumber, '&                 No restarting data is flushed, only observation data     ')
+      CALL print11 (layoutnumber, '&  stopflushing : (void) Forces a graceful end (it can be resumed)         ')
+      CALL print11 (layoutnumber, '&  flush        : (void) Forces a flush of resuming fields and observation ')
+      CALL print11 (layoutnumber, '&                 data in 1 minute time approx.                            ')
+      CALL print11 (layoutnumber, '&  flushdata    : (void) Forces a flush only of the observation data in    ')
+      CALL print11 (layoutnumber, '&                 1 minute time approx.                                    ')
+      CALL print11 (layoutnumber, '&                 Both restarting and observation data are flushed         ')
+      CALL print11 (layoutnumber, '&  stop_only         : Forces a graceful end (cannot be resumed) only of a ')
+      CALL print11 (layoutnumber, '&                      given problem name (without the .nfde extension)    ')
+      CALL print11 (layoutnumber, '&                      No restarting data is flushed, only observation data')
+      CALL print11 (layoutnumber, '&  stopflushing_only : Forces a graceful end (it can be resumed) only of a ')
+      CALL print11 (layoutnumber, '&                      give problem name (without the .nfde extension)     ')
+      CALL print11 (layoutnumber, '&                      Both restarting and observation data is flushed     ')
+      CALL print11 (layoutnumber, '&  flush_only   : Forces flush of resuming fields and observation data only')
+      CALL print11 (layoutnumber, '&                 of a given problem name (without the .nfde extension)    ')
+      CALL print11 (layoutnumber, '&                 in 1 minute time approx.                                 ')
+      CALL print11 (layoutnumber, '&  flushdata_only : Forces a flush only of the observation data only of a  ')
+      CALL print11 (layoutnumber, '&                   given problem name (without the .nfde extension)       ')
+      CALL print11 (layoutnumber, '&                   in 1 minute time approx.                               ')
+      CALL print11 (layoutnumber, '&                   Both restarting and observation data are flushed       ')
+      CALL print11 (layoutnumber, '&  pause        : (void) While this field exist no simulation is started   ')
+      CALL print11 (layoutnumber, '&  unpack       : (void) Unpacks on-the-fly .bin probes files created      ')
+      CALL print11 (layoutnumber, '&                 with the -singlefile packaging option                    ')
+      CALL print11 (layoutnumber, '&  postprocess  : (void) Do frequency domain and transfer function         ')
+      CALL print11 (layoutnumber, '&                 postprocess on-the-fly                                   ')
+      CALL print11 (layoutnumber, '&  flushxdmf    : (void) Flush .xdmf animation probes on the fly           ')
+      CALL print11 (layoutnumber, '&  flushvtk     : (void) Flush .vtk  animation probes on the fly           ')
+      CALL print11 (layoutnumber, '&  snap         : Creates a .h5 and .xdmf snapshot per MPI layout if the   ')
+      CALL print11 (layoutnumber, '&                 field value is over the first number found in this file  ')
+      CALL print11 (layoutnumber, '&                 in space steps by the 2nd integer number                 ')
+      CALL print11 (layoutnumber, '&                 in time steps by the 3rd integer number (1-minute lapse) ')
+      CALL print11 (layoutnumber, '&  relaunch     : Relaunches the simulation upon termination with the      ')
+      CALL print11 (layoutnumber, '&                 switches read from this file. Used jointly with a        ')
+      CALL print11 (layoutnumber, '&                 stop file permits to launch simulations on-demand        ')
+      CALL print11 (layoutnumber, '___________________________________________________________________________')
+      !
+      write (buff,'(a,i14,a)') 'Max CPU time is ',topCPUtime,' seconds (can be overriden by -cpumax)'
+      CALL print11 (layoutnumber, buff)
+#ifdef CompileWithOpenMP
+      CALL print11 (layoutnumber, 'SUPPORTED:   MultiCPU parallel simulation (OpenMP)')
+#else
+      CALL print11 (layoutnumber, 'UNSUPPORTED: MultiCPU parallel simulation (OpenMP)')
+#endif
+!
+#ifdef CompileWithMPI
+      CALL print11 (layoutnumber, 'SUPPORTED:   MultiCPU/Multinode parallel simulation (MPI)')
+#else
+      CALL print11 (layoutnumber, 'UNSUPPORTED: MultiCPU/Multinode parallel simulation (MPI)')
+#endif
+#ifdef CompileWithConformal
+      CALL print11 (layoutnumber, 'SUPPORTED:   Conformal algorithm')
+#else
+      CALL print11 (layoutnumber, 'UNSUPPORTED: Conformal algorithm')
+#endif
+#ifdef CompileWithNF2FF
+      CALL print11 (layoutnumber, 'SUPPORTED:   Near-to-Far field probes')
+#else
+      CALL print11 (layoutnumber, 'UNSUPPORTED: Near-to-Far field probes')
+#endif
+#ifdef CompileWithAnisotropic
+      CALL print11 (layoutnumber, 'SUPPORTED:   Lossy anistropic materials, both electric and magnetic')
+#else
+      CALL print11 (layoutnumber, 'UNSUPPORTED: Lossy anistropic materials, both electric and magnetic')
+#endif
+#ifdef CompileWithDMMA
+      CALL print11 (layoutnumber, 'SUPPORTED:   Thin Slots ')
+#else
+      CALL print11 (layoutnumber, 'UNSUPPORTED: Thin Slots ')
+#endif
+#ifdef CompileWithEDispersives
+      CALL print11 (layoutnumber, 'SUPPORTED:   Electric and Magnetic Dispersive materials ')
+#else
+      CALL print11 (layoutnumber, 'UNSUPPORTED: Electric and Magnetic Dispersive materials ')
+#endif
+#ifdef CompileWithSGBC
+      CALL print11 (layoutnumber, 'SUPPORTED:   Isotropic Multilayer Skin-depth Materials (SGBC)')
+#else
+      CALL print11 (layoutnumber, 'UNSUPPORTED: Isotropic Multilayer Skin-depth Materials (SGBC)')
+#endif
+#ifdef CompileWithNIBC
+      CALL print11 (layoutnumber, 'SUPPORTED:   Isotropic Multilayer Skin-depth Materials (MIBC)')
+#else
+      CALL print11 (layoutnumber, 'UNSUPPORTED: Isotropic Multilayer Skin-depth Materials (MIBC)')
+#endif
+
+#ifdef CompileWithWires
+      CALL print11 (layoutnumber, 'SUPPORTED:   Loaded and grounded thin-wires with juntions')
+#else
+      CALL print11 (layoutnumber, 'UNSUPPORTED: Loaded and grounded thin-wires with juntions')
+#endif
+#ifdef CompileWithNodalSources
+      CALL print11 (layoutnumber, 'SUPPORTED:   Nodal hard/soft electric and magnetic sources')
+#else
+      CALL print11 (layoutnumber, 'UNSUPPORTED: Nodal hard/soft electric and magnetic sources')
+#endif
+#ifdef CompileWithHDF
+      CALL print11 (layoutnumber, 'SUPPORTED:   .xdmf+.h5 probes ')
+#else
+      CALL print11 (layoutnumber, 'UNSUPPORTED: .xdmf+.h5 probes ')
+#endif
+#ifdef CompileWithOldSaving
+      CALL print11 (layoutnumber, 'SUPPORTED:   .fields.old files created (fail-safe)')
+#else
+      CALL print11 (layoutnumber, 'UNSUPPORTED: .fields.old files created (fail-safe)')
+#endif
+#ifdef CompileWithStochastic
+      CALL print11 (layoutnumber, 'SUPPORTED:   Stochastic analysis')
+#else
+      CALL print11 (layoutnumber, 'UNSUPPORTED: Stochastic analysis')
+#endif
+#ifdef CompileWithPrescale
+      CALL print11 (layoutnumber, 'SUPPORTED:   Permittivity scaling accelerations')
+#else
+      CALL print11 (layoutnumber, 'UNSUPPORTED: Permittivity scaling accelerations')
+#endif
+#ifdef CompileWithWires
+      CALL print11 (layoutnumber, 'SUPPORTED:   Holland Wires')
+#else
+      CALL print11 (layoutnumber, 'UNSUPPORTED: Holland Wires')
+#endif
+#ifdef CompileWithBerengerWires
+      CALL print11 (layoutnumber, 'SUPPORTED:   Multi-Wires')
+#else
+      CALL print11 (layoutnumber, 'UNSUPPORTED: Multi-Wires')
+#endif
+#ifdef CompileWithSlantedWires
+      CALL print11 (layoutnumber, 'SUPPORTED:   Slanted Wires')
+#else
+      CALL print11 (layoutnumber, 'UNSUPPORTED: Slanted Wires')
+#endif
+!!!!!!!!!!!!!!!!!
+#ifdef CompileWithReal4
+      CALL print11 (layoutnumber, 'Single precission simulations (reals are 4-byte)')
+#endif
+#ifdef CompileWithReal8
+      CALL print11 (layoutnumber, 'Double precission simulations (reals are 8-byte)')
+#endif
+#ifdef CompileWithInt4
+      CALL print11 (layoutnumber, 'Media matrices are 4 bytes')
+#endif
+#ifdef CompileWithInt2
+      CALL print11 (layoutnumber, 'Media matrices are 2 bytes')
+#endif
+#ifdef CompileWithInt1
+      CALL print11 (layoutnumber, 'Media matrices are 1 byte')
+#endif
+#ifdef CompileWithMPI
+      CALL MPI_FINALIZE (ierr)
+#endif
+      return
+   end subroutine print_help
+
+ 
+   subroutine removeintraspaces(a)
+        CHARACTER (LEN=*), intent(inout):: a
+        integer (Kind=4) :: i,longi
+        logical correc
+        correc=.true.
+        do while(correc)
+            correc=.false.
+            a=trim(adjustl(a))
+            longi=len(trim(adjustl(a)))
+            buscae: do i=1,longi-1
+              if ((a(i:i)==' ').and.(a(i+1:i+1)==' ')) then
+                a=a(1:i-1)//a(i+1:longi) 
+                correc=.true.
+                exit buscae
+              endif
+            end do buscae
+        end do
+   return
+   end subroutine removeintraspaces
+
+   
+
+
+   
+   end module interpreta_switchwes_m
