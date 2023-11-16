@@ -1618,6 +1618,24 @@ contains
           CASE ('-skindepthpre')
             skindepthpre=.true.
 !            opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))
+          CASE ('-externalinductance')
+            i = i + 1
+            CALL getcommandargument (chaininput, i, f, length,  statuse)
+            READ (f, '(a)', ERR=361) inductance_file
+            !inductance_file = 'TC001NeumannIncell'            
+            open (1712, file=inductance_file, action='READ')
+            read (1712, *) LCdimension
+            allocate(externalL(LCdimension, LCdimension))
+            allocate(externalC(LCdimension, LCdimension))
+            allocate(LCline(LCdimension))
+            do i = 1, LCdimension
+                read (1712, *) LCline
+                do j = 1, LCdimension
+                    externalL(i,j) = LCline(j)
+                end do
+            end do
+            inductance_model = 'external'
+            opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))
           CASE ('-mibc','-skindepth')
             mibc=.true.
             SGBC=.false.
@@ -1965,30 +1983,9 @@ contains
           CASE ('-groundwires')
             groundwires = .TRUE.
             opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))
-          CASE ('-noSlantedcrecepelo ') !opcion niapa excperimental 131219
+          CASE ('-noSlantedcrecepelo') !opcion niapa excperimental 131219
             noSlantedcrecepelo  = .TRUE.
             opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))
-
-          CASE ('-externalinductance')
-            i = i + 1
-            CALL getcommandargument (chaininput, i, f, length,  statuse)
-            READ (f, '(a)', ERR=361) inductance_file
-            
-            open (1712, file=inductance_file, action='READ')
-            read (1712, *) LCdimension
-            allocate(externalL(LCdimension, LCdimension))
-            allocate(externalC(LCdimension, LCdimension))
-            allocate(LCline(LCdimension))
-            do i = 1, LCdimension
-                read (1712, *) LCline
-                do j = 1, LCdimension
-                    externalL(i,j) = LCline(j)
-                end do
-            end do
-           
-            inductance_model = 'external'
-            opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))
-            
           CASE ('-inductance')
             i = i + 1
             CALL getcommandargument (chaininput, i, f, length,  statuse)
