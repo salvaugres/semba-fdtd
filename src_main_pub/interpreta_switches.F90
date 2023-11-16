@@ -9,85 +9,366 @@ module interpreta_switchwes_m
    IMPLICIT NONE
    PRIVATE
    !   
+   type entrada_t
+
+        logical ::                            &
+            forcing                         , &
+            singlefilewrite                 , &
+            ignoresamplingerrors            , &
+            ignoreerrors                    , &
+            updateshared                    , &
+            prioritizeISOTROPICBODYoverall  , &
+            wirecrank                       , &
+            CLIPREGION                      , &
+            verbose                         , &
+            resume                          , &
+            forcesteps                      , &
+            resume_fromold                  , &
+            freshstart                      , &
+            run                             , &
+            createmap                       , &
+            dontwritevtk                    , &
+            vtkindex                        , &
+            createmapvtk                    , &
+            hopf                            , &
+            run_with_dmma                   , &
+            run_with_abrezanjas             , &
+            input_conformal_flag            , &
+            pausar                          , &
+            l_aux                           , &
+            flag_conf_sgg                   , &
+            takeintcripte                   , &
+            skindepthpre                    , &
+            SGBC                            , &
+            conformalskin                   , &
+            ade                             , &
+            mibc                            , &
+            NOcompomur                      , &
+            MurAfterPML                     , &
+            SGBCcrank                       , &
+            sgbcDispersive                  , &
+            saveall                         , &
+            boundwireradius                 , &
+            makeholes                       , &
+            mur_first                       , &
+            mur_second                      , &
+            connectendings                  , &
+            strictOLD                       , &
+            mtlnberenger                    , &
+            stableradholland                , &
+            TAPARRABOS                      , &
+            fieldtotl                       , &
+            forceresampled                  , &
+            isolategroupgroups              , &
+            groundwires                     , &
+            noSlantedcrecepelo              , &
+            forcecfl                        , &
+            niapapostprocess                , &
+            planewavecorr                   , &
+            permitscaling                   , &
+            stochastic                      , &
+            chosenyesornostochastic         , &
+            prioritizeCOMPOoverPEC          , &
+            createh5bin                     , &
+            deleteintermediates             , &
+            existeNFDE                      , &
+            file11isopen                    , &
+            NF2FFDecim                      , &
+            existeh5                        , &
+            fatalerror                      , &
+            existeconf                      , &
+            thereare_stoch                  , &
+            creditosyaprinteados            
+      
+        integer (kind=4) ::                   &
+            wirethickness                    ,&
+            inductance_order                 ,&
+            finaltimestep                    ,&
+            ierr                             ,&
+            layoutnumber                     ,&
+            size                             ,&
+            length                           ,&
+            mpidir                           ,&
+            flushminutesFields               ,&
+            flushminutesData                 ,&
+            flushsecondsFields               ,&
+            flushsecondsData                 ,&
+            forced                           ,&
+            maxCPUtime                       ,&
+            SGBCdepth                        ,&
+            precision                      
+                                           
+        REAL (KIND=RKIND) ::                  &
+            maxwireradius                    ,&
+            mindistwires                     ,&
+            attfactorc                       ,&
+            attfactorw                       ,&
+            cfltemp                          ,&
+            cfl                              ,&
+            SGBCfreq                         ,&
+            SGBCresol                        ,&
+            alphamaxpar                      ,&
+            kappamaxpar                      ,&
+            alphaOrden                     
+                                           
+        REAL (KIND=8) ::                      &
+             time_begin                      ,&
+             time_end                        
+        real (kind=RKIND_wires) ::            &
+             factorradius                    ,&
+             factordelta                     
    
-   PUBLIC interpreta,insertalogtmp,print_help,print_basic_help,print_credits,removeintraspaces
+   end type entrada_t
+       
+   PUBLIC interpreta,insertalogtmp,print_help,print_basic_help,print_credits,removeintraspaces,entrada_t
    !                                        
 CONTAINS
     
-   subroutine interpreta(sgg,chaininput,statuse, &
-     opcionestotales,opcionespararesumeo,prefixopci,prefixopci1, &
-     whoami,facesNF2FF, &
-     wirethickness,inductance_order,alphaOrden,finaltimestep,layoutnumber,size,length,n, &
-     pausetime,time_begin,time_end,newmpidir,mpidir,donde,j, &
-     fichin, f, chain, chain2,chdummy,chari, &
-     ficherohopf,conformal_file_input_name,wiresflavor,inductance_model,prefix,nEntradaRoot, &
-     nresumeable2,slicesoriginales,opcionesoriginales,geomfile,dubuf,fileH5, &   
-     maxCPUtime,flushminutesFields,flushminutesData,SGBCdepth,SGBCfreq,SGBCresol, &
-     maxwireradius,mindistwires,precision, &
-     alphamaxpar,kappamaxpar,attfactorc,attfactorw,cfltemp,cfl,factorradius, &
-     factordelta,flushsecondsFields ,flushsecondsData, &
-     forcing,singlefilewrite ,ignoresamplingerrors,ignoreerrors,updateshared, &
-     prioritizeISOTROPICBODYoverall,wirecrank ,CLIPREGION,verbose,resume,forcesteps,resume_fromold, &
-     freshstart,run,createmap,dontwritevtk,vtkindex,createmapvtk,hopf,run_with_dmma, &
-     run_with_abrezanjas,input_conformal_flag, pausar,l_aux, &
-     flag_conf_sgg,takeintcripte,skindepthpre,SGBC,conformalskin,ade,mibc,NOcompomur,MurAfterPML, &
-     SGBCcrank,sgbcDispersive,saveall,boundwireradius,makeholes,mur_first,mur_second, &
-     connectendings,strictOLD,mtlnberenger,stableradholland,TAPARRABOS,fieldtotl,forceresampled, &
-     isolategroupgroups,groundwires,noSlantedcrecepelo,forcecfl,niapapostprocess,planewavecorr, &
-     permitscaling,stochastic,chosenyesornostochastic,prioritizeCOMPOoverPEC,createh5bin,deleteintermediates, &
-     existeNFDE,forced,file11isopen,NF2FFDecim ,existeh5,resume3, &
-     existeconf,thereare_stoch,creditosyaprinteados , &
-     MEDIOEXTRA , EpsMuTimeScale_input_parameters ,time_out2,NFDE_FILE  )     
+   subroutine interpreta(sgg,chaininput,statuse,  &
+                             prefixopci, prefixopci1,opcionespararesumeo, opcionesoriginales, &
+                             slicesoriginales, slices , chdummy,dubuf,conformal_file_input_name, &
+                             ficherohopf ,inductance_model,wiresflavor,fichin, f, chain, buff,prefix,nEntradaRoot, &
+                             nresumeable2,geomfile,fileH5,opcionestotales,l )     
    
-   type (SGGFDTDINFO), intent(INOUT)     ::  sgg
-   CHARACTER (LEN=1024) ::  chaininput,opcionestotales 
-   integer (kind=4) :: statuse
-       
-   CHARACTER (LEN=65536) :: prefixopci, prefixopci1,opcionespararesumeo, opcionesoriginales, &
-   slicesoriginales, slices , chdummy 
-   CHARACTER (LEN=5) :: chari
-   CHARACTER (LEN=14) :: whoami, whoamishort
-   CHARACTER (LEN=1024) :: dubuf
    
-   character (len=200) :: conformal_file_input_name    
-   character (len=100) :: ficherohopf     
-   CHARACTER (LEN=20) :: inductance_model,wiresflavor
    
-   real (kind=RKIND_wires) :: factorradius,factordelta
+   CHARACTER (LEN=BUFSIZE_LONG) :: prefixopci, prefixopci1,opcionespararesumeo, opcionesoriginales, &
+                                   slicesoriginales, slices , chdummy      
+   CHARACTER (LEN=BUFSIZE) :: chaininput,chari,dubuf  ,conformal_file_input_name   ,ficherohopf  ,&
+                              inductance_model,wiresflavor , &
+                              fichin, f, chain, buff,prefix,nEntradaRoot,nresumeable2,geomfile,&
+                              fileH5,opcionestotales    
    
-   REAL (KIND=RKIND)  ::  alphamaxpar,kappamaxpar,alphaOrden
-   type (nf2ff_T) :: facesNF2FF
-   
-   integer (kind=4) :: i,wirethickness,inductance_order,finaltimestep,ierr,layoutnumber,size,length,n, &
-                       newmpidir,mpidir,donde,j,flushminutesFields,flushminutesData, &
-       flushsecondsFields ,flushsecondsData,forced, &
-       maxCPUtime,SGBCdepth,precision
-   CHARACTER (LEN=1024) :: fichin, f, chain, chain2, &
-       buff,prefix,nEntradaRoot, &
-       nresumeable2,geomfile,fileH5   
-   REAL (KIND=RKIND) ::  maxwireradius,mindistwires, &
-        attfactorc,attfactorw,cfltemp,pausetime,cfl,SGBCfreq,SGBCresol
-   
-   REAL (KIND=8) ::time_begin,time_end
-   logical ::  forcing,singlefilewrite ,ignoresamplingerrors,ignoreerrors,updateshared, &
-   prioritizeISOTROPICBODYoverall,wirecrank ,CLIPREGION,verbose,resume,forcesteps,resume_fromold, &
-   freshstart,run,createmap,dontwritevtk,vtkindex,createmapvtk,hopf,run_with_dmma, &
-   run_with_abrezanjas,input_conformal_flag,input_conformal_flag_abrezanjas, pausar,l_aux, &
-   flag_conf_sgg,takeintcripte,skindepthpre,SGBC,conformalskin,ade,mibc,NOcompomur,MurAfterPML, &
-   SGBCcrank,sgbcDispersive,saveall,boundwireradius,makeholes,mur_first,mur_second, &
-   connectendings,strictOLD,mtlnberenger,stableradholland,TAPARRABOS,fieldtotl,forceresampled, &
-   isolategroupgroups,groundwires,noSlantedcrecepelo,forcecfl,niapapostprocess,planewavecorr, &
-   permitscaling,stochastic,chosenyesornostochastic,prioritizeCOMPOoverPEC,createh5bin,deleteintermediates, &
-   existeNFDE,file11isopen,NF2FFDecim ,existeh5,faltalerror,resume3, &
-   fatalerror,existeconf,thereare_stoch,creditosyaprinteados
-   
-       
+
+   type (SGGFDTDINFO), intent(INOUT)     ::  sgg   
+   type (nf2ff_T) :: facesNF2FF    
    TYPE (MedioExtra_t) :: MEDIOEXTRA    
    type (EpsMuTimeScale_input_parameters_t) :: EpsMuTimeScale_input_parameters
    type (tiempo_t)  ::  time_out2 
    TYPE (t_NFDE_FILE), POINTER :: NFDE_FILE
    
-   logical :: existiarunningigual,mpidirset
+   logical :: existiarunningigual,mpidirset,resume3
+   integer (kind=4) :: i,j,donde,n,statuse, newmpidir
+   real (KIND=RKIND) :: pausetime
+!!!!!!!!!!!!!        
+   type (entrada_t) :: l
+!!!!!!!!!    
+!!! variables locales
+        logical ::                            &
+            forcing                         , &
+            singlefilewrite                 , &
+            ignoresamplingerrors            , &
+            ignoreerrors                    , &
+            updateshared                    , &
+            prioritizeISOTROPICBODYoverall  , &
+            wirecrank                       , &
+            CLIPREGION                      , &
+            verbose                         , &
+            resume                          , &
+            forcesteps                      , &
+            resume_fromold                  , &
+            freshstart                      , &
+            run                             , &
+            createmap                       , &
+            dontwritevtk                    , &
+            vtkindex                        , &
+            createmapvtk                    , &
+            hopf                            , &
+            run_with_dmma                   , &
+            run_with_abrezanjas             , &
+            input_conformal_flag            , &
+            pausar                          , &
+            l_aux                           , &
+            flag_conf_sgg                   , &
+            takeintcripte                   , &
+            skindepthpre                    , &
+            SGBC                            , &
+            conformalskin                   , &
+            ade                             , &
+            mibc                            , &
+            NOcompomur                      , &
+            MurAfterPML                     , &
+            SGBCcrank                       , &
+            sgbcDispersive                  , &
+            saveall                         , &
+            boundwireradius                 , &
+            makeholes                       , &
+            mur_first                       , &
+            mur_second                      , &
+            connectendings                  , &
+            strictOLD                       , &
+            mtlnberenger                    , &
+            stableradholland                , &
+            TAPARRABOS                      , &
+            fieldtotl                       , &
+            forceresampled                  , &
+            isolategroupgroups              , &
+            groundwires                     , &
+            noSlantedcrecepelo              , &
+            forcecfl                        , &
+            niapapostprocess                , &
+            planewavecorr                   , &
+            permitscaling                   , &
+            stochastic                      , &
+            chosenyesornostochastic         , &
+            prioritizeCOMPOoverPEC          , &
+            createh5bin                     , &
+            deleteintermediates             , &
+            existeNFDE                      , &
+            file11isopen                    , &
+            NF2FFDecim                      , &
+            existeh5                        , &
+            fatalerror                      , &
+            existeconf                      , &
+            thereare_stoch                  , &
+            creditosyaprinteados           
+      
+        integer (kind=4) ::                   &
+            wirethickness                    ,&
+            inductance_order                 ,&
+            finaltimestep                    ,&
+            ierr                             ,&
+            layoutnumber                     ,&
+            size                             ,&
+            length                           ,&
+            mpidir                           ,&
+            flushminutesFields               ,&
+            flushminutesData                 ,&
+            flushsecondsFields               ,&
+            flushsecondsData                 ,&
+            forced                           ,&
+            maxCPUtime                       ,&
+            SGBCdepth                        ,&
+            precision                      
+                                    
+        REAL (KIND=RKIND) ::                  &
+            maxwireradius                    ,&
+            mindistwires                     ,&
+            attfactorc                       ,&
+            attfactorw                       ,&
+            cfltemp                          ,&
+            cfl                              ,&
+            SGBCfreq                         ,&
+            SGBCresol                        ,&
+            alphamaxpar                      ,&
+            kappamaxpar                      ,&
+            alphaOrden                     
+                                           
+        REAL (KIND=8) ::                      &
+             time_begin                      ,&
+             time_end                        
+        real (kind=RKIND_wires) ::            &
+             factorradius                    ,&
+             factordelta                     
+ !!!! 
+!asigna variables locales
+
+            forcing                                 =l%forcing                        
+            singlefilewrite                         =l%singlefilewrite                
+            ignoresamplingerrors                    =l%ignoresamplingerrors           
+            ignoreerrors                            =l%ignoreerrors                   
+            updateshared                            =l%updateshared                   
+            prioritizeISOTROPICBODYoverall          =l%prioritizeISOTROPICBODYoverall 
+            wirecrank                               =l%wirecrank                      
+            CLIPREGION                              =l%CLIPREGION                     
+            verbose                                 =l%verbose                        
+            resume                                  =l%resume                         
+            forcesteps                              =l%forcesteps                     
+            resume_fromold                          =l%resume_fromold                 
+            freshstart                              =l%freshstart                     
+            run                                     =l%run                            
+            createmap                               =l%createmap                      
+            dontwritevtk                            =l%dontwritevtk                   
+            vtkindex                                =l%vtkindex                       
+            createmapvtk                            =l%createmapvtk                   
+            hopf                                    =l%hopf                           
+            run_with_dmma                           =l%run_with_dmma                  
+            run_with_abrezanjas                     =l%run_with_abrezanjas            
+            input_conformal_flag                    =l%input_conformal_flag           
+            pausar                                  =l%pausar                         
+            l_aux                                   =l%l_aux                          
+            flag_conf_sgg                           =l%flag_conf_sgg                  
+            takeintcripte                           =l%takeintcripte                  
+            skindepthpre                            =l%skindepthpre                   
+            SGBC                                    =l%SGBC                           
+            conformalskin                           =l%conformalskin                  
+            ade                                     =l%ade                            
+            mibc                                    =l%mibc                           
+            NOcompomur                              =l%NOcompomur                     
+            MurAfterPML                             =l%MurAfterPML                    
+            SGBCcrank                               =l%SGBCcrank                      
+            sgbcDispersive                          =l%sgbcDispersive                 
+            saveall                                 =l%saveall                        
+            boundwireradius                         =l%boundwireradius                
+            makeholes                               =l%makeholes                      
+            mur_first                               =l%mur_first                      
+            mur_second                              =l%mur_second                     
+            connectendings                          =l%connectendings                 
+            strictOLD                               =l%strictOLD                      
+            mtlnberenger                            =l%mtlnberenger                   
+            stableradholland                        =l%stableradholland               
+            TAPARRABOS                              =l%TAPARRABOS                     
+            fieldtotl                               =l%fieldtotl                      
+            forceresampled                          =l%forceresampled                 
+            isolategroupgroups                      =l%isolategroupgroups             
+            groundwires                             =l%groundwires                    
+            noSlantedcrecepelo                      =l%noSlantedcrecepelo             
+            forcecfl                                =l%forcecfl                       
+            niapapostprocess                        =l%niapapostprocess               
+            planewavecorr                           =l%planewavecorr                  
+            permitscaling                           =l%permitscaling                  
+            stochastic                              =l%stochastic                     
+            chosenyesornostochastic                 =l%chosenyesornostochastic        
+            prioritizeCOMPOoverPEC                  =l%prioritizeCOMPOoverPEC         
+            createh5bin                             =l%createh5bin                    
+            deleteintermediates                     =l%deleteintermediates            
+            existeNFDE                              =l%existeNFDE                     
+            file11isopen                            =l%file11isopen                   
+            NF2FFDecim                              =l%NF2FFDecim                     
+            existeh5                                =l%existeh5                       
+            fatalerror                              =l%fatalerror                     
+            fatalerror                              =l%fatalerror                     
+            existeconf                              =l%existeconf                     
+            thereare_stoch                          =l%thereare_stoch                 
+            creditosyaprinteados                    =l%creditosyaprinteados       
+            
+            wirethickness                           =l%wirethickness                  
+            inductance_order                        =l%inductance_order               
+            finaltimestep                           =l%finaltimestep                  
+            ierr                                    =l%ierr                           
+            layoutnumber                            =l%layoutnumber                   
+            size                                    =l%size                           
+            length                                  =l%length                         
+            mpidir                                  =l%mpidir                         
+            flushminutesFields                      =l%flushminutesFields             
+            flushminutesData                        =l%flushminutesData               
+            flushsecondsFields                      =l%flushsecondsFields             
+            flushsecondsData                        =l%flushsecondsData               
+            forced                                  =l%forced                         
+            maxCPUtime                              =l%maxCPUtime                     
+            SGBCdepth                               =l%SGBCdepth                      
+            precision                               =l%precision      
+            
+            maxwireradius                           =l%maxwireradius                  
+            mindistwires                            =l%mindistwires                   
+            attfactorc                              =l%attfactorc                     
+            attfactorw                              =l%attfactorw                     
+            cfltemp                                 =l%cfltemp                        
+            cfl                                     =l%cfl                            
+            SGBCfreq                                =l%SGBCfreq                       
+            SGBCresol                               =l%SGBCresol                      
+            alphamaxpar                             =l%alphamaxpar                    
+            kappamaxpar                             =l%kappamaxpar                    
+            alphaOrden                              =l%alphaOrden     
+            
+            time_begin                              =l%time_begin                     
+            time_end                                =l%time_end   
+            
+            factorradius                            =l%factorradius                   
+            factordelta                             =l%factordelta                    
+        
+!!!
+   
    
    mpidirset=.false.
    existiarunningigual=.false.
@@ -98,7 +379,7 @@ CONTAINS
       call print_basic_help(layoutnumber,creditosyaprinteados,time_out2) 
       call stoponerror(layoutnumber,size,'Error: NO arguments neither command line nor in launch file. Correct and remove pause...',.true.)
       statuse=-1
-      !return
+      !goto 666
    END IF
    opcionestotales=''
    do i=2,n
@@ -106,7 +387,7 @@ CONTAINS
       IF (statuse /= 0) THEN
          CALL stoponerror (layoutnumber, size, 'Reading input',.true.)
           statuse=-1
-          !return
+          !goto 666
       END IF
       opcionestotales=trim(adjustl(opcionestotales))//' '//trim(adjustl(chain))
    end do
@@ -120,7 +401,7 @@ CONTAINS
          IF (statuse /= 0) THEN
             CALL stoponerror (layoutnumber, size, 'Reading input',.true.)
           statuse=-1
-          !return
+          !goto 666
          END IF
          SELECT CASE (trim(adjustl(chain)))   
           CASE ('-i')
@@ -150,7 +431,7 @@ CONTAINS
             GO TO 2762
 1762        CALL stoponerror (layoutnumber, size, 'Invalid or duplicate incoherent -mpidir option',.true.)
           statuse=-1
-          return
+          goto 666
 2762      CONTINUE
           if (.not.mpidirset) then
             opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain)) // ' ' // trim (adjustl(f))
@@ -166,11 +447,11 @@ CONTAINS
             GO TO 8312
 7312        CALL stoponerror (layoutnumber, size, 'Invalid pause time',.true.)
           statuse=-1
-          !return
+          !goto 666
 8312        IF (pausetime <= 0) THEN
                CALL stoponerror (layoutnumber, size, 'Invalid pause time',.true.)
           statuse=-1
-          !return
+          !goto 666
             END IF
             !
             pausar=.true.
@@ -204,7 +485,7 @@ CONTAINS
             !!!          GO TO 2012
             !!!1012      CALL stoponerror (layoutnumber, size, 'Invalid Number of maxmessages',.true.)
           !!!statuse=-1
-          !!!!return
+          !!!!goto 666
             !!!2012      CONTINUE
             !!!          opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain)) // ' ' // trim (adjustl(f))
           CASE ('-NF2FFdecim')
@@ -232,7 +513,7 @@ CONTAINS
             GO TO 2712
 1712        CALL stoponerror (layoutnumber, size, 'Invalid -noNF2FF option',.true.)
           statuse=-1
-          !return
+          !goto 666
 2712      CONTINUE
             !COMO LA RCS SE CALCULA SOLO AL FINAL NO OBLIGO A RESUMEAR CON IGUAL -NONFF2FF PARA PODER CALCULAR CON Y SIN ESTA OPCION resumeando
             !          opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain)) // ' ' // trim (adjustl(f))      
@@ -244,7 +525,7 @@ CONTAINS
             GO TO 312
 412         CALL stoponerror (layoutnumber, size, 'Invalid cut',.true.)
           statuse=-1
-          !return
+          !goto 666
 312         CONTINUE
             opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain)) // ' ' // trim (adjustl(f))
           CASE ('-singlefile')
@@ -291,11 +572,11 @@ CONTAINS
             GO TO 812
 712         CALL stoponerror (layoutnumber, size, 'Invalid CPU maximum time',.true.)
           statuse=-1
-          !return
+          !goto 666
 812         IF (maxCPUtime <= 0) THEN
                CALL stoponerror (layoutnumber, size, 'Invalid CPU maximum time',.true.)
           statuse=-1
-          !return
+          !goto 666
             END IF   
 
           CASE ('-s')
@@ -308,11 +589,11 @@ CONTAINS
             GO TO 400
 300         CALL stoponerror (layoutnumber, size, 'Invalid flushing interval',.true.)
           statuse=-1
-          !return
+          !goto 666
 400         IF (flushminutesFields <= 0) THEN
                CALL stoponerror (layoutnumber, size, 'Invalid flushing interval',.true.)
           statuse=-1
-          !return
+          !goto 666
             END IF
           CASE ('-flushdata')
             i = i + 1
@@ -322,11 +603,11 @@ CONTAINS
             GO TO 401
 301         CALL stoponerror (layoutnumber, size, 'Invalid flushing interval',.true.)
           statuse=-1
-          !return
+          !goto 666
 401         IF (flushminutesData <= 0) THEN
                CALL stoponerror (layoutnumber, size, 'Invalid flushing interval',.true.)
           statuse=-1
-          !return
+          !goto 666
             END IF   
           CASE ('-run')
             run = .TRUE.                
@@ -461,11 +742,11 @@ CONTAINS
             GO TO 8621
 7621        CALL stoponerror (layoutnumber, size, 'Invalid CPML alpha factor',.true.)
           statuse=-1
-          !return
+          !goto 666
 8621        IF (alphamaxpar < 0.0_RKIND) THEN
                CALL stoponerror (layoutnumber, size, 'Invalid CPML alpha factor',.true.)
           statuse=-1
-          !return
+          !goto 666
             END IF
             i = i + 1
             !          opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))// ' ' // trim (adjustl(f))
@@ -475,11 +756,11 @@ CONTAINS
             GO TO 8121
 7121        CALL stoponerror (layoutnumber, size, 'Invalid CPML order factor',.true.)
           statuse=-1
-          !return
+          !goto 666
 8121        IF (alphaOrden < 0.0_RKIND) THEN
                CALL stoponerror (layoutnumber, size, 'Invalid CPML alpha factor',.true.)
           statuse=-1
-          !return
+          !goto 666
             END IF
             !          opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))// ' ' // trim (adjustl(f))
           CASE ('-pmlkappa')
@@ -490,11 +771,11 @@ CONTAINS
             GO TO 8622
 7622        CALL stoponerror (layoutnumber, size, 'Invalid CPML kappa factor',.true.)
           statuse=-1
-          !return
+          !goto 666
 8622        IF (kappamaxpar < 1.0_RKIND) THEN
                CALL stoponerror (layoutnumber, size, 'Invalid CPML kappa factor',.true.)
           statuse=-1
-          !return
+          !goto 666
             END IF
             !          opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))// ' ' // trim (adjustl(f))
           CASE ('-pmlcorr')
@@ -506,11 +787,11 @@ CONTAINS
             GO TO 8672
 7672        CALL stoponerror (layoutnumber, size, 'Invalid pmlcorr sigma factor',.true.)
           statuse=-1
-          !return
+          !goto 666
 8672        IF (medioextra%sigma < 0.0_RKIND) THEN
                CALL stoponerror (layoutnumber, size, 'Invalid pmlcorr sigma factor',.true.)
           statuse=-1
-          !return
+          !goto 666
             END IF
             medioextra%sigmam=-1.0_RKIND!voids it. later overriden
             !          opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))// ' ' // trim (adjustl(f))
@@ -521,9 +802,9 @@ CONTAINS
             GO TO 8662
 7662        CALL stoponerror (layoutnumber, size, 'Invalid pmlcorr depth factor',.true.)
           statuse=-1
-          !return
+          !goto 666
 8662        IF (MEDIOEXTRA%size < 0) THEN
-               CALL stoponerror (layoutnumber, size, 'Invalid pmlcorr depth factor',.true.); statuse=-1; !return
+               CALL stoponerror (layoutnumber, size, 'Invalid pmlcorr depth factor',.true.); statuse=-1; !goto 666
             END IF
             !          opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))// ' ' // trim (adjustl(f))
           CASE ('-attc')
@@ -532,9 +813,9 @@ CONTAINS
             ! Converts the characters to real
             READ (f,*, ERR=766) attfactorc
             GO TO 866
-766         CALL stoponerror (layoutnumber, size, 'Invalid dissipation factor',.true.); statuse=-1; !return
+766         CALL stoponerror (layoutnumber, size, 'Invalid dissipation factor',.true.); statuse=-1; !goto 666
 866         IF ((attfactorc <= -1.0_RKIND ).or.(attfactorc > 1.0_RKIND)) THEN
-               CALL stoponerror (layoutnumber, size, 'Invalid dissipation factor',.true.); statuse=-1; !return
+               CALL stoponerror (layoutnumber, size, 'Invalid dissipation factor',.true.); statuse=-1; !goto 666
             END IF
             opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))// ' ' // trim (adjustl(f))
           CASE ('-sgbcdepth')
@@ -545,9 +826,9 @@ CONTAINS
             ! Converts the characters to real
             READ (f,*, ERR=7466) SGBCdepth
             GO TO 8466
-7466        CALL stoponerror (layoutnumber, size, 'Invalid SGBC depth ',.true.); statuse=-1; !return
+7466        CALL stoponerror (layoutnumber, size, 'Invalid SGBC depth ',.true.); statuse=-1; !goto 666
 8466        IF (SGBCdepth < -1 ) THEN
-               CALL stoponerror (layoutnumber, size, 'Invalid SGBC depth',.true.); statuse=-1; !return
+               CALL stoponerror (layoutnumber, size, 'Invalid SGBC depth',.true.); statuse=-1; !goto 666
             END IF
             opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))// ' ' // trim (adjustl(f))
           CASE ('-sgbcfreq')
@@ -558,9 +839,9 @@ CONTAINS
             ! Converts the characters to real
             READ (f,*, ERR=74616) SGBCfreq
             GO TO 84616
-74616       CALL stoponerror (layoutnumber, size, 'Invalid SGBC freq ',.true.); statuse=-1; !return
+74616       CALL stoponerror (layoutnumber, size, 'Invalid SGBC freq ',.true.); statuse=-1; !goto 666
 84616       IF (SGBCfreq < 0. ) THEN
-            CALL stoponerror (layoutnumber, size, 'Invalid SGBC freq',.true.); statuse=-1; !return
+            CALL stoponerror (layoutnumber, size, 'Invalid SGBC freq',.true.); statuse=-1; !goto 666
             END IF
             opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))// ' ' // trim (adjustl(f))
           CASE ('-sgbcresol')
@@ -571,9 +852,9 @@ CONTAINS
             ! Converts the characters to real
             READ (f,*, ERR=74626) SGBCresol
             GO TO 84626
-74626       CALL stoponerror (layoutnumber, size, 'Invalid SGBC decay ',.true.); statuse=-1; !return
+74626       CALL stoponerror (layoutnumber, size, 'Invalid SGBC decay ',.true.); statuse=-1; !goto 666
 84626       IF (SGBCresol < 0.0 ) THEN
-            CALL stoponerror (layoutnumber, size, 'Invalid SGBC decay',.true.); statuse=-1; !return
+            CALL stoponerror (layoutnumber, size, 'Invalid SGBC decay',.true.); statuse=-1; !goto 666
             END IF
             opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))// ' ' // trim (adjustl(f))
           CASE ('-sgbcyee')
@@ -607,9 +888,9 @@ CONTAINS
             ! Converts the characters to real
             READ (f,*, ERR=732) attfactorw
             GO TO 832
-732         CALL stoponerror (layoutnumber, size, 'Invalid dissipation factor',.true.); statuse=-1; !return
+732         CALL stoponerror (layoutnumber, size, 'Invalid dissipation factor',.true.); statuse=-1; !goto 666
 832         IF ((attfactorw <= -1.0_RKIND ).or.(attfactorw > 1.0_RKIND)) THEN
-               CALL stoponerror (layoutnumber, size, 'Invalid dissipation factor',.true.); statuse=-1; !return
+               CALL stoponerror (layoutnumber, size, 'Invalid dissipation factor',.true.); statuse=-1; !goto 666
             END IF
             opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))// ' ' // trim (adjustl(f))
           CASE ('-maxwireradius')
@@ -619,9 +900,9 @@ CONTAINS
             ! Converts the characters to real
             READ (f,*, ERR=737) maxwireradius
             GO TO 837
-737         CALL stoponerror (layoutnumber, size, 'Invalid dissipation factor',.true.); statuse=-1; !return
+737         CALL stoponerror (layoutnumber, size, 'Invalid dissipation factor',.true.); statuse=-1; !goto 666
 837         IF ((maxwireradius <= 0.0_RKIND )) THEN
-               CALL stoponerror (layoutnumber, size, 'Invalid maximumwireradius',.true.); statuse=-1; !return
+               CALL stoponerror (layoutnumber, size, 'Invalid maximumwireradius',.true.); statuse=-1; !goto 666
             END IF
             opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))// ' ' // trim (adjustl(f))
           CASE ('-mindistwires')
@@ -630,9 +911,9 @@ CONTAINS
             ! Converts the characters to real
             READ (f,*, ERR=1732) mindistwires
             GO TO 1832
-1732        CALL stoponerror (layoutnumber, size, 'Invalid minimum distance between wires',.true.); statuse=-1; !return
+1732        CALL stoponerror (layoutnumber, size, 'Invalid minimum distance between wires',.true.); statuse=-1; !goto 666
 1832        IF (mindistwires <= 0.0_RKIND ) THEN
-               CALL stoponerror (layoutnumber, size, 'Invalid minimum distance between wires',.true.); statuse=-1; !return
+               CALL stoponerror (layoutnumber, size, 'Invalid minimum distance between wires',.true.); statuse=-1; !goto 666
             END IF
             opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))// ' ' // trim (adjustl(f))
           CASE ('-makeholes')
@@ -675,9 +956,9 @@ CONTAINS
             ! Converts the characters to real
             READ (f,*, ERR=7416) wirethickness
             GO TO 8416
-7416        CALL stoponerror (layoutnumber, size, 'Invalid wirethickness ',.true.); statuse=-1; !return
+7416        CALL stoponerror (layoutnumber, size, 'Invalid wirethickness ',.true.); statuse=-1; !goto 666
 8416        IF (SGBCdepth < -1 ) THEN
-               CALL stoponerror (layoutnumber, size, 'Invalid wirethickness',.true.); statuse=-1; !return
+               CALL stoponerror (layoutnumber, size, 'Invalid wirethickness',.true.); statuse=-1; !goto 666
             END IF
             opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))// ' ' // trim (adjustl(f))              
           CASE ('-wiresflavor')
@@ -704,14 +985,14 @@ CONTAINS
             ! Converts the characters to real
                 READ (f,*, ERR=2561) precision
                 GO TO 2562
-2561            CALL stoponerror (layoutnumber, size, 'Invalid precision for semistructured',.true.); statuse=-1; !return
+2561            CALL stoponerror (layoutnumber, size, 'Invalid precision for semistructured',.true.); statuse=-1; !goto 666
 2562            IF (precision < 0 ) THEN
-                    CALL stoponerror (layoutnumber, size, 'Invalid precision for semistructured',.true.); statuse=-1; !return
+                    CALL stoponerror (layoutnumber, size, 'Invalid precision for semistructured',.true.); statuse=-1; !goto 666
                 END IF
             !   
             end select   
             GO TO 4621
-3621        CALL stoponerror (layoutnumber, size, 'Invalid wires flavor',.true.); statuse=-1; !return
+3621        CALL stoponerror (layoutnumber, size, 'Invalid wires flavor',.true.); statuse=-1; !goto 666
 4621        IF ( ((trim(adjustl(wiresflavor)) /= 'holland')  .AND. &
                   (trim(adjustl(wiresflavor)) /= 'transition') .AND. &
                   (trim(adjustl(wiresflavor)) /= 'berenger') .AND.  &
@@ -722,13 +1003,13 @@ CONTAINS
                   (trim(adjustl(wiresflavor)) == 'berenger') .xor.  &
                   (trim(adjustl(wiresflavor)) == 'slanted').xor.  &
                   (trim(adjustl(wiresflavor)) =='semistructured')) )  THEN
-               CALL stoponerror (layoutnumber, size, 'Invalid wires flavor->'//trim(adjustl(wiresflavor)),.true.); statuse=-1; !return
+               CALL stoponerror (layoutnumber, size, 'Invalid wires flavor->'//trim(adjustl(wiresflavor)),.true.); statuse=-1; !goto 666
             END IF    
 #ifndef CompileWithThickWires
             select case (trim(adjustl(wiresflavor)))
             case ('holland','transition')
                 if (wirethickness/=1) then
-                    CALL stoponerror (layoutnumber, size, 'Holland wire flavor not available in this compilation',.true.); statuse=-1; !return
+                    CALL stoponerror (layoutnumber, size, 'Holland wire flavor not available in this compilation',.true.); statuse=-1; !goto 666
                 endif
             end select   
 #endif    
@@ -736,7 +1017,7 @@ CONTAINS
             select case (trim(adjustl(wiresflavor)))
             case ('holland')
                 if (wirethickness/=1) then
-                    CALL stoponerror (layoutnumber, size, 'Holland wire flavor thickness>1 requires recompiling',.true.); statuse=-1; !return
+                    CALL stoponerror (layoutnumber, size, 'Holland wire flavor thickness>1 requires recompiling',.true.); statuse=-1; !goto 666
                 endif
             end select   
 #endif
@@ -744,20 +1025,20 @@ CONTAINS
             select case (trim(adjustl(wiresflavor)))
             case ('berenger','slanted','experimental','transition')   
                 if (wirethickness/=1) then
-                    CALL stoponerror (layoutnumber, size, 'Thickness>1 unsupported for this wireflavor',.true.); statuse=-1; !return
+                    CALL stoponerror (layoutnumber, size, 'Thickness>1 unsupported for this wireflavor',.true.); statuse=-1; !goto 666
                 endif    
             end select   
 #endif
 #ifndef CompileWithBerengerWires
             select case (trim(adjustl(wiresflavor)))
             case ('berenger')
-                CALL stoponerror (layoutnumber, size, 'Berenger wire flavor not available in this compilation',.true.); statuse=-1; !return
+                CALL stoponerror (layoutnumber, size, 'Berenger wire flavor not available in this compilation',.true.); statuse=-1; !goto 666
             end select   
 #endif
 #ifndef CompileWithSlantedWires
             select case (trim(adjustl(wiresflavor)))
             case ('slanted','experimental')
-                CALL stoponerror (layoutnumber, size, 'Experimental wire flavor not available in this compilation',.true.); statuse=-1; !return
+                CALL stoponerror (layoutnumber, size, 'Experimental wire flavor not available in this compilation',.true.); statuse=-1; !goto 666
             end select   
 #endif
           CASE ('-isolategroupgroups')
@@ -777,10 +1058,10 @@ CONTAINS
             CALL getcommandargument (chaininput, i, f, length,  statuse)
             READ (f, '(a)', ERR=361) inductance_model
             GO TO 461
-361         CALL stoponerror (layoutnumber, size, 'Invalid inductance model',.true.); statuse=-1; !return
+361         CALL stoponerror (layoutnumber, size, 'Invalid inductance model',.true.); statuse=-1; !goto 666
 461         IF ((inductance_model /= 'ledfelt') .AND. (inductance_model /= 'berenger') .AND. &
             &    (inductance_model /= 'boutayeb')) THEN
-               CALL stoponerror (layoutnumber, size, 'Invalid inductance model',.true.); statuse=-1; !return
+               CALL stoponerror (layoutnumber, size, 'Invalid inductance model',.true.); statuse=-1; !goto 666
             END IF
             opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain)) // ' ' // trim (adjustl(f))
           CASE ('-inductanceorder')
@@ -788,7 +1069,7 @@ CONTAINS
             CALL getcommandargument (chaininput, i, f, length,  statuse)
             READ (f,*, ERR=179) inductance_order
             GO TO 180
-179         CALL stoponerror (layoutnumber, size, 'Invalid inductance order',.true.); statuse=-1; !return
+179         CALL stoponerror (layoutnumber, size, 'Invalid inductance order',.true.); statuse=-1; !goto 666
 180         opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain)) // ' ' // trim (adjustl(f))
 #endif
           CASE ('-prefix')
@@ -802,10 +1083,10 @@ CONTAINS
             ! Converts the characters to real
             READ (f,*, ERR=3762) cfltemp
             GO TO 3862
-3762        CALL stoponerror (layoutnumber, size, 'Invalid Courant Number',.true.); statuse=-1; !return
+3762        CALL stoponerror (layoutnumber, size, 'Invalid Courant Number',.true.); statuse=-1; !goto 666
 3862        IF (cfltemp <= 0.0 ) THEN
                call print11(layoutnumber,'------> Ignoring negative or null CFL Courant Number')
-!!!!!!!!!               CALL stoponerror (layoutnumber, size, 'Invalid negative or null CFL Courant Number',.true.); statuse=-1; !return !!!sgg 151216 para evitar el error cfl 0 del problem-type sigue como si no estuviera
+!!!!!!!!!               CALL stoponerror (layoutnumber, size, 'Invalid negative or null CFL Courant Number',.true.); statuse=-1; !goto 666 !!!sgg 151216 para evitar el error cfl 0 del problem-type sigue como si no estuviera
                forcecfl=.false.
             else
                cfl=cfltemp
@@ -853,11 +1134,11 @@ CONTAINS
             opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(f))
             READ (f,*, ERR=33762) EpsMuTimeScale_input_parameters%alpha_max
             GO TO 33862
-33762       CALL stoponerror (layoutnumber, size, 'Invalid pscale parameters',.true.); statuse=-1; !return
+33762       CALL stoponerror (layoutnumber, size, 'Invalid pscale parameters',.true.); statuse=-1; !goto 666
 33862       IF (EpsMuTimeScale_input_parameters%checkError()/=0) THEN
                 CALL stoponerror (layoutnumber, size, &
    &'Invalid -pscale parameters: some parameters have to be greater than 0.0: -pscale t0(>=0) tend slope(>0)'&
-                  &,.true.); statuse=-1; !return
+                  &,.true.); statuse=-1; !goto 666
             else
                EpsMuTimeScale_input_parameters%are_there = .true.
             endif
@@ -869,9 +1150,9 @@ CONTAINS
             ! Converts the characters to integer
             READ (f,*, ERR=602) finaltimestep
             GO TO 702
-602         CALL stoponerror (layoutnumber, size, 'Invalid time step',.true.); statuse=-1; !return
+602         CALL stoponerror (layoutnumber, size, 'Invalid time step',.true.); statuse=-1; !goto 666
 702         IF (finaltimestep < -2) THEN
-               CALL stoponerror (layoutnumber, size, 'Invalid time step',.true.); statuse=-1; !return
+               CALL stoponerror (layoutnumber, size, 'Invalid time step',.true.); statuse=-1; !goto 666
             END IF      
 !!!!!!     
           CASE ('-factorradius')
@@ -880,7 +1161,7 @@ CONTAINS
             ! Converts the characters to integer
             READ (f,*, ERR=6032) factorradius
             GO TO 7032
-6032         CALL stoponerror (layoutnumber, size, 'Invalid factorradius',.true.); statuse=-1; !return
+6032         CALL stoponerror (layoutnumber, size, 'Invalid factorradius',.true.); statuse=-1; !goto 666
 7032         continue
           CASE ('-factordelta')
             i = i + 1
@@ -888,7 +1169,7 @@ CONTAINS
             ! Converts the characters to integer
             READ (f,*, ERR=6072) factordelta
             GO TO 7072
-6072         CALL stoponerror (layoutnumber, size, 'Invalid factordelta',.true.); statuse=-1; !return
+6072         CALL stoponerror (layoutnumber, size, 'Invalid factordelta',.true.); statuse=-1; !goto 666
 7072         continue
 !!!!!!!!!!!!!
           CASE ('-stoch')
@@ -896,7 +1177,7 @@ CONTAINS
             chosenyesornostochastic=.true.
             opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))
 #ifndef CompileWithMPI
-            CALL stoponerror (layoutnumber, size, 'Stochastic simulation unsupported without MPI compilation',.true.); statuse=-1; !return
+            CALL stoponerror (layoutnumber, size, 'Stochastic simulation unsupported without MPI compilation',.true.); statuse=-1; !goto 666
 #endif
           CASE ('-nostoch')
             stochastic=.false.
@@ -907,7 +1188,7 @@ CONTAINS
           CASE ('') !100615 para evitar el crlf del .sh
             continue
           CASE DEFAULT
-            CALL stoponerror (layoutnumber, size, 'Wrong switch '//trim(adjustl(chain)),.true.); statuse=-1; !return
+            CALL stoponerror (layoutnumber, size, 'Wrong switch '//trim(adjustl(chain)),.true.); statuse=-1; !goto 666
          END SELECT
          i = i + 1
       END DO
@@ -928,42 +1209,42 @@ CONTAINS
 #endif
 
    IF (connectendings .AND. strictOLD) THEN
-      CALL stoponerror (layoutnumber, size, 'strictOLD option not compatible with -connectendings',.true.); statuse=-1; !return
+      CALL stoponerror (layoutnumber, size, 'strictOLD option not compatible with -connectendings',.true.); statuse=-1; !goto 666
    END IF
    IF (taparrabos .AND. (.not.strictOLD)) THEN
-      CALL stoponerror (layoutnumber, size, '-nostrictOLD option requires -notaparrabos ',.true.); statuse=-1; !return
+      CALL stoponerror (layoutnumber, size, '-nostrictOLD option requires -notaparrabos ',.true.); statuse=-1; !goto 666
    END IF
    IF (isolategroupgroups .AND. strictOLD) THEN
-      CALL stoponerror (layoutnumber, size, '-intrawiresimplify option not compatible with -isolategroupgroups',.true.); statuse=-1; !return
+      CALL stoponerror (layoutnumber, size, '-intrawiresimplify option not compatible with -isolategroupgroups',.true.); statuse=-1; !goto 666
    END IF
 
    IF ((sgbc .AND. mibc)) THEN
-      CALL stoponerror (layoutnumber, size, 'Use only one of -sgbc -mibc',.true.); statuse=-1; !return
+      CALL stoponerror (layoutnumber, size, 'Use only one of -sgbc -mibc',.true.); statuse=-1; !goto 666
    END IF
    IF (freshstart .AND. resume) THEN
-      CALL stoponerror (layoutnumber, size, 'Fresh Start option -s not compatible with restarting -r',.true.); statuse=-1; !return
+      CALL stoponerror (layoutnumber, size, 'Fresh Start option -s not compatible with restarting -r',.true.); statuse=-1; !goto 666
    END IF
    IF (freshstart .AND. resume_fromold) THEN
-      CALL stoponerror (layoutnumber, size, 'Fresh Start option -s not compatible with -old',.true.); statuse=-1; !return
+      CALL stoponerror (layoutnumber, size, 'Fresh Start option -s not compatible with -old',.true.); statuse=-1; !goto 666
    END IF
    IF (( .NOT. resume).and.(.not.run) .AND. resume_fromold) THEN
-      CALL stoponerror (layoutnumber, size, 'Resume option -r must be used if issuing -old',.true.); statuse=-1; !return
+      CALL stoponerror (layoutnumber, size, 'Resume option -r must be used if issuing -old',.true.); statuse=-1; !goto 666
    END IF
    IF ((flushminutesFields /= 0) .AND. (deleteintermediates)) THEN
-      CALL stoponerror (layoutnumber, size, '-delete is not compatible with -flush',.true.); statuse=-1; !return
+      CALL stoponerror (layoutnumber, size, '-delete is not compatible with -flush',.true.); statuse=-1; !goto 666
    END IF
    if (run_with_abrezanjas.and.run_with_dmma) then
-      CALL stoponerror (layoutnumber, size, '-abrezanjas is not compatible with -dmma',.true.); statuse=-1; !return
+      CALL stoponerror (layoutnumber, size, '-abrezanjas is not compatible with -dmma',.true.); statuse=-1; !goto 666
    END IF
    if (stochastic.and.(trim(adjustl(wiresflavor))/='holland')) then
-      CALL stoponerror (layoutnumber, size, 'Old wires flavor is the only supported with stochastic',.true.); statuse=-1; !return
+      CALL stoponerror (layoutnumber, size, 'Old wires flavor is the only supported with stochastic',.true.); statuse=-1; !goto 666
    END IF
    if (stochastic.and.wirecrank) then
-      CALL stoponerror (layoutnumber, size, 'Wires Crank Nicolson is unsupported with stochastic',.true.); statuse=-1; !return
+      CALL stoponerror (layoutnumber, size, 'Wires Crank Nicolson is unsupported with stochastic',.true.); statuse=-1; !goto 666
    END IF
    !!!si esta soportado 170719
    !! if (permitscaling.and.resume) then
-   !!   CALL stoponerror (layoutnumber, size, 'Resuming with Permittivity scaling unsupported',.true.); statuse=-1; !return
+   !!   CALL stoponerror (layoutnumber, size, 'Resuming with Permittivity scaling unsupported',.true.); statuse=-1; !goto 666
    !!END IF
    if (permitscaling.and.(kappamaxpar.gt.1.000001_rkind)) then
    !!!061118 no lo permito porque cpml toca los idxe, idye, idze en funcion del kappa y permittivity scaling conflicta
@@ -1047,13 +1328,13 @@ CONTAINS
    END IF
    IF (resume) THEN
       IF ( .NOT. resume3) THEN
-         CALL stoponerror (layoutnumber, size, 'Resume fields not present',.true.); statuse=-1; !return
+         CALL stoponerror (layoutnumber, size, 'Resume fields not present',.true.); statuse=-1; !goto 666
       END IF
       WRITE (dubuf,*) 'RESUMING simulation ', trim (adjustl(nEntradaRoot)), ' until n= ', finaltimestep
       CALL print11 (layoutnumber, dubuf)
    ELSE
       IF (resume3 .AND. ( .NOT. freshstart).and.(.not.run)) THEN
-         CALL stoponerror (layoutnumber, size, 'Restarting file exists. Either specify -r to RESUME, -s to do a fresh START, or -run to run in whatever the case',.true.); statuse=-1; !return
+         CALL stoponerror (layoutnumber, size, 'Restarting file exists. Either specify -r to RESUME, -s to do a fresh START, or -run to run in whatever the case',.true.); statuse=-1; !goto 666
       ELSEIF (resume3.and.(run)) THEN
          resume=.true.
       ELSE
@@ -1070,23 +1351,23 @@ CONTAINS
 !
    if (((wiresflavor=='slanted').or.(wiresflavor=='semistructured')).AND.(mpidir/=3)) then
        continue !arreglado mpidir slanted 2019
-       !         CALL stoponerror (layoutnumber, size, 'slanted wires unsupported with -mpidir {x,y}',.true.); statuse=-1; !return
+       !         CALL stoponerror (layoutnumber, size, 'slanted wires unsupported with -mpidir {x,y}',.true.); statuse=-1; !goto 666
    endif
    if (input_conformal_flag.AND.(mpidir/=3)) then
         continue !arreglado mpidir conformal 2019
          !TODO: under test
          !26-sep-2018: lo comento 
-         !CALL stoponerror (layoutnumber, size, 'CONFORMAL -conf  unsupported with -mpidir {x,y}',.true.); statuse=-1; !return
+         !CALL stoponerror (layoutnumber, size, 'CONFORMAL -conf  unsupported with -mpidir {x,y}',.true.); statuse=-1; !goto 666
    endif
    if (run_with_abrezanjas.AND.(mpidir/=3)) then
         continue !arreglado mpidir conformal 2019
          !under test
          !26-sep-2018: lo comento 
-         !CALL stoponerror (layoutnumber, size, 'New abrezanjas thin gaps unsupported with -mpidir {x,y}',.true.); statuse=-1; !return
+         !CALL stoponerror (layoutnumber, size, 'New abrezanjas thin gaps unsupported with -mpidir {x,y}',.true.); statuse=-1; !goto 666
    endif
    if (run_with_abrezanjas.AND.flag_conf_sgg) then
       !pass Mayo-2018
-         !CALL stoponerror (layoutnumber, size, 'CONFORMAL -conf currently unsupported with new abrezanjas thin gaps (unsupported 2 simultaneous conformal meshes at this moment',.true.); statuse=-1; !return
+         !CALL stoponerror (layoutnumber, size, 'CONFORMAL -conf currently unsupported with new abrezanjas thin gaps (unsupported 2 simultaneous conformal meshes at this moment',.true.); statuse=-1; !goto 666
          !se hace en otro sitio
    endif
 
@@ -1193,7 +1474,7 @@ CONTAINS
          call removeintraspaces(opcionesoriginales)
          IF (trim(adjustl(opcionesoriginales)) /= trim(adjustl(opcionespararesumeo))) THEN
             CALL stoponerror (layoutnumber, size, 'Different resumed/original switches: '//trim(adjustl(opcionespararesumeo))//' <> '//&
-            & trim(adjustl(opcionesoriginales)),.true.); statuse=-1; !return
+            & trim(adjustl(opcionesoriginales)),.true.); statuse=-1; !goto 666
          END IF
          !
          !!!!!!!!!        CLOSE (11, status='delete')
@@ -1267,7 +1548,7 @@ CONTAINS
    flushsecondsData = flushminutesData * 60
    
    IF (( .NOT. existeNFDE) .AND. ( .NOT. existeh5)) THEN
-      CALL stoponerror (layoutnumber, size, 'Some input file missing .h5/.nfde/.conf',.true.); statuse=-1; !return
+      CALL stoponerror (layoutnumber, size, 'Some input file missing .h5/.nfde/.conf',.true.); statuse=-1; !goto 666
    END IF
    !
    !
@@ -1282,14 +1563,121 @@ CONTAINS
     if (existiarunningigual) then !lo pongo aqui pq si no no se escribe en el report
         CALL stoponerror (layoutnumber, size, 'Running flag file with same options than requested exist. ',.true.); statuse=-1;
     endif
-   
-    return !el unico return que he dejado !240817
+!!!asigna variable de salida
+
+            l%forcing                                 =forcing                        
+            l%singlefilewrite                         =singlefilewrite                
+            l%ignoresamplingerrors                    =ignoresamplingerrors           
+            l%ignoreerrors                            =ignoreerrors                   
+            l%updateshared                            =updateshared                   
+            l%prioritizeISOTROPICBODYoverall          =prioritizeISOTROPICBODYoverall 
+            l%wirecrank                               =wirecrank                      
+            l%CLIPREGION                              =CLIPREGION                     
+            l%verbose                                 =verbose                        
+            l%resume                                  =resume                         
+            l%forcesteps                              =forcesteps                     
+            l%resume_fromold                          =resume_fromold                 
+            l%freshstart                              =freshstart                     
+            l%run                                     =run                            
+            l%createmap                               =createmap                      
+            l%dontwritevtk                            =dontwritevtk                   
+            l%vtkindex                                =vtkindex                       
+            l%createmapvtk                            =createmapvtk                   
+            l%hopf                                    =hopf                           
+            l%run_with_dmma                           =run_with_dmma                  
+            l%run_with_abrezanjas                     =run_with_abrezanjas            
+            l%input_conformal_flag                    =input_conformal_flag           
+            l%pausar                                  =pausar                         
+            l%l_aux                                   =l_aux                          
+            l%flag_conf_sgg                           =flag_conf_sgg                  
+            l%takeintcripte                           =takeintcripte                  
+            l%skindepthpre                            =skindepthpre                   
+            l%SGBC                                    =SGBC                           
+            l%conformalskin                           =conformalskin                  
+            l%ade                                     =ade                            
+            l%mibc                                    =mibc                           
+            l%NOcompomur                              =NOcompomur                     
+            l%MurAfterPML                             =MurAfterPML                    
+            l%SGBCcrank                               =SGBCcrank                      
+            l%sgbcDispersive                          =sgbcDispersive                 
+            l%saveall                                 =saveall                        
+            l%boundwireradius                         =boundwireradius                
+            l%makeholes                               =makeholes                      
+            l%mur_first                               =mur_first                      
+            l%mur_second                              =mur_second                     
+            l%connectendings                          =connectendings                 
+            l%strictOLD                               =strictOLD                      
+            l%mtlnberenger                            =mtlnberenger                   
+            l%stableradholland                        =stableradholland               
+            l%TAPARRABOS                              =TAPARRABOS                     
+            l%fieldtotl                               =fieldtotl                      
+            l%forceresampled                          =forceresampled                 
+            l%isolategroupgroups                      =isolategroupgroups             
+            l%groundwires                             =groundwires                    
+            l%noSlantedcrecepelo                      =noSlantedcrecepelo             
+            l%forcecfl                                =forcecfl                       
+            l%niapapostprocess                        =niapapostprocess               
+            l%planewavecorr                           =planewavecorr                  
+            l%permitscaling                           =permitscaling                  
+            l%stochastic                              =stochastic                     
+            l%chosenyesornostochastic                 =chosenyesornostochastic        
+            l%prioritizeCOMPOoverPEC                  =prioritizeCOMPOoverPEC         
+            l%createh5bin                             =createh5bin                    
+            l%deleteintermediates                     =deleteintermediates            
+            l%existeNFDE                              =existeNFDE                     
+            l%file11isopen                            =file11isopen                   
+            l%NF2FFDecim                              =NF2FFDecim                     
+            l%existeh5                                =existeh5                       
+            l%fatalerror                              =fatalerror                     
+            l%fatalerror                              =fatalerror                     
+            l%existeconf                              =existeconf                     
+            l%thereare_stoch                          =thereare_stoch                 
+            l%creditosyaprinteados                    =creditosyaprinteados       
+            
+            l%wirethickness                           =wirethickness                  
+            l%inductance_order                        =inductance_order               
+            l%finaltimestep                           =finaltimestep                  
+            l%ierr                                    =ierr                           
+            l%layoutnumber                            =layoutnumber                   
+            l%size                                    =size                           
+            l%length                                  =length                         
+            l%mpidir                                  =mpidir                         
+            l%flushminutesFields                      =flushminutesFields             
+            l%flushminutesData                        =flushminutesData               
+            l%flushsecondsFields                      =flushsecondsFields             
+            l%flushsecondsData                        =flushsecondsData               
+            l%forced                                  =forced                         
+            l%maxCPUtime                              =maxCPUtime                     
+            l%SGBCdepth                               =SGBCdepth                      
+            l%precision                               =precision      
+            
+            l%maxwireradius                           =maxwireradius                  
+            l%mindistwires                            =mindistwires                   
+            l%attfactorc                              =attfactorc                     
+            l%attfactorw                              =attfactorw                     
+            l%cfltemp                                 =cfltemp                        
+            l%cfl                                     =cfl                            
+            l%SGBCfreq                                =SGBCfreq                       
+            l%SGBCresol                               =SGBCresol                      
+            l%alphamaxpar                             =alphamaxpar                    
+            l%kappamaxpar                             =kappamaxpar                    
+            l%alphaOrden                              =alphaOrden     
+            
+            l%time_begin                              =time_begin                     
+            l%time_end                                =time_end   
+            
+            l%factorradius                            =factorradius                   
+            l%factordelta                             =factordelta                    
+                                         
+    
+!!    
+666    return !el unico return que he dejado !240817
    
    end subroutine interpreta
    
    subroutine insertalogtmp(layoutnumber) !para 100920   
-           CHARACTER (LEN=1024) ::  dubuf
-           INTEGER :: MYUNIT11,LAYOUTNUMBER,ierr
+           CHARACTER (LEN=BUFSIZE) ::  dubuf
+           integer (kind=4) :: MYUNIT11,LAYOUTNUMBER,ierr
            CALL OffPrint !no reimprimas, esto ya estaba por pantalla
             OPEN (newunit=myunit11, file='SEMBA_FDTD_temp.log')
             do
@@ -1304,8 +1692,8 @@ CONTAINS
    
       subroutine print_basic_help(layoutnumber,creditosyaprinteados,time_out2)     
       type (tiempo_t)  ::  time_out2 
-      CHARACTER (LEN=1024) :: buff
-      INTEGER :: LAYOUTNUMBER 
+      CHARACTER (LEN=BUFSIZE) :: buff
+      integer (kind=4) :: LAYOUTNUMBER 
       logical :: creditosyaprinteados
       call print_credits(layoutnumber,creditosyaprinteados,time_out2)
       CALL print11 (layoutnumber, '___________________________________________________________________________')
@@ -1319,8 +1707,8 @@ CONTAINS
  
    subroutine print_credits(layoutnumber,creditosyaprinteados,time_out2)
       TYPE (tiempo_t) :: time_out2
-      CHARACTER (LEN=1024) :: buff  , dubuf
-      integer :: layoutnumber
+      CHARACTER (LEN=BUFSIZE) :: buff  , dubuf
+      integer (kind=4) :: layoutnumber
       logical :: creditosyaprinteados
       if (creditosyaprinteados) return
       creditosyaprinteados=.true.
@@ -1368,8 +1756,8 @@ CONTAINS
    end subroutine print_credits
 
    subroutine print_help(layoutnumber)
-      integer :: layoutnumber,ierr
-      CHARACTER (LEN=1024) :: buff
+      integer (kind=4) :: layoutnumber,ierr
+      CHARACTER (LEN=BUFSIZE) :: buff
       CALL print11 (layoutnumber, '___________________________________________________________________________')
       CALL print11 (layoutnumber, 'Command line arguments: ')
       CALL print11 (layoutnumber, '___________________________________________________________________________')

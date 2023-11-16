@@ -72,7 +72,7 @@ module Observa
 #ifdef CompileWithSlantedWires
       class(Segment)        , pointer  ::  segmento_Slanted !segmento de hilo que se observa si lo hubiere
 #endif
-      character (len=1024)  ::  path
+      character (LEN=BUFSIZE)  ::  path
       integer (kind=4) :: unit,unitmaster !to store the unit of the file y en caso de singlefileginario el unitmaster que escribe
       integer (kind=4) :: columnas !number of columns in the output file
       REAL (KIND=RKIND), pointer, dimension( : )   ::  valor,valor2,valor3,valor4,valor5 !stored values at each time step !not read but calculate !210521 also store -edl+vdrop
@@ -158,7 +158,7 @@ contains
       !!!
       character(len=*), INTENT(in) :: wiresflavor
       logical  ::  saveall,singlefilewrite,NF2FFDecim, INIT,GEOM,ASIGNA,electric,magnetic
-      character (len=1024)  ::  p1,p2
+      character (LEN=BUFSIZE)  ::  p1,p2
       real (kind=RKIND_tiempo) :: lastexecutedtime
       
       character (len=*), intent(in)  ::  nEntradaRoot
@@ -167,16 +167,16 @@ contains
 
       logical, intent(inout)   ::  ThereAreObservation,ThereAreFarFields
       logical, intent(in)      ::  ThereAreWires,resume
-      character (len=7)  ::  chari,charj,chark,chari2,charj2,chark2,charNO
-      character (len=1024)  ::  ext,extpoint,adum,prefix_field
+      character (LEN=BUFSIZE)  ::  chari,charj,chark,chari2,charj2,chark2,charNO
+      character (LEN=BUFSIZE)  ::  ext,extpoint,adum,prefix_field
       logical  ::  incident,errnofile,first
       REAL (KIND=RKIND)    ::  rdum,field1,field2
       REAL (KIND=RKIND_tiempo)    ::  at,dtevol,tiempo1,tiempo2
       integer (kind=4)  ::  unit,ndum,unitmaster,conta,III,JJJ,KKK,pozi,i1t,j1t,k1t
-      character (len=14)  ::  whoami,whoamishort
+      character (LEN=BUFSIZE)  ::  whoami,whoamishort
       logical :: ok,existe,wrotemaster,found
       integer (kind=8)  :: memo,ntini,ntfin
-      character(len=1024) :: buff,path,buff2
+      character(LEN=BUFSIZE) :: buff,path,buff2
 #ifdef CompileWithMPI
       integer(kind=MPI_OFFSET_KIND) disp
       integer (kind=4)  ::  ierr
@@ -2337,8 +2337,8 @@ contains
       logical :: singlefilewrite,resume,incident,existe,wrotemaster
       REAL (KIND=RKIND)    ::  rdum1,rdum2,rdum3,rdum4,rdum5,rdum6,rdum
       REAL (KIND=RKIND_tiempo)    ::  lastexecutedtime
-      character (len=1000) :: chdum
-      character (len=14)  ::  whoamishort
+      character (LEN=BUFSIZE) :: chdum
+      character (LEN=BUFSIZE)  ::  whoamishort
       integer :: my_iostat
       real (kind=RKIND_tiempo) :: at
       !!!
@@ -2469,8 +2469,8 @@ contains
       integer (kind=4)  ::  i,ii,layoutnumber,field,initialtimestep,unidad,size,idum
       logical :: singlefilewrite,resume,incident,existe,wrotemaster
       REAL (KIND=RKIND)    ::  rdum1,rdum2,rdum3,rdum4,rdum5,rdum6,rdum
-      character (len=1000) :: chdum
-      character (len=14)  ::  whoamishort
+      character (LEN=BUFSIZE) :: chdum
+      character (LEN=BUFSIZE)  ::  whoamishort
       integer :: my_iostat
       !!!
       write(whoamishort,'(i5)') layoutnumber+1
@@ -3885,7 +3885,7 @@ contains
       logical :: called_fromobservation,dummy_logical
       integer :: my_iostat
 
-      character (len=14)  ::  whoami
+      character (LEN=BUFSIZE)  ::  whoami
       !!!
       write(whoami,'(a,i5,a,i5,a)') '(',layoutnumber+1,'/',size,') '
       called_fromobservation=.true.
@@ -4323,7 +4323,7 @@ contains
 
    function prefix(campo) result(ext)
       integer (kind=4)  ::  campo
-      character (len=4)  ::  ext
+      character (len=BUFSIZE)  ::  ext
 
       select case (campo)
        case (iEx)
@@ -4400,7 +4400,7 @@ contains
 
    function suffix(campo,incid) result(ext)
       integer (kind=4)  ::  campo
-      character (len=1024)  ::  ext
+      character (LEN=BUFSIZE)  ::  ext
       logical  ::  incid
 
       ext=' '

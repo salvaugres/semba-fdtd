@@ -23,6 +23,7 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     
 Module Getargs
+   USE NFDETYPES , ONLY: BUFSIZE
    implicit none
    private
 
@@ -31,7 +32,7 @@ Module Getargs
 contains
 
    subroutine getcommandargument(chain2,posic,argum,length,status)
-      character (len=1024)  ::  chain2,argum
+      character (LEN=BUFSIZE)  ::  chain2,argum
       integer (kind=4)  ::  i,length,status,posic,n,comienzo,finale,j
 
       !length is unused
@@ -83,7 +84,7 @@ contains
    end subroutine
 
    function commandargumentcount(chain2)
-      character (len=1024)  ::  chain2
+      character (LEN=BUFSIZE)  ::  chain2
       integer (kind=4)  ::  status,n,i,j,commandargumentcount
 
 

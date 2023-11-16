@@ -166,11 +166,11 @@ contains
       logical, INTENT(OUT)  ::  ThereAreSGBCs
       integer (kind=4)  ::  jmed,j1,conta,k1,i1,SGBCdir,i,filo_placas,idummy,numpolres,ient,incert,maxnumcapas,ii
       character(len=BUFSIZE) :: buff
-      character (len=14)  ::  whoami
+      character (LEN=BUFSIZE)  ::  whoami
       type (SGBCSurface_t), pointer :: compo,compo_temp
       logical :: unstable, errnofile,es_unfilo_placa
       COMPLEX (kind=ckind) :: value1, value2
-      character (len=1024)                            ::   ficheropolos
+      character (LEN=BUFSIZE)                            ::   ficheropolos
 !
       eps0=eps00; mu0=mu00; !chapuz para convertir la variables de paso en globales
       SGBCcrank        = temp_SGBCcrank     

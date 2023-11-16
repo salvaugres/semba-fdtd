@@ -83,23 +83,23 @@ PROGRAM SEMBA_FDTD_launcher
    !
    logical :: creditosyaprinteados
    logical :: hopf,experimentalVideal,forceresampled
-   character (len=100) :: ficherohopf
+   character (LEN=BUFSIZE) :: ficherohopf
 !!!24118 pscaling
    REAL (KIND=RKIND)              ::  eps0,mu0
    REAL (KIND=RKIND)              ::  cluz
 !!!241018 fin pscaling
    integer (KIND=IKINDMTAG) , allocatable , dimension(:,:,:) ::  sggMtag
    integer (KIND=INTEGERSIZEOFMEDIAMATRICES) , allocatable , dimension(:,:,:) ::  sggMiNo,sggMiEx,sggMiEy,sggMiEz,sggMiHx,sggMiHy,sggMiHz
-   character (len=5)  :: NFDEEXTENSION='.nfde',CONFEXTENSION='.conf',CMSHEXTENSION='.cmsh'
-   CHARACTER (LEN=20) :: inductance_model,wiresflavor
+   character (LEN=BUFSIZE)  :: NFDEEXTENSION='.nfde',CONFEXTENSION='.conf',CMSHEXTENSION='.cmsh'
+   CHARACTER (LEN=BUFSIZE) :: inductance_model,wiresflavor
    integer (kind=4)   :: inductance_order,wirethickness
    LOGICAL :: makeholes,connectendings, isolategroupgroups, dontsplitnodes,resume_fromold, pausar, l_aux,skindepthpre,groundwires,noSlantedcrecepelo ,mibc,ade,SGBC,SGBCDispersive,SGBCcrank, &
    conformalskin,CLIPREGION,boundwireradius,vtkindex,createh5bin,wirecrank,ignoreerrors,fatalerror,fatalerror_aux,dummylog,fatalerrornfde2sgg,fieldtotl,finishedwithsuccess,ignoresamplingerrors,l_auxinput, l_auxoutput, &
        ThereArethinslots
    !-------------------------------->
-   CHARACTER (LEN=24) :: file_name
+   CHARACTER (LEN=BUFSIZE) :: file_name
    LOGICAL :: ok
-   CHARACTER (LEN=1024) :: dato
+   CHARACTER (LEN=BUFSIZE) :: dato
    !-------------------------------->
    integer (KIND=4) :: myunit,myunit11,jmed
    INTEGER (KIND=4) size, layoutnumber
@@ -116,20 +116,22 @@ PROGRAM SEMBA_FDTD_launcher
    type (SGGFDTDINFO)   :: sgg
    TYPE (limit_t), DIMENSION (1:6) :: fullsize, SINPML_fullsize
    !
-   LOGICAL :: resume, resume3, freshstart,run, forcesteps, createmap, createmapvtk, existe,MurAfterPML,mur_second,mur_first,mur_exist,forcecfl,mtlnberenger,stableradholland,NOcompomur,strictOLD, &
+   LOGICAL :: resume,  freshstart,run, forcesteps, createmap, createmapvtk, existe,MurAfterPML,mur_second,mur_first,mur_exist,forcecfl,mtlnberenger,stableradholland,NOcompomur,strictOLD, &
    TAPARRABOS,NF2FFDecim,verbose,hay_slanted_wires,existeputoconf
    REAL (KIND=RKIND) :: mindistwires,maxwireradius,SGBCFreq,SGBCresol   
-   INTEGER (KIND=4) :: finaltimestep, length, status, n, i,j, p, field, donde,mpidir,SGBCdepth,newmpidir
+   INTEGER (KIND=4) :: finaltimestep, length, status, n, i,j, p, field, donde,mpidir,SGBCdepth
    INTEGER (KIND=4) :: flushminutesFields, flushsecondsFields
    INTEGER (KIND=4) :: flushminutesData, flushsecondsData,idummy
-   CHARACTER (LEN=1024) :: fichin = ' ', f = ' ', chain = ' ', chain2 = ' ', opcionestotales = ' ', chain3 = ' ',chain4 = ' ',  nEntradaRoot = ' ', fileFDE = ' ', fileH5 = ' ',chaindummy=' '
-   CHARACTER (LEN=1024) :: licensee = ' ',nresumeable2 = ' ', prefix = ' ', geomfile = ' ', filenombre = ' '
+   CHARACTER (LEN=BUFSIZE) :: fichin, f, chain, &
+                              chain2, opcionestotales, chain3,chain4, &  
+                              nEntradaRoot, fileFDE, fileH5,chaindummy, &
+                              licensee,nresumeable2, prefix, geomfile, filenombre
 
-   CHARACTER (LEN=65536) :: prefixopci = ' ', prefixopci1 = ' ',opcionespararesumeo = ' ', opcionesoriginales = ' ', &
-   slicesoriginales = ' ', slices = ' ', chdummy = ' '
-   CHARACTER (LEN=5) :: chari
-   CHARACTER (LEN=14) :: whoami, whoamishort
-   CHARACTER (LEN=1024) :: dubuf
+   CHARACTER (LEN=BUFSIZE_LONG) :: prefixopci, prefixopci1,opcionespararesumeo, opcionesoriginales, &
+   slicesoriginales, slices, chdummy
+   CHARACTER (LEN=BUFSIZE) :: chari
+   CHARACTER (LEN=BUFSIZE) :: whoami, whoamishort
+   CHARACTER (LEN=BUFSIZE) :: dubuf
    integer (kind=4) :: statuse
 
    LOGICAL :: saveall, existeNFDE,existeCONF, existeCMSH, existeh5, deleteintermediates, hayinput,createdotnfdefromdoth5=.false.,forcestop,updateshared,thereare_stoch
@@ -162,14 +164,14 @@ PROGRAM SEMBA_FDTD_launcher
    TYPE (tiempo_t) :: time_out2,time_comienzo
    CHARACTER (LEN=BUFSIZE) :: buff
    REAL (KIND=8) time_desdelanzamiento
-   CHARACTER (LEN=1024) :: filename_h5bin ! File name
+   CHARACTER (LEN=BUFSIZE) :: filename_h5bin ! File name
 
    !****************************************************************************
    !****************************************************************************
    !conformal existence flags   ref: ##Confflag##
-   integer :: conf_err
+   integer (kind=4) :: conf_err
 #ifdef CompileWithConformal
-   character (len=200) :: conformal_file_input_name=char(0);
+   character (LEN=BUFSIZE) :: conformal_file_input_name=char(0);
    type (conf_conflicts_t), pointer  :: conf_conflicts
 #endif
    type (EpsMuTimeScale_input_parameters_t) :: EpsMuTimeScale_input_parameters
@@ -180,12 +182,20 @@ PROGRAM SEMBA_FDTD_launcher
 !!!variables stoch
    logical :: simu_devia,stochastic,chosenyesornostochastic
 !!! fin variables stoch
-
+       
+   type (entrada_t) :: l
    
    logical :: lexis,lcreateh5filefromsinglebin,dontwritevtk
-   integer :: my_iostat
+   integer (kind=4) :: my_iostat
 !!!!!!!!!!!!!!!!comienzo instrucciones
-    creditosyaprinteados=.false.
+   fichin = ' '; f = ' '; chain = ' '; chain2 = ' '; opcionestotales = ' '; chain3 = ' ';chain4 = ' ' 
+   nEntradaRoot = ' '; fileFDE = ' '; fileH5 = ' ';chaindummy=' '
+   licensee = ' ';nresumeable2 = ' '; prefix = ' '; geomfile = ' '; filenombre = ' '
+   prefixopci = ' '; prefixopci1 = ' ';opcionespararesumeo = ' '; opcionesoriginales = ' '
+   slicesoriginales = ' '; slices = ' '; chdummy = ' '
+   flushsecondsFields=0.; flushsecondsData=0.; time_end=0.
+   
+   creditosyaprinteados=.false.
    !activate printing through screen
    CALL OnPrint
    !!!!!!!!!!!!
@@ -360,7 +370,7 @@ PROGRAM SEMBA_FDTD_launcher
 #endif
 
 
-   chain2=trim(adjustl(trim(adjustl(chain2))//' '//trim(adjustl(chain3))))
+   chain2=trim(adjustl(chain2))//' '//trim(adjustl(chain3))
 
    call buscaswitchficheroinput(chain2,status)
    IF (status /= 0) then
@@ -385,33 +395,232 @@ PROGRAM SEMBA_FDTD_launcher
    chain2=trim(adjustl(chain2))
    chaindummy=trim(adjustl(chaindummy))
    length=len(trim(adjustl(chaindummy)))
-   chain2=trim(adjustl(trim(adjustl(chaindummy))//' '//trim(adjustl(sgg%extraswitches))//' '//trim(adjustl(chain2(length+1:)))))
+   chain2=trim(adjustl(chaindummy))//' '//trim(adjustl(sgg%extraswitches))//' '//trim(adjustl(chain2(length+1:)))
 !!!!
+   
+!asigna variables para interpreta
+ 
+            l%forcing                                 =forcing                        
+            l%singlefilewrite                         =singlefilewrite                
+            l%ignoresamplingerrors                    =ignoresamplingerrors           
+            l%ignoreerrors                            =ignoreerrors                   
+            l%updateshared                            =updateshared                   
+            l%prioritizeISOTROPICBODYoverall          =prioritizeISOTROPICBODYoverall 
+            l%wirecrank                               =wirecrank                      
+            l%CLIPREGION                              =CLIPREGION                     
+            l%verbose                                 =verbose                        
+            l%resume                                  =resume                         
+            l%forcesteps                              =forcesteps                     
+            l%resume_fromold                          =resume_fromold                 
+            l%freshstart                              =freshstart                     
+            l%run                                     =run                            
+            l%createmap                               =createmap                      
+            l%dontwritevtk                            =dontwritevtk                   
+            l%vtkindex                                =vtkindex                       
+            l%createmapvtk                            =createmapvtk                   
+            l%hopf                                    =hopf                           
+            l%run_with_dmma                           =run_with_dmma                  
+            l%run_with_abrezanjas                     =run_with_abrezanjas            
+            l%input_conformal_flag                    =input_conformal_flag           
+            l%pausar                                  =pausar                         
+            l%l_aux                                   =l_aux                          
+            l%flag_conf_sgg                           =flag_conf_sgg                  
+            l%takeintcripte                           =takeintcripte                  
+            l%skindepthpre                            =skindepthpre                   
+            l%SGBC                                    =SGBC                           
+            l%conformalskin                           =conformalskin                  
+            l%ade                                     =ade                            
+            l%mibc                                    =mibc                           
+            l%NOcompomur                              =NOcompomur                     
+            l%MurAfterPML                             =MurAfterPML                    
+            l%SGBCcrank                               =SGBCcrank                      
+            l%sgbcDispersive                          =sgbcDispersive                 
+            l%saveall                                 =saveall                        
+            l%boundwireradius                         =boundwireradius                
+            l%makeholes                               =makeholes                      
+            l%mur_first                               =mur_first                      
+            l%mur_second                              =mur_second                     
+            l%connectendings                          =connectendings                 
+            l%strictOLD                               =strictOLD                      
+            l%mtlnberenger                            =mtlnberenger                   
+            l%stableradholland                        =stableradholland               
+            l%TAPARRABOS                              =TAPARRABOS                     
+            l%fieldtotl                               =fieldtotl                      
+            l%forceresampled                          =forceresampled                 
+            l%isolategroupgroups                      =isolategroupgroups             
+            l%groundwires                             =groundwires                    
+            l%noSlantedcrecepelo                      =noSlantedcrecepelo             
+            l%forcecfl                                =forcecfl                       
+            l%niapapostprocess                        =niapapostprocess               
+            l%planewavecorr                           =planewavecorr                  
+            l%permitscaling                           =permitscaling                  
+            l%stochastic                              =stochastic                     
+            l%chosenyesornostochastic                 =chosenyesornostochastic        
+            l%prioritizeCOMPOoverPEC                  =prioritizeCOMPOoverPEC         
+            l%createh5bin                             =createh5bin                    
+            l%deleteintermediates                     =deleteintermediates            
+            l%existeNFDE                              =existeNFDE                     
+            l%file11isopen                            =file11isopen                   
+            l%NF2FFDecim                              =NF2FFDecim                     
+            l%existeh5                                =existeh5                       
+            l%fatalerror                              =fatalerror                     
+            l%fatalerror                              =fatalerror                     
+            l%existeconf                              =existeconf                     
+            l%thereare_stoch                          =thereare_stoch                 
+            l%creditosyaprinteados                    =creditosyaprinteados       
+            
+            l%wirethickness                           =wirethickness                  
+            l%inductance_order                        =inductance_order               
+            l%finaltimestep                           =finaltimestep                  
+            l%ierr                                    =ierr                           
+            l%layoutnumber                            =layoutnumber                   
+            l%size                                    =size                           
+            l%length                                  =length                         
+            l%mpidir                                  =mpidir                         
+            l%flushminutesFields                      =flushminutesFields             
+            l%flushminutesData                        =flushminutesData               
+            l%flushsecondsFields                      =flushsecondsFields             
+            l%flushsecondsData                        =flushsecondsData               
+            l%forced                                  =forced                         
+            l%maxCPUtime                              =maxCPUtime                     
+            l%SGBCdepth                               =SGBCdepth                      
+            l%precision                               =precision      
+            
+            l%maxwireradius                           =maxwireradius                  
+            l%mindistwires                            =mindistwires                   
+            l%attfactorc                              =attfactorc                     
+            l%attfactorw                              =attfactorw                     
+            l%cfltemp                                 =cfltemp                        
+            l%cfl                                     =cfl                            
+            l%SGBCfreq                                =SGBCfreq                       
+            l%SGBCresol                               =SGBCresol                      
+            l%alphamaxpar                             =alphamaxpar                    
+            l%kappamaxpar                             =kappamaxpar                    
+            l%alphaOrden                              =alphaOrden     
+            
+            l%time_begin                              =time_begin                     
+            l%time_end                                =time_end   
+            
+            l%factorradius                            =factorradius                   
+            l%factordelta                             =factordelta                    
+                                     
+        
+!!!
    call interpreta(sgg,chain2,statuse, &
-     opcionestotales,opcionespararesumeo,prefixopci,prefixopci1, &
-     whoami,facesNF2FF, &
-     wirethickness,inductance_order,alphaOrden,finaltimestep,layoutnumber,size,length,n, &
-     pausetime,time_begin,time_end,newmpidir,mpidir,donde,j, &
-     fichin, f, chain, chain2,chdummy,chari, &
-     ficherohopf,conformal_file_input_name,wiresflavor,inductance_model,prefix,nEntradaRoot, &
-     nresumeable2,slicesoriginales,opcionesoriginales,geomfile,dubuf,fileH5, &   
-     maxCPUtime,flushminutesFields,flushminutesData,SGBCdepth,SGBCfreq,SGBCresol, &
-     maxwireradius,mindistwires,precision, &
-     alphamaxpar,kappamaxpar,attfactorc,attfactorw,cfltemp,cfl,factorradius, &
-     factordelta,flushsecondsFields ,flushsecondsData, &
-     forcing,singlefilewrite ,ignoresamplingerrors,ignoreerrors,updateshared, &
-     prioritizeISOTROPICBODYoverall,wirecrank ,CLIPREGION,verbose,resume,forcesteps,resume_fromold, &
-     freshstart,run,createmap,dontwritevtk,vtkindex,createmapvtk,hopf,run_with_dmma, &
-     run_with_abrezanjas,input_conformal_flag, pausar,l_aux, &
-     flag_conf_sgg,takeintcripte,skindepthpre,SGBC,conformalskin,ade,mibc,NOcompomur,MurAfterPML, &
-     SGBCcrank,sgbcDispersive,saveall,boundwireradius,makeholes,mur_first,mur_second, &
-     connectendings,strictOLD,mtlnberenger,stableradholland,TAPARRABOS,fieldtotl,forceresampled, &
-     isolategroupgroups,groundwires,noSlantedcrecepelo,forcecfl,niapapostprocess,planewavecorr, &
-     permitscaling,stochastic,chosenyesornostochastic,prioritizeCOMPOoverPEC,createh5bin,deleteintermediates, &
-     existeNFDE,forced,file11isopen,NF2FFDecim ,existeh5,resume3, &
-     existeconf,thereare_stoch,creditosyaprinteados , &
-     MEDIOEXTRA , EpsMuTimeScale_input_parameters ,time_out2,NFDE_FILE  )         
+                       prefixopci, prefixopci1,opcionespararesumeo, opcionesoriginales, &
+                       slicesoriginales, slices , chdummy,dubuf,conformal_file_input_name, &
+                       ficherohopf ,inductance_model,wiresflavor,fichin, f, chain, buff,prefix,nEntradaRoot, &
+                       nresumeable2,geomfile,fileH5,opcionestotales,l )   
 
+!asigna variables locales
+  
+            forcing                                 =l%forcing                        
+            singlefilewrite                         =l%singlefilewrite                
+            ignoresamplingerrors                    =l%ignoresamplingerrors           
+            ignoreerrors                            =l%ignoreerrors                   
+            updateshared                            =l%updateshared                   
+            prioritizeISOTROPICBODYoverall          =l%prioritizeISOTROPICBODYoverall 
+            wirecrank                               =l%wirecrank                      
+            CLIPREGION                              =l%CLIPREGION                     
+            verbose                                 =l%verbose                        
+            resume                                  =l%resume                         
+            forcesteps                              =l%forcesteps                     
+            resume_fromold                          =l%resume_fromold                 
+            freshstart                              =l%freshstart                     
+            run                                     =l%run                            
+            createmap                               =l%createmap                      
+            dontwritevtk                            =l%dontwritevtk                   
+            vtkindex                                =l%vtkindex                       
+            createmapvtk                            =l%createmapvtk                   
+            hopf                                    =l%hopf                           
+            run_with_dmma                           =l%run_with_dmma                  
+            run_with_abrezanjas                     =l%run_with_abrezanjas            
+            input_conformal_flag                    =l%input_conformal_flag           
+            pausar                                  =l%pausar                         
+            l_aux                                   =l%l_aux                          
+            flag_conf_sgg                           =l%flag_conf_sgg                  
+            takeintcripte                           =l%takeintcripte                  
+            skindepthpre                            =l%skindepthpre                   
+            SGBC                                    =l%SGBC                           
+            conformalskin                           =l%conformalskin                  
+            ade                                     =l%ade                            
+            mibc                                    =l%mibc                           
+            NOcompomur                              =l%NOcompomur                     
+            MurAfterPML                             =l%MurAfterPML                    
+            SGBCcrank                               =l%SGBCcrank                      
+            sgbcDispersive                          =l%sgbcDispersive                 
+            saveall                                 =l%saveall                        
+            boundwireradius                         =l%boundwireradius                
+            makeholes                               =l%makeholes                      
+            mur_first                               =l%mur_first                      
+            mur_second                              =l%mur_second                     
+            connectendings                          =l%connectendings                 
+            strictOLD                               =l%strictOLD                      
+            mtlnberenger                            =l%mtlnberenger                   
+            stableradholland                        =l%stableradholland               
+            TAPARRABOS                              =l%TAPARRABOS                     
+            fieldtotl                               =l%fieldtotl                      
+            forceresampled                          =l%forceresampled                 
+            isolategroupgroups                      =l%isolategroupgroups             
+            groundwires                             =l%groundwires                    
+            noSlantedcrecepelo                      =l%noSlantedcrecepelo             
+            forcecfl                                =l%forcecfl                       
+            niapapostprocess                        =l%niapapostprocess               
+            planewavecorr                           =l%planewavecorr                  
+            permitscaling                           =l%permitscaling                  
+            stochastic                              =l%stochastic                     
+            chosenyesornostochastic                 =l%chosenyesornostochastic        
+            prioritizeCOMPOoverPEC                  =l%prioritizeCOMPOoverPEC         
+            createh5bin                             =l%createh5bin                    
+            deleteintermediates                     =l%deleteintermediates            
+            existeNFDE                              =l%existeNFDE                     
+            file11isopen                            =l%file11isopen                   
+            NF2FFDecim                              =l%NF2FFDecim                     
+            existeh5                                =l%existeh5                       
+            fatalerror                              =l%fatalerror                     
+            fatalerror                              =l%fatalerror                     
+            existeconf                              =l%existeconf                     
+            thereare_stoch                          =l%thereare_stoch                 
+            creditosyaprinteados                    =l%creditosyaprinteados       
+            
+            wirethickness                           =l%wirethickness                  
+            inductance_order                        =l%inductance_order               
+            finaltimestep                           =l%finaltimestep                  
+            ierr                                    =l%ierr                           
+            layoutnumber                            =l%layoutnumber                   
+            size                                    =l%size                           
+            length                                  =l%length                         
+            mpidir                                  =l%mpidir                         
+            flushminutesFields                      =l%flushminutesFields             
+            flushminutesData                        =l%flushminutesData               
+            flushsecondsFields                      =l%flushsecondsFields             
+            flushsecondsData                        =l%flushsecondsData               
+            forced                                  =l%forced                         
+            maxCPUtime                              =l%maxCPUtime                     
+            SGBCdepth                               =l%SGBCdepth                      
+            precision                               =l%precision      
+            
+            maxwireradius                           =l%maxwireradius                  
+            mindistwires                            =l%mindistwires                   
+            attfactorc                              =l%attfactorc                     
+            attfactorw                              =l%attfactorw                     
+            cfltemp                                 =l%cfltemp                        
+            cfl                                     =l%cfl                            
+            SGBCfreq                                =l%SGBCfreq                       
+            SGBCresol                               =l%SGBCresol                      
+            alphamaxpar                             =l%alphamaxpar                    
+            kappamaxpar                             =l%kappamaxpar                    
+            alphaOrden                              =l%alphaOrden     
+            
+            time_begin                              =l%time_begin                     
+            time_end                                =l%time_end   
+            
+            factorradius                            =l%factorradius                   
+            factordelta                             =l%factordelta                    
+        
+        
+!!!
+   
 #ifdef CompileWithXDMF   
 #ifdef CompileWithHDF                     
 !!!!tunel a lo bestia para crear el .h5 a 021219
@@ -1089,7 +1298,7 @@ PROGRAM SEMBA_FDTD_launcher
 
 
   subroutine buscaswitchficheroinput(chaininput,statuse)
-   CHARACTER (LEN=1024) ::  chaininput
+   CHARACTER (LEN=BUFSIZE) ::  chaininput
    integer (kind=4) :: statuse
 
    statuse=0
@@ -1306,7 +1515,7 @@ subroutine cargaNFDE
    INTEGER (KIND=8) :: numero,i8,troncho,longitud
    integer (kind=4) :: mpi_t_linea_t,longitud4
    IF (existeNFDE) THEN
-       WRITE (dubuf,*) 'INIT Reading file '//whoami//' ', trim (adjustl(fileFDE))
+       WRITE (dubuf,*) 'INIT Reading file '//trim (adjustl(whoami))//' ', trim (adjustl(fileFDE))
        CALL print11 (layoutnumber, dubuf)
 !!!!!!!!!!!!!!!!!!!!!!!
 #ifdef CompileWithMPI
@@ -1337,7 +1546,7 @@ subroutine cargaNFDE
       CALL build_derived_t_linea(mpi_t_linea_t)
 
 !problema del limite de mandar mas de 2^29 bytes con MPI!!!  Los soluciono partiendo en maxmpibytes (2^27) (algo menos por prudencia)! 040716
-      troncho=ceiling(maxmpibytes*1.0_8/(max_linea*1.0_8+8.0_8),8)
+      troncho=ceiling(maxmpibytes*1.0_8/(BUFSIZE*1.0_8+8.0_8),8)
      !!! print *,'numero,troncho ',numero,troncho
       do i8=1,numero,troncho
           longitud=min(troncho,numero-i8+1)
@@ -1356,7 +1565,7 @@ subroutine cargaNFDE
           CALL MPI_Barrier (SUBCOMM_MPI, ierr)
     !      do i=1,numero
     !          call MPI_BCAST(NFDE_FILE%lineas(i)%len, 1_4, MPI_INTEGER4, 0_4, SUBCOMM_MPI, ierr)
-    !          call MPI_BCAST(NFDE_FILE%lineas(i)%dato, MAX_LINEA, MPI_CHARACTER, 0_4, SUBCOMM_MPI, ierr)
+    !          call MPI_BCAST(NFDE_FILE%lineas(i)%dato, BUFSIZE, MPI_CHARACTER, 0_4, SUBCOMM_MPI, ierr)
     !          CALL MPI_Barrier (SUBCOMM_MPI, ierr) !para evitar el error de Marconi asociado a PSM2_MQ_RECVREQS_MAX 100617
     !      end do
       end do
@@ -1390,15 +1599,7 @@ end subroutine cargaNFDE
 #endif
 
 !!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!
-
-
-
-
-
-    
-       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
    subroutine NFDE2sgg(fatalerror)
       real (kind=rkind) :: dt,finaldt

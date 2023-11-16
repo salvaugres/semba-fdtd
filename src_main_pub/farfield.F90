@@ -89,9 +89,9 @@ module farfield_m
       real (kind=Rkind) :: InitialFreq,FinalFreq,FreqStep,dtDecim
       REAL (KIND=RKIND)  ::  thetaStart,thetaStop,thetaStep
       REAL (KIND=RKIND)  ::  phiStart,phiStop,phiStep
-      character (len=1024)  ::   FileNormalize
+      character (LEN=BUFSIZE)  ::   FileNormalize
       integer (KIND=4)    :: unitfarfield
-      character (len=1024)   ::  filefarfield
+      character (LEN=BUFSIZE)   ::  filefarfield
       REAL (KIND=RKIND)  :: XDobleAncho,YDobleAncho,ZDobleAncho
       REAL (KIND=RKIND)  :: XOffsetPlus,YOffsetPlus,ZOffsetPlus
       REAL (KIND=RKIND)  :: XOffsetMinus,YOffsetMinus,ZOffsetMinus
@@ -132,9 +132,9 @@ contains
       real (kind=Rkind) :: InitialFreq,FinalFreq,FreqStep
       REAL (KIND=RKIND)  ::  thetaStart,thetaStop,thetaStep
       REAL (KIND=RKIND)  ::  phiStart,phiStop,phiStep
-      character (len=1024)  ::   FileNormalize
+      character (LEN=BUFSIZE)  ::   FileNormalize
       integer (KIND=4)    :: unitfarfield
-      character (len=1024)   ::  filefarfield
+      character (LEN=BUFSIZE)   ::  filefarfield
       integer (kind=4)  :: MPISubComm,MPIRoot
 
       !---------------------------> inputs <----------------------------------------------------------
@@ -2428,7 +2428,7 @@ contains
       complex( kind = CKIND) :: L_theta,L_phi,N_theta,N_phi,Etheta(1:2),Ephi(1:2),Mx,My,Mz,Jx,Jy,Jz,comun
       complex( kind = CKIND) :: new_Mx,new_My,new_Mz,new_Jx,new_Jy,new_Jz
       complex( kind = CKIND) :: L_theta_final,L_phi_final,N_theta_final,N_phi_final
-      character (len=1024)     ::  dubuf
+      character (LEN=BUFSIZE)     ::  dubuf
       logical :: GOahead
       complex( kind = CKIND), dimension(:,:,:), pointer :: EcampoX,EcampoY,EcampoZ,HcampoX,HcampoY,HcampoZ,Hcampo2X,Hcampo2Y,Hcampo2Z
       !---------------------------> empieza  <---------------------------------------
@@ -2437,7 +2437,7 @@ contains
       real (kind = RKIND) :: thetaini,thetafin,phiini,phifin,solid,ddd,aaa,dfi,dth
       integer :: my_iostat
 !
-      character(len=1024) :: chninstant
+      character(LEN=BUFSIZE) :: chninstant
       write(chninstant,fmt) rinstant
 
       write(dubuf,'(a)')  ' NF2FF: INIT ' ! mpimaster=',LAYOUTNUMBER

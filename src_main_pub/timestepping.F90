@@ -131,7 +131,7 @@ contains
    , simu_devia,stochastic,mpidir,verbose,precision,hopf,ficherohopf,niapapostprocess,planewavecorr,tagtype,dontwritevtk,experimentalVideal,forceresampled,factorradius,factordelta &
    )
       logical :: hopf,experimentalVideal,forceresampled
-      character (len=100) :: ficherohopf
+      character (LEN=BUFSIZE) :: ficherohopf
       !!!!!!!!esta feo pero funciona
       logical :: simu_devia,stochastic,verbose,dummylog,dontwritevtk
       !
@@ -177,7 +177,7 @@ contains
       real (kind=RKIND_wires) :: factorradius,factordelta
       REAL (KIND=RKIND_tiempo)     :: at,rdummydt
       REAL (KIND=8)     ::time_desdelanzamiento
-      logical :: hayattmedia = .false.,attinformado = .false., vtkindex,createh5bin,wirecrank,faltalerror,somethingdone,newsomethingdone,call_timing,l_auxoutput,l_auxinput
+      logical :: hayattmedia = .false.,attinformado = .false., vtkindex,createh5bin,wirecrank,fatalerror,somethingdone,newsomethingdone,call_timing,l_auxoutput,l_auxinput
       character(len=BUFSIZE) :: buff
       !
       !!!!!!!PML params!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -195,7 +195,7 @@ contains
       integer (kind=4), intent(inout)                     ::  finaltimestep
       logical, intent(in)           ::  resume,saveall,makeholes,connectendings,isolategroupgroups,dontsplitnodes,createmap,groundwires,noSlantedcrecepelo, &
       SGBC,SGBCDispersive,mibc,ADE,conformalskin,NOcompomur,strictOLD,TAPARRABOS
-      CHARACTER (LEN=1024), intent(in) :: opcionestotales
+      CHARACTER (LEN=BUFSIZE), intent(in) :: opcionestotales
       logical, intent(inout)           ::  resume_fromold
       integer (kind=4), intent(in)           ::  maxCPUtime
       character (len=*), intent(in)  ::  nEntradaRoot
@@ -205,17 +205,17 @@ contains
       character (len=*) , intent(in)    ::  inductance_model,wiresflavor !just for wires
       integer(kind=4) , intent(in)    ::  inductance_order
       character (len=*) , intent(in)    ::  nresumeable2
-      character (len=1024)     ::  chari,layoutcharID,dubuf
+      character (LEN=BUFSIZE)     ::  chari,layoutcharID,dubuf
       integer (kind=4)   ::  ini_save,mindum,SGBCDepth
       !Generic
       type (Logic_control)  ::  thereare
       integer (kind=4) :: ierr,ndummy
-      Logical  ::  parar,fatalerror,performflushFields,performflushData,performUnpack,performpostprocess,flushFF, &
+      Logical  ::  parar,performflushFields,performflushData,performUnpack,performpostprocess,flushFF, &
                    performflushXdmf,performflushVTK,everflushed,still_planewave_time,still_planewave_time_aux,planewave_switched_off,thereareplanewave,thereareplanewave_aux,l_aux
 
       integer (kind=4)  ::  i,J,K,r,n,initialtimestep,lastexecutedtimestep,n_info,FIELD,dummyMin,dummyMax
       !
-      character (len=14)  ::  whoami
+      character (LEN=BUFSIZE)  ::  whoami
       !
       TYPE (tiempo_t) :: time_out2
        real (kind=RKIND) :: pscale_alpha
@@ -1009,16 +1009,16 @@ contains
          write(dubuf,*) 'Init MPI MediaMatrix flush...';  call print11(layoutnumber,dubuf)
          call InitMPI(sgg%sweep,sgg%alloc)
          call MPI_Barrier(SUBCOMM_MPI,ierr)
-         !write(dubuf,*) whoami//' [OK]';  call print11(layoutnumber,dubuf,.true.)
-         !write(dubuf,*) whoami//' Init MPI Extra flushings...';  call print11(layoutnumber,dubuf,.true.)
+         !write(dubuf,*) trim(adjustl(whoami))//' [OK]';  call print11(layoutnumber,dubuf,.true.)
+         !write(dubuf,*) trim(adjustl(whoami))//' Init MPI Extra flushings...';  call print11(layoutnumber,dubuf,.true.)
          call InitExtraFlushMPI(layoutnumber,sgg%sweep,sgg%alloc,sgg%med,sgg%nummedia,sggmiEz,sggMiHz)
          call MPI_Barrier(SUBCOMM_MPI,ierr)
-         !write(dubuf,*) whoami//' [OK]';  call print11(layoutnumber,dubuf,.true.)
-         !write(dubuf,*) whoami//' First MPI H flushing...';  call print11(layoutnumber,dubuf,.true.)
+         !write(dubuf,*) trim(adjustl(whoami))//' [OK]';  call print11(layoutnumber,dubuf,.true.)
+         !write(dubuf,*) trim(adjustl(whoami))//' First MPI H flushing...';  call print11(layoutnumber,dubuf,.true.)
          call FlushMPI_H(sgg%alloc,layoutnumber,size, sggmiHx,sggmiHy,sggmiHz)
          call MPI_Barrier(SUBCOMM_MPI,ierr)
-         !write(dubuf,*) whoami//' [OK]';  call print11(layoutnumber,dubuf,.true.)
-         !write(dubuf,*) whoami//' First MPI E flushing...';  call print11(layoutnumber,dubuf,.true.)
+         !write(dubuf,*) trim(adjustl(whoami))//' [OK]';  call print11(layoutnumber,dubuf,.true.)
+         !write(dubuf,*) trim(adjustl(whoami))//' First MPI E flushing...';  call print11(layoutnumber,dubuf,.true.)
          call FlushMPI_E(sgg%alloc,layoutnumber,size, sggmiEx,sggmiEy,sggmiEz)
          call MPI_Barrier(SUBCOMM_MPI,ierr)
 #ifdef CompileWithMPI
