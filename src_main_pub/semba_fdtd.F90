@@ -397,6 +397,7 @@ PROGRAM SEMBA_FDTD_launcher
      pausetime,time_begin,time_end,newmpidir,mpidir,donde,j, &
      fichin, f, chain, chain2,chdummy,chari, &
      ficherohopf,conformal_file_input_name,wiresflavor,inductance_model,prefix,nEntradaRoot, &
+     inductance_file, externalL, externalC, LCline, LCdimension, &
      nresumeable2,slicesoriginales,opcionesoriginales,geomfile,dubuf,fileH5, &   
      maxCPUtime,flushminutesFields,flushminutesData,SGBCdepth,SGBCfreq,SGBCresol, &
      maxwireradius,mindistwires,precision, &
@@ -1304,7 +1305,6 @@ PROGRAM SEMBA_FDTD_launcher
 !!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!
-
 
 #ifdef CompilePrivateVersion 
 subroutine cargaNFDE
