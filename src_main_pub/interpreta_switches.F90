@@ -75,8 +75,9 @@ module interpreta_switchwes_m
             file11isopen                    , &
             NF2FFDecim                      , &
             existeh5                        , &
-            fatalerror                      , &
+            fatalerror                      , & 
             existeconf                      , &
+            existecmsh                      , &
             thereare_stoch                  , &
             creditosyaprinteados            
       
@@ -120,24 +121,25 @@ module interpreta_switchwes_m
    
    end type entrada_t
        
-   PUBLIC interpreta,insertalogtmp,print_help,print_basic_help,print_credits,removeintraspaces,entrada_t
+   PUBLIC interpreta,insertalogtmp,print_help,print_basic_help,print_credits, &
+       removeintraspaces,entrada_t,buscaswitchficheroinput
    !                                        
 CONTAINS
     
    subroutine interpreta(sgg,chaininput,statuse,  &
                              prefixopci, prefixopci1,opcionespararesumeo, opcionesoriginales, &
-                             slicesoriginales, slices , chdummy,dubuf,conformal_file_input_name, &
+                             slicesoriginales, chdummy,dubuf,conformal_file_input_name, &
                              ficherohopf ,inductance_model,wiresflavor,fichin, f, chain, buff,prefix,nEntradaRoot, &
-                             nresumeable2,geomfile,fileH5,opcionestotales,l )     
+                             nresumeable2,geomfile,opcionestotales,l )     
    
    
    
    CHARACTER (LEN=BUFSIZE_LONG) :: prefixopci, prefixopci1,opcionespararesumeo, opcionesoriginales, &
-                                   slicesoriginales, slices , chdummy      
+                                   slicesoriginales, chdummy      
    CHARACTER (LEN=BUFSIZE) :: chaininput,chari,dubuf  ,conformal_file_input_name   ,ficherohopf  ,&
                               inductance_model,wiresflavor , &
                               fichin, f, chain, buff,prefix,nEntradaRoot,nresumeable2,geomfile,&
-                              fileH5,opcionestotales    
+                              opcionestotales    
    
 
    type (SGGFDTDINFO), intent(INOUT)     ::  sgg   
@@ -145,7 +147,6 @@ CONTAINS
    TYPE (MedioExtra_t) :: MEDIOEXTRA    
    type (EpsMuTimeScale_input_parameters_t) :: EpsMuTimeScale_input_parameters
    type (tiempo_t)  ::  time_out2 
-   TYPE (t_NFDE_FILE), POINTER :: NFDE_FILE
    
    logical :: existiarunningigual,mpidirset,resume3
    integer (kind=4) :: i,j,donde,n,statuse, newmpidir
@@ -218,8 +219,9 @@ CONTAINS
             file11isopen                    , &
             NF2FFDecim                      , &
             existeh5                        , &
-            fatalerror                      , &
+            fatalerror                      , &  
             existeconf                      , &
+            existecmsh                      , &
             thereare_stoch                  , &
             creditosyaprinteados           
       
@@ -329,6 +331,7 @@ CONTAINS
             fatalerror                              =l%fatalerror                     
             fatalerror                              =l%fatalerror                     
             existeconf                              =l%existeconf                     
+            existecmsh                              =l%existecmsh                    
             thereare_stoch                          =l%thereare_stoch                 
             creditosyaprinteados                    =l%creditosyaprinteados       
             
@@ -1630,7 +1633,8 @@ CONTAINS
             l%existeh5                                =existeh5                       
             l%fatalerror                              =fatalerror                     
             l%fatalerror                              =fatalerror                     
-            l%existeconf                              =existeconf                     
+            l%existeconf                              =existeconf                    
+            l%existecmsh                              =existecmsh                     
             l%thereare_stoch                          =thereare_stoch                 
             l%creditosyaprinteados                    =creditosyaprinteados       
             
@@ -1677,7 +1681,7 @@ CONTAINS
    
    subroutine insertalogtmp(layoutnumber) !para 100920   
            CHARACTER (LEN=BUFSIZE) ::  dubuf
-           integer (kind=4) :: MYUNIT11,LAYOUTNUMBER,ierr
+           integer (kind=4) :: MYUNIT11,LAYOUTNUMBER
            CALL OffPrint !no reimprimas, esto ya estaba por pantalla
             OPEN (newunit=myunit11, file='SEMBA_FDTD_temp.log')
             do
@@ -1690,9 +1694,9 @@ CONTAINS
             return
    end subroutine insertalogtmp
    
-      subroutine print_basic_help(layoutnumber,creditosyaprinteados,time_out2)     
+   subroutine print_basic_help(layoutnumber,creditosyaprinteados,time_out2)     
       type (tiempo_t)  ::  time_out2 
-      CHARACTER (LEN=BUFSIZE) :: buff
+      
       integer (kind=4) :: LAYOUTNUMBER 
       logical :: creditosyaprinteados
       call print_credits(layoutnumber,creditosyaprinteados,time_out2)
@@ -1707,7 +1711,7 @@ CONTAINS
  
    subroutine print_credits(layoutnumber,creditosyaprinteados,time_out2)
       TYPE (tiempo_t) :: time_out2
-      CHARACTER (LEN=BUFSIZE) :: buff  , dubuf
+      CHARACTER (LEN=BUFSIZE) ::  dubuf
       integer (kind=4) :: layoutnumber
       logical :: creditosyaprinteados
       if (creditosyaprinteados) return
@@ -2083,7 +2087,6 @@ CONTAINS
 #endif
       return
    end subroutine print_help
-
  
    subroutine removeintraspaces(a)
         CHARACTER (LEN=*), intent(inout):: a
@@ -2105,7 +2108,280 @@ CONTAINS
    return
    end subroutine removeintraspaces
 
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+  subroutine buscaswitchficheroinput(chaininput,statuse,fichin,filefde,fileh5,l)     
    
+   
+   type (tiempo_t)  ::  time_out2   
+   CHARACTER (LEN=BUFSIZE) :: chaininput,fichin,dato,buff,f,chain,fileFDE,fileH5
+   
+   
+   integer (kind=4) :: i,n,statuse, NUM_NFDES,TEMP_NUMNFDES,p,ierr
+   
+  
+   CHARACTER (LEN=5) :: NFDEEXTENSION, CONFEXTENSION, CMSHEXTENSION
+    
+!!!!!!!!!!!!!        
+   type (entrada_t) :: l
+!!!!!!!!!    
+!!! variables locales
+        logical ::   &
+            ignoreerrors                    , &
+            verbose                         , &
+            creditosyaprinteados            , &
+            existeNFDE                      , &
+            existeCONF                      , &
+            existeCMSH           
+                    
+        integer (kind=4) ::                   &
+            layoutnumber                     ,&
+            size                             ,&
+            length                           ,&
+            mpidir                           
+         
+ !!!! 
+!asigna variables locales
+           
+            ignoreerrors                            =l%ignoreerrors                       
+            verbose                                 =l%verbose                 
+            creditosyaprinteados                    =l%creditosyaprinteados 
+            
+            existeNFDE                              =l%existeNFDE
+            existeCONF                              =l%existeCONF
+            existeCMSH                              =l%existeCMSH
+                           
+            layoutnumber                            =l%layoutnumber                   
+            size                                    =l%size                           
+            length                                  =l%length                         
+            mpidir                                  =l%mpidir  
+!!!
+   
+   NFDEEXTENSION='.nfde'; CONFEXTENSION='.conf'; CMSHEXTENSION='.cmsh'
+   statuse=0
+   !!!!!!!!!!!!!!!
+   n = commandargumentcount (chaininput)
+   IF (n == 0) THEN
+      call print_basic_help(layoutnumber,creditosyaprinteados,time_out2)  
+      call stoponerror(layoutnumber,size,'Error: NO arguments neither command line nor in launch file. Correct and remove pause...',.true.)
+      statuse=-1
+      goto 667
+   END IF
+
+   IF (n > 0) THEN
+      num_nfdes=0
+      i = 2
+      DO while (i <= n)
+         CALL getcommandargument (chaininput, i, chain, length, statuse)
+         IF (statuse /= 0) THEN
+            CALL stoponerror (layoutnumber, size, 'Reading input',.true.)
+            goto 667
+         END IF
+         !
+         SELECT CASE (trim(adjustl(chain)))
+          CASE ('-mpidir')
+            i = i + 1
+            CALL getcommandargument (chaininput, i, f, length,  statuse)
+            select case (trim (adjustl(f)))
+             case ('x','X')
+               mpidir=1  !!!lo cambie por error !161018
+             case ('y','Y')
+               mpidir=2   !!!lo cambie por error !161018
+             case ('z','Z')
+               mpidir=3
+             CASE DEFAULT
+               GOTO 1762
+            END SELECT
+            GO TO 2762
+1762        CALL stoponerror (layoutnumber, size, 'Invalid -mpidir option',.true.)
+            statuse=-1
+            goto 667
+2762        CONTINUE
+          CASE ('-h')
+            call print_credits(layoutnumber,creditosyaprinteados,time_out2)
+            call print_help(layoutnumber)
+            call print_credits(layoutnumber,creditosyaprinteados,time_out2)
+            STOP
+          CASE ('-hh')
+            call print_credits(layoutnumber,creditosyaprinteados,time_out2)
+            call print_help(layoutnumber)
+            call print_credits(layoutnumber,creditosyaprinteados,time_out2)
+            STOP
+          CASE ('-i')
+            num_nfdes=num_nfdes + 1
+         end select
+         i = i + 1
+      END DO
+      if (num_nfdes > 1) then
+         temp_numnfdes=0
+         i = 2 ! se empieza en 2 porque el primer argumento es siempre el nombre del ejecutable
+         DO while (i <= n)
+            CALL getcommandargument (chaininput, i, chain, length, statuse)
+             IF (statuse /= 0) THEN
+                CALL stoponerror (layoutnumber, size, 'Reading input',.true.)
+                goto 667
+             END IF
+            !
+            SELECT CASE (trim(adjustl(chain)))
+             CASE ('-i')
+               temp_numnfdes=temp_numnfdes + 1
+               i = i + 1
+               CALL getcommandargument (chaininput, i, f, length,  statuse)
+               p = LEN_trim (adjustl(f))
+               IF ((p-4) >= 1) THEN
+                  IF (f((p-4) :(p-4)) == NFDEEXTENSION(1:1)) THEN
+                     NFDEEXTENSION= f((p-4) :p)
+                     fichin = f (1:p-5)
+                  ELSE
+                     fichin = f (1:p)
+                  END IF
+               ELSE IF (p >= 1) THEN
+                  fichin = f (1:p)
+               ELSE
+                  CALL stoponerror (layoutnumber, size, 'There is not a .nfde file for input',.true.)
+                  statuse=-1
+                  goto 667
+               END IF
+               INQUIRE (file=trim(adjustl(fichin))//NFDEEXTENSION, EXIST=existeNFDE)
+               IF ( .NOT. existeNFDE) THEN
+                  buff='The input file was not found '//trim(adjustl(fichin))//NFDEEXTENSION
+                  CALL stoponerror (layoutnumber, size, buff,.true.)
+                  statuse=-1
+                  goto 667  
+               END IF
+!aniadido para chequear que no haya .conf sin haber invocado el -conf 15/12/16 sgg
+               INQUIRE (file=trim(adjustl(fichin))//CONFEXTENSION, EXIST=existeCONF)
+               IF ((existeCONF).AND.(.not.(input_conformal_flag))) THEN
+                  buff='No -conf issued but existing file '//trim(adjustl(fichin))//confEXTENSION//' . Either remove file or relaunch with -conf'
+                  CALL stoponerror (layoutnumber, size, buff,.true.)
+                  statuse=-1
+                  goto 667  
+               END IF
+               INQUIRE (file=trim(adjustl(fichin))//CMSHEXTENSION, EXIST=existeCMSH)
+               IF ((existeCMSH).AND.(.not.(input_conformal_flag))) THEN
+                  buff='No -conf issued but existing file '//trim(adjustl(fichin))//CMSHEXTENSION//' . Either remove file or relaunch with -conf'
+                  CALL stoponerror (layoutnumber, size, buff,.true.)
+                  statuse=-1
+                  goto 667  
+               END IF
+!
+               if (temp_numnfdes ==1) then !solo el primero
+                  IF (layoutnumber == 0) open (194,file='multi_'//trim(adjustl(fichin))//NFDEEXTENSION,form='formatted')
+               endif
+               IF (layoutnumber == 0) then
+                  open (196,file=trim(adjustl(fichin))//NFDEEXTENSION,form='formatted')
+                  do
+                     read (196,'(a)',end=197) dato
+                     if (trim(adjustl(dato)) /= '!END') then
+                        write(194,'(a)') trim(adjustl(dato))
+                     else
+                        dato='***** End merging file: '//trim(adjustl(fichin))//NFDEEXTENSION//' ********'
+                        write(194,'(a)') trim(adjustl(dato))
+                     endif
+                  end do
+197               close(196)
+               endif
+               if (temp_numnfdes == num_nfdes) then !solo el primero
+                  IF (layoutnumber == 0) then
+                     write(194,'(a)') '!END'
+                     close (194)
+                  endif
+               endif
+            end select
+            i = i + 1
+         END DO
+      endif
+   endif
+#ifdef CompileWithMPI
+   CALL MPI_Barrier (SUBCOMM_MPI, ierr)
+#endif
+   !
+   !concatenado multiples ORIGINAL 26/06/14
+   
+   !fin concatenado
+
+   temp_numnfdes=0
+   IF (n > 0) THEN
+   i = 2  ! se empieza en 2 porque el primer argumento es siempre el nombre del ejecutable
+      DO while (i <= n)
+         CALL getcommandargument (chaininput, i, chain, length, statuse)
+         IF (statuse /= 0) THEN
+            CALL stoponerror (layoutnumber, size, 'Reading input',.true.)
+            goto 667
+         END IF
+         !
+         SELECT CASE (trim(adjustl(chain)))
+            !
+          CASE ('-i')
+            temp_numnfdes=temp_numnfdes + 1
+            i = i + 1
+            if (temp_numnfdes == 1) then
+               !
+               CALL getcommandargument (chaininput, i, f, length,  statuse)
+               p = LEN_trim (adjustl(f))
+               IF ((p-4) >= 1) THEN
+                  IF (f((p-4) :(p-4)) == NFDEEXTENSION(1:1)) THEN
+                     NFDEEXTENSION= f((p-4) :p)
+                     fichin = f (1:p-5)
+                  ELSE
+                     fichin = f (1:p)
+                  END IF
+               ELSE IF (p >= 1) THEN
+                  fichin = f (1:p)
+               ELSE
+                  CALL stoponerror (layoutnumber, size, 'There is not a .nfde file for input',.true.)
+                  statuse=-1
+                  goto 667
+               END IF
+               INQUIRE (file=trim(adjustl(fichin))//NFDEEXTENSION, EXIST=existeNFDE)
+               IF ( .NOT. existeNFDE) THEN
+                  buff='The input file was not found '//trim(adjustl(fichin))//NFDEEXTENSION
+                  CALL stoponerror (layoutnumber, size, buff,.true.)
+                  statuse=-1
+                  goto 667
+               END IF
+            elseif (temp_numnfdes == 2) then
+               fichin='multi_'//trim(adjustl(fichin))
+            else
+               fichin=fichin
+            endif
+            !!!          opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain)) // ' ' // trim (adjustl(f))
+         END SELECT
+         i = i + 1
+      END DO
+   endif
+      !
+    ! If no input is present we stop
+    IF (len(trim(adjustl(fichin))) <= 0) THEN
+        CALL stoponerror (layoutnumber, size, 'ERROR! -> No input file was specified. Use -i ****.nfde',.true.); statuse=-1; goto 667
+    END IF
+
+   fileFDE = trim (adjustl(fichin)) // NFDEEXTENSION
+   fileH5 = trim (adjustl(fichin)) // '.h5'
+   CALL INITWARNINGFILE (layoutnumber, size, trim (adjustl(fichin))//'_tmpWarnings.txt',verbose,ignoreErrors)
+   
+!asigna variables locales
+           
+            l%ignoreerrors                            =ignoreerrors                       
+            l%verbose                                 =verbose                 
+            l%creditosyaprinteados                    =creditosyaprinteados     
+            
+            l%existeNFDE                              =existeNFDE
+            l%existeCONF                              =existeCONF
+            l%existeCMSH                              =existeCMSH
+                           
+            l%layoutnumber                            =layoutnumber                   
+            l%size                                    =size                           
+            l%length                                  =length                         
+            l%mpidir                                  =mpidir  
+!!!
+667   return
+  end subroutine buscaswitchficheroinput
+
+!!!!!!!!!!!!!!!!!!   
 
 
    
