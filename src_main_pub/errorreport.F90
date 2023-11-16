@@ -2605,7 +2605,7 @@ contains
       CHARACTER (LEN=*) :: ficherin
       integer (kind=4) :: my_iostat, myunit
       my_iostat = 0
-4216  if(my_iostat /= 0) write(*,fmt='(a)',advance='no'), '.'
+4216  if(my_iostat /= 0) write(*,fmt='(a)',advance='no') '.'
       open  (newunit=myunit,file=trim(adjustl(ficherin)),form='formatted',err=4216,iostat=my_iostat)
       write (myunit,*) '!END'
       close (myunit,status='delete')
@@ -2616,7 +2616,7 @@ contains
       CHARACTER (LEN=*) :: ficherin
       integer (kind=4) :: my_iostat, myunit
       my_iostat = 0
-5216  if(my_iostat /= 0) write(*,fmt='(a)',advance='no'), '.'
+5216  if(my_iostat /= 0) write(*,fmt='(a)',advance='no') '.'
       open  (newunit=myunit,file=trim(adjustl(ficherin)),form='formatted',err=5216,iostat=my_iostat)
       write (myunit,*) '!END'
       close (myunit)
@@ -2628,7 +2628,7 @@ contains
       CHARACTER (LEN=*) :: ficherin
       integer (kind=4) :: my_iostat, myunit
       my_iostat = 0
-6216  if(my_iostat /= 0) write(*,fmt='(a)',advance='no'), '.'
+6216  if(my_iostat /= 0) write(*,fmt='(a)',advance='no') '.'
       open  (unit=myunit,file=trim(adjustl(ficherin)),form='formatted',err=6216,iostat=my_iostat)
       return
    end subroutine opensolo
@@ -2636,7 +2636,7 @@ contains
    subroutine closesolo(myunit)
       integer (kind=4) :: my_iostat, myunit
       my_iostat = 0
-7216  if(my_iostat /= 0) write(*,fmt='(a)',advance='no'), '.'
+7216  if(my_iostat /= 0) write(*,fmt='(a)',advance='no') '.'
       close  (unit=myunit,err=7216,iostat=my_iostat)
       return
    end subroutine closesolo

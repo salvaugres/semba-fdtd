@@ -86,7 +86,7 @@ PROGRAM SEMBA_FDTD_launcher
    character (len=100) :: ficherohopf
 !!!24118 pscaling
    REAL (KIND=RKIND)              ::  eps0,mu0
-   REAL (KIND=RKIND), allocatable, dimension(:,:)  ::  externalL, externalC
+   REAL (KIND=RKIND), allocatable, dimension(:,:)  ::  externalL
    REAL (KIND=RKIND), allocatable, dimension(:)  ::  LCline
    integer (kind=4)               ::  LCdimension
    REAL (KIND=RKIND)              ::  cluz
@@ -396,8 +396,12 @@ PROGRAM SEMBA_FDTD_launcher
      wirethickness,inductance_order,alphaOrden,finaltimestep,layoutnumber,size,length,n, &
      pausetime,time_begin,time_end,newmpidir,mpidir,donde,j, &
      fichin, f, chain, chain2,chdummy,chari, &
-     ficherohopf,conformal_file_input_name,wiresflavor,inductance_model,prefix,nEntradaRoot, &
-     inductance_file, externalL, externalC, LCline, LCdimension, &
+     ficherohopf, &
+#ifdef CompileWithConformal
+     conformal_file_input_name, &
+#endif    
+     wiresflavor,inductance_model,prefix,nEntradaRoot, &
+     inductance_file, externalL, LCline, LCdimension, &
      nresumeable2,slicesoriginales,opcionesoriginales,geomfile,dubuf,fileH5, &   
      maxCPUtime,flushminutesFields,flushminutesData,SGBCdepth,SGBCfreq,SGBCresol, &
      maxwireradius,mindistwires,precision, &
@@ -889,7 +893,7 @@ PROGRAM SEMBA_FDTD_launcher
          & conformalskin,strictOLD,TAPARRABOS,wiresflavor,mindistwires,facesNF2FF,NF2FFDECIM,vtkindex,createh5bin,wirecrank,opcionestotales,SGBCFreq,SGBCresol,SGBCcrank,SGBCDepth,fatalerror,fieldtotl,finishedwithsuccess,permitscaling, &
          & Eps0,Mu0, EpsMuTimeScale_input_parameters &
    , simu_devia &
-   , stochastic,mpidir,verbose,precision,hopf,ficherohopf,niapapostprocess,planewavecorr,tagtype,dontwritevtk,experimentalVideal,forceresampled,factorradius,factordelta, externalL, externalC &
+   , stochastic,mpidir,verbose,precision,hopf,ficherohopf,niapapostprocess,planewavecorr,tagtype,dontwritevtk,experimentalVideal,forceresampled,factorradius,factordelta, externalL &
    )
 
          deallocate (sggMiEx, sggMiEy, sggMiEz,sggMiHx, sggMiHy, sggMiHz,sggMiNo,sggMtag)

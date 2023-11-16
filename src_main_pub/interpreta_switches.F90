@@ -20,8 +20,12 @@ CONTAINS
      wirethickness,inductance_order,alphaOrden,finaltimestep,layoutnumber,size,length,n, &
      pausetime,time_begin,time_end,newmpidir,mpidir,donde,j, &
      fichin, f, chain, chain2,chdummy,chari, &
-     ficherohopf,conformal_file_input_name,wiresflavor,inductance_model,prefix,nEntradaRoot, &
-     inductance_file, externalL, externalC, LCline, LCdimension, &
+     ficherohopf, &
+#ifdef CompileWithConformal
+     conformal_file_input_name, &
+#endif    
+     wiresflavor,inductance_model,prefix,nEntradaRoot, &
+     inductance_file, externalL, LCline, LCdimension, &
      nresumeable2,slicesoriginales,opcionesoriginales,geomfile,dubuf,fileH5, &   
      maxCPUtime,flushminutesFields,flushminutesData,SGBCdepth,SGBCfreq,SGBCresol, &
      maxwireradius,mindistwires,precision, &
@@ -50,9 +54,16 @@ CONTAINS
    CHARACTER (LEN=14) :: whoami, whoamishort
    CHARACTER (LEN=1024) :: dubuf
    
+   REAL (KIND=RKIND), allocatable, dimension(:,:)  ::  externalL
+   REAL (KIND=RKIND), allocatable, dimension(:)  ::  LCline
+   integer (kind=4)               ::  LCdimension
+
+   
+#ifdef CompileWithConformal
    character (len=200) :: conformal_file_input_name    
+#endif 
    character (len=100) :: ficherohopf     
-   CHARACTER (LEN=20) :: inductance_model,wiresflavor
+   CHARACTER (LEN=20) :: inductance_model,wiresflavor, inductance_file
    
    real (kind=RKIND_wires) :: factorradius,factordelta
    
@@ -62,7 +73,7 @@ CONTAINS
    integer (kind=4) :: i,wirethickness,inductance_order,finaltimestep,ierr,layoutnumber,size,length,n, &
                        newmpidir,mpidir,donde,j,flushminutesFields,flushminutesData, &
        flushsecondsFields ,flushsecondsData,forced, &
-       maxCPUtime,SGBCdepth,precision
+       maxCPUtime,SGBCdepth,precision, iconta, jconta
    CHARACTER (LEN=1024) :: fichin, f, chain, chain2, &
        buff,prefix,nEntradaRoot, &
        nresumeable2,geomfile,fileH5   
@@ -783,7 +794,6 @@ CONTAINS
 4611        open (1712, file=inductance_file, action='READ')
             read (1712, *) LCdimension
             allocate(externalL(LCdimension, LCdimension))
-            allocate(externalC(LCdimension, LCdimension))
             allocate(LCline(LCdimension))
             do iconta = 1, LCdimension
                 read (1712, *) LCline
