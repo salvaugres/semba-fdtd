@@ -67,7 +67,7 @@ contains
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
    ! Subroutine to initialize the parameters
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-   subroutine InitWires(sgg,sggMiNo,sggMiEx,sggMiEy,sggMiEz,sggMiHx,sggMiHy,sggMiHz,layoutnumber,size,ThereAreWires,resume,makeholes,connectendings,isolategroupgroups,dontsplitnodes,stableradholland,fieldtotl, &
+   subroutine InitWires(sgg,sggMiNo,sggMiEx,sggMiEy,sggMiEz,sggMiHx,sggMiHy,sggMiHz,layoutnumber,size,ThereAreWires,resume,makeholes,connectendings,isolategroupgroups,stableradholland,fieldtotl, &
    Ex,Ey,Ez,Hx,Hy,Hz,Idxe,Idye,Idze,Idxh,Idyh,Idzh, &
    inductance_model,wirethickness,groundwires,strictOLD,TAPARRABOS,g2,wiresflavor,SINPML_fullsize,fullsize,wirecrank,dtcritico, &
    eps00,mu00,simu_devia,stochastic,verbose,factorradius,factordelta)     
@@ -114,7 +114,7 @@ contains
       logical , dimension (:), pointer :: LindProb
 
       LOGICAL, INTENT(OUT)  ::  ThereAreWires
-      LOGICAL, INTENT(in)  ::  resume,makeholes,connectendings,isolategroupgroups,dontsplitnodes,groundwires,stableradholland,strictOLD,TAPARRABOS,fieldtotl
+      LOGICAL, INTENT(in)  ::  resume,makeholes,connectendings,isolategroupgroups,groundwires,stableradholland,strictOLD,TAPARRABOS,fieldtotl
       logical :: proceed,proceed1,proceed2,NodeExists,Is_LeftEnd,Is_RightEnd,IsEnd_norLeft_norRight,repetido,conectado,conectado1,conectado2,asignado
       logical ::  IsPEC , islossy ,IsLossyPlus,IsLossyMinu,IsPecPlus,IsPECminu
       logical, intent (in) :: wirecrank
