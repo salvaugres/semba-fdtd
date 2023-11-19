@@ -17,6 +17,8 @@ contains
    function expectedProblemDescription() result (expected)
       type(Parseador) :: expected
 
+      integer :: i
+
       call initializeProblemDescription(expected)
 
       ! Expected general info.
@@ -24,14 +26,14 @@ contains
       expected%general%nmax = 1000
 
       ! Excected media matrix.
-      expected%matriz%totalX = 10
-      expected%matriz%totalY = 10
-      expected%matriz%totalZ = 10
+      expected%matriz%totalX = 20
+      expected%matriz%totalY = 20
+      expected%matriz%totalZ = 22
 
       ! Expected grid.
-      expected%despl%nX = 10
-      expected%despl%nY = 10
-      expected%despl%nZ = 10
+      expected%despl%nX = 20
+      expected%despl%nY = 20
+      expected%despl%nZ = 22
 
       allocate(expected%despl%desX(1))
       allocate(expected%despl%desY(1))
@@ -41,21 +43,26 @@ contains
       expected%despl%desZ = (/0.1/)
 
       ! Expected boundaries.
-      expected%front%tipoFrontera(:) = F_MUR
+      expected%front%tipoFrontera(:) = F_PML
+      expected%front%propiedadesPML(:)%numCapas = 6
+      expected%front%propiedadesPML(:)%orden = 2.0
+      expected%front%propiedadesPML(:)%refl = 0.001
 
       ! Expected sources.
       allocate(expected%plnSrc%collection(1))
-      expected%plnSrc%collection(1)%nombre_fichero = "gauss_100MHz.exc"
+      expected%plnSrc%collection(1)%nombre_fichero = "waveform.exc"
       expected%plnSrc%collection(1)%atributo = ""
       expected%plnSrc%collection(1)%coor1 = (/2, 2, 2/)
-      expected%plnSrc%collection(1)%coor2 = (/9, 9, 9/)
-      expected%plnSrc%collection(1)%theta = 0.0
+      expected%plnSrc%collection(1)%coor2 = (/19, 19, 21/)
+      expected%plnSrc%collection(1)%theta = 1.5708
       expected%plnSrc%collection(1)%phi = 0.0
-      expected%plnSrc%collection(1)%alpha = 1.5708
+      expected%plnSrc%collection(1)%alpha = 0.0
       expected%plnSrc%collection(1)%beta = 0.0
       expected%plnSrc%collection(1)%isRC=.false.
       expected%plnSrc%collection(1)%nummodes=1
       expected%plnSrc%collection(1)%INCERTMAX=0.0
+      expected%plnSrc%nc = 1
+      expected%plnSrc%nC_max = 1
 
       ! Expected probes
       ! oldSonda
@@ -67,7 +74,7 @@ contains
       expected%Sonda%length = 1
       expected%Sonda%length_max = 1
       allocate(expected%Sonda%collection(1))
-      expected%Sonda%collection(1)%outputrequest = "electric_field_point_probe"
+      expected%Sonda%collection(1)%outputrequest = "mid_point"
       expected%Sonda%collection(1)%type1 = NP_T1_PLAIN
       expected%Sonda%collection(1)%type2 = NP_T2_TIME
       expected%Sonda%collection(1)%filename = ' '
@@ -77,15 +84,28 @@ contains
       expected%Sonda%collection(1)%fstart = 0.0
       expected%Sonda%collection(1)%fstop = 0.0
       expected%Sonda%collection(1)%fstep = 0.0
-      allocate(expected%Sonda%collection(1)%cordinates(3))
-      expected%Sonda%collection(1)%cordinates(1:3)%tag = "electric_field_point_probe"
-      expected%Sonda%collection(1)%cordinates(1:3)%Xi = 5
-      expected%Sonda%collection(1)%cordinates(1:3)%Yi = 5
-      expected%Sonda%collection(1)%cordinates(1:3)%Zi = 5
-      expected%Sonda%collection(1)%cordinates(1)%Or = NP_COR_EX
-      expected%Sonda%collection(1)%cordinates(2)%Or = NP_COR_EY
-      expected%Sonda%collection(1)%cordinates(3)%Or = NP_COR_EZ
+      allocate(expected%Sonda%collection(1)%cordinates(1))
+      expected%Sonda%collection(1)%cordinates(1)%tag = ' '
+      expected%Sonda%collection(1)%cordinates(1)%Xi = 11
+      expected%Sonda%collection(1)%cordinates(1)%Yi = 11
+      expected%Sonda%collection(1)%cordinates(1)%Zi = 12
+      expected%Sonda%collection(1)%cordinates(1)%Or = NP_COR_WIRECURRENT
 
+      ! Expected thin wires
+      allocate(expected%tWires%tw(1))
+      expected%tWires%tw(1)%rad=0.02
+      expected%tWires%tw(1)%n_twc=10
+      expected%tWires%tw(1)%n_twc_max=10
+      allocate(expected%tWires%tw(1)%twc(10))
+      expected%tWires%tw(1)%twc(1:10)%i = 11
+      expected%tWires%tw(1)%twc(1:10)%j = 11
+      expected%tWires%tw(1)%twc(1:10)%k = [(i, i=7, 16)]
+      ! expected%tWires%tw(1)%twc(1:10)%d = 
+      expected%tWires%tw(1)%twc(1)%tag = "1" 
+      expected%tWires%tw(1)%twc(6)%tag = "2"
+      expected%tWires%tw(1)%twc(10)%tag = "3"
+      expected%tWires%n_tw = 1
+      expected%tWires%n_tw_max = 1
    end function
 end function
 

@@ -9,8 +9,8 @@
   
     "boundary": {
         "all": {
-            "type": "pml", 
-            "layers": 8, 
+            "type": "pml",
+            "layers": 6, 
             "order": 2.0,
             "reflection": 0.001
         }
@@ -49,7 +49,7 @@
         "coordinates": [
             {"id": 1, "position": [11, 11,  7]},
             {"id": 2, "position": [11, 11, 12]},
-            {"id": 3, "position": [11, 11, 18]}
+            {"id": 3, "position": [11, 11, 17]}
         ],
         "elements": {
             "nodes": [
@@ -74,7 +74,7 @@
         {
             "type": "planewave",
             "magnitudeFile": "waveform.exc",
-            "cellRegion": [ [2, 2, 2], [19, 19, 21] ],
+            "voxelRegion": [ [2, 2, 2], [19, 19, 21] ],
             "direction": {
                 "theta": 1.5708,
                 "phi": 0.0

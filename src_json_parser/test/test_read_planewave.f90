@@ -57,6 +57,8 @@ contains
       expected%plnSrc%collection(1)%isRC=.false.
       expected%plnSrc%collection(1)%nummodes=1
       expected%plnSrc%collection(1)%INCERTMAX=0.0
+      expected%plnSrc%nc = 1
+      expected%plnSrc%nC_max = 1
 
       ! Expected probes
       ! oldSonda
@@ -79,7 +81,7 @@ contains
       expected%Sonda%collection(1)%fstop = 0.0
       expected%Sonda%collection(1)%fstep = 0.0
       allocate(expected%Sonda%collection(1)%cordinates(3))
-      expected%Sonda%collection(1)%cordinates(1:3)%tag = "electric_field_point_probe"
+      expected%Sonda%collection(1)%cordinates(1:3)%tag = ' '
       expected%Sonda%collection(1)%cordinates(1:3)%Xi = 5
       expected%Sonda%collection(1)%cordinates(1:3)%Yi = 5
       expected%Sonda%collection(1)%cordinates(1:3)%Zi = 5
