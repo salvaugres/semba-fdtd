@@ -26,6 +26,7 @@ module smbjson
    character (len=*), parameter :: J_SURFELS = "surfels"
    character (len=*), parameter :: J_LINELS = "linels"
    character (len=*), parameter :: J_PIXELS = "pixels"
+   character (len=*), parameter :: J_ELEMENTIDS = "elementIds"
 
    character (len=*), parameter :: J_DIR_X = "x"
    character (len=*), parameter :: J_DIR_Y = "y"
@@ -203,23 +204,6 @@ contains
       endif
    end subroutine
 
-   subroutine setRealIfFound(place, path, dest, default)
-      type(json_value), pointer :: place
-      character(kind=CK, len=*) :: path
-
-      real (kind=RK), intent(inout) :: dest
-      real (kind=RK), optional :: default
-      logical :: found
-      real (kind=RK) :: val
-
-      call core%get(place, path, val, found)
-      if (found) then
-         dest = val
-      else
-         dest = default
-      endif
-   end subroutine
-
    function getCellRegion(place) result (res)
       type(json_value), pointer :: place
       type(CellRegion) :: res
@@ -261,25 +245,31 @@ contains
       end do
    end function
 
-   function getMeshCells(elementTypeLabel, tags) result(res)
+   function getMeshCellsFromElementIds(place, elementTypeLabel, tags) result(res)
       type(Cell), dimension(:), allocatable :: res
+      type(json_value), pointer :: place
       character (len=*) :: elementTypeLabel
       character (len=MAX_LINEA), dimension(:), allocatable, optional :: tags
 
-      type(json_value), pointer :: elems, coords
-      logical :: entryFound
+      type(json_value), pointer :: elems, cs
+      logical :: idsFound, entryFound
+      integer, dimension(:), allocatable :: elemIds
 
-      call core%get( &
-         root, J_MESH//'.'//J_ELEMENTS//'.'//elementTypeLabel, &
-         elems, entryFound)
-      if (.not. entryFound) then
+      call core%get(place, J_ELEMENTIDS, elemIds, found=idsFound)
+      call core%get(root, &
+         J_MESH//'.'//J_ELEMENTS//'.'//elementTypeLabel, &
+         elems, found=entryFound)
+      if (.not. entryFound .or. .not. idsFound) then
          allocate(res(0))
          if (present(tags)) allocate(tags(0))
          return
       end if
+      call core%get(root, J_MESH//'.'//J_COORDINATES, cs)
+      
 
       select case (elementTypeLabel)
       case (J_NODES)
+         
       case default
          write(error_unit, *) 'Read mesh elements TODO'
          stop J_ERROR_NUMBER
@@ -399,14 +389,10 @@ contains
    contains
       function readPMLProperties(path) result(res)
          type(FronteraPML) :: res
-         character(len=*) :: path
-         
-         logical :: propertyFound
-         
+         character(len=*), intent(in) :: path       
          call core%get(root, path//'.'//J_PML_LAYERS, res%numCapas, default=8)
          call core%get(root, path//'.'//J_PML_ORDER, res%orden, default=2.0)
          call core%get(root, path//'.'//J_PML_REFLECTION, res%refl, default=0.001)
-
       end function
 
       function labelToBoundaryType(str) result (type)
@@ -622,7 +608,9 @@ contains
 
          call getDomain(p, res)
 
-         cells = [ getMeshCells(J_NODES, nodeTags), getSimpleCells(p, J_PIXELS) ]
+         cells = [ &
+            getMeshCellsFromElementIds(p, J_NODES, nodeTags), &
+            getSimpleCells(p, J_PIXELS) ]
          call core%get(p, J_PR_DIRECTIONS, dirLabels)
          allocate(res%cordinates(size(cells) * size(dirLabels)))
          do i = 1, size(cells)
@@ -656,12 +644,13 @@ contains
          call core%get(domain, J_PR_TYPE, domainType)
          res%type2 = strToDomainType(domainType)
 
-         call setRealIfFound(domain, J_PR_DOMAIN_TIME_START, res%tstart, default=0.0)
-         call setRealIfFound(domain, J_PR_DOMAIN_TIME_STOP,  res%tstop,  default=0.0)
-         call setRealIfFound(domain, J_PR_DOMAIN_TIME_STEP,  res%tstep,  default=0.0)
-         call setRealIfFound(domain, J_PR_DOMAIN_FREQ_START, res%fstart, default=0.0)
-         call setRealIfFound(domain, J_PR_DOMAIN_FREQ_STOP,  res%fstop,  default=0.0)
-         call setRealIfFound(domain, J_PR_DOMAIN_FREQ_STEP,  res%fstep,  default=0.0)
+         
+         call core%get(domain, J_PR_DOMAIN_TIME_START, res%tstart, default=0.0)
+         call core%get(domain, J_PR_DOMAIN_TIME_STOP,  res%tstop,  default=0.0)
+         call core%get(domain, J_PR_DOMAIN_TIME_STEP,  res%tstep,  default=0.0)
+         call core%get(domain, J_PR_DOMAIN_FREQ_START, res%fstart, default=0.0)
+         call core%get(domain, J_PR_DOMAIN_FREQ_STOP,  res%fstop,  default=0.0)
+         call core%get(domain, J_PR_DOMAIN_FREQ_STEP,  res%fstep,  default=0.0)
 
          call core%get(domain, J_PR_DOMAIN_FILENAME, fn, found)
          if (found) then
