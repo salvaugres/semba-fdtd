@@ -1445,12 +1445,12 @@ contains
 !!      if (IsNaNd(energy)) then
 !!#endif
 !!!#else
-      if (IsNaN (energy)) then
+     !! if (IsNaN (energy)) then !quitado a mano para que PGI no se queje a 150623 !fm
 !!!#endif
 !!!#endif
          !
-         stoponNaN_aux=.true.
-      endif
+     !!    stoponNaN_aux=.true.
+     !! endif
 #ifdef CompileWithMPI
       call MPI_AllReduce( stoponNaN_aux, stoponNaN, 1_4, MPI_LOGICAL, MPI_LOR, MPI_COMM_WORLD, ierr)
 #else
