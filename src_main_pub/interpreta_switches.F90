@@ -1,4 +1,4 @@
-module interpreta_switchwes_m  
+module interpreta_switches_m  
 
    USE FDETYPES
    USE Getargs   
@@ -130,10 +130,11 @@ module interpreta_switchwes_m
         
         type (nf2ff_T) ::                           facesNF2FF    
         TYPE (MedioExtra_t) ::                      MEDIOEXTRA    
-        type (EpsMuTimeScale_input_parameters_t) :: EpsMuTimeScale_input_parameters
+       type (EpsMuTimeScale_input_parameters_t) :: EpsMuTimeScale_input_parameters
         type (tiempo_t)  ::                         time_out2 
         
-        CHARACTER (LEN=BUFSIZE_LONG) ::   &  
+!pgi        CHARACTER (LEN=BUFSIZE_LONG) ::   &          
+            CHARACTER (LEN=BUFSIZE) ::   &  
              prefix              ,&
              prefixopci          ,&
              prefixopci1         ,&
@@ -166,10 +167,9 @@ module interpreta_switchwes_m
    !                                        
 CONTAINS
     
-   subroutine interpreta(sgg,l,statuse)
+   subroutine interpreta(l,statuse)
    
-!!!!!!!!!!!!!                                        
-   type (SGGFDTDINFO), intent(INOUT)     ::  sgg                
+!!!!!!!!!!!!!           
    type (entrada_t), intent(INOUT) :: l
 !!!!!!!!!      
    
@@ -943,7 +943,8 @@ CONTAINS
             READ (f,*, ERR=33762) l%EpsMuTimeScale_input_parameters%alpha_max
             GO TO 33862
 33762       CALL stoponerror (l%layoutnumber, l%size, 'Invalid pscale parameters',.true.); statuse=-1; !return
-33862       IF (l%EpsMuTimeScale_input_parameters%checkError()/=0) THEN
+33862       continue
+            IF (l%EpsMuTimeScale_input_parameters%checkError()/=0) THEN
                 CALL stoponerror (l%layoutnumber, l%size, &
    &'Invalid -pscale parameters: some parameters have to be greater than 0.0: -pscale t0(>=0) tend slope(>0)'&
                   &,.true.); statuse=-1; !return
@@ -1110,7 +1111,7 @@ CONTAINS
 #endif
 #endif
 !!!fin l%stochastic
-   sgg%nEntradaRoot=trim (adjustl(l%nEntradaRoot))
+!!!   sgg%nEntradaRoot=trim (adjustl(l%nEntradaRoot))
    !
    WRITE (chari, '(i5)') l%layoutnumber + 1
    l%nresumeable2 = trim (adjustl(l%nEntradaRoot)) // '_' // trim (adjustl(chari)) // '.fields'
@@ -2206,4 +2207,4 @@ CONTAINS
 
 
    
-   end module interpreta_switchwes_m
+   end module interpreta_switches_m

@@ -78,7 +78,7 @@ PROGRAM SEMBA_FDTD_launcher
    !*************************************************
    !*************************************************
    !
-   use interpreta_switchwes_m
+   use interpreta_switches_m
    IMPLICIT NONE
    !
 !!!24118 pscaling
@@ -127,7 +127,7 @@ PROGRAM SEMBA_FDTD_launcher
    !****************************************************************************
    !conformal existence flags   ref: ##Confflag##
    integer (kind=4) :: conf_err
-#ifdef CompileWithConformal;
+#ifdef CompileWithConformal
    type (conf_conflicts_t), pointer  :: conf_conflicts
 #endif
 
@@ -364,8 +364,8 @@ PROGRAM SEMBA_FDTD_launcher
 !!!!
    
 
-   call interpreta(sgg,l,status )   
-
+   call interpreta(l,status )      
+   sgg%nEntradaRoot=trim (adjustl(l%nEntradaRoot))
    
 #ifdef CompileWithXDMF   
 #ifdef CompileWithHDF                     
@@ -718,9 +718,9 @@ PROGRAM SEMBA_FDTD_launcher
         CALL print11 (l%layoutnumber, '---> Conformal thin-gap solver: '//trim(adjustl(dubuf)))
         write(dubuf,*) l%run_with_dmma
         CALL print11 (l%layoutnumber, '---> DMMA thin-gap solver: '//trim(adjustl(dubuf)))
-        write(dubuf,*) l%wiresflavor
+        write(dubuf,'(a)') l%wiresflavor
         CALL print11 (l%layoutnumber, '---> Wire model: '//trim(adjustl(dubuf)))
-        write(dubuf,*) l%inductance_model
+        write(dubuf,'(a)') l%inductance_model
         CALL print11 (l%layoutnumber, '---> Inductance model: '//trim(adjustl(dubuf)))
         if (trim(adjustl(l%wiresflavor))=='berenger') then
             write(dubuf,*) l%mindistwires

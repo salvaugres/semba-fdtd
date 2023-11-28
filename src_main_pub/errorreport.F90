@@ -2253,7 +2253,7 @@ contains
 !      IF (layoutnumber == 0) THEN
 669      open (newunit=thefile8,file=trim(adjustl(nombrefich))//trim(adjustl(whoamishort))//'_tmp',err=667 )
          goto 668
-667      print *,whoamishort,'--> no hay cojones con open para borrar unidad ',thefile8
+667      print *,' '//trim(adjustl(whoamishort))//' ','--> no hay cojones con open para borrar unidad ',thefile8
          call sleep(2)
          goto 669
 668     continue        
@@ -2279,19 +2279,19 @@ contains
 666     inquire (unit=thefile8,exist=borratedeunaputavez1)
         inquire (file=trim(adjustl(nombrefich))//trim(adjustl(whoamishort))//'_tmp' ,exist=borratedeunaputavez2)
     if (borratedeunaputavez1) then
-        print *,whoamishort,'--> no hay cojones con inquire unidad ',thefile8
+        print *,' '//trim(adjustl(whoamishort))//' ','--> no hay cojones con inquire unidad ',thefile8
         call sleep(2)
-        goto 666
+!pgi        goto 666
     endif
         if (borratedeunaputavez2) then
-        print *,whoamishort,'--> no hay cojones con inquire file fichero ',& 
+        print *,' '//trim(adjustl(whoamishort))//' ','--> no hay cojones con inquire file fichero ',& 
                       trim(adjustl(nombrefich))//trim(adjustl(whoamishort))//'_tmp'
         call sleep(2)
-        goto 666
+!pgi        goto 666
     endif
       open (newunit=thefile8,file=trim(adjustl(nombrefich))//trim(adjustl(whoamishort))//'_tmp',err=767 )
          goto 768
-767      print *,whoamishort,'--> no hay cojones con open definitivo unidad ',thefile8
+767      print *,' '//trim(adjustl(whoamishort))//' ','--> no hay cojones con open definitivo unidad ',thefile8
          call sleep(2)
 768     continue         
       !!!#endif
