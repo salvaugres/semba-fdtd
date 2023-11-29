@@ -14,9 +14,10 @@ add_subdirectory(external/json-fortran)
 
 add_library(smbjson 
 	"src/smbjson.f90"
+	"src/mesh.f90"
 	"src/nfdetypes_extension.f90" 
 )
 
-target_link_libraries  (smbjson PRIVATE jsonfortran semba-types)
+target_link_libraries  (smbjson PRIVATE jsonfortran semba-types fhash)
 
 add_subdirectory(test)
