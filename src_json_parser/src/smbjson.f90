@@ -48,6 +48,7 @@ module smbjson
    character (len=*), parameter :: J_COORD_ID = "id"
    character (len=*), parameter :: J_COORD_POS = "position"
    character (len=*), parameter :: J_ELEMENTS = "elements"
+   character (len=*), parameter :: J_ELEM_ID = "id"
    character (len=*), parameter :: J_NODES = "nodes"
    character (len=*), parameter :: J_POLYLINES = "polylines"
 
@@ -122,8 +123,6 @@ module smbjson
    type, private :: CellRegion
       type(Cell), dimension(2) :: coords
    end type CellRegion
-
-
 
    type, private :: json_value_ptr
       type(json_value), pointer :: p
@@ -265,11 +264,19 @@ contains
          return
       end if
       call core%get(root, J_MESH//'.'//J_COORDINATES, cs)
-      
 
+      allocate(res(size(elemIds)))
+      if (present(tags)) allocate(tags(size(elemIds)))
       select case (elementTypeLabel)
       case (J_NODES)
-         
+         block 
+            integer localId
+            type(json_value), pointer :: node
+            ! do i = 1, core%count(elems) TBD !!!!!!!
+            !    call core%get_child(elems, i, node)
+            !    ! call  TBD
+            ! end do
+         end block
       case default
          write(error_unit, *) 'Read mesh elements TODO'
          stop J_ERROR_NUMBER

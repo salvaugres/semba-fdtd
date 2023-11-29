@@ -33,7 +33,8 @@
 
 .bak
 .vs
-build
+build/
+build-nv/
 CMakeSettings.json
 /CppProperties.json
 
