@@ -808,6 +808,7 @@ CONTAINS
           CASE ('-inductance')
             i = i + 1
             CALL getcommandargument (chaininput, i, f, length,  statuse)
+            opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain)) // ' ' // trim (adjustl(f))
             READ (f, '(a)', ERR=361) inductance_model
             GO TO 461
 361         CALL stoponerror (layoutnumber, size, 'Invalid inductance model',.true.); statuse=-1; !return
