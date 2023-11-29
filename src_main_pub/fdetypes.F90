@@ -91,7 +91,7 @@ module  FDETYPES
    INTEGER, parameter :: topCPUtime=10000000 !maximum cpu time in minutes !set to 690 in UGRGRID
    !size of character strings 
    INTEGER, parameter :: BUFSIZE=1024
-   INTEGER, parameter :: BUFSIZE_LONG=65536
+   INTEGER, parameter :: BUFSIZE_LONG=16384
    !!!INTEGER :: maxmessages=20000 !numero maximo mensajes para alocatear en MPI overrideable con -maxmessages y quitado como parameter fijo !deprecated 07/03/15
    !dxf output stuff
    !!!integer, parameter :: maxdxf= 20000,dxflinesize=14
