@@ -5,7 +5,9 @@ module interpreta_switches_m
    use EpsMuTimeScale_m
    use Report
    use version
+#ifdef CompilePrivateVersion
    use ParseadorClass
+#endif   
    IMPLICIT NONE
    PRIVATE
    !   

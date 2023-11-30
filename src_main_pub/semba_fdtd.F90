@@ -349,7 +349,7 @@ PROGRAM SEMBA_FDTD_launcher
 #else               
    print *,'Currently the parser is privative. The user must build by the input type using the info in nfde_types.F90.'    
    print *,'You can also contact us for CAD solutions to generate this info it in an automatic manner for general geometries,'
-   print *,'and to have also access to advanced models not included here: l%stochastic analysis, multiwire and conformal cables, LF acceleration, etc.'
+   print *,'and to have also access to advanced models not included here: stochastic analysis, multiwire and conformal cables, LF acceleration, etc.'
    stop
 #endif   
 !!!!!!!!!!!!!!!!!!!!!!!
@@ -665,7 +665,7 @@ PROGRAM SEMBA_FDTD_launcher
       CALL stoponerror (l%layoutnumber, l%size, '!STOCH found in .nfde. Specify either -stoch or -nostoch')
    END IF
 #ifndef CompileWithSlantedWires
-   IF (hay_slanted_wires) THEN
+   IF (l%hay_slanted_wires) THEN
       CALL stoponerror (l%layoutnumber, l%size, 'slanted wires without slanted support. Recompile ()')
    END IF
 #endif   
