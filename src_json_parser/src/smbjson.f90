@@ -1,7 +1,9 @@
 module smbjson
 
    use NFDETypes
+
    use NFDETypes_extension
+   use mesh_mod
 
    use json_module
    use json_kinds
@@ -209,12 +211,12 @@ contains
 
       integer :: i, n
       type(json_value), pointer :: coordEntry, voxelRegionEntry
-      real (kind=RK), pointer :: vec(:)
+      real (kind=RK), dimension(:), allocatable :: vec
 
       call core%get(place, J_VOXEL_REGION, voxelRegionEntry)
       do i = 1, core%count(voxelRegionEntry)
          call core%get_child(voxelRegionEntry, i, coordEntry)
-         call getRealVec(coordEntry, '.', vec)
+         call core%get(coordEntry, '.', vec)
          if (size(vec) /= 3) then
             write(error_unit, *) "Voxel regions are defined by two numerical vectors of size 3."
             stop J_ERROR_NUMBER
@@ -244,43 +246,55 @@ contains
       end do
    end function
 
-   function getMeshCellsFromElementIds(place, elementTypeLabel, tags) result(res)
+   function readMesh() result(res)
+      type(Mesh_t) :: res
+
+      block
+         type(json_value), pointer :: jcs, jc
+         integer :: id, i
+         real, dimension(:), allocatable :: pos
+         type(coordinate_t) :: c
+         call core%get(root, J_MESH//'.'//J_COORDINATES, jcs)
+         do i = 1, core%count(jcs)
+            call core%get_child(jcs, i, jc)
+            call core%get(jc, J_COORD_ID, id)
+            call core%get(jc, J_COORD_POS, pos)
+            c%position = pos
+            call res%addCoordinate(id, c)
+         end do
+      end block
+
+
+      ! call core%get(root, J_MESH//'.'//J_ELEMENTS//'.'//J_NODES, elems, found=entryFound)
+      ! block
+      !    integer localId
+      !    integer
+      !    type(json_value), pointer :: node
+      !    ! do i = 1, core%count(elems) TBD !!!!!!!
+      !    !    call core%get_child(elems, i, node)
+      !    !    ! call  TBD
+      !    ! end do
+      ! end block
+
+   end function
+
+   function getCellsFromElementIds(place) result(res)
       type(Cell), dimension(:), allocatable :: res
       type(json_value), pointer :: place
-      character (len=*) :: elementTypeLabel
-      character (len=MAX_LINEA), dimension(:), allocatable, optional :: tags
-
-      type(json_value), pointer :: elems, cs
-      logical :: idsFound, entryFound
       integer, dimension(:), allocatable :: elemIds
 
+      type(Mesh_t) :: mesh
+      logical :: idsFound
+
       call core%get(place, J_ELEMENTIDS, elemIds, found=idsFound)
-      call core%get(root, &
-         J_MESH//'.'//J_ELEMENTS//'.'//elementTypeLabel, &
-         elems, found=entryFound)
-      if (.not. entryFound .or. .not. idsFound) then
+      if (.not. idsFound) then
          allocate(res(0))
-         if (present(tags)) allocate(tags(0))
          return
       end if
-      call core%get(root, J_MESH//'.'//J_COORDINATES, cs)
 
-      allocate(res(size(elemIds)))
-      if (present(tags)) allocate(tags(size(elemIds)))
-      select case (elementTypeLabel)
-      case (J_NODES)
-         block 
-            integer localId
-            type(json_value), pointer :: node
-            ! do i = 1, core%count(elems) TBD !!!!!!!
-            !    call core%get_child(elems, i, node)
-            !    ! call  TBD
-            ! end do
-         end block
-      case default
-         write(error_unit, *) 'Read mesh elements TODO'
-         stop J_ERROR_NUMBER
-      end select
+      mesh = readMesh()
+
+
    end function
 
    function jsonValueFilterByKeyValues(srcs, key, values) result (out)
@@ -351,8 +365,8 @@ contains
 
    function readMediaMatrix() result(res)
       type(MatrizMedios) :: res
-      
-      
+
+
 
       character (len=*), parameter :: P = J_MESH//'.'//J_GRID
 
@@ -363,7 +377,7 @@ contains
 
    function readGrid() result (res)
       type(Desplazamiento) :: res
-      
+
       character (len=*), parameter :: P = J_MESH//'.'//J_GRID
 
       call core%get(root, P//'.'//J_NUMBER_OF_CELLS//'(1)',res%nX)
@@ -377,9 +391,6 @@ contains
 
    function readBoundary() result (res)
       type(Frontera) :: res
-      
-      
-
       character(kind=json_CK,len=:), allocatable :: boundaryTypeLabel
       logical(LK) :: allLabelFound = .false.
 
@@ -390,13 +401,13 @@ contains
             res%propiedadesPML(:) = readPMLProperties(J_BOUNDARY//"."//J_ALL)
          end if
          return
-      else 
+      else
          ! TODO Check every bound.
       end if
    contains
       function readPMLProperties(path) result(res)
          type(FronteraPML) :: res
-         character(len=*), intent(in) :: path       
+         character(len=*), intent(in) :: path
          call core%get(root, path//'.'//J_PML_LAYERS, res%numCapas, default=8)
          call core%get(root, path//'.'//J_PML_ORDER, res%orden, default=2.0)
          call core%get(root, path//'.'//J_PML_REFLECTION, res%refl, default=0.001)
@@ -447,30 +458,27 @@ contains
 
    function readFrequencyDependentMaterials() result (res)
       type(FreqDepenMaterials) :: res
-      
-      
+
+
       ! TODO
    end function
 
    function readAnisotropicMaterials() result (res)
       type(ANISOTROPICelements_t) :: res
-      
-      
+
+
       ! TODO
    end function
 
    function readBoxSources() result (res)
       type(Boxes) :: res
-      
-      
+
+
       ! TODO
    end function
 
    function readPlanewaves() result (res)
       type(PlaneWaves) :: res
-      
-      
-
       type(json_value), pointer :: sources
       type(json_value_ptr), allocatable :: pws(:)
       integer :: i
@@ -520,16 +528,11 @@ contains
 
    function readNodalSources() result (res)
       type(NodSource) :: res
-      
-      
       ! TODO
    end function
 
    function readProbes() result (res)
       type(Sondas) :: res
-      
-      
-
       type(json_value), pointer :: probes
       type(json_value_ptr), allocatable :: ps(:)
       integer :: i
@@ -585,7 +588,7 @@ contains
       type(json_value_ptr), allocatable :: ps(:)
       integer :: i
       character (len=*), dimension(4), parameter :: validTypes = &
-         (/J_PR_ELECTRIC, J_PR_MAGNETIC, J_PR_CURRENT, J_PR_VOLTAGE/)
+         [J_PR_ELECTRIC, J_PR_MAGNETIC, J_PR_CURRENT, J_PR_VOLTAGE]
 
       call core%get(root, J_PROBES, probes)
       ps = jsonValueFilterByKeyValues(probes, J_PR_TYPE, validTypes)
@@ -615,9 +618,7 @@ contains
 
          call getDomain(p, res)
 
-         cells = [ &
-            getMeshCellsFromElementIds(p, J_NODES, nodeTags), &
-            getSimpleCells(p, J_PIXELS) ]
+         cells = [ getCellsFromElementIds(p), getSimpleCells(p, J_PIXELS) ]
          call core%get(p, J_PR_DIRECTIONS, dirLabels)
          allocate(res%cordinates(size(cells) * size(dirLabels)))
          do i = 1, size(cells)
@@ -651,7 +652,7 @@ contains
          call core%get(domain, J_PR_TYPE, domainType)
          res%type2 = strToDomainType(domainType)
 
-         
+
          call core%get(domain, J_PR_DOMAIN_TIME_START, res%tstart, default=0.0)
          call core%get(domain, J_PR_DOMAIN_TIME_STOP,  res%tstop,  default=0.0)
          call core%get(domain, J_PR_DOMAIN_TIME_STEP,  res%tstep,  default=0.0)
@@ -723,15 +724,15 @@ contains
 
    function readBlockProbes() result (res)
       type(BloqueProbes) :: res
-      
-      
+
+
       ! TODO
    end function
 
    function readVolumicProbes() result (res)
       type(VolProbes) :: res
-      
-      
+
+
       ! TODO
    end function
 
@@ -747,7 +748,7 @@ contains
          res%n_tw_max = 0
          return
       end if
-      
+
    end function
 
    function readSlantedWires() result (res)
@@ -757,7 +758,7 @@ contains
 
    function readThinSlots() result (res)
       type(ThinSlots) :: res
-      
+
       type(json_value), pointer :: root
       ! TODO
    end function

@@ -53,7 +53,7 @@ add_fortran_test_executable (smbjson_tests
     "test_fhash.f90"
     "test_mesh.f90"
     "test_read_planewave.f90"
-    # "test_read_holland1981.f90"
+    "test_read_holland1981.f90"
 )
 
 target_link_libraries  (smbjson_tests smbjson)
