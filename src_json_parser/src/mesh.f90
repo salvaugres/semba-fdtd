@@ -49,7 +49,7 @@ contains
       logical, intent(out), optional :: found
       class(*), allocatable :: d
 
-      found = .false.
+      if (present(found)) found = .false.
 
       call this%coordinates%get_raw(key(id), d, stat)
       if (stat /= 0) return
@@ -57,7 +57,7 @@ contains
       select type(d)
        type is (coordinate_t)
          res = d
-         found = .true.
+         if (present(found)) found = .true.
       end select
 
    end function
@@ -67,17 +67,17 @@ contains
     type(node_t) :: res
     integer, intent(in) :: id
     logical, optional, intent(out) :: found 
-    integer :: stat
+    integer :: status
     class(*), allocatable :: d
 
-    found = .false.
-    call this%elements%get_raw(key(id), d, stat)
-    if (stat /= 0) return
+    if (present(found)) found = .false.
+    call this%elements%get_raw(key(id), d, status)
+    if (status /= 0) return
     
     select type(d)
      type is (node_t)
        res = d
-       found = .true.
+       if (present(found)) found = .true.
     end select
 
     end function
@@ -90,14 +90,14 @@ contains
         logical, intent(out), optional :: found
         class(*), allocatable :: d
         
-        found = .false.
+        if (present(found)) found = .false.
         call this%elements%get_raw(key(id), d, stat)
         if (stat /= 0) return
         
         select type(d)
          type is (polyline_t)
            res = d
-           found = .true.
+           if (present(found)) found = .true.
         end select
     
         end function

@@ -51,6 +51,7 @@ module smbjson
    character (len=*), parameter :: J_COORD_POS = "position"
    character (len=*), parameter :: J_ELEMENTS = "elements"
    character (len=*), parameter :: J_ELEM_ID = "id"
+   character (len=*), parameter :: J_ELEM_COORD_IDS = "coordinateIds"
    character (len=*), parameter :: J_NODES = "nodes"
    character (len=*), parameter :: J_POLYLINES = "polylines"
 
@@ -233,8 +234,13 @@ contains
       integer :: i, n
       type(json_value), pointer :: cellsEntry, coordEntry
       real (kind=RK), pointer :: vec(:)
+      logical :: cellsFound = .false.
 
-      call core%get(place, path, cellsEntry)
+      call core%get(place, path, cellsEntry, found=cellsFound)
+      if (.not. cellsFound) then
+         allocate(res(0))
+         return
+      end if
       allocate(res(core%count(cellsEntry)))
       do i = 1, core%count(cellsEntry)
          call core%get_child(cellsEntry, i, coordEntry)
@@ -264,29 +270,51 @@ contains
          end do
       end block
 
+      call addElementsOfType(res, J_NODES)
+      call addElementsOfType(res, J_POLYLINES)
 
-      ! call core%get(root, J_MESH//'.'//J_ELEMENTS//'.'//J_NODES, elems, found=entryFound)
-      ! block
-      !    integer localId
-      !    integer
-      !    type(json_value), pointer :: node
-      !    ! do i = 1, core%count(elems) TBD !!!!!!!
-      !    !    call core%get_child(elems, i, node)
-      !    !    ! call  TBD
-      !    ! end do
-      ! end block
-
+   contains
+      subroutine addElementsOfType(mesh, elementType)
+         type(mesh_t), intent(inout) :: mesh
+         character(len=*), intent(in) :: elementType
+         type(json_value), pointer :: jes, je
+         integer :: id, i
+         type(node_t) :: e
+         integer, dimension(:), allocatable :: coordIds
+         logical :: found
+         call core%get(root, J_MESH//'.'//J_ELEMENTS//'.'//elementType, jes, found=found)
+         if (found) then
+            do i = 1, core%count(jes)
+               call core%get_child(jes, i, je)
+               call core%get(je, J_ELEM_ID, id)
+               call core%get(je, J_ELEM_COORD_IDS, coordIds)
+               select case (elementType)
+                case (J_NODES)
+                  call mesh%addElement(id, node_t(coordIds))
+                case (J_POLYLINES)
+                  call mesh%addElement(id, polyline_t(coordIds))
+                case default
+                  write (error_unit, *) 'Invalid element type'
+                  stop
+               end select
+            end do
+         end if
+      end subroutine
    end function
 
-   function getCellsFromElementIds(place) result(res)
+   function getCellsFromNodeElementIds(place, nodeIds) result(res)
       type(Cell), dimension(:), allocatable :: res
       type(json_value), pointer :: place
-      integer, dimension(:), allocatable :: elemIds
+      integer, dimension(:), allocatable, optional, intent(out) :: nodeIds
+      integer, dimension(:), allocatable :: ids
 
       type(Mesh_t) :: mesh
-      logical :: idsFound
+      type(node_t) :: node
+      type(coordinate_t) :: coordinate
+      logical :: idsFound, nodeFound, coordinateFound
+      integer :: i
 
-      call core%get(place, J_ELEMENTIDS, elemIds, found=idsFound)
+      call core%get(place, J_ELEMENTIDS, ids, found=idsFound)
       if (.not. idsFound) then
          allocate(res(0))
          return
@@ -294,7 +322,15 @@ contains
 
       mesh = readMesh()
 
-
+      allocate(res(size(ids)))
+      if (present(nodeIds)) nodeIds = ids
+      do i = 1, size(ids)
+         nodeFound = .false.
+         coordinateFound = .false.
+         node = mesh%getNode(ids(i), nodeFound)
+         if (nodeFound) coordinate = mesh%getCoordinate(node%coordIds(1), coordinateFound)
+         if (coordinateFound) res(i)%v = coordinate%position
+      end do
    end function
 
    function jsonValueFilterByKeyValues(srcs, key, values) result (out)
@@ -365,11 +401,7 @@ contains
 
    function readMediaMatrix() result(res)
       type(MatrizMedios) :: res
-
-
-
       character (len=*), parameter :: P = J_MESH//'.'//J_GRID
-
       call core%get(root, P//'.'//J_NUMBER_OF_CELLS//'(1)',res%totalX)
       call core%get(root, P//'.'//J_NUMBER_OF_CELLS//'(2)',res%totalY)
       call core%get(root, P//'.'//J_NUMBER_OF_CELLS//'(3)',res%totalZ)
@@ -609,7 +641,7 @@ contains
          character (len=:), allocatable :: typeLabel, outputName
          character(kind=CK,len=1), dimension(:), allocatable :: dirLabels
          type(Cell), dimension(:), allocatable :: cells
-         character(kind=CK,len=MAX_LINEA), dimension(:), allocatable :: nodeTags
+         integer, dimension(:), allocatable :: nodeIds
 
          call core%get(p, J_PR_OUTPUT_NAME, outputName)
          res%outputrequest = trim(adjustl(outputName))
@@ -617,24 +649,33 @@ contains
          call core%get(p, J_PR_TYPE, typeLabel)
 
          call getDomain(p, res)
-
-         cells = [ getCellsFromElementIds(p), getSimpleCells(p, J_PIXELS) ]
-         call core%get(p, J_PR_DIRECTIONS, dirLabels)
-         allocate(res%cordinates(size(cells) * size(dirLabels)))
-         do i = 1, size(cells)
-            k = (i-1) * size(dirLabels)
-            do j = 1, size(dirLabels)
-               if (i <= size(nodeTags)) then
-                  res%cordinates(k+j)%tag = nodeTags(i)
-               else
-                  res%cordinates(k+j)%tag = ' '
-               endif
-               res%cordinates(k+j)%Xi = int (cells(i)%v(1))
-               res%cordinates(k+j)%Yi = int (cells(i)%v(2))
-               res%cordinates(k+j)%Zi = int (cells(i)%v(3))
-               res%cordinates(k+j)%Or = strToProbeType(typeLabel, dirLabels(j))
+         if (typeLabel == J_PR_CURRENT .or. typeLabel == J_PR_VOLTAGE) then 
+            cells = getCellsFromNodeElementIds(p, nodeIds)
+            allocate(res%cordinates(size(cells)))
+            do i = 1, size(cells)
+               res%cordinates(i)%tag = ' '
+               res%cordinates(i)%Xi = nodeIds(i)
+               res%cordinates(i)%Yi = 0
+               res%cordinates(i)%Zi = 0
+               res%cordinates(i)%Or = strToProbeType(typeLabel)
             end do
-         end do
+         else 
+            cells = [ getCellsFromNodeElementIds(p), getSimpleCells(p, J_PIXELS) ]
+            call core%get(p, J_PR_DIRECTIONS, dirLabels)
+            allocate(res%cordinates(size(cells) * size(dirLabels)))
+            do i = 1, size(cells)
+               k = (i-1) * size(dirLabels)
+               do j = 1, size(dirLabels)
+                  res%cordinates(k+j)%tag = ' '
+                  res%cordinates(k+j)%Xi = int (cells(i)%v(1))
+                  res%cordinates(k+j)%Yi = int (cells(i)%v(2))
+                  res%cordinates(k+j)%Zi = int (cells(i)%v(3))
+                  res%cordinates(k+j)%Or = strToProbeType(typeLabel, dirLabels(j))
+               end do
+            end do
+   
+         end if
+
       end function
 
       subroutine getDomain(p, res)
@@ -693,9 +734,12 @@ contains
       function strToProbeType(typeLabel, dirLabel) result(res)
          integer (kind=4) :: res
          character (len=:), allocatable :: typeLabel
-         character (len=1) :: dirLabel
+         character (len=1), optional :: dirLabel
          select case (typeLabel)
           case (J_PR_ELECTRIC)
+            if (.not. present(dirLabel)) then
+               stop "Dir label must be present"
+            end if
             select case (dirLabel)
              case (J_DIR_X)
                res = NP_COR_EX
@@ -705,6 +749,9 @@ contains
                res = NP_COR_EZ
             end select
           case (J_PR_MAGNETIC)
+            if (.not. present(dirLabel)) then
+               stop "Dir label must be present"
+            end if
             select case (dirLabel)
              case (J_DIR_X)
                res = NP_COR_HX
