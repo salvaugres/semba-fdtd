@@ -302,10 +302,10 @@ contains
       end subroutine
    end function
 
-   function getCellsFromNodeElementIds(place, nodeIds) result(res)
+   function getCellsFromNodeElementIds(place, coordIds) result(res)
       type(Cell), dimension(:), allocatable :: res
       type(json_value), pointer :: place
-      integer, dimension(:), allocatable, optional, intent(out) :: nodeIds
+      integer, dimension(:), allocatable, optional, intent(out) :: coordIds
       integer, dimension(:), allocatable :: ids
 
       type(Mesh_t) :: mesh
@@ -323,13 +323,14 @@ contains
       mesh = readMesh()
 
       allocate(res(size(ids)))
-      if (present(nodeIds)) nodeIds = ids
+      if (present(coordIds)) allocate(coordIds(size(ids)))
       do i = 1, size(ids)
          nodeFound = .false.
          coordinateFound = .false.
          node = mesh%getNode(ids(i), nodeFound)
          if (nodeFound) coordinate = mesh%getCoordinate(node%coordIds(1), coordinateFound)
          if (coordinateFound) res(i)%v = coordinate%position
+         if (present(coordIds)) coordIds(i) = node%coordIds(1)
       end do
    end function
 
@@ -641,7 +642,7 @@ contains
          character (len=:), allocatable :: typeLabel, outputName
          character(kind=CK,len=1), dimension(:), allocatable :: dirLabels
          type(Cell), dimension(:), allocatable :: cells
-         integer, dimension(:), allocatable :: nodeIds
+         integer, dimension(:), allocatable :: coordinateIds
 
          call core%get(p, J_PR_OUTPUT_NAME, outputName)
          res%outputrequest = trim(adjustl(outputName))
@@ -650,11 +651,11 @@ contains
 
          call getDomain(p, res)
          if (typeLabel == J_PR_CURRENT .or. typeLabel == J_PR_VOLTAGE) then 
-            cells = getCellsFromNodeElementIds(p, nodeIds)
+            cells = getCellsFromNodeElementIds(p, coordinateIds)
             allocate(res%cordinates(size(cells)))
             do i = 1, size(cells)
                res%cordinates(i)%tag = ' '
-               res%cordinates(i)%Xi = nodeIds(i)
+               res%cordinates(i)%Xi = coordinateIds(i)
                res%cordinates(i)%Yi = 0
                res%cordinates(i)%Zi = 0
                res%cordinates(i)%Or = strToProbeType(typeLabel)
