@@ -5,7 +5,7 @@ option (CompileWithGNU "Use GNU Fortran" OFF)
 option (CompileWithIntelWindows "Use Intel Windows Fortran" OFF)
 option (CompileWithIntelLinux "Use Linux Windows Fortran" OFF)
 option (CompileWithNvidiaWSL "Use Nvidia Fortran under WSL" ON)
-option (CompileWithNvidiaCINECA "Use Nvidia Fortran under CINECA" ON)
+option (CompileWithNvidiaCINECA "Use Nvidia Fortran under CINECA" OFF)
 option (CompileWithHDF "Use HDF" OFF)
 option (CompileWithMPI "Use MPI" OFF)
 option (CompileWithConformal "Use CompileWithConformal" OFF)
@@ -148,18 +148,28 @@ if (CompileWithNvidiaWSL)
 #
         set(CMAKE_CUDA_ARCHITECTURES 86)
         set(CMAKE_CUDA_LINK_EXECUTABLE "<CMAKE_CXX_COMPILER> <LINK_FLAGS> <OBJECTS> -o <TARGET>")
-        #enable_language(CUDA)
+        enable_language(CUDA)
         set(NVC_GPU_LIST ${CMAKE_CUDA_ARCHITECTURES})
         list(TRANSFORM NVC_GPU_LIST PREPEND "cc")
         list(JOIN NVC_GPU_LIST "," NVC_GPU_LIST)
         message("NVC_GPU_LIST=" ${NVC_GPU_LIST} )
 
 		set(CMAKE_Fortran_FLAGS_RELEASE "\
-		-O1 -Mnoopenmp -acc=gpu -gpu=${NVC_GPU_LIST}  -Minfo=accel    \
-        -cpp -pthread -Minline -L /opt/nvidia/hpc_sdk/Linux_x86_64/23.11/cuda/lib64/ -lnvhpcwrapnvtx")
+		-O4 -acc=gpu -gpu=${NVC_GPU_LIST}  -Minfo=accel    \
+        -cpp -pthread -Minline \
+		-Mnofprelaxed -cuda -cudalib -gpu=managed \
+		-L /opt/nvidia/hpc_sdk/Linux_x86_64/23.11/cuda/lib64/ -lnvhpcwrapnvtx \
+		-L /opt/nvidia/hpc_sdk/Linux_x86_64/23.11/math_libs/12.3/targets/x86_64-linux/lib/  \
+		-L /opt/nvidia/hpc_sdk/Linux_x86_64/23.11/comm_libs/12.3/nvshmem/lib/ \
+		-L /opt/nvidia/hpc_sdk/Linux_x86_64/23.11/comm_libs/12.3/nccl/lib/ -L /opt/nvidia/cusolvermp-linux-x86_64-11.8.0/lib/ \
+		")
 		set(CMAKE_Fortran_FLAGS_DEBUG "\
-		-g   -mp -Mnoopenmp -acc=gpu -gpu=${NVC_GPU_LIST}  -Minfo=accel \
-        -cpp -pthread -Minline -L /opt/nvidia/hpc_sdk/Linux_x86_64/23.11/cuda/lib64/ -lnvhpcwrapnvtx")
+		-g  -acc=gpu -gpu=${NVC_GPU_LIST}  -Minfo=accel \
+        -cpp -pthread -Minline \
+		-L /opt/nvidia/hpc_sdk/Linux_x86_64/23.11/cuda/lib64/ -lnvhpcwrapnvtx \
+		-L /opt/nvidia/hpc_sdk/Linux_x86_64/23.11/math_libs/12.3/targets/x86_64-linux/lib/ \
+		-L /opt/nvidia/hpc_sdk/Linux_x86_64/23.11/comm_libs/12.3/nvshmem/lib/ \
+		-L /opt/nvidia/hpc_sdk/Linux_x86_64/23.11/comm_libs/12.3/nccl/lib/		")
 		if (CompileWithMPI)
 			add_definitions(-DCompileWithGfortranMPIfix)
 			message(STATUS "MPI: At your own risk open MPI may not currently work or even compile with NVIDIA FORTRAN.")
@@ -197,11 +207,7 @@ if (CompileWithNvidiaCINECA)
 	endif()
 endif()
 
-option (CompileWithHDF "Use HDF" ON)
 if (CompileWithHDF)
-	message(STATUS "HDF libraries needed")
-	add_definitions(-DCompileWithHDF)
-	#HDF no funciona
 	find_package(HDF5 REQUIRED COMPONENTS Fortran HL)
 	include_directories(${HDF5_INCLUDE_DIRS})
 	target_link_libraries(semba-fdtd ${HDF5_LIBRARIES})
@@ -211,12 +217,9 @@ else()
 	message(STATUS "HDF libraries NOT needed.")
 endif()
 
-option(CompileWithMPI "Use MPI" ON)
 if (CompileWithMPI)
 	message(STATUS "MPI libraries needed")
 	add_definitions(-DCompileWithMPI)
-	add_definitions(-DCompileWithGfortranMPIfix)
-	message(STATUS "MPI: At your own risk open MPI may not currently work or even compile with Gfortran.")
 	find_package(MPI REQUIRED COMPONENTS Fortran)
 	add_definitions(${MPI_Fortran_COMPILE_OPTIONS})
 	include_directories(${MPI_Fortran_INCLUDE_DIRS})
@@ -235,10 +238,10 @@ endif()
 
 add_definitions(		
 -DCompileWithInt2 
--DCompileWithReal4 
+-DCompileWithReal8
 -DxxCompileWithOpenMP 
 -DCompileWithACC
--DCompileWithProfiling
+-DxxCompileWithProfiling
 -DCompileWithAnisotropic 
 -DCompileWithEDispersives
 -DCompileWithNF2FF
