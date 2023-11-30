@@ -5,46 +5,36 @@ integer function test_mesh() result(error_cnt)
    implicit none
 
    type(mesh_t) :: mesh
+   logical :: found
 
-
-   integer :: stat
-   class(*), allocatable :: data
    error_cnt = 0
 
-
-   call mesh%coordinates%set(key(10), value=coordinate_t([0.0, 0.0, 0.0]))
-   call mesh%coordinates%set(key(11), value=coordinate_t([1.0, 0.0, 0.0]))
-   call mesh%coordinates%set(key(12), value=coordinate_t([2.0, 0.0, 0.0]))
-   call mesh%coordinates%set(key(13), value=coordinate_t([3.0, 0.0, 0.0]))
+   call mesh%addCoordinate(10, coordinate_t([0.0, 0.0, 0.0]))
+   call mesh%addCoordinate(11, coordinate_t([1.0, 0.0, 0.0]))
+   call mesh%addCoordinate(12, coordinate_t([2.0, 0.0, 0.0]))
+   call mesh%addCoordinate(13, coordinate_t([3.0, 0.0, 0.0]))
 
    block
-      type(node_t) :: expected = node_t(10), obtained
-      
-      call mesh%elements%set(key(1), value=expected)
+      type(node_t) :: expected, obtained      
+      expected%coordIds = [10]
+      call mesh%addElement(1, expected)
+      obtained = mesh%getNode(1, found)
+      if (.not. found) error_cnt = error_cnt + 1
+      if (any(obtained%coordIds /= expected%coordIds)) error_cnt = error_cnt + 1
+   end block
 
-      call mesh%elements%get_raw(key(1), data, stat)
-      select type(data)
-       type is (node_t)
-         obtained = data
-       class default
-         error_cnt = error_cnt + 1
-      end select
-      if (obtained%coordIds /= expected%coordIds) error_cnt = error_cnt + 1
+   block 
+      type(node_t) :: obtained
+      obtained = mesh%getNode(102, found)
+      if (found) error_cnt = error_cnt + 1
    end block
 
    block
       type(polyline_t) :: expected, obtained
       expected%coordIds = [11, 12, 13]
-
-      call mesh%elements%set(key(2), value=expected)
-      
-      call mesh%elements%get_raw(key(2), data, stat)
-      select type(data)
-       type is (polyline_t)
-         obtained = data
-       class default
-         error_cnt = error_cnt + 1
-      end select
+      call mesh%addElement(2, expected)
+      obtained = mesh%getPolyline(2, found)
+      if (.not. found) error_cnt = error_cnt + 1
       if (any(obtained%coordIds /= expected%coordIds)) error_cnt = error_cnt + 1
    end block
 
