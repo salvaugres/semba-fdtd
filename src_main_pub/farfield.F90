@@ -3553,7 +3553,7 @@ contains
    function average (pasadas,z1,z2) result (z)
       complex (KIND=CKIND) :: Z1,Z2,Z
       real  (KIND=RKIND) :: phi1,phi2,nphi1,nphi2
-      integer :: pasadas
+      integer(4) :: pasadas
       Z=(0.0_RKIND,0.0_RKIND)
       if (pasadas ==2 ) then !geometrica
          phi1=ATAN2(AIMAG(Z1),REAL(Z1))

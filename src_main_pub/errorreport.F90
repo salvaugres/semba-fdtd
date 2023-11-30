@@ -2276,24 +2276,25 @@ contains
       !!!                           MPI_CHARACTER, 'native', &
       !!!                           MPI_INFO_NULL, ierr)
       !!!#else
-666     inquire (unit=thefile8,exist=borratedeunaputavez1)
+!pgi    666     inquire (unit=thefile8,exist=borratedeunaputavez1)
         inquire (file=trim(adjustl(nombrefich))//trim(adjustl(whoamishort))//'_tmp' ,exist=borratedeunaputavez2)
-    if (borratedeunaputavez1) then
-        print *,' '//trim(adjustl(whoamishort))//' ','--> no hay cojones con inquire unidad ',thefile8
-        call sleep(2)
-!pgi        goto 666
-    endif
-        if (borratedeunaputavez2) then
+!pgi    if (borratedeunaputavez1) then
+!pgi         print *,' '//trim(adjustl(whoamishort))//' ','--> no hay cojones con inquire unidad ',thefile8
+!pgi         call sleep(2)
+!pgi         goto 666
+!pgi    endif
+      if (borratedeunaputavez2) then
         print *,' '//trim(adjustl(whoamishort))//' ','--> no hay cojones con inquire file fichero ',& 
                       trim(adjustl(nombrefich))//trim(adjustl(whoamishort))//'_tmp'
         call sleep(2)
-!pgi        goto 666
-    endif
+        goto 669
+      endif
       open (newunit=thefile8,file=trim(adjustl(nombrefich))//trim(adjustl(whoamishort))//'_tmp',err=767 )
-         goto 768
-767      print *,' '//trim(adjustl(whoamishort))//' ','--> no hay cojones con open definitivo unidad ',thefile8
-         call sleep(2)
-768     continue         
+      goto 768
+767   print *,' '//trim(adjustl(whoamishort))//' ','--> no hay cojones con open definitivo unidad ',thefile8
+      call sleep(2)
+      goto 669
+768   continue         
       !!!#endif
       return
    end function openfile_mpi
