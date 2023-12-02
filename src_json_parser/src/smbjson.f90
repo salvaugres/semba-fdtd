@@ -22,38 +22,51 @@ module smbjson
 
    integer, parameter :: J_ERROR_NUMBER = 1
    ! LABELS
-   ! -- shared labels
+   ! -- common labels
+   character (len=*), parameter :: J_NAME = "name"
+   character (len=*), parameter :: J_ID = "id"
+   character (len=*), parameter :: J_TYPE = "type"
+   
+   character (len=*), parameter :: J_DIR_X = "x"
+   character (len=*), parameter :: J_DIR_Y = "y"
+   character (len=*), parameter :: J_DIR_Z = "z"
+
+   ! -- materials
+   character (len=*), parameter :: J_MATERIALS = "materials"
+   character (len=*), parameter :: J_MAT_WIRE_RADIUS = "radius"
+   character (len=*), parameter :: J_MAT_WIRE_RESISTANCE = "resistancePerMeter"
+   character (len=*), parameter :: J_MAT_WIRE_INDUCTANCE = "inductancerPermeter"
+   character (len=*), parameter :: J_MAT_CONNECTOR_TYPE = "connectorType"
+   
+   ! -- cables -- thin wires
+   character (len=*), parameter :: J_CABLES = "cables"
+   character (len=*), parameter :: J_CAB_MAT_ID = "materialId"
+   character (len=*), parameter :: J_CAB_INI_CONN_ID = "initialConnectorId"
+   character (len=*), parameter :: J_CAB_END_CONN_ID = "endConnectorId"
+   
+   ! -- Mesh and geometry.
+   character (len=*), parameter :: J_MESH = "mesh"
+   
+   character (len=*), parameter :: J_COORDINATES = "coordinates"
+   character (len=*), parameter :: J_COORD_POS = "position"
+   character (len=*), parameter :: J_ELEMENTS = "elements"
+   character (len=*), parameter :: J_POLYLINES = "polylines"
+   character (len=*), parameter :: J_NODES = "nodes"
+   character (len=*), parameter :: J_ELEM_COORD_IDS = "coordinateIds"
+   
+   character (len=*), parameter :: J_ELEMENTIDS = "elementIds"
+   
    character (len=*), parameter :: J_VOXEL_REGION = "voxelRegion"
    character (len=*), parameter :: J_VOXELS = "voxels"
    character (len=*), parameter :: J_SURFELS = "surfels"
    character (len=*), parameter :: J_LINELS = "linels"
    character (len=*), parameter :: J_PIXELS = "pixels"
-   character (len=*), parameter :: J_ELEMENTIDS = "elementIds"
 
-   character (len=*), parameter :: J_DIR_X = "x"
-   character (len=*), parameter :: J_DIR_Y = "y"
-   character (len=*), parameter :: J_DIR_Z = "z"
-
-   character (len=*), parameter :: J_PROPERTIES = "properties"
-
-   character (len=*), parameter :: J_MATERIALS = "materials"
-   character (len=*), parameter :: J_CABLES = "cables"
-
+   
    ! type(NFDEGeneral)
    character (len=*), parameter :: J_GENERAL = "general"
    character (len=*), parameter :: J_TIME_STEP = "timeStep"
    character (len=*), parameter :: J_NUMBER_OF_STEPS = "numberOfSteps"
-
-   ! -- Mesh
-   character (len=*), parameter :: J_MESH = "mesh"
-   character (len=*), parameter :: J_COORDINATES = "coordinates"
-   character (len=*), parameter :: J_COORD_ID = "id"
-   character (len=*), parameter :: J_COORD_POS = "position"
-   character (len=*), parameter :: J_ELEMENTS = "elements"
-   character (len=*), parameter :: J_ELEM_ID = "id"
-   character (len=*), parameter :: J_ELEM_COORD_IDS = "coordinateIds"
-   character (len=*), parameter :: J_NODES = "nodes"
-   character (len=*), parameter :: J_POLYLINES = "polylines"
 
    ! type(Desplazamiento)
    character (len=*), parameter :: J_GRID = "grid"
@@ -650,7 +663,7 @@ contains
          call core%get(p, J_PR_TYPE, typeLabel)
 
          call getDomain(p, res)
-         if (typeLabel == J_PR_CURRENT .or. typeLabel == J_PR_VOLTAGE) then 
+         if (typeLabel == J_PR_CURRENT .or. typeLabel == J_PR_VOLTAGE) then
             cells = getCellsFromNodeElementIds(p, coordinateIds)
             allocate(res%cordinates(size(cells)))
             do i = 1, size(cells)
@@ -660,7 +673,7 @@ contains
                res%cordinates(i)%Zi = 0
                res%cordinates(i)%Or = strToProbeType(typeLabel)
             end do
-         else 
+         else
             cells = [ getCellsFromNodeElementIds(p), getSimpleCells(p, J_PIXELS) ]
             call core%get(p, J_PR_DIRECTIONS, dirLabels)
             allocate(res%cordinates(size(cells) * size(dirLabels)))
@@ -674,7 +687,7 @@ contains
                   res%cordinates(k+j)%Or = strToProbeType(typeLabel, dirLabels(j))
                end do
             end do
-   
+
          end if
 
       end function
@@ -786,17 +799,54 @@ contains
 
    function readThinWires() result (res)
       type(ThinWires) :: res
-      type(json_value), pointer :: mats
-      logical :: materialsFound
-
-      call core%get(root, J_MATERIALS, mats)
-      if (.not. materialsFound) then
+      type(json_value), pointer :: cables
+      type(fhash_tbl_t) :: idToJSONMat
+   
+      call core%get(root, J_CABLES, cables)
+      if (.not. cablesFound) then
          allocate(res%tw(0))
          res%n_tw = 0
          res%n_tw_max = 0
          return
       end if
 
+      idToJSONMat = createTableOfIdsToChilds(J_MATERIALS)
+
+      ! Allocates thin wires.
+      block
+         integer :: nTw = 0
+         integer :: mId
+         integer :: mStat
+         type(json_value), pointer :: cable, cableMat, initConn, endConn
+         do i = 1, core%count(cables)
+            call core%get_child(root, i, cable)
+            call core%get(cable, J_CAB_MAT_ID, mId)
+            call idToJSONMat%check_key(key(mId), mStat)
+            if (mStat /= 0) stop 'Cable instance contains invalid material id.'
+            
+         end do
+
+         allocate(res%tw(0))
+         res%n_tw = size(res%tw)
+         res%n_tw_max = size(res%tw)
+      end block
+   contains
+      function createTableOfIdsToChilds(path) result(res)
+         type(fhash_tbl_t) :: res
+         character (len=*), intent(in) :: path
+         type(json_value), pointer :: entries, entry
+         integer :: id
+         integer :: i
+         logical :: found
+
+         call core%get(root, path, entries, found)
+         if (.not. found) return
+         do i = 1, core%count(entries)
+            call core%get_child(entries, i, entry)
+            call core%get(entry, J_ID, id)
+            res%set(key(id), entry)
+         end do
+      end function
    end function
 
    function readSlantedWires() result (res)

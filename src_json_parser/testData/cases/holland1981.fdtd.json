@@ -20,20 +20,16 @@
         {
             "id": 1,
             "name": "wireMaterial",
-            "type": "thinWire",
-            "properties": { 
-                "radius": 0.02,
-                "resistancePerMeter": 0.0,
-                "inductancePerMeter": 0.0
-            } 
+            "type": "wire",
+            "radius": 0.02,
+            "resistancePerMeter": 0.0,
+            "inductancePerMeter": 0.0
         },
         {
             "id": 2,
-            "name": "connectorMaterial",
+            "name": "OpenConnectorMaterial",
             "type": "connector",
-            "properties": {
-                "type": "open"
-            }
+            "connectorType": "open"
         }
     ],
 
@@ -66,7 +62,8 @@
             "name": "cableInstance",
             "materialId": 1,
             "initialConnectorId": 2,
-            "endConnectorId": 2
+            "endConnectorId": 2,
+            "elementIds": [2]
         }
     ],
 

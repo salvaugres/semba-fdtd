@@ -1,0 +1,94 @@
+{
+	"_format": "Semba Data File in JSON format",
+	"_version": "0.16",
+
+	"model": {
+		"materials": [
+			{
+				"materialId": 1,
+				"name": "WireMaterial1",
+				"materialType": "Wire",
+				"wireType": "Standard",
+				"resistance": 0.0,
+				"inductance": 5.0988799357019e-07,
+				"capacitance": 2.18214602046301e-11
+			},
+			{
+				"materialId": 2,
+				"name": "Open",
+				"materialType": "Connector",
+				"connectorType": "Connector",
+				"connections" : "Conn_R",
+				"resistance":  1e10,
+				"inductance" :  0.0,
+				"capacitance":  1e22
+			}
+		],
+		"layers": [
+			{ "id": 1, "name": "WiresLayer" }
+		],
+		"coordinates": [
+			"1  0.0 0.0 0.0",
+			"2  0.0 0.0 3.0",
+			"3  0.0 0.0 0.0",
+			"4  0.0 0.0 3.0",
+			"5  0.0 0.0 1.5"
+		],
+		"elements": {
+			"_line_description": "elemId materialId layerId coordId1 coordId2",
+			"line": [
+				"1 0 1 1 2"
+			],
+			"_node_description": "elemId materialId layerId coordId",
+			"node": [
+				"3 0 1 5",
+				"4 0 1 1",
+				"5 0 1 2",
+				"6 0 1 1",
+				"7 0 1 2"
+			]
+		},
+		"probes": [
+			{
+				"name": "I",
+				"type": "current",
+				"elemIds": [3],
+				"cable" : "line_0"
+			}
+		],
+		"sources": [
+			{
+				"sourceType": "DistributedSource",
+				"type": "Planewave",
+				"elemIds": [4, 5],
+				"cable" : "line_0",
+                "conductor" : 0,
+				"magnitude": {
+					"type": "exp",
+					"amplitude": 1.0e6,
+					"t0": 5.0e-9
+				}
+            }
+
+        ],
+		"terminations" : [
+			{"name" : "t1", "coordIds": [[1]]},
+			{"name" : "t2", "coordIds": [[2]]}
+		],
+		"bundles": [
+			{
+				"name": "bundle_0", "nestedElemIds" : "1"
+			}
+		],
+		"cables": [
+			{
+				"name": "line_0",
+				"materialId": 1,
+				"initialConnectorId": 2,
+				"endConnectorId": 2,
+				"elemIds": [ 1 ],
+				"ndiv": 15
+			}
+		]
+	}
+}
