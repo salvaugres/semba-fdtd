@@ -1,7 +1,15 @@
 module mesh_mod
    use fhash, only: fhash_tbl_t, key=>fhash_key
 
-   type, public :: element_t
+   type :: Cell
+      real, dimension(3) :: v
+   end type Cell
+
+   type :: CellRegion
+      type(Cell), dimension(2) :: coords
+   end type CellRegion
+
+   type :: element_t
     integer, dimension(:), allocatable :: coordIds
    end type
 
@@ -15,7 +23,7 @@ module mesh_mod
       real, dimension(3) :: position
    end type
 
-   type, public :: mesh_t
+   type :: mesh_t
    private
       type(fhash_tbl_t) :: coordinates
       type(fhash_tbl_t) :: elements

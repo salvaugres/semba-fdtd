@@ -3,6 +3,7 @@ module smbjson
    use NFDETypes
 
    use NFDETypes_extension
+   use smbjson_labels_mod
    use mesh_mod
 
    use json_module
@@ -21,127 +22,19 @@ module smbjson
    private
 
    integer, parameter :: J_ERROR_NUMBER = 1
-   ! LABELS
-   ! -- common labels
-   character (len=*), parameter :: J_NAME = "name"
-   character (len=*), parameter :: J_ID = "id"
-   character (len=*), parameter :: J_TYPE = "type"
 
-   character (len=*), parameter :: J_DIR_X = "x"
-   character (len=*), parameter :: J_DIR_Y = "y"
-   character (len=*), parameter :: J_DIR_Z = "z"
+   ! ------
+   type :: IdChildTable_t
+      private
+      type(fhash_tbl_t) :: idToChilds
+   contains
+      procedure :: getId => idChildTable_getId
+   end type
 
-   ! -- materials
-   character (len=*), parameter :: J_MATERIALS = "materials"
-   character (len=*), parameter :: J_MAT_TYPE_WIRE = "wire"
-   character (len=*), parameter :: J_MAT_WIRE_RADIUS = "radius"
-   character (len=*), parameter :: J_MAT_WIRE_RESISTANCE = "resistancePerMeter"
-   character (len=*), parameter :: J_MAT_WIRE_INDUCTANCE = "inductancerPermeter"
-   character (len=*), parameter :: J_MAT_TYPE_CONNECTOR = "connector"
-   character (len=*), parameter :: J_MAT_CONNECTOR_TYPE = "connectorType"
-
-   ! -- cables -- thin wires
-   character (len=*), parameter :: J_CABLES = "cables"
-   character (len=*), parameter :: J_CAB_MAT_ID = "materialId"
-   character (len=*), parameter :: J_CAB_INI_CONN_ID = "initialConnectorId"
-   character (len=*), parameter :: J_CAB_END_CONN_ID = "endConnectorId"
-
-   ! -- Mesh and geometry.
-   character (len=*), parameter :: J_MESH = "mesh"
-
-   character (len=*), parameter :: J_COORDINATES = "coordinates"
-   character (len=*), parameter :: J_COORD_POS = "position"
-   character (len=*), parameter :: J_ELEMENTS = "elements"
-   character (len=*), parameter :: J_POLYLINES = "polylines"
-   character (len=*), parameter :: J_NODES = "nodes"
-   character (len=*), parameter :: J_ELEM_COORD_IDS = "coordinateIds"
-
-   character (len=*), parameter :: J_ELEMENTIDS = "elementIds"
-
-   character (len=*), parameter :: J_VOXEL_REGION = "voxelRegion"
-   character (len=*), parameter :: J_VOXELS = "voxels"
-   character (len=*), parameter :: J_SURFELS = "surfels"
-   character (len=*), parameter :: J_LINELS = "linels"
-   character (len=*), parameter :: J_PIXELS = "pixels"
-
-
-   ! type(NFDEGeneral)
-   character (len=*), parameter :: J_GENERAL = "general"
-   character (len=*), parameter :: J_TIME_STEP = "timeStep"
-   character (len=*), parameter :: J_NUMBER_OF_STEPS = "numberOfSteps"
-
-   ! type(Desplazamiento)
-   character (len=*), parameter :: J_GRID = "grid"
-   character (len=*), parameter :: J_NUMBER_OF_CELLS = "numberOfCells"
-   character (len=*), parameter :: J_STEPS = "steps"
-
-   ! type(Frontera)
-   character (len=*), parameter :: J_BOUNDARY = "boundary"
-   character (len=*), parameter :: J_BOUNDARY_TYPE = "type"
-   character (len=*), parameter :: J_BND_ALL = "all"
-   character (len=*), parameter :: J_BND_PEC = "pec"
-   character (len=*), parameter :: J_BND_PMC = "pmc"
-   character (len=*), parameter :: J_BND_PERIODIC = "periodic"
-   character (len=*), parameter :: J_BND_MUR = "mur"
-   character (len=*), parameter :: J_BND_PML = "pml"
-   character (len=*), parameter :: J_BND_PML_LAYERS = "layers"
-   character (len=*), parameter :: J_BND_PML_ORDER = "order"
-   character (len=*), parameter :: J_BND_PML_REFLECTION = "reflection"
-
-   ! -- source types
-   character (len=*), parameter :: J_SOURCES = "sources"
-   character (len=*), parameter :: J_SRC_MAGNITUDE_FILE = "magnitudeFile"
-   character (len=*), parameter :: J_SRC_TYPE = "type"
-   ! type(Planewave)
-   character (len=*), parameter :: J_PW_TYPE = "planewave"
-   character (len=*), parameter :: J_PW_ATTRIBUTE = "attribute"
-   character (len=*), parameter :: J_PW_DIRECTION = "direction"
-   character (len=*), parameter :: J_PW_DIRECTION_THETA = "theta"
-   character (len=*), parameter :: J_PW_DIRECTION_PHI = "phi"
-   character (len=*), parameter :: J_PW_POLARIZATION = "polarization"
-   character (len=*), parameter :: J_PW_POLARIZATION_ALPHA = "alpha"
-   character (len=*), parameter :: J_PW_POLARIZATION_BETA  = "beta"
-
-   ! --- probe types
-   character (len=*), parameter :: J_PROBES = "probes"
-   character (len=*), parameter :: J_PR_TYPE = "type"
-   character (len=*), parameter :: J_PR_OUTPUT_NAME = "outputName"
-   character (len=*), parameter :: J_PR_DIRECTIONS = "directions"
-
-   ! domain stuff
-   character (len=*), parameter :: J_PR_DOMAIN = "domain"
-   character (len=*), parameter :: J_PR_DOMAIN_FILENAME = "filename"
-   character (len=*), parameter :: J_PR_DOMAIN_TYPE = "type"
-   character (len=*), parameter :: J_PR_DOMAIN_TIME = "time"
-   character (len=*), parameter :: J_PR_DOMAIN_FREQ = "frequency"
-   character (len=*), parameter :: J_PR_DOMAIN_TRANSFER = "transfer"
-   character (len=*), parameter :: J_PR_DOMAIN_TIMEFREQ = "timeFrequency"
-   character (len=*), parameter :: J_PR_DOMAIN_TIMETRANSF = "timeTransfer"
-   character (len=*), parameter :: J_PR_DOMAIN_FREQTRANSF = "frequencyTransfer"
-   character (len=*), parameter :: J_PR_DOMAIN_TIMEFREQTRANSF = "all"
-   character (len=*), parameter :: J_PR_DOMAIN_TIME_START = "timeStart"
-   character (len=*), parameter :: J_PR_DOMAIN_TIME_STOP   = "timeEnd"
-   character (len=*), parameter :: J_PR_DOMAIN_TIME_STEP  = "timeStep"
-   character (len=*), parameter :: J_PR_DOMAIN_FREQ_START = "frequencyStart"
-   character (len=*), parameter :: J_PR_DOMAIN_FREQ_STOP   = "frequencyEnd"
-   character (len=*), parameter :: J_PR_DOMAIN_FREQ_STEP  = "frequencyStep"
-
-   ! type(Sonda)
-   character (len=*), parameter :: J_PR_FARFIELD = "farField"
-   ! type(MasSonda)
-   character (len=*), parameter :: J_PR_ELECTRIC = "electric"
-   character (len=*), parameter :: J_PR_MAGNETIC = "magnetic"
-   character (len=*), parameter :: J_PR_CURRENT = "current"
-   character (len=*), parameter :: J_PR_VOLTAGE = "voltage"
-
-   type, private :: Cell
-      real, dimension(3) :: v
-   end type Cell
-
-   type, private :: CellRegion
-      type(Cell), dimension(2) :: coords
-   end type CellRegion
-
+   interface IdChildTable_t
+      module procedure idChildTable_ctor
+   end interface
+   ! -------
    type, private :: json_value_ptr
       type(json_value), pointer :: p
    end type
@@ -150,6 +43,44 @@ module smbjson
    type(json_value), pointer :: root => null()
 
 contains
+
+   function idChildTable_ctor(path) result(res)
+      type(IdChildTable_t) :: res
+      character (len=*), intent(in) :: path
+      type(json_value), pointer :: jentries, jentry
+      integer :: id
+      integer :: i
+      logical :: found
+
+      call core%get(root, path, jentries, found)
+      if (.not. found) return
+      do i = 1, core%count(jentries)
+         call core%get_child(jentries, i, jentry)
+         call core%get(jentry, J_ID, id)
+         call res%idToChilds%set(key(id), json_value_ptr(jentry))
+      end do
+   end function
+
+   function idChildTable_getId(this, id) result(res)
+      class(IdChildTable_t) :: this
+      type(json_value), pointer :: res
+      integer, intent(in) :: id
+      integer :: mStat
+      class(*), allocatable :: d
+
+      nullify(res)
+      call this%idToChilds%check_key(key(id), mStat)
+      if (mStat /= 0) then
+         return
+      end if
+
+      call this%idToChilds%get_raw(key(id), d)
+      select type(d)
+       type is (json_value_ptr)
+         res = d%p
+      end select
+   end function
+
    function readProblemDescription(filename) result (res)
       character (len=*), intent(in) :: filename
       type(Parseador) :: res !! Problem Description
@@ -238,26 +169,6 @@ contains
             stop J_ERROR_NUMBER
          end if
          res%coords(i)%v(:) = vec(1:3)
-      end do
-   end function
-
-
-   function createTableOfIdsToChilds(path) result(res)
-      type(fhash_tbl_t) :: res
-      character (len=*), intent(in) :: path
-      type(json_value), pointer :: jentries, jentry
-      type(json_value_ptr) :: storedEntry
-      integer :: id
-      integer :: i
-      logical :: found
-
-      call core%get(root, path, jentries, found)
-      if (.not. found) return
-      do i = 1, core%count(jentries)
-         call core%get_child(jentries, i, jentry)
-         call core%get(jentry, J_ID, id)
-         storedEntry%p = jentry
-         call res%set(key(id), storedEntry)
       end do
    end function
 
@@ -822,7 +733,7 @@ contains
    function readThinWires() result (res)
       type(ThinWires) :: res
       type(json_value), pointer :: cables
-      type(fhash_tbl_t) :: mats
+      type(IdChildTable_t) :: mats
       logical :: cablesFound
 
       call core%get(root, J_CABLES, cables, found=cablesFound)
@@ -833,7 +744,7 @@ contains
          return
       end if
 
-      mats = createTableOfIdsToChilds(J_MATERIALS)
+      mats = IdChildTable_t(J_MATERIALS)
 
       ! Allocates thin wires.
       block
@@ -849,37 +760,30 @@ contains
          res%n_tw = size(res%tw)
          res%n_tw_max = size(res%tw)
       end block
+
    contains
       logical function isThinWire(cable, mats)
          type(json_value), pointer :: cable
-         type(fhash_tbl_t), intent(in) :: mats
-         isThinWire = &
-            getMatType(cable, mats, J_CAB_MAT_ID) == J_MAT_TYPE_WIRE .and. &
-            getMatType(cable, mats, J_CAB_INI_CONN_ID) == J_MAT_TYPE_CONNECTOR .and. &
-            getMatType(cable, mats, J_CAB_END_CONN_ID) == J_MAT_TYPE_CONNECTOR
-      end function
-
-      function getMatType(cable, mats, cablePlace) result(res)
-         type(json_value), pointer :: cable
-         type(json_value_ptr) :: mat
-         type(fhash_tbl_t), intent(in) :: mats
-         character (len=*), intent(in) :: cablePlace
+         type(IdChildTable_t), intent(in) :: mats
          integer :: mId
-         integer :: mStat
-         character (len=:), allocatable :: res
-         class(*), allocatable :: d
+         character (len=:), allocatable :: typeStr
 
-         call core%get(cable, cablePlace, mId)
-         call mats%check_key(key(mId), mStat)
-         if (mStat /= 0) return
-         call mats%get_raw(key(mId), d)
-         select type(d)
-         type is (json_value_ptr)
-            mat = d
-         end select
-         call core%get(mat%p, J_TYPE, res)
+         isThinWire = .false.
+
+         call core%get(cable, J_CAB_MAT_ID, mId)
+         call core%get(mats%getId(mId), J_TYPE, typeStr)
+         if (typeStr /= J_MAT_TYPE_WIRE) return
+         
+         call core%get(cable, J_CAB_INI_CONN_ID, mId)
+         call core%get(mats%getId(mId), J_TYPE, typeStr)
+         if (typeStr /= J_MAT_TYPE_CONNECTOR) return
+         
+         call core%get(cable, J_CAB_END_CONN_ID, mId)
+         call core%get(mats%getId(mId), J_TYPE, typeStr)
+         if (typeStr /= J_MAT_TYPE_CONNECTOR) return
+
+         isThinWire = .true.
       end function
-
    end function
 
    function readSlantedWires() result (res)

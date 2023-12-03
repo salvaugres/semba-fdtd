@@ -14,6 +14,7 @@ add_subdirectory(external/json-fortran)
 
 add_library(smbjson 
 	"src/smbjson.f90"
+	"src/smbjson_labels.f90"
 	"src/mesh.f90"
 	"src/nfdetypes_extension.f90" 
 )
