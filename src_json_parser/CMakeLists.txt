@@ -17,6 +17,7 @@ add_library(smbjson
 	"src/labels.f90"
 	"src/idchildtable.f90"
 	"src/mesh.f90"
+	"src/tools.f90"
 	"src/nfdetypes_extension.f90" 
 )
 
