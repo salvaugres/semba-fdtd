@@ -1,5 +1,5 @@
-module smbjson_labels_mod
-       ! LABELS
+module labels_mod
+   ! LABELS
    ! -- common labels
    character (len=*), parameter :: J_NAME = "name"
    character (len=*), parameter :: J_ID = "id"

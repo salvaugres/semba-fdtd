@@ -6,11 +6,13 @@ integer function test_read_holland1981() result(error_cnt)
 
    character(len=*),parameter :: filename = 'cases/holland1981.fdtd.json'
    type(Parseador) :: problem, expected
+   type(parser_t) :: parser
    logical :: areSame
    error_cnt = 0
 
    expected = expectedProblemDescription()
-   problem = readProblemDescription(filename)
+   parser = parser_t(filename)
+   problem = parser%readProblemDescription()
    call testEquality(error_cnt, expected, problem)
 
 contains
