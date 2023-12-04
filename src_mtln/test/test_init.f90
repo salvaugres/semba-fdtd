@@ -1,7 +1,14 @@
 integer function test_init() result(error_cnt)    
     use mtlnsolver
-    error_cnt = 1
-    res = sumone(error_cnt)
-    print*, error_cnt
-    print*, res
+
+    implicit none
+
+    character(len=*), parameter :: name = 'line0'
+
+    type(mtl) :: line
+    
+    line = mtl()
+    ! line%setTimeStep(10, 1e-3)
+
+
 end function
