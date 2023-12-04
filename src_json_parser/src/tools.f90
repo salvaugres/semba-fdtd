@@ -1,29 +1,19 @@
 module tools_mod
-
+   use labels_mod
    use mesh_mod
    use json_module
-   
+   use json_kinds
+
    use, intrinsic :: iso_fortran_env , only: error_unit
 
    implicit none
 
+   integer, private, parameter :: J_ERROR_NUMBER = 1
+
+   type :: json_value_ptr
+      type(json_value), pointer :: p
+   end type
 contains
-   subroutine getRealVec(core, place, path, dest)
-      type(json_core) :: core
-      type(json_value), pointer :: place
-      character(kind=CK, len=*) :: path
-      real (kind=RK), pointer :: dest(:)
-
-      real(RK), allocatable :: vec(:)
-      logical :: found = .false.
-
-      call core%get(place, path, vec, found)
-      if (found) then
-         allocate(dest(size(vec)))
-         dest = vec
-      endif
-   end subroutine
-
    function getCellRegion(core, place) result (res)
       type(json_core) :: core
       type(json_value), pointer :: place
@@ -53,7 +43,7 @@ contains
 
       integer :: i, n
       type(json_value), pointer :: cellsEntry, coordEntry
-      real (kind=RK), pointer :: vec(:)
+      real, dimension(:), allocatable :: vec
       logical :: cellsFound = .false.
 
       call core%get(place, path, cellsEntry, found=cellsFound)
@@ -64,7 +54,7 @@ contains
       allocate(res(core%count(cellsEntry)))
       do i = 1, core%count(cellsEntry)
          call core%get_child(cellsEntry, i, coordEntry)
-         call getRealVec(core, coordEntry, '.', vec)
+         call core%get(coordEntry, '.', vec)
          if (size(vec) /= 3) then
             stop "Cells are defined by a vector of size 3."
          end if
@@ -103,8 +93,8 @@ contains
       end do
    end function
 
-   function jsonValueFilterByKeyValues(this, srcs, key, values) result (out)
-      class(parser_t) :: this
+   function jsonValueFilterByKeyValues(core, srcs, key, values) result (out)
+      type(json_core) :: core
       type(json_value_ptr), allocatable :: out(:)
       type(json_value), pointer :: srcs
 
@@ -116,7 +106,7 @@ contains
 
       do i = 1, size(values)
          if (allocated(foundEntries)) deallocate(foundEntries)
-         foundEntries = jsonValueFilterByKeyValue(srcs, key, values(i))
+         foundEntries = jsonValueFilterByKeyValue(core, srcs, key, values(i))
          if (size(foundEntries) == 0) continue
          if (allocated(out)) then
             allocate(tmp(size(out)))
@@ -143,9 +133,9 @@ contains
       logical :: found
 
       n = 0
-      do i = 1, this%core%count(place)
-         call this%core%get_child(place, i, src)
-         call this%core%get(src, key, type, found)
+      do i = 1, core%count(place)
+         call core%get_child(place, i, src)
+         call core%get(src, key, type, found)
          if(found .and. type == value) then
             n = n + 1
          end if
@@ -153,9 +143,9 @@ contains
 
       allocate(out(n))
       j = 1
-      do i = 1, this%core%count(place)
-         call this%core%get_child(place, i, src)
-         call this%core%get(src, key, type, found)
+      do i = 1, core%count(place)
+         call core%get_child(place, i, src)
+         call core%get(src, key, type, found)
          if(found .and. type == value) then
             out(j)%p => src
             j = j + 1

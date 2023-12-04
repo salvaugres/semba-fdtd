@@ -30,6 +30,8 @@ module smbjson
       procedure :: readGrid
       procedure :: readBoundary
       procedure :: readPlanewaves
+      procedure :: readMoreProbes
+      procedure :: readThinWires
       !
       procedure :: readMesh
    end type
@@ -37,12 +39,6 @@ module smbjson
       module procedure parser_ctor
    end interface
 
-   private
-   integer, parameter :: J_ERROR_NUMBER = 1
-
-   type :: json_value_ptr
-      type(json_value), pointer :: p
-   end type
 contains
    function parser_ctor(filename) result(res)
       type(parser_t) :: res
@@ -163,24 +159,27 @@ contains
    ! function readMediaMatrix() result(res)
    !    type(MatrizMedios) :: res
    !    character (len=*), parameter :: P = J_MESH//'.'//J_GRID
-   !    call core%get(root, P//'.'//J_NUMBER_OF_CELLS//'(1)',res%totalX)
-   !    call core%get(root, P//'.'//J_NUMBER_OF_CELLS//'(2)',res%totalY)
-   !    call core%get(root, P//'.'//J_NUMBER_OF_CELLS//'(3)',res%totalZ)
+   !    call this%core%get(root, P//'.'//J_NUMBER_OF_CELLS//'(1)',res%totalX)
+   !    call this%core%get(root, P//'.'//J_NUMBER_OF_CELLS//'(2)',res%totalY)
+   !    call this%core%get(root, P//'.'//J_NUMBER_OF_CELLS//'(3)',res%totalZ)
    ! end function
 
    function readGrid(this) result (res)
       class(parser_t) :: this
       type(Desplazamiento) :: res
-
+      real, dimension(:), allocatable :: vec
       character (len=*), parameter :: P = J_MESH//'.'//J_GRID
 
       call this%core%get(this%root, P//'.'//J_NUMBER_OF_CELLS//'(1)',res%nX)
       call this%core%get(this%root, P//'.'//J_NUMBER_OF_CELLS//'(2)',res%nY)
       call this%core%get(this%root, P//'.'//J_NUMBER_OF_CELLS//'(3)',res%nZ)
 
-      call getRealVec(this%core, this%root, P//'.'//J_STEPS//'.x', res%desX)
-      call getRealVec(this%core, this%root, P//'.'//J_STEPS//'.y', res%desY)
-      call getRealVec(this%core, this%root, P//'.'//J_STEPS//'.z', res%desZ)
+      call this%core%get(this%root, P//'.'//J_STEPS//'.x', vec)
+      res%desX = vec
+      call this%core%get(this%root, P//'.'//J_STEPS//'.y', vec)
+      res%desY = vec
+      call this%core%get(this%root, P//'.'//J_STEPS//'.z', vec)
+      res%desZ = vec
    end function
 
    function readBoundary(this) result (res)
@@ -280,7 +279,7 @@ contains
       integer :: i
 
       call this%core%get(this%root, J_SOURCES, sources)
-      pws = this%jsonValueFilterByKeyValue(sources, J_SRC_TYPE, J_PW_TYPE)
+      pws = jsonValueFilterByKeyValue(this%core, sources, J_SRC_TYPE, J_PW_TYPE)
       allocate(res%collection(size(pws)))
       do i=1, size(pws)
          res%collection(i) = readPlanewave(pws(i)%p)
@@ -356,15 +355,15 @@ contains
          ! character(kind=CK,len=1), dimension(:), allocatable :: dirLabels
          ! type(Cell), dimension(:), allocatable :: cells
 
-         ! call core%get(p, J_PR_OUTPUT_NAME, tag)
+         ! call this%core%get(p, J_PR_OUTPUT_NAME, tag)
          ! res%outputrequest = trim(adjustl(tag))
 
-         ! call core%get(p, J_PR_TYPE, typeLabel)
+         ! call this%core%get(p, J_PR_TYPE, typeLabel)
 
          ! call getDomain(p, res)
 
          ! cells = getCells(p, J_PIXELS)
-         ! call core%get(p, J_PR_DIRECTIONS, dirLabels)
+         ! call this%core%get(p, J_PR_DIRECTIONS, dirLabels)
          ! allocate(res%cordinates(size(cells) * size(dirLabels)))
          ! do i = 1, size(cells)
          !    k = (i-1) * size(dirLabels)
@@ -388,8 +387,8 @@ contains
       character (len=*), dimension(4), parameter :: validTypes = &
          [J_PR_ELECTRIC, J_PR_MAGNETIC, J_PR_CURRENT, J_PR_VOLTAGE]
 
-      call core%get(root, J_PROBES, probes)
-      ps = jsonValueFilterByKeyValues(probes, J_PR_TYPE, validTypes)
+      call this%core%get(this%root, J_PROBES, probes)
+      ps = jsonValueFilterByKeyValues(this%core, probes, J_PR_TYPE, validTypes)
       allocate(res%collection(size(ps)))
       do i=1, size(ps)
          res%collection(i) = readProbe(ps(i)%p)
@@ -409,14 +408,14 @@ contains
          type(Cell), dimension(:), allocatable :: cells
          integer, dimension(:), allocatable :: coordinateIds
 
-         call core%get(p, J_PR_OUTPUT_NAME, outputName)
+         call this%core%get(p, J_PR_OUTPUT_NAME, outputName)
          res%outputrequest = trim(adjustl(outputName))
 
-         call core%get(p, J_PR_TYPE, typeLabel)
+         call this%core%get(p, J_PR_TYPE, typeLabel)
 
          call getDomain(p, res)
          if (typeLabel == J_PR_CURRENT .or. typeLabel == J_PR_VOLTAGE) then
-            cells = getCellsFromNodeElementIds(p, coordinateIds)
+            cells = getCellsFromNodeElementIds(this%core, this%mesh, p, coordinateIds)
             allocate(res%cordinates(size(cells)))
             do i = 1, size(cells)
                res%cordinates(i)%tag = ' '
@@ -426,8 +425,11 @@ contains
                res%cordinates(i)%Or = strToProbeType(typeLabel)
             end do
          else
-            cells = [ getCellsFromNodeElementIds(p), getSimpleCells(p, J_PIXELS) ]
-            call core%get(p, J_PR_DIRECTIONS, dirLabels)
+            cells = [ &
+               getCellsFromNodeElementIds(this%core, this%mesh, p), &
+               getSimpleCells(this%core, p, J_PIXELS) &
+            ]
+            call this%core%get(p, J_PR_DIRECTIONS, dirLabels)
             allocate(res%cordinates(size(cells) * size(dirLabels)))
             do i = 1, size(cells)
                k = (i-1) * size(dirLabels)
@@ -452,21 +454,21 @@ contains
          logical :: found
          real :: val
 
-         call core%get(p, J_PR_DOMAIN, domain)
+         call this%core%get(p, J_PR_DOMAIN, domain)
 
          res%type1 = NP_T1_PLAIN
 
-         call core%get(domain, J_PR_TYPE, domainType)
+         call this%core%get(domain, J_PR_TYPE, domainType)
          res%type2 = strToDomainType(domainType)
 
-         call core%get(domain, J_PR_DOMAIN_TIME_START, res%tstart, default=0.0)
-         call core%get(domain, J_PR_DOMAIN_TIME_STOP,  res%tstop,  default=0.0)
-         call core%get(domain, J_PR_DOMAIN_TIME_STEP,  res%tstep,  default=0.0)
-         call core%get(domain, J_PR_DOMAIN_FREQ_START, res%fstart, default=0.0)
-         call core%get(domain, J_PR_DOMAIN_FREQ_STOP,  res%fstop,  default=0.0)
-         call core%get(domain, J_PR_DOMAIN_FREQ_STEP,  res%fstep,  default=0.0)
+         call this%core%get(domain, J_PR_DOMAIN_TIME_START, res%tstart, default=0.0)
+         call this%core%get(domain, J_PR_DOMAIN_TIME_STOP,  res%tstop,  default=0.0)
+         call this%core%get(domain, J_PR_DOMAIN_TIME_STEP,  res%tstep,  default=0.0)
+         call this%core%get(domain, J_PR_DOMAIN_FREQ_START, res%fstart, default=0.0)
+         call this%core%get(domain, J_PR_DOMAIN_FREQ_STOP,  res%fstop,  default=0.0)
+         call this%core%get(domain, J_PR_DOMAIN_FREQ_STEP,  res%fstep,  default=0.0)
 
-         call core%get(domain, J_PR_DOMAIN_FILENAME, fn, found)
+         call this%core%get(domain, J_PR_DOMAIN_FILENAME, fn, found)
          if (found) then
             res%filename = trim(adjustl(fn))
          else
@@ -546,64 +548,63 @@ contains
    !    ! TODO
    ! end function
 
-   ! function readThinWires(this) result (res)
-   !    class(parser_t) :: this
-   !    type(ThinWires) :: res
-   !    type(json_value), pointer :: cables
-   !    type(IdChildTable_t) :: mats
-   !    logical :: cablesFound
+   function readThinWires(this) result (res)
+      class(parser_t) :: this
+      type(ThinWires) :: res
+      type(json_value), pointer :: cables
+      type(IdChildTable_t) :: mats
+      logical :: cablesFound
 
-   !    call core%get(root, J_CABLES, cables, found=cablesFound)
-   !    if (.not. cablesFound) then
-   !       allocate(res%tw(0))
-   !       res%n_tw = 0
-   !       res%n_tw_max = 0
-   !       return
-   !    end if
+      call this%core%get(this%root, J_CABLES, cables, found=cablesFound)
+      if (.not. cablesFound) then
+         allocate(res%tw(0))
+         res%n_tw = 0
+         res%n_tw_max = 0
+         return
+      end if
 
-   !    mats = IdChildTable_t(J_MATERIALS)
+      ! mats = IdChildTable_t(J_MATERIALS)
 
-   !    ! Allocates thin wires.
-   !    block
-   !       integer :: nTw = 0
-   !       integer :: i
-   !       type(json_value), pointer :: cable
-   !       do i = 1, core%count(cables)
-   !          call core%get_child(cables, i, cable)
-   !          if (isThinWire(cable, mats)) nTw = nTw+1
-   !       end do
+      ! Allocates thin wires.
+      block
+         integer :: nTw = 0
+         integer :: i
+         type(json_value), pointer :: cable
+         do i = 1, this%core%count(cables)
+            call this%core%get_child(cables, i, cable)
+            if (isThinWire(cable, mats)) nTw = nTw+1
+         end do
 
-   !       allocate(res%tw(nTw))
-   !       res%n_tw = size(res%tw)
-   !       res%n_tw_max = size(res%tw)
-   !    end block
+         allocate(res%tw(nTw))
+         res%n_tw = size(res%tw)
+         res%n_tw_max = size(res%tw)
+      end block
 
-   ! contains
-   !    logical function isThinWire(this, cable, mats)
-   !       class(parser_t) :: this
-   !       type(json_value), pointer :: cable, mat
-   !       type(IdChildTable_t), intent(in) :: mats
-   !       integer :: mId
-   !       character (len=:), allocatable :: typeStr
+   contains
+      logical function isThinWire(cable, mats)
+         type(json_value), pointer :: cable, mat
+         type(IdChildTable_t), intent(in) :: mats
+         integer :: mId
+         character (len=:), allocatable :: typeStr
 
-   !       isThinWire = .false.
+         isThinWire = .false.
 
-   !       call this%core%get(cable, J_CAB_MAT_ID, mId)
-   !       mat = mats%getId(mId)
-   !       call this%core%get(mat, J_TYPE, typeStr)
-   !       if (typeStr /= J_MAT_TYPE_WIRE) return
+         call this%core%get(cable, J_CAB_MAT_ID, mId)
+         mat = mats%getId(mId)
+         call this%core%get(mat, J_TYPE, typeStr)
+         if (typeStr /= J_MAT_TYPE_WIRE) return
 
-   !       call this%core%get(cable, J_CAB_INI_CONN_ID, mId)
-   !       call this%core%get(mats%getId(mId), J_TYPE, typeStr)
-   !       if (typeStr /= J_MAT_TYPE_CONNECTOR) return
+         call this%core%get(cable, J_CAB_INI_CONN_ID, mId)
+         call this%core%get(mats%getId(mId), J_TYPE, typeStr)
+         if (typeStr /= J_MAT_TYPE_CONNECTOR) return
 
-   !       call this%core%get(cable, J_CAB_END_CONN_ID, mId)
-   !       call this%core%get(mats%getId(mId), J_TYPE, typeStr)
-   !       if (typeStr /= J_MAT_TYPE_CONNECTOR) return
+         call this%core%get(cable, J_CAB_END_CONN_ID, mId)
+         call this%core%get(mats%getId(mId), J_TYPE, typeStr)
+         if (typeStr /= J_MAT_TYPE_CONNECTOR) return
 
-   !       isThinWire = .true.
-   !    end function
-   ! end function
+         isThinWire = .true.
+      end function
+   end function
 
    ! function readSlantedWires() result (res)
    !    type(SlantedWires) :: res
