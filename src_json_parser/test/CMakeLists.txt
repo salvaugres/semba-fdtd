@@ -30,7 +30,7 @@ function (add_fortran_test_executable TARGET)
     create_test_sourcelist (_ main.c ${TEST_FILES_MANGLED})
 
     add_library (${TARGET}_fortran ${TEST_FILES} "testingTools.f90")
-    target_link_libraries (${TARGET}_fortran smbjson fhash)
+    target_link_libraries (${TARGET}_fortran smbjson fhash jsonfortran)
     add_executable (${TARGET} main.c)
     target_link_libraries (${TARGET} ${TARGET}_fortran)
 
@@ -52,6 +52,7 @@ endfunction ()
 add_fortran_test_executable (smbjson_tests
     "test_fhash.f90"
     "test_mesh.f90"
+    "test_idchildtable.f90"
     "test_read_planewave.f90"
     "test_read_holland1981.f90"
 )

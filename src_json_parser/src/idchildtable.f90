@@ -2,24 +2,23 @@ module idchildtable_mod
    use json_module
    use fhash, only: fhash_tbl_t, key=>fhash_key
    use labels_mod
+   use tools_mod, only: json_value_ptr
 
    type :: IdChildTable_t
       private
       type(fhash_tbl_t) :: idToChilds
    contains
-      procedure :: getId => idChildTable_getId
+      procedure :: getId 
+      procedure :: count
    end type
 
    interface IdChildTable_t
-      module procedure idChildTable_ctor
+      module procedure ctor
    end interface
 
-   type, private :: json_value_ptr
-      type(json_value), pointer :: p
-   end type
 contains
 
-   function idChildTable_ctor(core, root, path) result(res)
+   function ctor(core, root, path) result(res)
       type(json_core) :: core
       type(json_value), pointer :: root
       type(IdChildTable_t) :: res
@@ -38,14 +37,19 @@ contains
       end do
    end function
 
-   function idChildTable_getId(this, id) result(res)
+   integer function count(this)
       class(IdChildTable_t) :: this
-      type(json_value), pointer :: res
+      call this%idToChilds%stats(num_items=count)
+   end function
+
+   function getId(this, id) result(res)
+      class(IdChildTable_t) :: this
+      type(json_value_ptr) :: res
       integer, intent(in) :: id
       integer :: mStat
       class(*), allocatable :: d
-
-      nullify(res)
+      
+      nullify(res%p)
       call this%idToChilds%check_key(key(id), mStat)
       if (mStat /= 0) then
          return
@@ -54,7 +58,7 @@ contains
       call this%idToChilds%get_raw(key(id), d)
       select type(d)
        type is (json_value_ptr)
-         res = d%p
+         res = d
       end select
    end function
 

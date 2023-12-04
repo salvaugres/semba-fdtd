@@ -28,8 +28,10 @@ module smbjson
       ! private
       procedure :: readGeneral
       procedure :: readGrid
+      procedure :: readMediaMatrix
       procedure :: readBoundary
       procedure :: readPlanewaves
+      procedure :: readProbes
       procedure :: readMoreProbes
       procedure :: readThinWires
       !
@@ -43,38 +45,37 @@ contains
    function parser_ctor(filename) result(res)
       type(parser_t) :: res
       character(len=*), intent(in) :: filename
-      
+
       res%filename = filename
-
-      call res%jsonfile%initialize()
-      if (res%jsonfile%failed()) then
-         call res%jsonfile%print_error_message(error_unit)
-         stop
-      end if
-
-      call res%jsonfile%load(filename = filename)
-      if (res%jsonfile%failed()) then
-         call res%jsonfile%print_error_message(error_unit)
-         stop
-      end if
-
-      call res%jsonfile%get_core(res%core)
-      call res%jsonfile%get('.', res%root)
-
    end function
 
    function readProblemDescription(this) result (res)
       class(parser_t) :: this
       type(Parseador) :: res !! Problem Description
-   
-      call initializeProblemDescription(res)
+
+      ! Initializes aux variables.
+      call this%jsonfile%initialize()
+      if (this%jsonfile%failed()) then
+         call this%jsonfile%print_error_message(error_unit)
+         stop
+      end if
+
+      call this%jsonfile%load(filename = this%filename)
+      if (this%jsonfile%failed()) then
+         call this%jsonfile%print_error_message(error_unit)
+         stop
+      end if
+
+      call this%jsonfile%get_core(this%core)
+      call this%jsonfile%get('.', this%root)
 
       this%mesh = this%readMesh()
 
+      call initializeProblemDescription(res)
 
       ! Basics
       res%general = this%readGeneral()
-      ! res%matriz = readMediaMatrix()
+      res%matriz = this%readMediaMatrix()
       res%despl = this%readGrid()
       res%front = this%readBoundary()
       ! Materials
@@ -90,7 +91,7 @@ contains
       res%plnSrc = this%readPlanewaves()
       ! res%nodSrc = this%readNodalSources()
       ! Probes
-      ! res%oldSonda = this%readProbes()
+      res%oldSonda = this%readProbes()
       res%sonda = this%readMoreProbes()
       ! res%BloquePrb = this%readBlockProbes()
       ! res%VolPrb = this%readVolumicProbes()
@@ -107,16 +108,18 @@ contains
       integer :: id, i
       real, dimension(:), allocatable :: pos
       type(coordinate_t) :: c
+      logical :: found
 
-      call this%core%get(this%root, J_MESH//'.'//J_COORDINATES, jcs)
-      do i = 1, this%core%count(jcs)
-         call this%core%get_child(jcs, i, jc)
-         call this%core%get(jc, J_ID, id)
-         call this%core%get(jc, J_COORD_POS, pos)
-         c%position = pos
-         call res%addCoordinate(id, c)
-      end do
-      
+      call this%core%get(this%root, J_MESH//'.'//J_COORDINATES, jcs, found=found)
+      if (found) then
+         do i = 1, this%core%count(jcs)
+            call this%core%get_child(jcs, i, jc)
+            call this%core%get(jc, J_ID, id)
+            call this%core%get(jc, J_COORD_POS, pos)
+            c%position = pos
+            call res%addCoordinate(id, c)
+         end do
+      end if
       call addElementsOfType(res, J_NODES)
       call addElementsOfType(res, J_POLYLINES)
 
@@ -156,13 +159,14 @@ contains
       call this%core%get(this%root, J_GENERAL//'.'//J_NUMBER_OF_STEPS, res%nmax)
    end function
 
-   ! function readMediaMatrix() result(res)
-   !    type(MatrizMedios) :: res
-   !    character (len=*), parameter :: P = J_MESH//'.'//J_GRID
-   !    call this%core%get(root, P//'.'//J_NUMBER_OF_CELLS//'(1)',res%totalX)
-   !    call this%core%get(root, P//'.'//J_NUMBER_OF_CELLS//'(2)',res%totalY)
-   !    call this%core%get(root, P//'.'//J_NUMBER_OF_CELLS//'(3)',res%totalZ)
-   ! end function
+   function readMediaMatrix(this) result(res)
+      class(parser_t) :: this
+      type(MatrizMedios) :: res
+      character (len=*), parameter :: P = J_MESH//'.'//J_GRID
+      call this%core%get(this%root, P//'.'//J_NUMBER_OF_CELLS//'(1)',res%totalX)
+      call this%core%get(this%root, P//'.'//J_NUMBER_OF_CELLS//'(2)',res%totalY)
+      call this%core%get(this%root, P//'.'//J_NUMBER_OF_CELLS//'(3)',res%totalZ)
+   end function
 
    function readGrid(this) result (res)
       class(parser_t) :: this
@@ -174,12 +178,22 @@ contains
       call this%core%get(this%root, P//'.'//J_NUMBER_OF_CELLS//'(2)',res%nY)
       call this%core%get(this%root, P//'.'//J_NUMBER_OF_CELLS//'(3)',res%nZ)
 
-      call this%core%get(this%root, P//'.'//J_STEPS//'.x', vec)
-      res%desX = vec
-      call this%core%get(this%root, P//'.'//J_STEPS//'.y', vec)
-      res%desY = vec
-      call this%core%get(this%root, P//'.'//J_STEPS//'.z', vec)
-      res%desZ = vec
+      call getRealVec(P//'.'//J_STEPS//'.x', res%desX)
+      call getRealVec(P//'.'//J_STEPS//'.y', res%desY)
+      call getRealVec(P//'.'//J_STEPS//'.z', res%desZ)
+   contains
+      subroutine getRealVec(path, dest)
+         character(kind=CK, len=*) :: path
+         real, dimension(:), pointer :: dest
+         real, dimension(:), allocatable :: vec
+         logical :: found = .false.
+
+         call this%core%get(this%root, path, vec, found)
+         if (found) then
+            allocate(dest(size(vec)))
+            dest = vec
+         endif
+      end subroutine
    end function
 
    function readBoundary(this) result (res)
@@ -428,7 +442,7 @@ contains
             cells = [ &
                getCellsFromNodeElementIds(this%core, this%mesh, p), &
                getSimpleCells(this%core, p, J_PIXELS) &
-            ]
+               ]
             call this%core%get(p, J_PR_DIRECTIONS, dirLabels)
             allocate(res%cordinates(size(cells) * size(dirLabels)))
             do i = 1, size(cells)
@@ -582,7 +596,8 @@ contains
 
    contains
       logical function isThinWire(cable, mats)
-         type(json_value), pointer :: cable, mat
+         type(json_value), pointer :: cable
+         type(json_value_ptr) :: mat
          type(IdChildTable_t), intent(in) :: mats
          integer :: mId
          character (len=:), allocatable :: typeStr
@@ -591,15 +606,17 @@ contains
 
          call this%core%get(cable, J_CAB_MAT_ID, mId)
          mat = mats%getId(mId)
-         call this%core%get(mat, J_TYPE, typeStr)
+         call this%core%get(mat%p, J_TYPE, typeStr)
          if (typeStr /= J_MAT_TYPE_WIRE) return
 
          call this%core%get(cable, J_CAB_INI_CONN_ID, mId)
-         call this%core%get(mats%getId(mId), J_TYPE, typeStr)
+         mat = mats%getId(mId)
+         call this%core%get(mat%p, J_TYPE, typeStr)
          if (typeStr /= J_MAT_TYPE_CONNECTOR) return
 
          call this%core%get(cable, J_CAB_END_CONN_ID, mId)
-         call this%core%get(mats%getId(mId), J_TYPE, typeStr)
+         mat = mats%getId(mId)
+         call this%core%get(mat%p, J_TYPE, typeStr)
          if (typeStr /= J_MAT_TYPE_CONNECTOR) return
 
          isThinWire = .true.
