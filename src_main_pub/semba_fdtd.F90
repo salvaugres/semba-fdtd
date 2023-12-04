@@ -357,10 +357,11 @@ PROGRAM SEMBA_FDTD_launcher
 !!!da preferencia a los switches por linea de comando
    CALL getcommandargument (l%chain2, 1, chaindummy, l%length, statuse)
 
-   l%chaininput=trim(adjustl(l%chain2))
+   l%chain2=trim(adjustl(l%chain2))
    chaindummy=trim(adjustl(chaindummy))
    l%length=len(trim(adjustl(chaindummy)))
-   l%chain2=trim(adjustl(chaindummy))//' '//trim(adjustl(sgg%extraswitches))//' '//trim(adjustl(l%chain2(l%length+1:)))
+   l%chain2=trim(adjustl(chaindummy))//' '//trim(adjustl(sgg%extraswitches))//' '//trim(adjustl(l%chain2(l%length+1:)))               
+   l%chaininput=trim(adjustl(l%chain2))
 !!!!
    
 

@@ -2034,7 +2034,13 @@ CONTAINS
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
    subroutine default_flags(l)   
 !!!!!!!!!!!!!        
-   type (entrada_t), intent(INOUT) :: l
+   type (entrada_t), intent(INOUT) :: l    
+      l%forced=-1
+      l%sgbcdepth=-1
+      l%statuse=0
+      l%time_begin=0
+      l%ficherohopf=''
+!
       l%hopf=.false.
       l%precision=0 !redondeo del semiestructurado
       l%stochastic=.false.
