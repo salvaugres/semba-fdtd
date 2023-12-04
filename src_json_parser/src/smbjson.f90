@@ -22,6 +22,7 @@ module smbjson
       type(json_core) :: core
       type(json_value), pointer :: root => null()
       type(mesh_t) :: mesh
+      type(IdChildTable_t) :: materials
    contains
       procedure :: readProblemDescription
 
@@ -36,6 +37,10 @@ module smbjson
       procedure :: readThinWires
       !
       procedure :: readMesh
+      !
+      procedure :: getIntAt
+      procedure :: getRealAt
+      procedure :: getStrAt
    end type
    interface parser_t
       module procedure parser_ctor
@@ -70,6 +75,7 @@ contains
       call this%jsonfile%get('.', this%root)
 
       this%mesh = this%readMesh()
+      this%materials = IdChildTable_t(this%core, this%root, J_MATERIALS)
 
       call initializeProblemDescription(res)
 
@@ -155,17 +161,17 @@ contains
    function readGeneral(this) result (res)
       class(parser_t) :: this
       type(NFDEGeneral) :: res
-      call this%core%get(this%root, J_GENERAL//'.'//J_TIME_STEP,       res%dt)
-      call this%core%get(this%root, J_GENERAL//'.'//J_NUMBER_OF_STEPS, res%nmax)
+      res%dt = this%getRealAt(this%root, J_GENERAL//'.'//J_TIME_STEP)
+      res%nmax = this%getRealAt(this%root, J_GENERAL//'.'//J_NUMBER_OF_STEPS)
    end function
 
    function readMediaMatrix(this) result(res)
       class(parser_t) :: this
       type(MatrizMedios) :: res
-      character (len=*), parameter :: P = J_MESH//'.'//J_GRID
-      call this%core%get(this%root, P//'.'//J_NUMBER_OF_CELLS//'(1)',res%totalX)
-      call this%core%get(this%root, P//'.'//J_NUMBER_OF_CELLS//'(2)',res%totalY)
-      call this%core%get(this%root, P//'.'//J_NUMBER_OF_CELLS//'(3)',res%totalZ)
+      character (len=*), parameter :: P = J_MESH//'.'//J_GRID//'.'//J_NUMBER_OF_CELLS
+      res%totalX = this%getIntAt(this%root, P//'(1)')
+      res%totalY = this%getIntAt(this%root, P//'(2)')
+      res%totalZ = this%getIntAt(this%root, P//'(3)')
    end function
 
    function readGrid(this) result (res)
@@ -174,9 +180,9 @@ contains
       real, dimension(:), allocatable :: vec
       character (len=*), parameter :: P = J_MESH//'.'//J_GRID
 
-      call this%core%get(this%root, P//'.'//J_NUMBER_OF_CELLS//'(1)',res%nX)
-      call this%core%get(this%root, P//'.'//J_NUMBER_OF_CELLS//'(2)',res%nY)
-      call this%core%get(this%root, P//'.'//J_NUMBER_OF_CELLS//'(3)',res%nZ)
+      res%nX = this%getIntAt(this%root, P//'.'//J_NUMBER_OF_CELLS//'(1)')
+      res%nY = this%getIntAt(this%root, P//'.'//J_NUMBER_OF_CELLS//'(2)')
+      res%nZ = this%getIntAt(this%root, P//'.'//J_NUMBER_OF_CELLS//'(3)')
 
       call getRealVec(P//'.'//J_STEPS//'.x', res%desX)
       call getRealVec(P//'.'//J_STEPS//'.y', res%desY)
@@ -213,17 +219,17 @@ contains
          ! TODO Check every bound.
       end if
    contains
-      function readPMLProperties(path) result(res)
+      function readPMLProperties(p) result(res)
          type(FronteraPML) :: res
-         character(len=*), intent(in) :: path
-         call this%core%get(this%root, path//'.'//J_BND_PML_LAYERS, res%numCapas, default=8)
-         call this%core%get(this%root, path//'.'//J_BND_PML_ORDER, res%orden, default=2.0)
-         call this%core%get(this%root, path//'.'//J_BND_PML_REFLECTION, res%refl, default=0.001)
+         character(len=*), intent(in) :: p
+         call this%core%get(this%root, p//'.'//J_BND_PML_LAYERS, res%numCapas, default=8)
+         call this%core%get(this%root, p//'.'//J_BND_PML_ORDER, res%orden, default=2.0)
+         call this%core%get(this%root, p//'.'//J_BND_PML_REFLECTION, res%refl, default=0.001)
       end function
 
       function labelToBoundaryType(str) result (type)
-         character(kind=json_CK, len=:), allocatable :: str
-         integer(kind=4) :: type
+         character(len=:), allocatable :: str
+         integer :: type
          select case (str)
           case (J_BND_PEC)
             type = F_PEC
@@ -310,8 +316,8 @@ contains
          type(CellRegion) :: region
          logical :: found
 
-         call this%core%get(pw, J_SRC_MAGNITUDE_FILE, label)
-         res%nombre_fichero = trim(adjustl(label))
+         res%nombre_fichero = trim(adjustl( &
+            this%getStrAt(pw,J_SRC_MAGNITUDE_FILE)))
 
          call this%core%get(pw, J_PW_ATTRIBUTE, label, found)
          if (found) then
@@ -565,8 +571,8 @@ contains
    function readThinWires(this) result (res)
       class(parser_t) :: this
       type(ThinWires) :: res
-      type(json_value), pointer :: cables
-      type(IdChildTable_t) :: mats
+      type(json_value), pointer :: cables, cable
+      integer :: i, j
       logical :: cablesFound
 
       call this%core%get(this%root, J_CABLES, cables, found=cablesFound)
@@ -577,16 +583,12 @@ contains
          return
       end if
 
-      ! mats = IdChildTable_t(J_MATERIALS)
-
       ! Allocates thin wires.
       block
          integer :: nTw = 0
-         integer :: i
-         type(json_value), pointer :: cable
          do i = 1, this%core%count(cables)
             call this%core%get_child(cables, i, cable)
-            if (isThinWire(cable, mats)) nTw = nTw+1
+            if (isThinWire(cable)) nTw = nTw+1
          end do
 
          allocate(res%tw(nTw))
@@ -594,30 +596,59 @@ contains
          res%n_tw_max = size(res%tw)
       end block
 
+      j = 1
+      do i = 1, this%core%count(cables)
+         call this%core%get_child(cables, i, cable)
+         if (isThinWire(cable)) then
+            res%tw(j) = readThinWire(cable)
+            j = j+1
+         end if
+      end do
+
    contains
-      logical function isThinWire(cable, mats)
+      function readThinWire(cable) result(res)
+         type(ThinWire) :: res
          type(json_value), pointer :: cable
          type(json_value_ptr) :: mat
-         type(IdChildTable_t), intent(in) :: mats
          integer :: mId
-         character (len=:), allocatable :: typeStr
+
+         mat = this%materials%getId(this%getIntAt(cable, J_CAB_MAT_ID))
+         select case (this%getStrAt(mat%p, J_TYPE))
+          case (J_MAT_TYPE_WIRE)
+            res%rad = this%getRealAt(mat%p, J_MAT_WIRE_RADIUS)
+            res%res = this%getRealAt(mat%p, J_MAT_WIRE_RESISTANCE)
+            res%ind = this%getRealAt(mat%p, J_MAT_WIRE_INDUCTANCE)
+         end select
+
+         mat = this%materials%getId(this%getIntAt(cable, J_CAB_INI_CONN_ID))
+         select case (this%getStrAt(mat%p, J_MAT_CONNECTOR_TYPE))
+         case (J_MAT_CONNECTOR_TYPE_OPEN)
+            res%tl = MATERIAL_CONS
+        end select
+
+        mat = this%materials%getId(this%getIntAt(cable, J_CAB_END_CONN_ID))
+         select case (this%getStrAt(mat%p, J_MAT_CONNECTOR_TYPE))
+         case (J_MAT_CONNECTOR_TYPE_OPEN)
+            res%tr = MATERIAL_CONS
+        end select
+
+        ! TODO read components
+      end function
+
+      logical function isThinWire(cable)
+         type(json_value), pointer :: cable
+         type(json_value_ptr) :: mat
 
          isThinWire = .false.
 
-         call this%core%get(cable, J_CAB_MAT_ID, mId)
-         mat = mats%getId(mId)
-         call this%core%get(mat%p, J_TYPE, typeStr)
-         if (typeStr /= J_MAT_TYPE_WIRE) return
+         mat = this%materials%getId(this%getIntAt(cable, J_CAB_MAT_ID))
+         if (this%getStrAt(mat%p, J_TYPE) /= J_MAT_TYPE_WIRE) return
 
-         call this%core%get(cable, J_CAB_INI_CONN_ID, mId)
-         mat = mats%getId(mId)
-         call this%core%get(mat%p, J_TYPE, typeStr)
-         if (typeStr /= J_MAT_TYPE_CONNECTOR) return
+         mat = this%materials%getId(this%getIntAt(cable, J_CAB_INI_CONN_ID))
+         if (this%getStrAt(mat%p, J_TYPE) /= J_MAT_TYPE_CONNECTOR) return
 
-         call this%core%get(cable, J_CAB_END_CONN_ID, mId)
-         mat = mats%getId(mId)
-         call this%core%get(mat%p, J_TYPE, typeStr)
-         if (typeStr /= J_MAT_TYPE_CONNECTOR) return
+         mat = this%materials%getId(this%getIntAt(cable, J_CAB_END_CONN_ID))
+         if (this%getStrAt(mat%p, J_TYPE) /= J_MAT_TYPE_CONNECTOR) return
 
          isThinWire = .true.
       end function
@@ -634,4 +665,28 @@ contains
    !    type(json_value), pointer :: root
    !    ! TODO
    ! end function
+
+   function getIntAt(this, place, entry) result(res)
+      integer :: res
+      class(parser_t) :: this
+      type(json_value), pointer :: place
+      character(len=*) :: entry
+      call this%core%get(place, entry, res)
+   end function
+
+   function getRealAt(this, place, entry) result(res)
+      real :: res
+      class(parser_t) :: this
+      type(json_value), pointer :: place
+      character(len=*) :: entry
+      call this%core%get(place, entry, res)
+   end function
+
+   function getStrAt(this, place, entry) result(res)
+      character (len=:), allocatable :: res
+      class(parser_t) :: this
+      type(json_value), pointer :: place
+      character(len=*) :: entry
+      call this%core%get(place, entry, res)
+   end function
 end module

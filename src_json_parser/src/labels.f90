@@ -12,11 +12,14 @@ module labels_mod
    ! -- materials
    character (len=*), parameter :: J_MATERIALS = "materials"
    character (len=*), parameter :: J_MAT_TYPE_WIRE = "wire"
+   character (len=*), parameter :: J_MAT_TYPE_CONNECTOR = "connector"
    character (len=*), parameter :: J_MAT_WIRE_RADIUS = "radius"
    character (len=*), parameter :: J_MAT_WIRE_RESISTANCE = "resistancePerMeter"
    character (len=*), parameter :: J_MAT_WIRE_INDUCTANCE = "inductancerPermeter"
-   character (len=*), parameter :: J_MAT_TYPE_CONNECTOR = "connector"
    character (len=*), parameter :: J_MAT_CONNECTOR_TYPE = "connectorType"
+   character (len=*), parameter :: J_MAT_CONNECTOR_TYPE_OPEN = "open"
+   character (len=*), parameter :: J_MAT_CONNECTOR_TYPE_SHORT = "short"
+   character (len=*), parameter :: J_MAT_CONNECTOR_TYPE_SERIES = "series"
 
    ! -- cables -- thin wires
    character (len=*), parameter :: J_CABLES = "cables"
