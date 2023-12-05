@@ -3759,21 +3759,26 @@ contains
        integer (KIND=INTEGERSIZEOFMEDIAMATRICES) :: sggMiE
       
    !primero los conformal 130220 %Is%split_and_useless
-       if ((sgg%Med(sggmiE)%Is%split_and_useless).and. &
+       if (sgg%Med(sggmiE)%Is%split_and_useless) then
+            if ( &
                 .not.(IsEnd_norLeft_norRight.or.Is_LeftEnd.or.Is_RightEnd)) then   !NO NO NO ES UN TERMINAL
                    call deembed_segment 
                    write (buff,'(a,6i9)') 'wir0_WARNING: YES de-embedding a NON-TERMINAL conformal split_and_useless WIRE segment: ', sggmiE, &
                             HWires%CurrentSegment(conta)%origIndex,HWires%CurrentSegment(conta)%i, &
                             HWires%CurrentSegment(conta)%j,HWires%CurrentSegment(conta)%k,HWires%CurrentSegment(conta)%tipofield
                    if ((k1 >= ZI).and.(k1 <= ZE)) call WarnErrReport(buff)
-        elseif ((sgg%Med(sggmiE)%Is%split_and_useless).and. &
+            endif
+       elseif (sgg%Med(sggmiE)%Is%split_and_useless) then
+            if ( &
                 (IsEnd_norLeft_norRight.or.Is_LeftEnd.or.Is_RightEnd)) then   !SI SI SI ES UN TERMINAL
                    call deembed_segment 
                    write (buff,'(a,6i9)') 'wir0_SEVEREWARNING: YES de-embedding a YES-TERMINAL WIRE SEGMENT IN A CONFORMAL split_and_useless SURFACE (): ', sggmiE, &
                            HWires%CurrentSegment(conta)%origIndex,HWires%CurrentSegment(conta)%i, &
                           HWires%CurrentSegment(conta)%j,HWires%CurrentSegment(conta)%k,HWires%CurrentSegment(conta)%tipofield
                    if ((k1 >= ZI).and.(k1 <= ZE)) call WarnErrReport(buff)
-        elseif ((sgg%Med(sggmiE)%Is%already_YEEadvanced_byconformal).and. &  !!!!!!!!!!!!already_YEEadvanced_byconformal
+            endif
+       elseif (sgg%Med(sggmiE)%Is%already_YEEadvanced_byconformal) then
+           if ( &  !!!!!!!!!!!!already_YEEadvanced_byconformal
                 .not.(IsEnd_norLeft_norRight.or.Is_LeftEnd.or.Is_RightEnd)) then   !NO NO NO ES UN TERMINAL                    
                 if (.not.fieldtotl) then
                          HWires%CurrentSegment(conta)%cte5 = sgg%dt /eps0 /(HWires%CurrentSegment(conta)%deltaTransv1*HWires%CurrentSegment(conta)%deltaTransv2)
@@ -3784,7 +3789,9 @@ contains
                                      HWires%CurrentSegment(conta)%origIndex,HWires%CurrentSegment(conta)%i, &
                                      HWires%CurrentSegment(conta)%j,HWires%CurrentSegment(conta)%k,HWires%CurrentSegment(conta)%tipofield
                    if ((k1 >= ZI).and.(k1 <= ZE)) call WarnErrReport(buff)
-        elseif ((sgg%Med(sggmiE)%Is%already_YEEadvanced_byconformal).and. &
+            endif
+       elseif (sgg%Med(sggmiE)%Is%already_YEEadvanced_byconformal) then
+           if (&
                 (IsEnd_norLeft_norRight.or.Is_LeftEnd.or.Is_RightEnd)) then  !SI SI SI ES UN TERMINAL                    
                 if (.not.fieldtotl) then
                          HWires%CurrentSegment(conta)%cte5 = sgg%dt /eps0 /(HWires%CurrentSegment(conta)%deltaTransv1*HWires%CurrentSegment(conta)%deltaTransv2)
@@ -3795,6 +3802,7 @@ contains
                                   HWires%CurrentSegment(conta)%origIndex,HWires%CurrentSegment(conta)%i, &
                                   HWires%CurrentSegment(conta)%j,HWires%CurrentSegment(conta)%k,HWires%CurrentSegment(conta)%tipofield
                    if ((k1 >= ZI).and.(k1 <= ZE)) call WarnErrReport(buff)
+                endif
         elseif ((sggmiE == 0).or.(sgg%med(sggmiE)%is%pec).or. &
             (abs(sgg%Med(sggmiE)%sigma) >= 1.0e-15_RKIND_wires).or.(abs(sgg%Med(sggmiE)%sigmam) >= 1.0e-15_RKIND_wires).or. &
             sgg%Med(sggmiE)%Is%Lossy ) then

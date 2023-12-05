@@ -106,7 +106,7 @@ CONTAINS
             i = 19 + campo
             WRITE (i, '(A)') '_______________________________________________________________________'
             WRITE (i,*) '!!!!!!** k=', k
-            WRITE (19+campo, '(A,400a)') 'I=  ', ('0123456789', i=sgg%Alloc(campo)%XI, sgg%Alloc(campo)%XE+10, 10)
+            WRITE (19+campo, '(A,400a)') 'I=  |', ('0123456789', i=sgg%Alloc(campo)%XI, sgg%Alloc(campo)%XE+10, 10)
             WRITE (19+campo, '(A)') 'J______________________________________________________________________'
             DO j = sgg%sweep(campo)%YE, sgg%sweep(campo)%YI, - 1
                SELECT CASE (campo)
