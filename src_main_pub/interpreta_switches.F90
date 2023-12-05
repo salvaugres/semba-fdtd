@@ -182,7 +182,7 @@ CONTAINS
 
   
 !!!
-   
+   l%input_conformal_flag=input_conformal_flag !ojooo 051223 es un flag global
    
    mpidirset=.false.
    existiarunningigual=.false.
@@ -193,7 +193,7 @@ CONTAINS
       call print_basic_help(l) 
       call stoponerror(l%layoutnumber,l%size,'Error: NO arguments neither command line nor in launch file. Correct and remove pause...',.true.)
       statuse=-1
-      !return
+      !goto 668
    END IF
    l%opcionestotales=''
    do i=2,n
@@ -201,7 +201,7 @@ CONTAINS
       IF (statuse /= 0) THEN
          CALL stoponerror (l%layoutnumber, l%size, 'Reading input',.true.)
           statuse=-1
-          !return
+          !goto 668
       END IF
       l%opcionestotales=trim(adjustl(l%opcionestotales))//' '//trim(adjustl(l%chain))
    end do
@@ -215,7 +215,7 @@ CONTAINS
          IF (statuse /= 0) THEN
             CALL stoponerror (l%layoutnumber, l%size, 'Reading input',.true.)
           statuse=-1
-          !return
+          !goto 668
          END IF
          SELECT CASE (trim(adjustl(l%chain)))   
           CASE ('-i')
@@ -245,7 +245,7 @@ CONTAINS
             GO TO 2762
 1762        CALL stoponerror (l%layoutnumber, l%size, 'Invalid or duplicate incoherent -l%mpidir option',.true.)
           statuse=-1
-          return
+          goto 668
 2762      CONTINUE
           if (.not.mpidirset) then
             l%opcionespararesumeo = trim (adjustl(l%opcionespararesumeo)) // ' ' // trim (adjustl(l%chain)) // ' ' // trim (adjustl(f))
@@ -261,11 +261,11 @@ CONTAINS
             GO TO 8312
 7312        CALL stoponerror (l%layoutnumber, l%size, 'Invalid pause time',.true.)
           statuse=-1
-          !return
+          !goto 668
 8312        IF (pausetime <= 0) THEN
                CALL stoponerror (l%layoutnumber, l%size, 'Invalid pause time',.true.)
           statuse=-1
-          !return
+          !goto 668
             END IF
             !
             l%pausar=.true.
@@ -299,7 +299,7 @@ CONTAINS
             !!!          GO TO 2012
             !!!1012      CALL stoponerror (l%layoutnumber, l%size, 'Invalid Number of maxmessages',.true.)
           !!!statuse=-1
-          !!!!return
+          !!!!goto 668
             !!!2012      CONTINUE
             !!!          l%opcionespararesumeo = trim (adjustl(l%opcionespararesumeo)) // ' ' // trim (adjustl(l%chain)) // ' ' // trim (adjustl(f))
           CASE ('-NF2FFDecim')
@@ -327,7 +327,7 @@ CONTAINS
             GO TO 2712
 1712        CALL stoponerror (l%layoutnumber, l%size, 'Invalid -noNF2FF option',.true.)
           statuse=-1
-          !return
+          !goto 668
 2712      CONTINUE
             !COMO LA RCS SE CALCULA SOLO AL FINAL NO OBLIGO A RESUMEAR CON IGUAL -NONFF2FF PARA PODER CALCULAR CON Y SIN ESTA OPCION resumeando
             !          l%opcionespararesumeo = trim (adjustl(l%opcionespararesumeo)) // ' ' // trim (adjustl(l%chain)) // ' ' // trim (adjustl(f))      
@@ -339,7 +339,7 @@ CONTAINS
             GO TO 312
 412         CALL stoponerror (l%layoutnumber, l%size, 'Invalid cut',.true.)
           statuse=-1
-          !return
+          !goto 668
 312         CONTINUE
             l%opcionespararesumeo = trim (adjustl(l%opcionespararesumeo)) // ' ' // trim (adjustl(l%chain)) // ' ' // trim (adjustl(f))
           CASE ('-singlefile')
@@ -386,11 +386,11 @@ CONTAINS
             GO TO 812
 712         CALL stoponerror (l%layoutnumber, l%size, 'Invalid CPU maximum time',.true.)
           statuse=-1
-          !return
+          !goto 668
 812         IF (l%maxCPUtime <= 0) THEN
                CALL stoponerror (l%layoutnumber, l%size, 'Invalid CPU maximum time',.true.)
           statuse=-1
-          !return
+          !goto 668
             END IF   
 
           CASE ('-s')
@@ -403,11 +403,11 @@ CONTAINS
             GO TO 400
 300         CALL stoponerror (l%layoutnumber, l%size, 'Invalid flushing interval',.true.)
           statuse=-1
-          !return
+          !goto 668
 400         IF (l%flushminutesFields <= 0) THEN
                CALL stoponerror (l%layoutnumber, l%size, 'Invalid flushing interval',.true.)
           statuse=-1
-          !return
+          !goto 668
             END IF
           CASE ('-flushdata')
             i = i + 1
@@ -417,11 +417,11 @@ CONTAINS
             GO TO 401
 301         CALL stoponerror (l%layoutnumber, l%size, 'Invalid flushing interval',.true.)
           statuse=-1
-          !return
+          !goto 668
 401         IF (l%flushminutesData <= 0) THEN
                CALL stoponerror (l%layoutnumber, l%size, 'Invalid flushing interval',.true.)
           statuse=-1
-          !return
+          !goto 668
             END IF   
           CASE ('-run')
             l%run = .TRUE.                
@@ -555,11 +555,11 @@ CONTAINS
             GO TO 8621
 7621        CALL stoponerror (l%layoutnumber, l%size, 'Invalid CPML alpha factor',.true.)
           statuse=-1
-          !return
+          !goto 668
 8621        IF (l%alphamaxpar < 0.0_RKIND) THEN
                CALL stoponerror (l%layoutnumber, l%size, 'Invalid CPML alpha factor',.true.)
           statuse=-1
-          !return
+          !goto 668
             END IF
             i = i + 1
             !          l%opcionespararesumeo = trim (adjustl(l%opcionespararesumeo)) // ' ' // trim (adjustl(l%chain))// ' ' // trim (adjustl(f))
@@ -569,11 +569,11 @@ CONTAINS
             GO TO 8121
 7121        CALL stoponerror (l%layoutnumber, l%size, 'Invalid CPML order factor',.true.)
           statuse=-1
-          !return
+          !goto 668
 8121        IF (l%alphaOrden < 0.0_RKIND) THEN
                CALL stoponerror (l%layoutnumber, l%size, 'Invalid CPML alpha factor',.true.)
           statuse=-1
-          !return
+          !goto 668
             END IF
             !          l%opcionespararesumeo = trim (adjustl(l%opcionespararesumeo)) // ' ' // trim (adjustl(l%chain))// ' ' // trim (adjustl(f))
           CASE ('-pmlkappa')
@@ -584,11 +584,11 @@ CONTAINS
             GO TO 8622
 7622        CALL stoponerror (l%layoutnumber, l%size, 'Invalid CPML kappa factor',.true.)
           statuse=-1
-          !return
+          !goto 668
 8622        IF (l%kappamaxpar < 1.0_RKIND) THEN
                CALL stoponerror (l%layoutnumber, l%size, 'Invalid CPML kappa factor',.true.)
           statuse=-1
-          !return
+          !goto 668
             END IF
             !          l%opcionespararesumeo = trim (adjustl(l%opcionespararesumeo)) // ' ' // trim (adjustl(l%chain))// ' ' // trim (adjustl(f))
           CASE ('-pmlcorr')
@@ -600,11 +600,11 @@ CONTAINS
             GO TO 8672
 7672        CALL stoponerror (l%layoutnumber, l%size, 'Invalid pmlcorr sigma factor',.true.)
           statuse=-1
-          !return
+          !goto 668
 8672        IF (l%MEDIOEXTRA%sigma < 0.0_RKIND) THEN
                CALL stoponerror (l%layoutnumber, l%size, 'Invalid pmlcorr sigma factor',.true.)
           statuse=-1
-          !return
+          !goto 668
             END IF
             l%MEDIOEXTRA%sigmam=-1.0_RKIND!voids it. later overriden
             !          l%opcionespararesumeo = trim (adjustl(l%opcionespararesumeo)) // ' ' // trim (adjustl(l%chain))// ' ' // trim (adjustl(f))
@@ -615,9 +615,9 @@ CONTAINS
             GO TO 8662
 7662        CALL stoponerror (l%layoutnumber, l%size, 'Invalid pmlcorr depth factor',.true.)
           statuse=-1
-          !return
+          !goto 668
 8662        IF (l%MEDIOEXTRA%size < 0) THEN
-               CALL stoponerror (l%layoutnumber, l%size, 'Invalid pmlcorr depth factor',.true.); statuse=-1; !return
+               CALL stoponerror (l%layoutnumber, l%size, 'Invalid pmlcorr depth factor',.true.); statuse=-1; !goto 668
             END IF
             !          l%opcionespararesumeo = trim (adjustl(l%opcionespararesumeo)) // ' ' // trim (adjustl(l%chain))// ' ' // trim (adjustl(f))
           CASE ('-attc')
@@ -626,9 +626,9 @@ CONTAINS
             ! Converts the characters to real
             READ (f,*, ERR=766) l%attfactorc
             GO TO 866
-766         CALL stoponerror (l%layoutnumber, l%size, 'Invalid dissipation factor',.true.); statuse=-1; !return
+766         CALL stoponerror (l%layoutnumber, l%size, 'Invalid dissipation factor',.true.); statuse=-1; !goto 668
 866         IF ((l%attfactorc <= -1.0_RKIND ).or.(l%attfactorc > 1.0_RKIND)) THEN
-               CALL stoponerror (l%layoutnumber, l%size, 'Invalid dissipation factor',.true.); statuse=-1; !return
+               CALL stoponerror (l%layoutnumber, l%size, 'Invalid dissipation factor',.true.); statuse=-1; !goto 668
             END IF
             l%opcionespararesumeo = trim (adjustl(l%opcionespararesumeo)) // ' ' // trim (adjustl(l%chain))// ' ' // trim (adjustl(f))
           CASE ('-sgbcdepth')
@@ -639,9 +639,9 @@ CONTAINS
             ! Converts the characters to real
             READ (f,*, ERR=7466) l%sgbcdepth
             GO TO 8466
-7466        CALL stoponerror (l%layoutnumber, l%size, 'Invalid sgbc depth ',.true.); statuse=-1; !return
+7466        CALL stoponerror (l%layoutnumber, l%size, 'Invalid sgbc depth ',.true.); statuse=-1; !goto 668
 8466        IF (l%sgbcdepth < -1 ) THEN
-               CALL stoponerror (l%layoutnumber, l%size, 'Invalid sgbc depth',.true.); statuse=-1; !return
+               CALL stoponerror (l%layoutnumber, l%size, 'Invalid sgbc depth',.true.); statuse=-1; !goto 668
             END IF
             l%opcionespararesumeo = trim (adjustl(l%opcionespararesumeo)) // ' ' // trim (adjustl(l%chain))// ' ' // trim (adjustl(f))
           CASE ('-sgbcfreq')
@@ -652,9 +652,9 @@ CONTAINS
             ! Converts the characters to real
             READ (f,*, ERR=74616) l%sgbcfreq
             GO TO 84616
-74616       CALL stoponerror (l%layoutnumber, l%size, 'Invalid sgbc freq ',.true.); statuse=-1; !return
+74616       CALL stoponerror (l%layoutnumber, l%size, 'Invalid sgbc freq ',.true.); statuse=-1; !goto 668
 84616       IF (l%sgbcfreq < 0. ) THEN
-            CALL stoponerror (l%layoutnumber, l%size, 'Invalid sgbc freq',.true.); statuse=-1; !return
+            CALL stoponerror (l%layoutnumber, l%size, 'Invalid sgbc freq',.true.); statuse=-1; !goto 668
             END IF
             l%opcionespararesumeo = trim (adjustl(l%opcionespararesumeo)) // ' ' // trim (adjustl(l%chain))// ' ' // trim (adjustl(f))
           CASE ('-sgbcresol')
@@ -665,9 +665,9 @@ CONTAINS
             ! Converts the characters to real
             READ (f,*, ERR=74626) l%sgbcresol
             GO TO 84626
-74626       CALL stoponerror (l%layoutnumber, l%size, 'Invalid sgbc decay ',.true.); statuse=-1; !return
+74626       CALL stoponerror (l%layoutnumber, l%size, 'Invalid sgbc decay ',.true.); statuse=-1; !goto 668
 84626       IF (l%sgbcresol < 0.0 ) THEN
-            CALL stoponerror (l%layoutnumber, l%size, 'Invalid sgbc decay',.true.); statuse=-1; !return
+            CALL stoponerror (l%layoutnumber, l%size, 'Invalid sgbc decay',.true.); statuse=-1; !goto 668
             END IF
             l%opcionespararesumeo = trim (adjustl(l%opcionespararesumeo)) // ' ' // trim (adjustl(l%chain))// ' ' // trim (adjustl(f))
           CASE ('-sgbcyee')
@@ -701,9 +701,9 @@ CONTAINS
             ! Converts the characters to real
             READ (f,*, ERR=732) l%attfactorw
             GO TO 832
-732         CALL stoponerror (l%layoutnumber, l%size, 'Invalid dissipation factor',.true.); statuse=-1; !return
+732         CALL stoponerror (l%layoutnumber, l%size, 'Invalid dissipation factor',.true.); statuse=-1; !goto 668
 832         IF ((l%attfactorw <= -1.0_RKIND ).or.(l%attfactorw > 1.0_RKIND)) THEN
-               CALL stoponerror (l%layoutnumber, l%size, 'Invalid dissipation factor',.true.); statuse=-1; !return
+               CALL stoponerror (l%layoutnumber, l%size, 'Invalid dissipation factor',.true.); statuse=-1; !goto 668
             END IF
             l%opcionespararesumeo = trim (adjustl(l%opcionespararesumeo)) // ' ' // trim (adjustl(l%chain))// ' ' // trim (adjustl(f))
           CASE ('-maxwireradius')
@@ -713,9 +713,9 @@ CONTAINS
             ! Converts the characters to real
             READ (f,*, ERR=737) l%maxwireradius
             GO TO 837
-737         CALL stoponerror (l%layoutnumber, l%size, 'Invalid dissipation factor',.true.); statuse=-1; !return
+737         CALL stoponerror (l%layoutnumber, l%size, 'Invalid dissipation factor',.true.); statuse=-1; !goto 668
 837         IF ((l%maxwireradius <= 0.0_RKIND )) THEN
-               CALL stoponerror (l%layoutnumber, l%size, 'Invalid maximumwireradius',.true.); statuse=-1; !return
+               CALL stoponerror (l%layoutnumber, l%size, 'Invalid maximumwireradius',.true.); statuse=-1; !goto 668
             END IF
             l%opcionespararesumeo = trim (adjustl(l%opcionespararesumeo)) // ' ' // trim (adjustl(l%chain))// ' ' // trim (adjustl(f))
           CASE ('-mindistwires')
@@ -724,9 +724,9 @@ CONTAINS
             ! Converts the characters to real
             READ (f,*, ERR=1732) l%mindistwires
             GO TO 1832
-1732        CALL stoponerror (l%layoutnumber, l%size, 'Invalid minimum distance between wires',.true.); statuse=-1; !return
+1732        CALL stoponerror (l%layoutnumber, l%size, 'Invalid minimum distance between wires',.true.); statuse=-1; !goto 668
 1832        IF (l%mindistwires <= 0.0_RKIND ) THEN
-               CALL stoponerror (l%layoutnumber, l%size, 'Invalid minimum distance between wires',.true.); statuse=-1; !return
+               CALL stoponerror (l%layoutnumber, l%size, 'Invalid minimum distance between wires',.true.); statuse=-1; !goto 668
             END IF
             l%opcionespararesumeo = trim (adjustl(l%opcionespararesumeo)) // ' ' // trim (adjustl(l%chain))// ' ' // trim (adjustl(f))
           CASE ('-makeholes')
@@ -769,9 +769,9 @@ CONTAINS
             ! Converts the characters to real
             READ (f,*, ERR=7416) l%wirethickness
             GO TO 8416
-7416        CALL stoponerror (l%layoutnumber, l%size, 'Invalid l%wirethickness ',.true.); statuse=-1; !return
+7416        CALL stoponerror (l%layoutnumber, l%size, 'Invalid l%wirethickness ',.true.); statuse=-1; !goto 668
 8416        IF (l%sgbcdepth < -1 ) THEN
-               CALL stoponerror (l%layoutnumber, l%size, 'Invalid l%wirethickness',.true.); statuse=-1; !return
+               CALL stoponerror (l%layoutnumber, l%size, 'Invalid l%wirethickness',.true.); statuse=-1; !goto 668
             END IF
             l%opcionespararesumeo = trim (adjustl(l%opcionespararesumeo)) // ' ' // trim (adjustl(l%chain))// ' ' // trim (adjustl(f))              
           CASE ('-wiresflavor')
@@ -798,14 +798,14 @@ CONTAINS
             ! Converts the characters to real
                 READ (f,*, ERR=2561) l%precision
                 GO TO 2562
-2561            CALL stoponerror (l%layoutnumber, l%size, 'Invalid l%precision for semistructured',.true.); statuse=-1; !return
+2561            CALL stoponerror (l%layoutnumber, l%size, 'Invalid l%precision for semistructured',.true.); statuse=-1; !goto 668
 2562            IF (l%precision < 0 ) THEN
-                    CALL stoponerror (l%layoutnumber, l%size, 'Invalid l%precision for semistructured',.true.); statuse=-1; !return
+                    CALL stoponerror (l%layoutnumber, l%size, 'Invalid l%precision for semistructured',.true.); statuse=-1; !goto 668
                 END IF
             !   
             end select   
             GO TO 4621
-3621        CALL stoponerror (l%layoutnumber, l%size, 'Invalid wires flavor',.true.); statuse=-1; !return
+3621        CALL stoponerror (l%layoutnumber, l%size, 'Invalid wires flavor',.true.); statuse=-1; !goto 668
 4621        IF ( ((trim(adjustl(l%wiresflavor)) /= 'holland')  .AND. &
                   (trim(adjustl(l%wiresflavor)) /= 'transition') .AND. &
                   (trim(adjustl(l%wiresflavor)) /= 'berenger') .AND.  &
@@ -816,13 +816,13 @@ CONTAINS
                   (trim(adjustl(l%wiresflavor)) == 'berenger') .xor.  &
                   (trim(adjustl(l%wiresflavor)) == 'slanted').xor.  &
                   (trim(adjustl(l%wiresflavor)) =='semistructured')) )  THEN
-               CALL stoponerror (l%layoutnumber, l%size, 'Invalid wires flavor->'//trim(adjustl(l%wiresflavor)),.true.); statuse=-1; !return
+               CALL stoponerror (l%layoutnumber, l%size, 'Invalid wires flavor->'//trim(adjustl(l%wiresflavor)),.true.); statuse=-1; !goto 668
             END IF    
 #ifndef CompileWithThickWires
             select case (trim(adjustl(l%wiresflavor)))
             case ('holland','transition')
                 if (l%wirethickness/=1) then
-                    CALL stoponerror (l%layoutnumber, l%size, 'Holland wire flavor not available in this compilation',.true.); statuse=-1; !return
+                    CALL stoponerror (l%layoutnumber, l%size, 'Holland wire flavor not available in this compilation',.true.); statuse=-1; !goto 668
                 endif
             end select   
 #endif    
@@ -830,7 +830,7 @@ CONTAINS
             select case (trim(adjustl(l%wiresflavor)))
             case ('holland')
                 if (l%wirethickness/=1) then
-                    CALL stoponerror (l%layoutnumber, l%size, 'Holland wire flavor thickness>1 requires recompiling',.true.); statuse=-1; !return
+                    CALL stoponerror (l%layoutnumber, l%size, 'Holland wire flavor thickness>1 requires recompiling',.true.); statuse=-1; !goto 668
                 endif
             end select   
 #endif
@@ -838,20 +838,20 @@ CONTAINS
             select case (trim(adjustl(l%wiresflavor)))
             case ('berenger','slanted','experimental','transition')   
                 if (l%wirethickness/=1) then
-                    CALL stoponerror (l%layoutnumber, l%size, 'Thickness>1 unsupported for this wireflavor',.true.); statuse=-1; !return
+                    CALL stoponerror (l%layoutnumber, l%size, 'Thickness>1 unsupported for this wireflavor',.true.); statuse=-1; !goto 668
                 endif    
             end select   
 #endif
 #ifndef CompileWithBerengerWires
             select case (trim(adjustl(l%wiresflavor)))
             case ('berenger')
-                CALL stoponerror (l%layoutnumber, l%size, 'Berenger wire flavor not available in this compilation',.true.); statuse=-1; !return
+                CALL stoponerror (l%layoutnumber, l%size, 'Berenger wire flavor not available in this compilation',.true.); statuse=-1; !goto 668
             end select   
 #endif
 #ifndef CompileWithSlantedWires
             select case (trim(adjustl(l%wiresflavor)))
             case ('slanted','experimental')
-                CALL stoponerror (l%layoutnumber, l%size, 'Experimental wire flavor not available in this compilation',.true.); statuse=-1; !return
+                CALL stoponerror (l%layoutnumber, l%size, 'Experimental wire flavor not available in this compilation',.true.); statuse=-1; !goto 668
             end select   
 #endif
           CASE ('-isolategroupgroups')
@@ -868,10 +868,10 @@ CONTAINS
             CALL getcommandargument (l%chaininput, i, f, l%length,  statuse)
             READ (f, '(a)', ERR=361) l%inductance_model
             GO TO 461
-361         CALL stoponerror (l%layoutnumber, l%size, 'Invalid inductance model',.true.); statuse=-1; !return
+361         CALL stoponerror (l%layoutnumber, l%size, 'Invalid inductance model',.true.); statuse=-1; !goto 668
 461         IF ((l%inductance_model /= 'ledfelt') .AND. (l%inductance_model /= 'berenger') .AND. &
             &    (l%inductance_model /= 'boutayeb')) THEN
-               CALL stoponerror (l%layoutnumber, l%size, 'Invalid inductance model',.true.); statuse=-1; !return
+               CALL stoponerror (l%layoutnumber, l%size, 'Invalid inductance model',.true.); statuse=-1; !goto 668
             END IF
             l%opcionespararesumeo = trim (adjustl(l%opcionespararesumeo)) // ' ' // trim (adjustl(l%chain)) // ' ' // trim (adjustl(f))
           CASE ('-inductanceorder')
@@ -879,7 +879,7 @@ CONTAINS
             CALL getcommandargument (l%chaininput, i, f, l%length,  statuse)
             READ (f,*, ERR=179) l%inductance_order
             GO TO 180
-179         CALL stoponerror (l%layoutnumber, l%size, 'Invalid inductance order',.true.); statuse=-1; !return
+179         CALL stoponerror (l%layoutnumber, l%size, 'Invalid inductance order',.true.); statuse=-1; !goto 668
 180         l%opcionespararesumeo = trim (adjustl(l%opcionespararesumeo)) // ' ' // trim (adjustl(l%chain)) // ' ' // trim (adjustl(f))
 #endif
           CASE ('-prefix')
@@ -893,10 +893,10 @@ CONTAINS
             ! Converts the characters to real
             READ (f,*, ERR=3762) l%cfltemp
             GO TO 3862
-3762        CALL stoponerror (l%layoutnumber, l%size, 'Invalid Courant Number',.true.); statuse=-1; !return
+3762        CALL stoponerror (l%layoutnumber, l%size, 'Invalid Courant Number',.true.); statuse=-1; !goto 668
 3862        IF (l%cfltemp <= 0.0 ) THEN
                call print11(l%layoutnumber,'------> Ignoring negative or null l%cfl Courant Number')
-!!!!!!!!!               CALL stoponerror (l%layoutnumber, l%size, 'Invalid negative or null l%cfl Courant Number',.true.); statuse=-1; !return !!!sgg 151216 para evitar el error l%cfl 0 del problem-type sigue como si no estuviera
+!!!!!!!!!               CALL stoponerror (l%layoutnumber, l%size, 'Invalid negative or null l%cfl Courant Number',.true.); statuse=-1; !goto 668 !!!sgg 151216 para evitar el error l%cfl 0 del problem-type sigue como si no estuviera
                l%forcecfl=.false.
             else
                l%cfl=l%cfltemp
@@ -944,12 +944,12 @@ CONTAINS
             l%opcionespararesumeo = trim (adjustl(l%opcionespararesumeo)) // ' ' // trim (adjustl(f))
             READ (f,*, ERR=33762) l%EpsMuTimeScale_input_parameters%alpha_max
             GO TO 33862
-33762       CALL stoponerror (l%layoutnumber, l%size, 'Invalid pscale parameters',.true.); statuse=-1; !return
+33762       CALL stoponerror (l%layoutnumber, l%size, 'Invalid pscale parameters',.true.); statuse=-1; !goto 668
 33862       continue
             IF (l%EpsMuTimeScale_input_parameters%checkError()/=0) THEN
                 CALL stoponerror (l%layoutnumber, l%size, &
    &'Invalid -pscale parameters: some parameters have to be greater than 0.0: -pscale t0(>=0) tend slope(>0)'&
-                  &,.true.); statuse=-1; !return
+                  &,.true.); statuse=-1; !goto 668
             else
                l%EpsMuTimeScale_input_parameters%are_there = .true.
             endif
@@ -961,9 +961,9 @@ CONTAINS
             ! Converts the characters to integer
             READ (f,*, ERR=602) l%finaltimestep
             GO TO 702
-602         CALL stoponerror (l%layoutnumber, l%size, 'Invalid time step',.true.); statuse=-1; !return
+602         CALL stoponerror (l%layoutnumber, l%size, 'Invalid time step',.true.); statuse=-1; !goto 668
 702         IF (l%finaltimestep < -2) THEN
-               CALL stoponerror (l%layoutnumber, l%size, 'Invalid time step',.true.); statuse=-1; !return
+               CALL stoponerror (l%layoutnumber, l%size, 'Invalid time step',.true.); statuse=-1; !goto 668
             END IF      
 !!!!!!     
           CASE ('-factorradius')
@@ -972,7 +972,7 @@ CONTAINS
             ! Converts the characters to integer
             READ (f,*, ERR=6032) l%factorradius
             GO TO 7032
-6032         CALL stoponerror (l%layoutnumber, l%size, 'Invalid l%factorradius',.true.); statuse=-1; !return
+6032         CALL stoponerror (l%layoutnumber, l%size, 'Invalid l%factorradius',.true.); statuse=-1; !goto 668
 7032         continue
           CASE ('-factordelta')
             i = i + 1
@@ -980,7 +980,7 @@ CONTAINS
             ! Converts the characters to integer
             READ (f,*, ERR=6072) l%factordelta
             GO TO 7072
-6072         CALL stoponerror (l%layoutnumber, l%size, 'Invalid l%factordelta',.true.); statuse=-1; !return
+6072         CALL stoponerror (l%layoutnumber, l%size, 'Invalid l%factordelta',.true.); statuse=-1; !goto 668
 7072         continue
 !!!!!!!!!!!!!
           CASE ('-stoch')
@@ -988,7 +988,7 @@ CONTAINS
             l%chosenyesornostochastic=.true.
             l%opcionespararesumeo = trim (adjustl(l%opcionespararesumeo)) // ' ' // trim (adjustl(l%chain))
 #ifndef CompileWithMPI
-            CALL stoponerror (l%layoutnumber, l%size, 'l%stochastic simulation unsupported without MPI compilation',.true.); statuse=-1; !return
+            CALL stoponerror (l%layoutnumber, l%size, 'l%stochastic simulation unsupported without MPI compilation',.true.); statuse=-1; !goto 668
 #endif
           CASE ('-nostoch')
             l%stochastic=.false.
@@ -999,7 +999,7 @@ CONTAINS
           CASE ('') !100615 para evitar el crlf del .sh
             continue
           CASE DEFAULT
-            CALL stoponerror (l%layoutnumber, l%size, 'Wrong switch '//trim(adjustl(l%chain)),.true.); statuse=-1; !return
+            CALL stoponerror (l%layoutnumber, l%size, 'Wrong switch '//trim(adjustl(l%chain)),.true.); statuse=-1; !goto 668
          END SELECT
          i = i + 1
       END DO
@@ -1020,42 +1020,42 @@ CONTAINS
 #endif
 
    IF (l%connectendings .AND. l%strictOLD) THEN
-      CALL stoponerror (l%layoutnumber, l%size, 'l%strictOLD option not compatible with -l%connectendings',.true.); statuse=-1; !return
+      CALL stoponerror (l%layoutnumber, l%size, 'l%strictOLD option not compatible with -l%connectendings',.true.); statuse=-1; !goto 668
    END IF
    IF (l%TAPARRABOS .AND. (.not.l%strictOLD)) THEN
-      CALL stoponerror (l%layoutnumber, l%size, '-nostrictOLD option requires -notaparrabos ',.true.); statuse=-1; !return
+      CALL stoponerror (l%layoutnumber, l%size, '-nostrictOLD option requires -notaparrabos ',.true.); statuse=-1; !goto 668
    END IF
    IF (l%isolategroupgroups .AND. l%strictOLD) THEN
-      CALL stoponerror (l%layoutnumber, l%size, '-intrawiresimplify option not compatible with -l%isolategroupgroups',.true.); statuse=-1; !return
+      CALL stoponerror (l%layoutnumber, l%size, '-intrawiresimplify option not compatible with -l%isolategroupgroups',.true.); statuse=-1; !goto 668
    END IF
 
    IF ((l%sgbc .AND. l%mibc)) THEN
-      CALL stoponerror (l%layoutnumber, l%size, 'Use only one of -sgbc -l%mibc',.true.); statuse=-1; !return
+      CALL stoponerror (l%layoutnumber, l%size, 'Use only one of -sgbc -l%mibc',.true.); statuse=-1; !goto 668
    END IF
    IF (l%freshstart .AND. l%resume) THEN
-      CALL stoponerror (l%layoutnumber, l%size, 'Fresh Start option -s not compatible with restarting -r',.true.); statuse=-1; !return
+      CALL stoponerror (l%layoutnumber, l%size, 'Fresh Start option -s not compatible with restarting -r',.true.); statuse=-1; !goto 668
    END IF
    IF (l%freshstart .AND. l%resume_fromold) THEN
-      CALL stoponerror (l%layoutnumber, l%size, 'Fresh Start option -s not compatible with -old',.true.); statuse=-1; !return
+      CALL stoponerror (l%layoutnumber, l%size, 'Fresh Start option -s not compatible with -old',.true.); statuse=-1; !goto 668
    END IF
    IF (( .NOT. l%resume).and.(.not.l%run) .AND. l%resume_fromold) THEN
-      CALL stoponerror (l%layoutnumber, l%size, 'l%resume option -r must be used if issuing -old',.true.); statuse=-1; !return
+      CALL stoponerror (l%layoutnumber, l%size, 'l%resume option -r must be used if issuing -old',.true.); statuse=-1; !goto 668
    END IF
    IF ((l%flushminutesFields /= 0) .AND. (l%deleteintermediates)) THEN
-      CALL stoponerror (l%layoutnumber, l%size, '-delete is not compatible with -flush',.true.); statuse=-1; !return
+      CALL stoponerror (l%layoutnumber, l%size, '-delete is not compatible with -flush',.true.); statuse=-1; !goto 668
    END IF
    if (l%run_with_abrezanjas.and.l%run_with_dmma) then
-      CALL stoponerror (l%layoutnumber, l%size, '-abrezanjas is not compatible with -dmma',.true.); statuse=-1; !return
+      CALL stoponerror (l%layoutnumber, l%size, '-abrezanjas is not compatible with -dmma',.true.); statuse=-1; !goto 668
    END IF
    if (l%stochastic.and.(trim(adjustl(l%wiresflavor))/='holland')) then
-      CALL stoponerror (l%layoutnumber, l%size, 'Old wires flavor is the only supported with l%stochastic',.true.); statuse=-1; !return
+      CALL stoponerror (l%layoutnumber, l%size, 'Old wires flavor is the only supported with l%stochastic',.true.); statuse=-1; !goto 668
    END IF
    if (l%stochastic.and.l%wirecrank) then
-      CALL stoponerror (l%layoutnumber, l%size, 'Wires Crank Nicolson is unsupported with l%stochastic',.true.); statuse=-1; !return
+      CALL stoponerror (l%layoutnumber, l%size, 'Wires Crank Nicolson is unsupported with l%stochastic',.true.); statuse=-1; !goto 668
    END IF
    !!!si esta soportado 170719
    !! if (l%permitscaling.and.l%resume) then
-   !!   CALL stoponerror (l%layoutnumber, l%size, 'Resuming with Permittivity scaling unsupported',.true.); statuse=-1; !return
+   !!   CALL stoponerror (l%layoutnumber, l%size, 'Resuming with Permittivity scaling unsupported',.true.); statuse=-1; !goto 668
    !!END IF
    if (l%permitscaling.and.(l%kappamaxpar.gt.1.000001_rkind)) then
    !!!061118 no lo permito porque cpml toca los idxe, idye, idze en funcion del kappa y permittivity scaling conflicta
@@ -1139,13 +1139,13 @@ CONTAINS
    END IF
    IF (l%resume) THEN
       IF ( .NOT. resume3) THEN
-         CALL stoponerror (l%layoutnumber, l%size, 'l%resume fields not present',.true.); statuse=-1; !return
+         CALL stoponerror (l%layoutnumber, l%size, 'l%resume fields not present',.true.); statuse=-1; !goto 668
       END IF
       WRITE (dubuf,*) 'RESUMING simulation ', trim (adjustl(l%nEntradaRoot)), ' until n= ', l%finaltimestep
       CALL print11 (l%layoutnumber, dubuf)
    ELSE
       IF (resume3 .AND. ( .NOT. l%freshstart).and.(.not.l%run)) THEN
-         CALL stoponerror (l%layoutnumber, l%size, 'Restarting file exists. Either specify -r to l%resume, -s to do a fresh START, or -run to run in whatever the case',.true.); statuse=-1; !return
+         CALL stoponerror (l%layoutnumber, l%size, 'Restarting file exists. Either specify -r to l%resume, -s to do a fresh START, or -run to run in whatever the case',.true.); statuse=-1; !goto 668
       ELSEIF (resume3.and.(l%run)) THEN
          l%resume=.true.
       ELSE
@@ -1162,23 +1162,23 @@ CONTAINS
 !
    if (((l%wiresflavor=='slanted').or.(l%wiresflavor=='semistructured')).AND.(l%mpidir/=3)) then
        continue !arreglado l%mpidir slanted 2019
-       !         CALL stoponerror (l%layoutnumber, l%size, 'slanted wires unsupported with -l%mpidir {x,y}',.true.); statuse=-1; !return
+       !         CALL stoponerror (l%layoutnumber, l%size, 'slanted wires unsupported with -l%mpidir {x,y}',.true.); statuse=-1; !goto 668
    endif
    if (l%input_conformal_flag.AND.(l%mpidir/=3)) then
         continue !arreglado l%mpidir conformal 2019
          !TODO: under test
          !26-sep-2018: lo comento 
-         !CALL stoponerror (l%layoutnumber, l%size, 'CONFORMAL -conf  unsupported with -l%mpidir {x,y}',.true.); statuse=-1; !return
+         !CALL stoponerror (l%layoutnumber, l%size, 'CONFORMAL -conf  unsupported with -l%mpidir {x,y}',.true.); statuse=-1; !goto 668
    endif
    if (l%run_with_abrezanjas.AND.(l%mpidir/=3)) then
         continue !arreglado l%mpidir conformal 2019
          !under test
          !26-sep-2018: lo comento 
-         !CALL stoponerror (l%layoutnumber, l%size, 'New abrezanjas thin gaps unsupported with -l%mpidir {x,y}',.true.); statuse=-1; !return
+         !CALL stoponerror (l%layoutnumber, l%size, 'New abrezanjas thin gaps unsupported with -l%mpidir {x,y}',.true.); statuse=-1; !goto 668
    endif
    if (l%run_with_abrezanjas.AND.l%flag_conf_sgg) then
       !pass Mayo-2018
-         !CALL stoponerror (l%layoutnumber, l%size, 'CONFORMAL -conf currently unsupported with new abrezanjas thin gaps (unsupported 2 simultaneous conformal meshes at this moment',.true.); statuse=-1; !return
+         !CALL stoponerror (l%layoutnumber, l%size, 'CONFORMAL -conf currently unsupported with new abrezanjas thin gaps (unsupported 2 simultaneous conformal meshes at this moment',.true.); statuse=-1; !goto 668
          !se hace en otro sitio
    endif
 
@@ -1285,7 +1285,7 @@ CONTAINS
          call removeintraspaces(l%opcionesoriginales)
          IF (trim(adjustl(l%opcionesoriginales)) /= trim(adjustl(l%opcionespararesumeo))) THEN
             CALL stoponerror (l%layoutnumber, l%size, 'Different resumed/original switches: '//trim(adjustl(l%opcionespararesumeo))//' <> '//&
-            & trim(adjustl(l%opcionesoriginales)),.true.); statuse=-1; !return
+            & trim(adjustl(l%opcionesoriginales)),.true.); statuse=-1; !goto 668
          END IF
          !
          !!!!!!!!!        CLOSE (11, status='delete')
@@ -1359,7 +1359,7 @@ CONTAINS
    l%flushsecondsData = l%flushminutesData * 60
    
    IF (( .NOT. l%existeNFDE) .AND. ( .NOT. l%existeh5)) THEN
-      CALL stoponerror (l%layoutnumber, l%size, 'Some input file missing .h5/.nfde/.conf',.true.); statuse=-1; !return
+      CALL stoponerror (l%layoutnumber, l%size, 'Some input file missing .h5/.nfde/.conf',.true.); statuse=-1; !goto 668
    END IF
    !
    !
@@ -1374,9 +1374,11 @@ CONTAINS
     if (existiarunningigual) then !lo pongo aqui pq si no no se escribe en el report
         CALL stoponerror (l%layoutnumber, l%size, 'Running flag file with same options than requested exist. ',.true.); statuse=-1;
     endif
-                           
-    
-    
+              
+       
+668 continue
+                 
+    input_conformal_flag=l%input_conformal_flag  !es un flag global!!!!ojooo 051223 !devolverlo correctamente
     return !el unico return que he dejado !240817
    
    end subroutine interpreta
@@ -2207,7 +2209,7 @@ CONTAINS
 
 !fin thin gaps
 
-
+      input_conformal_flag=l%input_conformal_flag    !ojooo 051223 es un flag globaaaallll
       return
    end subroutine default_flags
 

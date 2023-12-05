@@ -366,7 +366,6 @@ PROGRAM SEMBA_FDTD_launcher
    
 
    call interpreta(l,status )      
-   input_conformal_flag=l%input_conformal_flag  !es un flag global!!!!ojooo 051223
    sgg%nEntradaRoot=trim (adjustl(l%nEntradaRoot))
    
 #ifdef CompileWithXDMF   
