@@ -3769,10 +3769,10 @@ contains
         elseif ((sgg%Med(sggmiE)%Is%split_and_useless).and. &
                 (IsEnd_norLeft_norRight.or.Is_LeftEnd.or.Is_RightEnd)) then   !SI SI SI ES UN TERMINAL
                    call deembed_segment 
-                   write (buff,'(a,6i9)') 'wir0_SEVEREWARNING: YES de-embedding a YES-TERMINAL WIRE SEGMENT IN A CONFORMAL split_and_useless SURFACE (): ', sggmiE, &
+                   write (buff,'(a,6i9)') 'wir0_ERROR: YES-TERMINAL WIRE SEGMENT IN A CONFORMAL split_and_useless SURFACE (): ', sggmiE, &
                            HWires%CurrentSegment(conta)%origIndex,HWires%CurrentSegment(conta)%i, &
                           HWires%CurrentSegment(conta)%j,HWires%CurrentSegment(conta)%k,HWires%CurrentSegment(conta)%tipofield
-                   if ((k1 >= ZI).and.(k1 <= ZE)) call WarnErrReport(buff)
+                   if ((k1 >= ZI).and.(k1 <= ZE)) call WarnErrReport(buff,.true.)
         elseif ((sgg%Med(sggmiE)%Is%already_YEEadvanced_byconformal).and. &  !!!!!!!!!!!!already_YEEadvanced_byconformal
                 .not.(IsEnd_norLeft_norRight.or.Is_LeftEnd.or.Is_RightEnd)) then   !NO NO NO ES UN TERMINAL                    
                 if (.not.fieldtotl) then
@@ -5137,35 +5137,36 @@ subroutine resume_casuistics
       !the MPI exchange call will overwrite them with the correct ones coming from the adjacent layers
       !WARNING: MPI does not handle correctly PERIODIC MIRRORING !\E7 20sept11 in currents !to dooooooooo
 
-#ifdef CompileWithOpenMP
-!$OMP PARALLEL DO DEFAULT(SHARED)  private(Nodo)
-#endif
-      do n=1,HWires%NumChargeNodes
-         Nodo => HWires%ChargeNode(n)
-!!!!140220 pon a PEC los viejos notouch=already_YEEadvanced_byconformal_changedtoPECfield que tenga conectado un nodo
-         !debe ser lo primero que se hace para overridear el call conformal_advance_E
-         if (associated(nodo%already_YEEadvanced_byconformal_changedtoPECfield1)) then
-             nodo%already_YEEadvanced_byconformal_changedtoPECfield1=0.0_RKIND
-         endif
-         if (associated(nodo%already_YEEadvanced_byconformal_changedtoPECfield2)) then
-             nodo%already_YEEadvanced_byconformal_changedtoPECfield2=0.0_RKIND
-         endif
-         if (associated(nodo%already_YEEadvanced_byconformal_changedtoPECfield3)) then
-             nodo%already_YEEadvanced_byconformal_changedtoPECfield3=0.0_RKIND
-         endif
-         if (associated(nodo%already_YEEadvanced_byconformal_changedtoPECfield4)) then
-             nodo%already_YEEadvanced_byconformal_changedtoPECfield4=0.0_RKIND
-         endif
-         if (associated(nodo%already_YEEadvanced_byconformal_changedtoPECfield5)) then
-             nodo%already_YEEadvanced_byconformal_changedtoPECfield5=0.0_RKIND
-         endif
-         if (associated(nodo%already_YEEadvanced_byconformal_changedtoPECfield6)) then
-             nodo%already_YEEadvanced_byconformal_changedtoPECfield6=0.0_RKIND
-         endif
-      end do
-#ifdef CompileWithOpenMP
-!$OMP END PARALLEL DO
-#endif
+!!!!!!!!!!!!!!!051223 no pongo a cero los already_YEEadvanced_byconformal_changedtoPECfield !No son cero, sino lo que se updatee mas lo que se inyecte
+!!!#ifdef CompileWithOpenMP
+!!!!$OMP PARALLEL DO DEFAULT(SHARED)  private(Nodo)
+!!!#endif
+!!!      do n=1,HWires%NumChargeNodes
+!!!         Nodo => HWires%ChargeNode(n)
+!!!!!!!140220 pon a PEC los viejos notouch=already_YEEadvanced_byconformal_changedtoPECfield que tenga conectado un nodo
+!!!         !debe ser lo primero que se hace para overridear el call conformal_advance_E
+!!!         if (associated(nodo%already_YEEadvanced_byconformal_changedtoPECfield1)) then
+!!!             nodo%already_YEEadvanced_byconformal_changedtoPECfield1=0.0_RKIND
+!!!         endif
+!!!         if (associated(nodo%already_YEEadvanced_byconformal_changedtoPECfield2)) then
+!!!             nodo%already_YEEadvanced_byconformal_changedtoPECfield2=0.0_RKIND
+!!!         endif
+!!!         if (associated(nodo%already_YEEadvanced_byconformal_changedtoPECfield3)) then
+!!!             nodo%already_YEEadvanced_byconformal_changedtoPECfield3=0.0_RKIND
+!!!         endif
+!!!         if (associated(nodo%already_YEEadvanced_byconformal_changedtoPECfield4)) then
+!!!             nodo%already_YEEadvanced_byconformal_changedtoPECfield4=0.0_RKIND
+!!!         endif
+!!!         if (associated(nodo%already_YEEadvanced_byconformal_changedtoPECfield5)) then
+!!!             nodo%already_YEEadvanced_byconformal_changedtoPECfield5=0.0_RKIND
+!!!         endif
+!!!         if (associated(nodo%already_YEEadvanced_byconformal_changedtoPECfield6)) then
+!!!             nodo%already_YEEadvanced_byconformal_changedtoPECfield6=0.0_RKIND
+!!!         endif
+!!!      end do
+!!!#ifdef CompileWithOpenMP
+!!!!$OMP END PARALLEL DO
+!!!#endif
 !
 #ifdef CompileWithOpenMP
 !$OMP PARALLEL DO DEFAULT(SHARED)  private(Iplus,IMinus,Nodo)
