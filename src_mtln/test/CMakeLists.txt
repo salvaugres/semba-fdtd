@@ -28,7 +28,7 @@ function (add_fortran_test_executable TARGET)
 
     create_test_sourcelist (_ main.c ${TEST_FILES_MANGLED})
 
-    add_library (${TARGET}_fortran ${TEST_FILES})
+    add_library (${TARGET}_fortran ${TEST_FILES} "testingTools.f90")
     target_link_libraries (${TARGET}_fortran mtlnsolver)
     add_executable (${TARGET} main.c)
     target_link_libraries (${TARGET} ${TARGET}_fortran)
@@ -41,24 +41,22 @@ function (add_fortran_test_executable TARGET)
         add_test (
             NAME ${TEST_FILE}
             COMMAND $<TARGET_FILE:${TARGET}> ${TEST_FILE_MANGLED}
-            WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/src_mtln/testData/
+            WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/src_mtln/test/
         )
         math (EXPR INDEX "${INDEX} + 1")
     endwhile ()
 endfunction ()
 
 # ctest is sensible to extension. ONLY WORKS with ".f90" AND NOT with ".F90"
-add_fortran_test_executable (
-    test
+add_fortran_test_executable (mtlnsolver_tests
     "test_init.f90"
 )
 
 get_target_property(mtlnsolver_INCLUDES mtlnsolver INCLUDE_DIRECTORIES)
 
-include_directories    (test PRIVATE 
-    ${mtlnsolver_INCLUDES}
-)
+# include_directories    (test PRIVATE 
+#     ${mtlnsolver_INCLUDES}
+# )
 
-target_link_directories(test PRIVATE ${jsonfortran_LIBRARY_DIRS})
-target_link_libraries  (test mtlnsolver)
+target_link_libraries  (mtlnsolver_tests mtlnsolver)
 

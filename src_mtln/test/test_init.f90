@@ -1,14 +1,28 @@
 integer function test_init() result(error_cnt)    
-    use mtlnsolver
-
+    use mtlnsolver_mod
+    use testingTools_mod
     implicit none
 
     character(len=*), parameter :: name = 'line0'
+    integer :: i,j
 
-    type(mtl) :: line
     
-    line = mtl()
-    ! line%setTimeStep(10, 1e-3)
+    real,dimension(2,2) :: lpul = reshape( source = [ 1e-6,1e-7, 1e-7, 1e-6 ], shape = [ 2,2 ] )
+    real,dimension(2,2) :: cpul = reshape( source = [ 1e-12, -1e-13, -1e-13, 1e-12 ], shape = [ 2,2 ] )
+    real,dimension(2,2) :: rpul = reshape( source = [ 0.0, 0.0, 0.0,0.0 ], shape = [ 2,2 ] )
+    real,dimension(2,2) :: gpul = reshape( source = [ 0.0, 0.0, 0.0,0.0 ], shape = [ 2,2 ] )
+    real, dimension(2,3) :: node_positions = reshape( source = [ 0.0, 0.0, 0.0, 100.0, 0.0, 0.0], shape = [2,3], order=(/2,1/) )
+    integer, dimension(1) :: ndiv = (/5/)
+    type(mtl_t) :: line 
+    
+    
+    error_cnt = 0
+    line = mtl_t(lpul, cpul, rpul, gpul, node_positions, ndiv, name)
+    call comparePULMatrices(error_cnt, line%lpul, lpul)
+    call comparePULMatrices(error_cnt, line%cpul, cpul)
+    call comparePULMatrices(error_cnt, line%rpul, rpul)
+    call comparePULMatrices(error_cnt, line%gpul, gpul)
+    
 
 
 end function

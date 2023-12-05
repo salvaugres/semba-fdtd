@@ -84,6 +84,12 @@ else()
 	message(STATUS "MPI libraries NOT needed.")
 endif()
 
+option (CompileWithMTLN "Use MTLN modules" ON)
+if (CompileWithMTLN)
+	message(STATUS "Compiling MTLN solver")
+	add_subdirectory(src_mtln)
+endif()
+
 add_definitions(		
 -DCompileWithInt2 
 -DCompileWithReal4 
