@@ -96,16 +96,23 @@ contains
       ! Expected thin wires
       allocate(expected%tWires%tw(1))
       expected%tWires%tw(1)%rad=0.02
+      expected%tWires%tw(1)%dispfile = trim(adjustl(" "))
+      expected%tWires%tw(1)%dispfile_LeftEnd = trim(adjustl(" "))
+      expected%tWires%tw(1)%dispfile_RightEnd = trim(adjustl(" "))
+      
       expected%tWires%tw(1)%n_twc=10
       expected%tWires%tw(1)%n_twc_max=10
       allocate(expected%tWires%tw(1)%twc(10))
-      expected%tWires%tw(1)%twc(1:10)%i = 11
-      expected%tWires%tw(1)%twc(1:10)%j = 11
-      expected%tWires%tw(1)%twc(1:10)%k = [(i, i=7, 16)]
-      ! expected%tWires%tw(1)%twc(1:10)%d = 
+      expected%tWires%tw(1)%twc(1:10)%i = 12
+      expected%tWires%tw(1)%twc(1:10)%j = 12
+      expected%tWires%tw(1)%twc(1:10)%k = [(i, i=8, 17)]
       expected%tWires%tw(1)%twc(1)%tag = "1" 
       expected%tWires%tw(1)%twc(6)%tag = "2"
       expected%tWires%tw(1)%twc(10)%tag = "3"
+      
+      expected%tWires%tw(1)%tl = MATERIAL_CONS
+      expected%tWires%tw(1)%tr = MATERIAL_CONS
+      
       expected%tWires%n_tw = 1
       expected%tWires%n_tw_max = 1
    end function

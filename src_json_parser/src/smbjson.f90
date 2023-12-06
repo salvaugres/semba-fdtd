@@ -631,6 +631,7 @@ contains
                call this%core%get(mat%p,J_MAT_WIRE_RADIUS, res%rad, default = 0.0)
                call this%core%get(mat%p,J_MAT_WIRE_RESISTANCE, res%res, default = 0.0)
                call this%core%get(mat%p,J_MAT_WIRE_INDUCTANCE, res%ind, default = 0.0)
+               res%dispfile = trim(adjustl(" "))
             end select
          end block
 
@@ -643,6 +644,7 @@ contains
             res%R_LeftEnd = conn%r
             res%L_LeftEnd = conn%l
             res%C_LeftEnd = conn%c
+            res%dispfile_LeftEnd = trim(adjustl(" "))
          end block
 
          block
@@ -654,6 +656,7 @@ contains
             res%R_RightEnd = conn%r
             res%L_RightEnd = conn%l
             res%C_RightEnd = conn%c
+            res%dispfile_RightEnd = trim(adjustl(" "))
          end block
 
          block
@@ -683,11 +686,7 @@ contains
                res%twc(i)%k = linels(i)%v(3)
                res%twc(i)%tag = linels(i)%tag
             end do
-
          end block
-
-
-
       end function
 
       function readConnectorMaterial(mat) result(res)
@@ -708,7 +707,7 @@ contains
           case (J_MAT_CONNECTOR_TYPE_SERIES)
             res = SERIES_CONS
           case (J_MAT_CONNECTOR_TYPE_SHORT)
-            res = SERIES_CONS !! TODO Check this.
+            res = MATERIAL_CONS 
          end select
       end function
 
