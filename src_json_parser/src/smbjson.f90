@@ -41,11 +41,17 @@ module smbjson
       procedure :: getIntAt
       procedure :: getRealAt
       procedure :: getStrAt
+      procedure :: contains
    end type
    interface parser_t
       module procedure parser_ctor
    end interface
 
+
+   type, private :: connector_t
+      integer :: connectorType
+      real :: r, l, c
+   end type
 contains
    function parser_ctor(filename) result(res)
       type(parser_t) :: res
@@ -222,9 +228,9 @@ contains
       function readPMLProperties(p) result(res)
          type(FronteraPML) :: res
          character(len=*), intent(in) :: p
-         call this%core%get(this%root, p//'.'//J_BND_PML_LAYERS, res%numCapas, default=8)
-         call this%core%get(this%root, p//'.'//J_BND_PML_ORDER, res%orden, default=2.0)
-         call this%core%get(this%root, p//'.'//J_BND_PML_REFLECTION, res%refl, default=0.001)
+         call this%core%get(this%root, p//'.'//J_BND_PML_LAYERS,     res%numCapas, default=8)
+         call this%core%get(this%root, p//'.'//J_BND_PML_ORDER,      res%orden,    default=2.0)
+         call this%core%get(this%root, p//'.'//J_BND_PML_REFLECTION, res%refl,     default=0.001)
       end function
 
       function labelToBoundaryType(str) result (type)
@@ -608,47 +614,96 @@ contains
    contains
       function readThinWire(cable) result(res)
          type(ThinWire) :: res
-         type(json_value), pointer :: cable
-         type(json_value_ptr) :: mat
-         integer :: mId
+         type(json_value), pointer, intent(in) :: cable
 
-         mat = this%materials%getId(this%getIntAt(cable, J_CAB_MAT_ID))
-         select case (this%getStrAt(mat%p, J_TYPE))
-          case (J_MAT_TYPE_WIRE)
-            res%rad = this%getRealAt(mat%p, J_MAT_WIRE_RADIUS)
-            res%res = this%getRealAt(mat%p, J_MAT_WIRE_RESISTANCE)
-            res%ind = this%getRealAt(mat%p, J_MAT_WIRE_INDUCTANCE)
+         block
+            type(json_value_ptr) :: mat
+            mat = this%materials%getId(this%getIntAt(cable, J_CAB_MAT_ID))
+            select case (this%getStrAt(mat%p, J_TYPE))
+             case (J_MAT_TYPE_WIRE)
+               call this%core%get(mat%p,J_MAT_WIRE_RADIUS, res%rad, default = 0.0)
+               call this%core%get(mat%p,J_MAT_WIRE_RESISTANCE, res%res, default = 0.0)
+               call this%core%get(mat%p,J_MAT_WIRE_INDUCTANCE, res%ind, default = 0.0)
+            end select
+         end block
+
+         block
+            type(json_value_ptr) :: mat
+            type(connector_t) :: connector
+            mat = this%materials%getId(this%getIntAt(cable, J_CAB_INI_CONN_ID))
+            connector = readConnector(mat%p)
+            res%tl = connector%connectorType
+            res%R_LeftEnd = connector%r
+            res%L_LeftEnd = connector%l
+            res%C_LeftEnd = connector%c
+         end block
+
+         block
+            type(json_value_ptr) :: mat
+            type(connector_t) :: connector
+            mat = this%materials%getId(this%getIntAt(cable, J_CAB_END_CONN_ID))
+            connector = readConnector(mat%p)
+            res%tr = connector%connectorType
+            res%R_RightEnd = connector%r
+            res%L_RightEnd = connector%l
+            res%C_RightEnd = connector%c
+         end block
+
+         block
+            integer, dimension(:), allocatable :: elementIds
+            type(json_value_ptr) :: mat
+            type(polyline_t) :: polyline
+            call this%core%get(cable, J_ELEMENTIDS, elementIds)
+         end block
+
+
+
+      end function
+
+      function readConnector(mat) result(res)
+         type(connector_t) :: res
+         type(json_value), pointer, intent(in) :: mat
+         res%connectorType = strToConnectorType(this%getStrAt(mat, J_MAT_CONNECTOR_TYPE))
+         call this%core%get(mat, J_MAT_CONNECTOR_RESISTANCE, res%r, default=0.0)
+         call this%core%get(mat, J_MAT_CONNECTOR_INDUCTANCE, res%l, default=0.0)
+         call this%core%get(mat, J_MAT_CONNECTOR_CAPACITANCE, res%c, default=0.0)
+      end function
+
+      function strToConnectorType(label) result(res)
+         character (len=:), allocatable, intent(in) :: label
+         integer :: res
+         select case (label)
+          case (J_MAT_CONNECTOR_TYPE_OPEN)
+            res = MATERIAL_CONS
+          case (J_MAT_CONNECTOR_TYPE_SERIES)
+            res = SERIES_CONS
+          case (J_MAT_CONNECTOR_TYPE_SHORT)
+            res = SERIES_CONS !! TODO Check this.
          end select
-
-         mat = this%materials%getId(this%getIntAt(cable, J_CAB_INI_CONN_ID))
-         select case (this%getStrAt(mat%p, J_MAT_CONNECTOR_TYPE))
-         case (J_MAT_CONNECTOR_TYPE_OPEN)
-            res%tl = MATERIAL_CONS
-        end select
-
-        mat = this%materials%getId(this%getIntAt(cable, J_CAB_END_CONN_ID))
-         select case (this%getStrAt(mat%p, J_MAT_CONNECTOR_TYPE))
-         case (J_MAT_CONNECTOR_TYPE_OPEN)
-            res%tr = MATERIAL_CONS
-        end select
-
-        ! TODO read components
       end function
 
       logical function isThinWire(cable)
          type(json_value), pointer :: cable
          type(json_value_ptr) :: mat
-
+         integer, dimension(:), allocatable :: elementIds
+         logical :: found
          isThinWire = .false.
 
-         mat = this%materials%getId(this%getIntAt(cable, J_CAB_MAT_ID))
+         mat = this%materials%getId(this%getIntAt(cable, J_CAB_MAT_ID, found=found))
+         if (.not. found) return
          if (this%getStrAt(mat%p, J_TYPE) /= J_MAT_TYPE_WIRE) return
 
-         mat = this%materials%getId(this%getIntAt(cable, J_CAB_INI_CONN_ID))
+         mat = this%materials%getId(this%getIntAt(cable, J_CAB_INI_CONN_ID, found=found))
+         if (.not. found) return
          if (this%getStrAt(mat%p, J_TYPE) /= J_MAT_TYPE_CONNECTOR) return
 
-         mat = this%materials%getId(this%getIntAt(cable, J_CAB_END_CONN_ID))
+         mat = this%materials%getId(this%getIntAt(cable, J_CAB_END_CONN_ID, found=found))
+         if (.not. found) return
          if (this%getStrAt(mat%p, J_TYPE) /= J_MAT_TYPE_CONNECTOR) return
+
+         call this%core%get(cable, J_ELEMENTIDS, elementIds, found=found)
+         if (.not. found) return
+         if (size(elementIds) /= 1) return
 
          isThinWire = .true.
       end function
@@ -666,27 +721,38 @@ contains
    !    ! TODO
    ! end function
 
-   function getIntAt(this, place, entry) result(res)
+   function getIntAt(this, place, path, found) result(res)
       integer :: res
       class(parser_t) :: this
       type(json_value), pointer :: place
-      character(len=*) :: entry
-      call this%core%get(place, entry, res)
+      character(len=*) :: path
+      logical, intent(out), optional :: found
+      call this%core%get(place, path, res, found)
    end function
 
-   function getRealAt(this, place, entry) result(res)
+   function getRealAt(this, place, path, found) result(res)
       real :: res
       class(parser_t) :: this
       type(json_value), pointer :: place
-      character(len=*) :: entry
-      call this%core%get(place, entry, res)
+      character(len=*) :: path
+      logical, intent(out), optional :: found
+      call this%core%get(place, path, res, found)
    end function
 
-   function getStrAt(this, place, entry) result(res)
+   function getStrAt(this, place, path, found) result(res)
       character (len=:), allocatable :: res
       class(parser_t) :: this
       type(json_value), pointer :: place
-      character(len=*) :: entry
-      call this%core%get(place, entry, res)
+      character(len=*) :: path
+      logical, intent(out), optional :: found
+      call this%core%get(place, path, res, found)
+   end function
+
+   function contains(this, place, path) result(res)
+      logical :: res
+      class(parser_t) :: this
+      type(json_value), pointer :: place
+      character(len=*) :: path
+      call this%core%info(place, path, found=res)
    end function
 end module

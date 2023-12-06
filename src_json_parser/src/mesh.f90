@@ -17,6 +17,7 @@ module mesh_mod
    end type
 
    type, extends(element_t) :: polyline_t
+   
    end type
 
    type, public :: coordinate_t

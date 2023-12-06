@@ -20,6 +20,9 @@ module labels_mod
    character (len=*), parameter :: J_MAT_CONNECTOR_TYPE_OPEN = "open"
    character (len=*), parameter :: J_MAT_CONNECTOR_TYPE_SHORT = "short"
    character (len=*), parameter :: J_MAT_CONNECTOR_TYPE_SERIES = "series"
+   character (len=*), parameter :: J_MAT_CONNECTOR_RESISTANCE = "resistance"
+   character (len=*), parameter :: J_MAT_CONNECTOR_INDUCTANCE = "inductance"
+   character (len=*), parameter :: J_MAT_CONNECTOR_CAPACITANCE = "capacitance"
 
    ! -- cables -- thin wires
    character (len=*), parameter :: J_CABLES = "cables"
