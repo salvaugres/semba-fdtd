@@ -319,7 +319,7 @@ contains
          type(json_value), pointer :: pw
 
          character (len=:), allocatable :: label
-         type(CellRegion) :: region
+         type(cell_region_t) :: region
          logical :: found
 
          res%nombre_fichero = trim(adjustl( &
@@ -431,7 +431,7 @@ contains
          integer :: i, j, k
          character (len=:), allocatable :: typeLabel, outputName
          character(kind=CK,len=1), dimension(:), allocatable :: dirLabels
-         type(Cell), dimension(:), allocatable :: cells
+         type(cell_t), dimension(:), allocatable :: cells
          integer, dimension(:), allocatable :: coordinateIds
 
          call this%core%get(p, J_PR_OUTPUT_NAME, outputName)
@@ -629,38 +629,61 @@ contains
 
          block
             type(json_value_ptr) :: mat
-            type(connector_t) :: connector
+            type(connector_t) :: conn
             mat = this%materials%getId(this%getIntAt(cable, J_CAB_INI_CONN_ID))
-            connector = readConnector(mat%p)
-            res%tl = connector%connectorType
-            res%R_LeftEnd = connector%r
-            res%L_LeftEnd = connector%l
-            res%C_LeftEnd = connector%c
+            conn = readConnectorMaterial(mat%p)
+            res%tl = conn%connectorType
+            res%R_LeftEnd = conn%r
+            res%L_LeftEnd = conn%l
+            res%C_LeftEnd = conn%c
          end block
 
          block
             type(json_value_ptr) :: mat
-            type(connector_t) :: connector
+            type(connector_t) :: conn
             mat = this%materials%getId(this%getIntAt(cable, J_CAB_END_CONN_ID))
-            connector = readConnector(mat%p)
-            res%tr = connector%connectorType
-            res%R_RightEnd = connector%r
-            res%L_RightEnd = connector%l
-            res%C_RightEnd = connector%c
+            conn = readConnectorMaterial(mat%p)
+            res%tr = conn%connectorType
+            res%R_RightEnd = conn%r
+            res%L_RightEnd = conn%l
+            res%C_RightEnd = conn%c
          end block
 
          block
-            integer, dimension(:), allocatable :: elementIds
-            type(json_value_ptr) :: mat
-            type(polyline_t) :: polyline
-            call this%core%get(cable, J_ELEMENTIDS, elementIds)
+            type(linel_t), dimension(:), allocatable :: linels
+            integer :: i
+            block
+               integer, dimension(:), allocatable :: elementIds
+               type(json_value_ptr) :: mat
+               type(polyline_t) :: polyline
+
+               call this%core%get(cable, J_ELEMENTIDS, elementIds)
+               if (size(elementIds) /= 1) then
+                  stop "Thin wires must be defined by a single polyline element."
+               end if
+               polyline = this%mesh%getPolyline(elementIds(1))
+               linels = this%mesh%convertPolylineToLinels(polyline)
+            end block
+
+            res%n_twc = size(linels)
+            res%n_twc_max = size(linels)
+            allocate(res%twc(size(linels)))
+            do i = 1, size(linels)
+               res%twc(i)%srcfile = 'None'
+               res%twc(i)%srctype = 'None'
+               res%twc(i)%i = linels(i)%v(1)
+               res%twc(i)%j = linels(i)%v(2)
+               res%twc(i)%k = linels(i)%v(3)
+               res%twc(i)%tag = linels(i)%tag
+            end do
+
          end block
 
 
 
       end function
 
-      function readConnector(mat) result(res)
+      function readConnectorMaterial(mat) result(res)
          type(connector_t) :: res
          type(json_value), pointer, intent(in) :: mat
          res%connectorType = strToConnectorType(this%getStrAt(mat, J_MAT_CONNECTOR_TYPE))

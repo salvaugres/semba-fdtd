@@ -17,7 +17,7 @@ contains
    function getCellRegion(core, place) result (res)
       type(json_core) :: core
       type(json_value), pointer :: place
-      type(CellRegion) :: res
+      type(cell_region_t) :: res
 
       integer :: i, n
       type(json_value), pointer :: coordEntry, voxelRegionEntry
@@ -39,7 +39,7 @@ contains
       type(json_core) :: core
       type(json_value), pointer :: place
       character (len=*), intent(in) :: path
-      type(Cell), dimension(:), allocatable :: res
+      type(cell_t), dimension(:), allocatable :: res
 
       integer :: i, n
       type(json_value), pointer :: cellsEntry, coordEntry
@@ -65,7 +65,7 @@ contains
    function getCellsFromNodeElementIds(core, mesh, elementIdsPlace, coordIds) result(res)
       type(json_core) :: core
       type(mesh_t) :: mesh
-      type(Cell), dimension(:), allocatable :: res
+      type(cell_t), dimension(:), allocatable :: res
       type(json_value), pointer :: elementIdsPlace
       integer, dimension(:), allocatable, optional, intent(out) :: coordIds
       integer, dimension(:), allocatable :: ids
