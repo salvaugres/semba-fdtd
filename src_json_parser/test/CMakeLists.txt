@@ -51,7 +51,8 @@ endfunction ()
 # ctest is sensible to extension. ONLY WORKS with ".f90" AND NOT with ".F90"
 add_fortran_test_executable (smbjson_tests
     "test_fhash.f90"
-    "test_mesh.f90"
+    "test_mesh_add_get.f90"
+    "test_mesh_polyline_to_linel.f90"
     "test_idchildtable.f90"
     "test_read_planewave.f90"
     "test_read_holland1981.f90"

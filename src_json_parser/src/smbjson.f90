@@ -5,7 +5,7 @@ module smbjson
    use NFDETypes_extension
    use labels_mod
    use mesh_mod
-   use tools_mod
+   use parser_tools_mod
    use idchildtable_mod
 
    use json_module
@@ -111,6 +111,13 @@ contains
       res%tWires = this%readThinWires()
       ! res%sWires = this%readSlantedWires()
       ! res%tSlots = this%readThinSlots()
+
+      ! Cleanup
+      call this%core%destroy()
+      call this%jsonfile%destroy()
+      nullify(this%root)
+
+
    end function
 
    function readMesh(this) result(res)

@@ -2,7 +2,7 @@ cmake_minimum_required (VERSION 3.18)
 
 project (smbjson)
 
-message(STATUS "Creating build system for smbjson")
+message(STATUS "Creating build system for smbjson project")
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
@@ -11,16 +11,5 @@ set(CMAKE_Fortran_MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/mod)
 
 add_subdirectory(external/fhash)
 add_subdirectory(external/json-fortran)
-
-add_library(smbjson 
-	"src/smbjson.f90"
-	"src/labels.f90"
-	"src/idchildtable.f90"
-	"src/mesh.f90"
-	"src/tools.f90"
-	"src/nfdetypes_extension.f90" 
-)
-
-target_link_libraries  (smbjson PRIVATE jsonfortran semba-types fhash)
-
+add_subdirectory(src)
 add_subdirectory(test)

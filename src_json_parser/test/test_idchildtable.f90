@@ -1,6 +1,6 @@
 integer function test_idchildtable() result(error_cnt)
    use idchildtable_mod
-   use tools_mod, only: json_value_ptr
+   use parser_tools_mod, only: json_value_ptr
    use testingTools
    use json_module
 

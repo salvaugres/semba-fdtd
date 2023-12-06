@@ -1,35 +1,17 @@
 module mesh_mod
    use fhash, only: fhash_tbl_t, key=>fhash_key
-
-   integer, private , parameter :: DIR_X = 1
-   integer, private , parameter :: DIR_Y = 2
-   integer, private , parameter :: DIR_Z = 3
-
-   type :: cell_t
-      real, dimension(3) :: v
-      character (len=:), allocatable :: tag
-   end type cell_t
-
-   type, extends(cell_t) :: pixel_t
-   end type
-
-   type, extends(cell_t) :: linel_t
-      integer :: orientation ! DIR_X, DIR_Y, DIR_Z
-   end type
-
-   type :: cell_region_t
-      type(cell_t), dimension(2) :: coords
-   end type cell_region_t
-
+   use cells_mod
+   
    type :: element_t
       integer, dimension(:), allocatable :: coordIds
    end type
 
    type, extends(element_t) :: node_t
+      ! coordIds must be size 1.
    end type
 
    type, extends(element_t) :: polyline_t
-
+      ! coordIds must be size >1.
    end type
 
    type, public :: coordinate_t
@@ -38,8 +20,8 @@ module mesh_mod
 
    type :: mesh_t
       private
-      type(fhash_tbl_t) :: coordinates
-      type(fhash_tbl_t) :: elements
+      type(fhash_tbl_t) :: coordinates ! Map of CoordinateIds to relative coordinates.
+      type(fhash_tbl_t) :: elements    ! Map of ElementIds to elements/cells.
    contains
       procedure :: addCoordinate
       procedure :: getCoordinate
@@ -50,6 +32,8 @@ module mesh_mod
 
       procedure :: convertPolylineToLinels
    end type
+
+   integer, private, parameter  ::  MAX_LINE = 256 
 contains
    subroutine addCoordinate(this, id, coordinate)
       class(mesh_t) :: this
@@ -131,6 +115,91 @@ contains
       class(mesh_t) :: this
       type(polyline_t), intent(in) :: polyline
 
-      ! TODO
+      type(coordinate_t) :: iC, eC, mC
+      integer :: i, j, dir, lastSegment, nLinelsInSegment
+      integer, dimension(3) :: segment
+      
+      if (.not. areAllSegmentsStraight(polyline)) then
+         allocate(res(0))
+         return
+      end if
+
+      allocate(res(countSegments(polyline)))
+      
+      lastSegment = 1
+      do i = 1, size(polyline%coordIds)-1
+         iC = this%getCoordinate(polyline%coordIds(i))
+         eC = this%getCoordinate(polyline%coordIds(i+1))
+         dir = varyingDirection(iC, eC)
+         segment = int(eC%position - iC%position)
+         nLinelsInSegment = abs(segment(dir))
+         segment = segment / nLinelsInSegment
+         do j = 1, nLinelsInSegment
+            mC%position = iC%position + segment * (real(j-1) + 0.5)
+            res(lastSegment)%v = floor(mc%position) + [1.0, 1.0, 1.0]
+            res(lastSegment)%orientation = dir
+            if (j == 1) then
+               res(lastSegment)%tag = trim(toString(polyline%coordIds(i)))               
+            end if 
+            if (i == size(polyline%coordIds)-1 .and. j == nLinelsInSegment) then
+               res(lastSegment)%tag = trim(toString(polyline%coordIds(i+1)))
+            end if 
+            lastSegment = lastSegment + 1
+         end do
+
+      end do
+
+   contains
+      function toString(i) result(res)
+         character (len=MAX_LINE) :: res
+         integer, intent(in) :: i
+         write(res, '(i10)') i
+         res = trim(adjustl(res))
+      end function
+
+      integer function countSegments(pl)
+         class(polyline_t) :: pl
+         type(coordinate_t) :: iC, eC
+         integer :: dir
+         countSegments = 0
+         do i = 1, size(polyline%coordIds)-1
+            iC = this%getCoordinate(polyline%coordIds(i))
+            eC = this%getCoordinate(polyline%coordIds(i+1))
+            dir = varyingDirection(iC, eC)
+            countSegments = countSegments + int(abs(eC%position(dir) - iC%position(dir)))
+         end do
+      end function
+
+      function areAllSegmentsStraight(pl) result(res)
+         logical :: res
+         class(polyline_t) :: pl
+         type(coordinate_t) :: iC, eC
+         integer :: i, d
+         integer :: numberOfVaryingDirections
+
+         do i = 1, size(polyline%coordIds)-1
+            iC = this%getCoordinate(polyline%coordIds(i))
+            eC = this%getCoordinate(polyline%coordIds(i+1))
+            numberOfVaryingDirections = 0
+            do d = DIR_X, DIR_Z
+               if (iC%position(d) /= eC%position(d)) then
+                  numberOfVaryingDirections = numberOfVaryingDirections + 1
+               end if
+            end do
+            if (numberOfVaryingDirections /= 1) then 
+               res = .false.
+               return
+            end if
+         end do
+         
+         res = .true.
+      end function
+
+      integer function varyingDirection(a, b)
+         type(coordinate_t), intent(in) :: a, b
+         do varyingDirection = DIR_X, DIR_Z
+            if (a%position(varyingDirection) /= b%position(varyingDirection)) return
+         end do
+      end function
    end function
 end module

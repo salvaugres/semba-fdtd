@@ -2,7 +2,7 @@ module idchildtable_mod
    use json_module
    use fhash, only: fhash_tbl_t, key=>fhash_key
    use labels_mod
-   use tools_mod, only: json_value_ptr
+   use parser_tools_mod, only: json_value_ptr
 
    type :: IdChildTable_t
       private
@@ -21,8 +21,8 @@ contains
    function ctor(core, root, path) result(res)
       type(json_core) :: core
       type(json_value), pointer :: root
-      type(IdChildTable_t) :: res
       character (len=*), intent(in) :: path
+      type(IdChildTable_t) :: res
       type(json_value), pointer :: jentries, jentry
       integer :: id
       integer :: i

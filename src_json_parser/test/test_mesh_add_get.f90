@@ -1,4 +1,4 @@
-integer function test_mesh() result(error_cnt)
+integer function test_mesh_add_get() result(error_cnt)
    use mesh_mod
    use testingTools
 
