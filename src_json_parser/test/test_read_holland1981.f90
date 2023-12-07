@@ -87,7 +87,7 @@ contains
       expected%Sonda%collection(1)%fstop = 0.0
       expected%Sonda%collection(1)%fstep = 0.0
       allocate(expected%Sonda%collection(1)%cordinates(1))
-      expected%Sonda%collection(1)%cordinates(1)%tag = ' '
+      expected%Sonda%collection(1)%cordinates(1)%tag = '2'
       expected%Sonda%collection(1)%cordinates(1)%Xi = 2 ! Coord id as tag.
       expected%Sonda%collection(1)%cordinates(1)%Yi = 0
       expected%Sonda%collection(1)%cordinates(1)%Zi = 0

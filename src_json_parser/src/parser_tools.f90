@@ -1,6 +1,6 @@
 module parser_tools_mod
    use labels_mod
-   use mesh_mod
+   use cells_mod
    use json_module
    use json_kinds
 
@@ -31,7 +31,7 @@ contains
             write(error_unit, *) "Voxel regions are defined by two numerical vectors of size 3."
             stop J_ERROR_NUMBER
          end if
-         res%coords(i)%v(:) = vec(1:3)
+         res%interval(i)%cell(:) = vec(1:3)
       end do
    end function
 
@@ -58,39 +58,40 @@ contains
          if (size(vec) /= 3) then
             stop "Cells are defined by a vector of size 3."
          end if
-         res(i)%v = vec
+         res(i)%cell = vec
       end do
    end function
 
-   function getCellsFromNodeElementIds(core, mesh, elementIdsPlace, coordIds) result(res)
+   function getPixelsFromElementIds(core, mesh, elementIdsPlace) result(res)
       type(json_core) :: core
       type(mesh_t) :: mesh
-      type(cell_t), dimension(:), allocatable :: res
+      type(pixel_t), dimension(:), allocatable :: res
       type(json_value), pointer :: elementIdsPlace
-      integer, dimension(:), allocatable, optional, intent(out) :: coordIds
       integer, dimension(:), allocatable :: ids
-
-      type(node_t) :: node
-      type(coordinate_t) :: coordinate
-      logical :: idsFound, nodeFound, coordinateFound
-      integer :: i
-
-      call core%get(elementIdsPlace, J_ELEMENTIDS, ids, found=idsFound)
-      if (.not. idsFound) then
+      logical :: elementIdsFound
+      
+      call core%get(elementIdsPlace, J_ELEMENTIDS, ids, found=elementIdsFound)
+      if (.not. elementIdsFound) then
          allocate(res(0))
          return
       end if
-
       allocate(res(size(ids)))
-      if (present(coordIds)) allocate(coordIds(size(ids)))
-      do i = 1, size(ids)
-         nodeFound = .false.
-         coordinateFound = .false.
-         node = mesh%getNode(ids(i), nodeFound)
-         if (nodeFound) coordinate = mesh%getCoordinate(node%coordIds(1), coordinateFound)
-         if (coordinateFound) res(i)%v = coordinate%position
-         if (present(coordIds)) coordIds(i) = node%coordIds(1)
-      end do
+
+      block
+         type(node_t) :: node
+         type(pixel_t), dimension(:), allocatable :: pixel
+         logical :: nodeFound
+         integer :: i
+         do i = 1, size(ids)
+            node = mesh%getNode(ids(i), nodeFound)
+            if (nodeFound) pixel = convertNodeToPixel(mesh, node)
+            if (size(pixel) == 1) then 
+               res(i) = pixel(1) 
+            else 
+               stop "Problem converting node to pixels."
+            end if
+         end do
+      end block
    end function
 
    function jsonValueFilterByKeyValues(core, srcs, key, values) result (out)

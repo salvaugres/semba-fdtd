@@ -345,8 +345,8 @@ contains
          call this%core%get(pw, J_PW_POLARIZATION//'.'//J_PW_POLARIZATION_BETA, res%beta)
 
          region = getCellRegion(this%core, pw)
-         res%coor1 = region%coords(1)%v(:)
-         res%coor2 = region%coords(2)%v(:)
+         res%coor1 = region%interval(1)%cell(:)
+         res%coor2 = region%interval(2)%cell(:)
 
          res%isRC = .false.
          res%nummodes = 1
@@ -434,11 +434,11 @@ contains
       function readProbe(p) result (res)
          type(MasSonda) :: res
          type(json_value), pointer :: p
-
          integer :: i, j, k
          character (len=:), allocatable :: typeLabel, outputName
          character(kind=CK,len=1), dimension(:), allocatable :: dirLabels
-         type(cell_t), dimension(:), allocatable :: cells
+         class(cell_t), dimension(:), allocatable :: pixels
+         class(cell_t), dimension(:), allocatable :: cells
          integer, dimension(:), allocatable :: coordinateIds
 
          call this%core%get(p, J_PR_OUTPUT_NAME, outputName)
@@ -447,36 +447,31 @@ contains
          call this%core%get(p, J_PR_TYPE, typeLabel)
 
          call getDomain(p, res)
+         pixels = getPixelsFromElementIds(this%core, this%mesh, p)
          if (typeLabel == J_PR_CURRENT .or. typeLabel == J_PR_VOLTAGE) then
-            cells = getCellsFromNodeElementIds(this%core, this%mesh, p, coordinateIds)
-            allocate(res%cordinates(size(cells)))
-            do i = 1, size(cells)
-               res%cordinates(i)%tag = ' '
-               res%cordinates(i)%Xi = coordinateIds(i)
+            allocate(res%cordinates(size(pixels)))
+            do i = 1, size(pixels)
+               res%cordinates(i)%tag = pixels(i)%tag
+               read(pixels(i)%tag,*) res%cordinates(i)%Xi
                res%cordinates(i)%Yi = 0
                res%cordinates(i)%Zi = 0
                res%cordinates(i)%Or = strToProbeType(typeLabel)
             end do
          else
-            cells = [ &
-               getCellsFromNodeElementIds(this%core, this%mesh, p), &
-               getSimpleCells(this%core, p, J_PIXELS) &
-               ]
+            cells =  [ pixels, getSimpleCells(this%core, p, J_PIXELS) ]
             call this%core%get(p, J_PR_DIRECTIONS, dirLabels)
             allocate(res%cordinates(size(cells) * size(dirLabels)))
             do i = 1, size(cells)
                k = (i-1) * size(dirLabels)
                do j = 1, size(dirLabels)
-                  res%cordinates(k+j)%tag = ' '
-                  res%cordinates(k+j)%Xi = int (cells(i)%v(1))
-                  res%cordinates(k+j)%Yi = int (cells(i)%v(2))
-                  res%cordinates(k+j)%Zi = int (cells(i)%v(3))
+                  res%cordinates(k+j)%tag = cells(i)%tag
+                  res%cordinates(k+j)%Xi = int (cells(i)%cell(1))
+                  res%cordinates(k+j)%Yi = int (cells(i)%cell(2))
+                  res%cordinates(k+j)%Zi = int (cells(i)%cell(3))
                   res%cordinates(k+j)%Or = strToProbeType(typeLabel, dirLabels(j))
                end do
             end do
-
          end if
-
       end function
 
       subroutine getDomain(p, res)
@@ -672,7 +667,7 @@ contains
                   stop "Thin wires must be defined by a single polyline element."
                end if
                polyline = this%mesh%getPolyline(elementIds(1))
-               linels = this%mesh%convertPolylineToLinels(polyline)
+               linels = convertPolylineToLinels(this%mesh, polyline)
             end block
 
             res%n_twc = size(linels)
@@ -681,9 +676,9 @@ contains
             do i = 1, size(linels)
                res%twc(i)%srcfile = 'None'
                res%twc(i)%srctype = 'None'
-               res%twc(i)%i = linels(i)%v(1)
-               res%twc(i)%j = linels(i)%v(2)
-               res%twc(i)%k = linels(i)%v(3)
+               res%twc(i)%i = linels(i)%cell(1)
+               res%twc(i)%j = linels(i)%cell(2)
+               res%twc(i)%k = linels(i)%cell(3)
                res%twc(i)%tag = linels(i)%tag
             end do
          end block
