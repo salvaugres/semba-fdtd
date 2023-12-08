@@ -20,11 +20,11 @@
         },
         "elements": {
             "cellRegions": [
-                {"id": 1, "intervals": [ [[11,  1, 11], [11,  5, 11]] ]},
-                {"id": 2, "intervals": [ [[ 6,  6, 11], [15, 15, 11]] ]},
-                {"id": 3, "intervals": [ [[11, 16, 11], [11, 20, 11]] ]},
-                {"id": 4, "intervals": [ [[10,  3, 10], [11,  3, 11]] ]},
-                {"id": 5, "intervals": [ [[10, 18, 10], [11, 18, 11]] ]}
+                {"id": 1, "linels": [ [[11,  1, 11], [11,  5, 11]] ]},
+                {"id": 2, "linels": [ [[ 6,  6, 11], [15, 15, 11]] ]},
+                {"id": 3, "surfels": [ [[11, 16, 11], [11, 20, 11]] ]},
+                {"id": 4, "surfels": [ [[10,  3, 10], [11,  3, 11]] ]},
+                {"id": 5, "surfels": [ [[10, 18, 10], [11, 18, 11]] ]}
             ]
         }
     },
@@ -32,7 +32,6 @@
     "materials": [ {"id": 1, "type": "PEC"} ],
 
     "materialRegions": [
-        {"name": "entry_line", "materialid": 1, "elementIds": [1]},
         {"name": "pec_square", "materialId": 1, "elementIds": [2]},
         {"name": "exit_line",  "materialid": 1, "elementIds": [3]}
     ],
@@ -49,16 +48,14 @@
 
     "probes": [
         {
-            "name": "current_at_entry",
-            "type": "bulk",
-            "field": "magnetic",
+            "name": "bulk_current_at_entry",
+            "type": "bulkCurrent",
             "elementIds": [4],
             "domain": { "type": "time" }
         },
         {
-            "name": "current_at_exit",
-            "type": "bulk",
-            "field": "magnetic",
+            "name": "bulk_current_at_exit",
+            "type": "bulkCurrent",
             "elementIds": [5],
             "domain": { "type": "time" }
         }

@@ -61,7 +61,7 @@ contains
       expected%pecRegs%nLins_max = 1
       allocate(expected%pecRegs%Vols(0))
       allocate(expected%pecRegs%Surfs(1))
-      allocate(expected%pecRegs%Lins(2))
+      allocate(expected%pecRegs%Lins(1))
       
       ! PEC square
       expected%pecRegs%Surfs(1)%Xi = 6
@@ -71,14 +71,14 @@ contains
       expected%pecRegs%Surfs(1)%Ye = 15
       expected%pecRegs%Surfs(1)%Ze = 11
       
-      ! Entry line
-      expected%pecRegs%Lins(1)%Xi = 11
-      expected%pecRegs%Lins(1)%Yi =  1
-      expected%pecRegs%Lins(1)%Zi = 11
+      ! ! Entry line (No need to provide return path)
+      ! expected%pecRegs%Lins(1)%Xi = 11
+      ! expected%pecRegs%Lins(1)%Yi =  1
+      ! expected%pecRegs%Lins(1)%Zi = 11
 
-      expected%pecRegs%Lins(1)%Xe = 11
-      expected%pecRegs%Lins(1)%Ye =  5
-      expected%pecRegs%Lins(1)%Ze = 11
+      ! expected%pecRegs%Lins(1)%Xe = 11
+      ! expected%pecRegs%Lins(1)%Ye =  5
+      ! expected%pecRegs%Lins(1)%Ze = 11
 
       ! Exit line
       expected%pecRegs%Lins(1)%Xi = 11
@@ -116,27 +116,56 @@ contains
       expected%oldSONDA%n_probes = 0
       expected%oldSONDA%n_probes_max = 0
       allocate(expected%oldSONDA%probes(0))
+      
       ! sonda
       expected%Sonda%len_cor_max = 0
-      expected%Sonda%length = 1
-      expected%Sonda%length_max = 1
-      allocate(expected%Sonda%collection(1))
-      expected%Sonda%collection(1)%outputrequest = "mid_point"
-      expected%Sonda%collection(1)%type1 = NP_T1_PLAIN
-      expected%Sonda%collection(1)%type2 = NP_T2_TIME
-      expected%Sonda%collection(1)%filename = ' '
-      expected%Sonda%collection(1)%tstart = 0.0
-      expected%Sonda%collection(1)%tstop = 0.0
-      expected%Sonda%collection(1)%tstep = 0.0
-      expected%Sonda%collection(1)%fstart = 0.0
-      expected%Sonda%collection(1)%fstop = 0.0
-      expected%Sonda%collection(1)%fstep = 0.0
-      allocate(expected%Sonda%collection(1)%cordinates(1))
-      expected%Sonda%collection(1)%cordinates(1)%tag = '2'
-      expected%Sonda%collection(1)%cordinates(1)%Xi = 2 ! Coord id as tag.
-      expected%Sonda%collection(1)%cordinates(1)%Yi = 0
-      expected%Sonda%collection(1)%cordinates(1)%Zi = 0
-      expected%Sonda%collection(1)%cordinates(1)%Or = NP_COR_WIRECURRENT
+      expected%Sonda%length = 0
+      expected%Sonda%length_max = 0
+      allocate(expected%Sonda%collection(0))
+      
+      ! bloqueprobes
+      expected%BloquePrb%n_bp = 2
+      expected%BloquePrb%n_bp_max = 2
+      allocate(expected%BloquePrb%bp(2))
+      expected%BloquePrb%bp(1)%outputrequest = "bulk_current_at_entry"
+      expected%BloquePrb%bp(1)%FileNormalize = ' '
+      expected%BloquePrb%bp(1)%type2 = NP_T2_TIME
+      expected%BloquePrb%bp(1)%tstart = 0.0
+      expected%BloquePrb%bp(1)%tstop = 0.0
+      expected%BloquePrb%bp(1)%tstep = 0.0
+      expected%BloquePrb%bp(1)%fstart = 0.0
+      expected%BloquePrb%bp(1)%fstop = 0.0
+      expected%BloquePrb%bp(1)%fstep = 0.0
+      expected%BloquePrb%bp(1)%i1 = 10
+      expected%BloquePrb%bp(1)%j1 =  3
+      expected%BloquePrb%bp(1)%k1 = 10
+      expected%BloquePrb%bp(1)%i2 = 11
+      expected%BloquePrb%bp(1)%j2 =  3
+      expected%BloquePrb%bp(1)%k2 = 11
+      expected%BloquePrb%bp(1)%skip = 0
+      expected%BloquePrb%bp(1)%nml = iEy
+      expected%BloquePrb%bp(1)%t = BcELECT
+      expected%BloquePrb%bp(1)%tag = " "
+
+      expected%BloquePrb%bp(2)%outputrequest = "bulk_current_at_exit"
+      expected%BloquePrb%bp(2)%FileNormalize = ' '
+      expected%BloquePrb%bp(2)%type2 = NP_T2_TIME
+      expected%BloquePrb%bp(2)%tstart = 0.0
+      expected%BloquePrb%bp(2)%tstop = 0.0
+      expected%BloquePrb%bp(2)%tstep = 0.0
+      expected%BloquePrb%bp(2)%fstart = 0.0
+      expected%BloquePrb%bp(2)%fstop = 0.0
+      expected%BloquePrb%bp(2)%fstep = 0.0
+      expected%BloquePrb%bp(2)%i1 = 10
+      expected%BloquePrb%bp(2)%j1 = 18
+      expected%BloquePrb%bp(2)%k1 = 10
+      expected%BloquePrb%bp(2)%i2 = 11
+      expected%BloquePrb%bp(2)%j2 = 18
+      expected%BloquePrb%bp(2)%k2 = 11
+      expected%BloquePrb%bp(2)%skip = 0
+      expected%BloquePrb%bp(2)%nml = iEy
+      expected%BloquePrb%bp(2)%t = BcELECT
+      expected%BloquePrb%bp(2)%tag = " "
    end function
 end function
 

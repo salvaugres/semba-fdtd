@@ -36,11 +36,7 @@
     "mesh": {
         "grid": {
             "numberOfCells": [20, 20, 22],
-            "steps": {
-                "x": [0.1],
-                "y": [0.1],
-                "z": [0.1]
-            }
+            "steps": { "x": [0.1], "y": [0.1], "z": [0.1] }
         },
         "coordinates": [
             {"id": 1, "position": [11, 11,  7]},
@@ -53,6 +49,9 @@
             ],
             "polylines": [
                 {"id": 2, "coordinateIds": [1, 2, 3]}
+            ],
+            "cellRegions": [
+                {"id": 3, "voxels": [ [ [2, 2, 2], [19, 19, 21] ]] }
             ]
         }
     },
@@ -71,7 +70,7 @@
         {
             "type": "planewave",
             "magnitudeFile": "waveform.exc",
-            "voxelRegion": [ [2, 2, 2], [19, 19, 21] ],
+            "elementIds": [3],
             "direction": {
                 "theta": 1.5708,
                 "phi": 0.0
@@ -85,7 +84,7 @@
 
     "probes": [
         {
-            "outputName": "mid_point",
+            "name": "mid_point",
             "type": "current",
             "elementIds": [1],
             "domain": { "type": "time" }
