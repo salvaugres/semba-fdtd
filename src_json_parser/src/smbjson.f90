@@ -134,13 +134,14 @@ contains
          do i = 1, this%core%count(jcs)
             call this%core%get_child(jcs, i, jc)
             call this%core%get(jc, J_ID, id)
-            call this%core%get(jc, J_COORD_POS, pos)
+            call this%core%get(jc, J_COORDINATE_POS, pos)
             c%position = pos
             call res%addCoordinate(id, c)
          end do
       end if
       call addElementsOfType(res, J_NODES)
       call addElementsOfType(res, J_POLYLINES)
+      call addElementsOfType(res, J_CELL_REGIONS)
 
    contains
       subroutine addElementsOfType(mesh, elementType)
@@ -156,12 +157,23 @@ contains
             do i = 1, this%core%count(jes)
                call this%core%get_child(jes, i, je)
                call this%core%get(je, J_ID, id)
-               call this%core%get(je, J_ELEM_COORD_IDS, coordIds)
                select case (elementType)
                 case (J_NODES)
+                  call this%core%get(je, J_COORDINATE_IDS, coordIds)
                   call mesh%addElement(id, node_t(coordIds))
                 case (J_POLYLINES)
+                  call this%core%get(je, J_COORDINATE_IDS, coordIds)
                   call mesh%addElement(id, polyline_t(coordIds))
+                CASE (J_CELL_REGIONS)
+                  block
+                     type(cell_region_t) :: cR
+                     type(cell_interval_t), dimension(:), allocatable :: intervals
+                     cR%pixels = readCellIntervals(je, J_PIXELS)
+                     cR%linels = readCellIntervals(je, J_LINELS)
+                     cR%surfels = readCellIntervals(je, J_SURFELS)
+                     cR%voxels = readCellIntervals(je, J_VOXELS)
+                     call mesh%addCellRegion(id, cR)
+                  end block
                 case default
                   write (error_unit, *) 'Invalid element type'
                   stop
@@ -169,6 +181,32 @@ contains
             end do
          end if
       end subroutine
+
+      function readCellIntervals(place, path) result(res)
+         type(json_value), pointer, intent(in) :: place
+         character (len=*), intent(in) :: path
+         type(cell_interval_t), dimension(:), allocatable :: res
+         
+         type(json_value), pointer :: intervalsPlace, interval
+         integer :: i, nIntervals
+         real, dimension(:), allocatable :: cellIni, cellEnd
+         logical :: containsInterval
+
+         call this%core%get(place, path, intervalsPlace, found=containsInterval)
+         if (.not. containsInterval) then
+            allocate(res(0))
+            return
+         end if
+         nIntervals = this%core%count(intervalsPlace)
+         allocate(res(nIntervals))
+         do i = 1, nIntervals
+            call this%core%get_child(intervalsPlace, i, interval)
+            call this%core%get(interval, '(1)', cellIni)
+            call this%core%get(interval, '(2)', cellEnd)
+            res(i)%ini%cell = cellIni(1:3)
+            res(i)%end%cell = cellEnd(1:3)
+         end do
+      end function
    end function
 
    function readGeneral(this) result (res)
@@ -325,8 +363,9 @@ contains
          type(PlaneWave) :: res
          type(json_value), pointer :: pw
 
+         type(cell_region_t) :: cells
          character (len=:), allocatable :: label
-         type(cell_region_t) :: region
+         integer, dimension(:), allocatable :: elemIds
          logical :: found
 
          res%nombre_fichero = trim(adjustl( &
@@ -344,9 +383,14 @@ contains
          call this%core%get(pw, J_PW_POLARIZATION//'.'//J_PW_POLARIZATION_ALPHA, res%alpha)
          call this%core%get(pw, J_PW_POLARIZATION//'.'//J_PW_POLARIZATION_BETA, res%beta)
 
-         region = getCellRegion(this%core, pw)
-         res%coor1 = region%ab(1)%cell(:)
-         res%coor2 = region%ab(2)%cell(:)
+         call this%core%get(pw, J_ELEMENTIDS, elemIds)
+         if (size(elemIds) /= 1) stop "Planewave must contain a single elementId."
+         cells = this%mesh%getCellRegion(elemIds(1), found)
+         if (.not. found) stop "Planewave elementId not found."
+         if (size(cells%voxels) /= 1) stop "Planewave must contain a single voxel region."
+
+         res%coor1 = cells%voxels(1)%ini%cell(:)
+         res%coor2 = cells%voxels(1)%end%cell(:)
 
          res%isRC = .false.
          res%nummodes = 1
@@ -437,9 +481,10 @@ contains
          integer :: i, j, k
          character (len=:), allocatable :: typeLabel, outputName
          character(kind=CK,len=1), dimension(:), allocatable :: dirLabels
-         class(cell_t), dimension(:), allocatable :: pixels
-         class(cell_t), dimension(:), allocatable :: cells
-         integer, dimension(:), allocatable :: coordinateIds
+         type(pixel_t), dimension(:), allocatable :: pixels
+
+         integer, dimension(:), allocatable :: elemIds
+         logical :: elementIdsFound
 
          call this%core%get(p, J_PR_OUTPUT_NAME, outputName)
          res%outputrequest = trim(adjustl(outputName))
@@ -447,7 +492,10 @@ contains
          call this%core%get(p, J_PR_TYPE, typeLabel)
 
          call getDomain(p, res)
-         pixels = getPixelsFromElementIds(this%core, this%mesh, p)
+
+         call this%core%get(p, J_ELEMENTIDS, elemIds, found=elementIdsFound)
+         pixels = getPixelsFromElementIds(this%mesh, elemIds)
+
          if (typeLabel == J_PR_CURRENT .or. typeLabel == J_PR_VOLTAGE) then
             allocate(res%cordinates(size(pixels)))
             do i = 1, size(pixels)
@@ -458,16 +506,15 @@ contains
                res%cordinates(i)%Or = strToProbeType(typeLabel)
             end do
          else
-            cells =  [ pixels, getSimpleCells(this%core, p, J_PIXELS) ]
             call this%core%get(p, J_PR_DIRECTIONS, dirLabels)
-            allocate(res%cordinates(size(cells) * size(dirLabels)))
-            do i = 1, size(cells)
+            allocate(res%cordinates(size(pixels) * size(dirLabels)))
+            do i = 1, size(pixels)
                k = (i-1) * size(dirLabels)
                do j = 1, size(dirLabels)
-                  res%cordinates(k+j)%tag = cells(i)%tag
-                  res%cordinates(k+j)%Xi = int (cells(i)%cell(1))
-                  res%cordinates(k+j)%Yi = int (cells(i)%cell(2))
-                  res%cordinates(k+j)%Zi = int (cells(i)%cell(3))
+                  res%cordinates(k+j)%tag = pixels(i)%tag
+                  res%cordinates(k+j)%Xi = int (pixels(i)%cell(1))
+                  res%cordinates(k+j)%Yi = int (pixels(i)%cell(2))
+                  res%cordinates(k+j)%Zi = int (pixels(i)%cell(3))
                   res%cordinates(k+j)%Or = strToProbeType(typeLabel, dirLabels(j))
                end do
             end do
@@ -702,7 +749,7 @@ contains
           case (J_MAT_CONNECTOR_TYPE_SERIES)
             res = SERIES_CONS
           case (J_MAT_CONNECTOR_TYPE_SHORT)
-            res = MATERIAL_CONS 
+            res = MATERIAL_CONS
          end select
       end function
 

@@ -34,20 +34,17 @@ module labels_mod
    character (len=*), parameter :: J_MESH = "mesh"
 
    character (len=*), parameter :: J_COORDINATES = "coordinates"
-   character (len=*), parameter :: J_COORD_POS = "position"
+   character (len=*), parameter :: J_COORDINATE_POS = "position"
+   character (len=*), parameter :: J_COORDINATE_IDS = "coordinateIds"
    character (len=*), parameter :: J_ELEMENTS = "elements"
    character (len=*), parameter :: J_POLYLINES = "polylines"
    character (len=*), parameter :: J_NODES = "nodes"
-   character (len=*), parameter :: J_ELEM_COORD_IDS = "coordinateIds"
-
-   character (len=*), parameter :: J_ELEMENTIDS = "elementIds"
-
-   character (len=*), parameter :: J_VOXEL_REGION = "voxelRegion"
+   character (len=*), parameter :: J_CELL_REGIONS = "cellRegions"
    character (len=*), parameter :: J_VOXELS = "voxels"
    character (len=*), parameter :: J_SURFELS = "surfels"
    character (len=*), parameter :: J_LINELS = "linels"
    character (len=*), parameter :: J_PIXELS = "pixels"
-
+   character (len=*), parameter :: J_ELEMENTIDS = "elementIds"
 
    ! type(NFDEGeneral)
    character (len=*), parameter :: J_GENERAL = "general"

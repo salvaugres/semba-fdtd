@@ -2,16 +2,17 @@ module mesh_mod
    use fhash, only: fhash_tbl_t, key=>fhash_key
    use cells_mod
 
+   integer, private, parameter  ::  MAX_LINE = 256
 
    type :: element_t
       integer, dimension(:), allocatable :: coordIds
    end type
 
-   type, extends(element_t) :: node_t
+   type, public, extends(element_t) :: node_t
       ! coordIds must be size 1.
    end type
 
-   type, extends(element_t) :: polyline_t
+   type, public, extends(element_t) :: polyline_t
       ! coordIds must be size >1.
    end type
 
@@ -19,10 +20,10 @@ module mesh_mod
       real, dimension(3) :: position
    end type
 
-   type :: mesh_t
+   type, public :: mesh_t
       private
       type(fhash_tbl_t) :: coordinates ! Map of CoordinateIds to relative coordinates.
-      type(fhash_tbl_t) :: elements    ! Map of ElementIds to elements/cells.
+      type(fhash_tbl_t) :: elements    ! Map of ElementIds to elements/cellsRegions.
    contains
       procedure :: addCoordinate => mesh_addCoordinate
       procedure :: getCoordinate => mesh_getCoordinate
@@ -30,14 +31,16 @@ module mesh_mod
       procedure :: addElement => mesh_addElement
       procedure :: getNode => mesh_getNode
       procedure :: getPolyline => mesh_getPolyline
+
+      procedure :: addCellRegion => mesh_addCellRegion
+      procedure :: getCellRegion => mesh_getCellRegion
    end type
 
+   public :: convertPolylineToLinels
+   public :: convertNodeToPixels
    
    private
 
-   public :: convertPolylineToLinels
-   public :: convertNodeToPixel
-   
 contains
    ! __________________________________________________________________
    ! Mesh procedures
@@ -52,6 +55,13 @@ contains
       class(mesh_t) :: this
       integer, intent(in) :: id
       class(element_t), intent(in) :: e
+      call this%elements%set(key(id), value=e)
+   end subroutine
+
+   subroutine mesh_addCellRegion(this, id, e)
+      class(mesh_t) :: this
+      integer, intent(in) :: id
+      class(cell_region_t), intent(in) :: e
       call this%elements%set(key(id), value=e)
    end subroutine
 
@@ -114,6 +124,26 @@ contains
          if (present(found)) found = .true.
       end select
 
+   end function
+
+   function mesh_getCellRegion(this, id, found) result (res)
+      class(mesh_t) :: this
+      type(cell_region_t) :: res
+      integer, intent(in) :: id
+      integer :: stat
+      logical, intent(out), optional :: found
+      class(*), allocatable :: d
+
+      if (present(found)) found = .false.
+      call this%elements%get_raw(key(id), d, stat)
+      if (stat /= 0) return
+
+      select type(d)
+       type is (cell_region_t)
+         res = d
+         if (present(found)) found = .true.
+      end select
+   
    end function
 
    ! __________________________________________________________________
@@ -197,7 +227,7 @@ contains
       end function
    end function
 
-   function convertNodeToPixel(mesh, node) result(res)
+   function convertNodeToPixels(mesh, node) result(res)
       type(pixel_t), dimension(:), allocatable :: res
       class(mesh_t), intent(in) :: mesh
       type(node_t), intent(in) :: node

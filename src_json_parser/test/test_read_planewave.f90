@@ -83,7 +83,7 @@ contains
       expected%Sonda%collection(1)%fstop = 0.0
       expected%Sonda%collection(1)%fstep = 0.0
       allocate(expected%Sonda%collection(1)%cordinates(3))
-      expected%Sonda%collection(1)%cordinates(1:3)%tag = ' '
+      expected%Sonda%collection(1)%cordinates(1:3)%tag = '1'
       expected%Sonda%collection(1)%cordinates(1:3)%Xi = 5
       expected%Sonda%collection(1)%cordinates(1:3)%Yi = 5
       expected%Sonda%collection(1)%cordinates(1:3)%Zi = 5

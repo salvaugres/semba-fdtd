@@ -1,6 +1,7 @@
 module parser_tools_mod
    use labels_mod
    use mesh_mod
+   use cells_mod
    use json_module
    use json_kinds
 
@@ -14,84 +15,36 @@ module parser_tools_mod
       type(json_value), pointer :: p
    end type
 contains
-   function getCellRegion(core, place) result (res)
-      type(json_core) :: core
-      type(json_value), pointer :: place
-      type(cell_region_t) :: res
-
-      integer :: i, n
-      type(json_value), pointer :: coordEntry, voxelRegionEntry
-      real (kind=RK), dimension(:), allocatable :: vec
-
-      call core%get(place, J_VOXEL_REGION, voxelRegionEntry)
-      do i = 1, core%count(voxelRegionEntry)
-         call core%get_child(voxelRegionEntry, i, coordEntry)
-         call core%get(coordEntry, '.', vec)
-         if (size(vec) /= 3) then
-            write(error_unit, *) "Voxel regions are defined by two numerical vectors of size 3."
-            stop J_ERROR_NUMBER
-         end if
-         res%ab(i)%cell(:) = vec(1:3)
-      end do
-   end function
-
-   function getSimpleCells(core, place, path) result(res)
-      type(json_core) :: core
-      type(json_value), pointer :: place
-      character (len=*), intent(in) :: path
-      type(cell_t), dimension(:), allocatable :: res
-
-      integer :: i, n
-      type(json_value), pointer :: cellsEntry, coordEntry
-      real, dimension(:), allocatable :: vec
-      logical :: cellsFound = .false.
-
-      call core%get(place, path, cellsEntry, found=cellsFound)
-      if (.not. cellsFound) then
-         allocate(res(0))
-         return
-      end if
-      allocate(res(core%count(cellsEntry)))
-      do i = 1, core%count(cellsEntry)
-         call core%get_child(cellsEntry, i, coordEntry)
-         call core%get(coordEntry, '.', vec)
-         if (size(vec) /= 3) then
-            stop "Cells are defined by a vector of size 3."
-         end if
-         res(i)%cell = vec
-      end do
-   end function
-
-   function getPixelsFromElementIds(core, mesh, elementIdsPlace) result(res)
-      type(json_core) :: core
-      type(mesh_t) :: mesh
+   
+   function getPixelsFromElementIds(mesh, ids) result(res)
       type(pixel_t), dimension(:), allocatable :: res
-      type(json_value), pointer :: elementIdsPlace
-      integer, dimension(:), allocatable :: ids
-      logical :: elementIdsFound
+      type(mesh_t), intent(in) :: mesh
+      integer, dimension(:), allocatable, intent(in) :: ids
       
-      call core%get(elementIdsPlace, J_ELEMENTIDS, ids, found=elementIdsFound)
-      if (.not. elementIdsFound) then
-         allocate(res(0))
-         return
-      end if
+      type(node_t) :: node
+      type(cell_region_t) :: cellRegion
+      type(pixel_t), dimension(:), allocatable :: pixels
+      logical :: nodeFound
+      logical :: cellRegionFound
+      integer :: i
+     
       allocate(res(size(ids)))
-
-      block
-         type(node_t) :: node
-         type(pixel_t), dimension(:), allocatable :: pixel
-         logical :: nodeFound
-         integer :: i
-         do i = 1, size(ids)
-            node = mesh%getNode(ids(i), nodeFound)
-            if (nodeFound) pixel = convertNodeToPixel(mesh, node)
-            if (size(pixel) == 1) then 
-               res(i) = pixel(1) 
-            else 
-               stop "Problem converting node to pixels."
-            end if
-         end do
-      end block
+      do i = 1, size(ids)
+         node = mesh%getNode(ids(i), nodeFound)
+         cellRegion = mesh%getCellRegion(ids(i), cellRegionFound)
+         if (nodeFound) then 
+            pixels = convertNodeToPixels(mesh, node)
+         else if (cellRegionFound) then
+            pixels = cellRegion%toPixels()
+         else
+            stop "Error converting pixels."   
+         end if
+         if (size(pixels) /= 1) then 
+            stop "Each element id must contain a single pixel"
+         end if
+         res(i) = pixels(1) 
+      end do
+      
    end function
 
    function jsonValueFilterByKeyValues(core, srcs, key, values) result (out)

@@ -15,7 +15,19 @@
                 "y": [0.1],
                 "z": [0.1]
             }
+        },
+        "coordinates": [
+            {"id": 1, "position": [4, 4, 4]}
+        ],
+        "elements": {
+            "nodes": [ 
+                {"id": 1, "coordinateIds": [1]} 
+            ],
+            "cellRegions": [
+                {"id": 2, "voxels": [ [ [2, 2, 2], [9, 9, 9] ] ]}
+            ]
         }
+
     },
 
     "boundary": {
@@ -26,7 +38,7 @@
         {
             "type": "planewave",
             "magnitudeFile": "gauss_100MHz.exc",
-            "voxelRegion": [ [2, 2, 2], [9, 9, 9] ],
+            "elementIds": [2],
             "direction": {
                 "theta": 0.0,
                 "phi": 0.0
@@ -42,9 +54,7 @@
         {
             "name": "electric_field_point_probe",
             "type": "electric",
-            "pixels": [
-                [5, 5, 5]
-            ],
+            "elementIds": [1],
             "directions": ["x", "y", "z"],
             "domain": { 
                 "type": "time" 

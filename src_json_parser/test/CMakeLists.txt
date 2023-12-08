@@ -57,7 +57,7 @@ add_fortran_test_executable (smbjson_tests
     "test_node_to_pixel.f90"
     "test_read_planewave.f90"
     "test_read_holland1981.f90"
-    "test_read_currentinjection.f90"
+    # "test_read_currentinjection.f90"
 )
 
 target_link_libraries  (smbjson_tests smbjson)

@@ -48,9 +48,9 @@ contains
       expected%front%tipoFrontera(:) = F_MUR
 
       ! Expected materials.
-      expected%n_Mats = 0
-      expected%n_Mats_max = 0
-      allocate(expected%Mats(0))
+      expected%Mats%n_Mats = 0
+      expected%Mats%n_Mats_max = 0
+      allocate(expected%mats%Mats(0))
 
       ! Expected material regions.
       expected%pecRegs%nVols = 0
