@@ -1,5 +1,5 @@
 integer function test_polyline_to_linel() result(err_cnt)
-   use cells_mod
+   use mesh_mod
    use testingTools
 
    implicit none

@@ -85,11 +85,12 @@ module labels_mod
    character (len=*), parameter :: J_PW_POLARIZATION = "polarization"
    character (len=*), parameter :: J_PW_POLARIZATION_ALPHA = "alpha"
    character (len=*), parameter :: J_PW_POLARIZATION_BETA  = "beta"
+   ! type(SourceOnLine)
 
    ! --- probe types
    character (len=*), parameter :: J_PROBES = "probes"
    character (len=*), parameter :: J_PR_TYPE = "type"
-   character (len=*), parameter :: J_PR_OUTPUT_NAME = "outputName"
+   character (len=*), parameter :: J_PR_OUTPUT_NAME = "name"
    character (len=*), parameter :: J_PR_DIRECTIONS = "directions"
 
    ! domain stuff

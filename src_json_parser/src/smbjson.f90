@@ -345,8 +345,8 @@ contains
          call this%core%get(pw, J_PW_POLARIZATION//'.'//J_PW_POLARIZATION_BETA, res%beta)
 
          region = getCellRegion(this%core, pw)
-         res%coor1 = region%interval(1)%cell(:)
-         res%coor2 = region%interval(2)%cell(:)
+         res%coor1 = region%ab(1)%cell(:)
+         res%coor2 = region%ab(2)%cell(:)
 
          res%isRC = .false.
          res%nummodes = 1
@@ -562,12 +562,12 @@ contains
       end function
    end function
 
-   ! function readBlockProbes() result (res)
-   !    type(BloqueProbes) :: res
+   function readBlockProbes() result (res)
+      type(BloqueProbes) :: res
 
-
-   !    ! TODO
-   ! end function
+      stop "TODO"
+      ! TODO
+   end function
 
    ! function readVolumicProbes() result (res)
    !    type(VolProbes) :: res

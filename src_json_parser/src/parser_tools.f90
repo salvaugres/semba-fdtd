@@ -1,6 +1,6 @@
 module parser_tools_mod
    use labels_mod
-   use cells_mod
+   use mesh_mod
    use json_module
    use json_kinds
 
@@ -31,7 +31,7 @@ contains
             write(error_unit, *) "Voxel regions are defined by two numerical vectors of size 3."
             stop J_ERROR_NUMBER
          end if
-         res%interval(i)%cell(:) = vec(1:3)
+         res%ab(i)%cell(:) = vec(1:3)
       end do
    end function
 
