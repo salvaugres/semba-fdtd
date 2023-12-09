@@ -22,7 +22,7 @@ module smbjson
       type(json_core) :: core
       type(json_value), pointer :: root => null()
       type(mesh_t) :: mesh
-      type(IdChildTable_t) :: materials
+      type(IdChildTable_t) :: matTable
    contains
       procedure :: readProblemDescription
 
@@ -30,6 +30,9 @@ module smbjson
       procedure :: readGeneral
       procedure :: readGrid
       procedure :: readMediaMatrix
+      procedure :: readMaterials
+      procedure :: readPECRegions
+      procedure :: readPMCRegions
       procedure :: readBoundary
       procedure :: readPlanewaves
       procedure :: readProbes
@@ -81,7 +84,7 @@ contains
       call this%jsonfile%get('.', this%root)
 
       this%mesh = this%readMesh()
-      this%materials = IdChildTable_t(this%core, this%root, J_MATERIALS)
+      this%matTable = IdChildTable_t(this%core, this%root, J_MATERIALS)
 
       call initializeProblemDescription(res)
 
@@ -91,9 +94,9 @@ contains
       res%despl = this%readGrid()
       res%front = this%readBoundary()
       ! Materials
-      ! res%mats = this%readMaterials()
-      ! res%pecRegs = this%readPECRegions()
-      ! res%pmcRegs = this%readPMCRegions()
+      res%mats = this%readMaterials()
+      res%pecRegs = this%readPECRegions()
+      res%pmcRegs = this%readPMCRegions()
       ! res%DielRegs = this%readDielectricRegions()
       ! res%LossyThinSurfs = this%readLossyThinSurfaces()
       ! res%frqDepMats = this%readFrequencyDependentMaterials()
@@ -296,20 +299,34 @@ contains
       end function
    end function
 
-   ! function readMaterials() result (res)
-   !    type(Materials) :: res
-   !    ! TODO
-   ! end function
+   function readMaterials(this) result (res)
+      type(parser_t) :: this
+      type(Materials) :: res
 
-   ! function readPECRegions() result (res)
-   !    type(PECRegions) :: res
-   !    ! TODO
-   ! end function
+      type(json_value), pointer :: jmr
+      type(json_value_ptr) :: jmat
+      character (len=:), allocatable ::typeStr
 
-   ! function readPMCRegions() result (res)
-   !    type(PECRegions) :: res
-   !    ! TODO
-   ! end function
+      integer :: i, matId
+
+      call this%core%get(this%root, J_MATERIAL_REGIONS, jmr)
+      do i, this%core%count()
+         this%matTable%getId(this%getIntAt(jmr, J_MATERIAL_ID))
+         typeStr = this%getStrAt(jmat%p, J_TYPE)
+         if (J_TYPE == J_MAT_TYPE_SIMPLE)
+      end do
+      
+   end function
+
+   function readPECRegions() result (res)
+      type(PECRegions) :: res
+      
+   end function
+
+   function readPMCRegions() result (res)
+      type(PECRegions) :: res
+      ! TODO
+   end function
 
    ! function readDielectricRegions() result (res)
    !    type(DielectricRegions) :: res
@@ -667,7 +684,7 @@ contains
 
          block
             type(json_value_ptr) :: mat
-            mat = this%materials%getId(this%getIntAt(cable, J_CAB_MAT_ID))
+            mat = this%matTable%getId(this%getIntAt(cable, J_CAB_MAT_ID))
             select case (this%getStrAt(mat%p, J_TYPE))
              case (J_MAT_TYPE_WIRE)
                call this%core%get(mat%p,J_MAT_WIRE_RADIUS, res%rad, default = 0.0)
@@ -680,7 +697,7 @@ contains
          block
             type(json_value_ptr) :: mat
             type(connector_t) :: conn
-            mat = this%materials%getId(this%getIntAt(cable, J_CAB_INI_CONN_ID))
+            mat = this%matTable%getId(this%getIntAt(cable, J_CAB_INI_CONN_ID))
             conn = readConnectorMaterial(mat%p)
             res%tl = conn%connectorType
             res%R_LeftEnd = conn%r
@@ -692,7 +709,7 @@ contains
          block
             type(json_value_ptr) :: mat
             type(connector_t) :: conn
-            mat = this%materials%getId(this%getIntAt(cable, J_CAB_END_CONN_ID))
+            mat = this%matTable%getId(this%getIntAt(cable, J_CAB_END_CONN_ID))
             conn = readConnectorMaterial(mat%p)
             res%tr = conn%connectorType
             res%R_RightEnd = conn%r
@@ -760,15 +777,15 @@ contains
          logical :: found
          isThinWire = .false.
 
-         mat = this%materials%getId(this%getIntAt(cable, J_CAB_MAT_ID, found=found))
+         mat = this%matTable%getId(this%getIntAt(cable, J_CAB_MAT_ID, found=found))
          if (.not. found) return
          if (this%getStrAt(mat%p, J_TYPE) /= J_MAT_TYPE_WIRE) return
 
-         mat = this%materials%getId(this%getIntAt(cable, J_CAB_INI_CONN_ID, found=found))
+         mat = this%matTable%getId(this%getIntAt(cable, J_CAB_INI_CONN_ID, found=found))
          if (.not. found) return
          if (this%getStrAt(mat%p, J_TYPE) /= J_MAT_TYPE_CONNECTOR) return
 
-         mat = this%materials%getId(this%getIntAt(cable, J_CAB_END_CONN_ID, found=found))
+         mat = this%matTable%getId(this%getIntAt(cable, J_CAB_END_CONN_ID, found=found))
          if (.not. found) return
          if (this%getStrAt(mat%p, J_TYPE) /= J_MAT_TYPE_CONNECTOR) return
 

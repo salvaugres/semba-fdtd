@@ -1,23 +1,26 @@
-The FDTD json format.
+# The FDTD json format.
 
-# general
+## general
+## boundary
+## mesh
+Coordinates in mesh are considered to be relative to the cells, starting in (0,0,0).
+Elements are geometrical entities which reference the coordinates or specify cells in the mesh.
 
-# boundary
+## materials
+Allowed types: pec, pmc, simple
 
-# mesh
+### simple
+simple type is an isotropic material with specified relative permittivity, relative permeability, electric conductivity and/or magnetic conductivity.
 
-# materials
+## materialRegions
 
-# materialRegions
 
-# probes
+## probes
 
 Require type and at least one elementIds or cellRegions entry.
 Require a domain.
-
-## domain
-
-## type
+### domain
+### type
 If type is bulkCurrent:
     \[field\]: electric, magnetic (DEFAULTS TO FIRST)
 

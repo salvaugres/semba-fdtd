@@ -4,18 +4,24 @@ module labels_mod
    character (len=*), parameter :: J_NAME = "name"
    character (len=*), parameter :: J_ID = "id"
    character (len=*), parameter :: J_TYPE = "type"
-
+   
    character (len=*), parameter :: J_DIR_X = "x"
    character (len=*), parameter :: J_DIR_Y = "y"
    character (len=*), parameter :: J_DIR_Z = "z"
 
    ! -- materials
    character (len=*), parameter :: J_MATERIALS = "materials"
+
+   character (len=*), parameter :: J_MAT_TYPE_PEC = "pec"
+   character (len=*), parameter :: J_MAT_TYPE_PMC = "pmc"
+   character (len=*), parameter :: J_MAT_TYPE_SIMPLE = "simple"
    character (len=*), parameter :: J_MAT_TYPE_WIRE = "wire"
    character (len=*), parameter :: J_MAT_TYPE_CONNECTOR = "connector"
+
    character (len=*), parameter :: J_MAT_WIRE_RADIUS = "radius"
    character (len=*), parameter :: J_MAT_WIRE_RESISTANCE = "resistancePerMeter"
    character (len=*), parameter :: J_MAT_WIRE_INDUCTANCE = "inductancerPermeter"
+   
    character (len=*), parameter :: J_MAT_CONNECTOR_TYPE = "connectorType"
    character (len=*), parameter :: J_MAT_CONNECTOR_TYPE_OPEN = "open"
    character (len=*), parameter :: J_MAT_CONNECTOR_TYPE_SHORT = "short"
@@ -24,9 +30,13 @@ module labels_mod
    character (len=*), parameter :: J_MAT_CONNECTOR_INDUCTANCE = "inductance"
    character (len=*), parameter :: J_MAT_CONNECTOR_CAPACITANCE = "capacitance"
 
-   ! -- cables -- thin wires
+   ! -- materialRegions
+   character (len=*), parameter :: J_MATERIAL_REGIONS = "materialRegions"
+   character (len=*), parameter :: J_MATERIAL_ID = "materialId"
+
+   ! -- cables -- thin wires, slanted wires
    character (len=*), parameter :: J_CABLES = "cables"
-   character (len=*), parameter :: J_CAB_MAT_ID = "materialId"
+   character (len=*), parameter :: J_CAB_MAT_ID = "cableMaterialId"
    character (len=*), parameter :: J_CAB_INI_CONN_ID = "initialConnectorId"
    character (len=*), parameter :: J_CAB_END_CONN_ID = "endConnectorId"
 

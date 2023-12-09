@@ -59,7 +59,7 @@
     "cables": [
         {
             "name": "cableInstance",
-            "materialId": 1,
+            "cableMaterialId": 1,
             "initialConnectorId": 2,
             "endConnectorId": 2,
             "elementIds": [2]
