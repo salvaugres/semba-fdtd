@@ -49,6 +49,7 @@ module cells_mod
       ! For linels and surfels, varying directions define orientation.
       type(cell_interval_t), dimension(:), allocatable :: intervals
    contains
+      procedure :: toPixels => cell_region_toPixels
       procedure :: getIntervalsOfType => cell_region_getIntervalsOfType
    end type
 
@@ -61,11 +62,12 @@ contains
    function cell_region_toPixels(this) result(res)
       class(cell_region_t) :: this
       type(pixel_t), dimension(:), allocatable :: res
+      type(cell_interval_t), dimension(:), allocatable :: pixelIntervals
       integer :: i
-
-      allocate(res(size(this%pixels)))
-      do i = 1, size(this%pixels)
-         res(i)%cell = this%pixels(i)%ini%cell
+      pixelIntervals = this%getIntervalsOfType(CELL_TYPE_PIXEL)
+      allocate(res(size(pixelIntervals)))
+      do i = 1, size(res)
+         res(i)%cell = pixelIntervals(i)%ini%cell
       end do
    end function
 
@@ -110,7 +112,9 @@ contains
          block
             integer, dimension(3) :: diff
             diff = this%end%cell - this%ini%cell
-            res = findloc(diff, 0)
+            do i = DIR_X, DIR_Z
+               if (diff(i) == 0) res = i
+            end do
             if ( diff(mod(i+1,3)) < 0 .and. diff(mod(i+2,3)) < 0) &
                res = - res
          end block
@@ -122,7 +126,13 @@ contains
    elemental function cell_interval_getSize(this) result(res)
       class(cell_interval_t), intent(in) :: this
       integer :: res
-      
+      integer :: i
+      integer, dimension(3) :: diff
+      res = 1
+      diff = abs(this%end%cell - this%ini%cell)
+      do i = DIR_X, DIR_Z
+         if (diff(i) /= 0) res = res * diff(i)
+      end do
    end function
 
    elemental function cell_interval_varyingDirections(this) result(res)
@@ -135,6 +145,20 @@ contains
       end do
    end function
 
-   ! procedure :: getIntervalsOfType => cell_region_getIntervalsOfType
+   function cell_region_getIntervalsOfType(this, cellType) result(res)
+      class(cell_region_t), intent(in) :: this
+      integer, intent(in) :: cellType
+      type(cell_interval_t), dimension(:), allocatable :: res
+      integer :: i, j
+
+      allocate(res( count(this%intervals%getType() == cellType) ))
+      j = 1
+      do i = 1, size(this%intervals)
+         if (this%intervals(i)%getType() == cellType) then
+            res(j) = this%intervals(i)
+            j = j + 1
+         end if
+      end do
+   end function
 
 end module

@@ -350,29 +350,20 @@ contains
       res%nSurfs_max = size(res%Surfs)
       res%nVols_max = size(res%Vols)
    contains
-      subroutine addCellIntervalsAsCoords(cellRegions, cellType, res)
-         type(coords), dimension(:), pointer :: res
-         type(cell_region_t), dimension(:), allocatable, intent(in) :: cellRegions
-         integer, intent(in) :: cellType
-         type(cell_interval_t), dimension(:), pointer :: intervals
-         integer :: i
+   subroutine addCellIntervalsAsCoords(cellRegions, cellType, res)
+      type(coords), dimension(:), pointer :: res
+      type(cell_region_t), dimension(:), allocatable, intent(in) :: cellRegions
+      integer, intent(in) :: cellType
+      type(cell_interval_t), dimension(:), pointer :: intervals
+      integer :: i
 
-         do i = 1, size(cellRegions)
-            intervals = [intervals, cellRegions(i)%getIntervalsOfType(cellType)]
-         end do
+      do i = 1, size(cellRegions)
+         intervals = [intervals, cellRegions(i)%getIntervalsOfType(cellType)]
+      end do
+      res = cellIntervalsToCoords(intervals)
+      
+   end subroutine
 
-         allocate(res(size(intervals)))
-         res(:)%Xi = intervals(:)%ini%cell(DIR_X)
-         res(:)%Yi = intervals(:)%ini%cell(DIR_Y)
-         res(:)%Zi = intervals(:)%ini%cell(DIR_Z)
-         res(:)%Xe = intervals(:)%end%cell(DIR_X)
-         res(:)%Ye = intervals(:)%end%cell(DIR_Y)
-         res(:)%Ze = intervals(:)%end%cell(DIR_Z)
-         if (cellType == CELL_TYPE_LINEL .or. &
-             cellType == CELL_TYPE_SURFEL) then
-            res(:)%Or = intervals(:)%getOrientation()
-         end if
-      end subroutine
 
    end function
 
@@ -428,10 +419,12 @@ contains
          type(PlaneWave) :: res
          type(json_value), pointer :: pw
 
-         type(cell_region_t) :: cells
+         type(cell_region_t) :: cellRegion
+         type(cell_interval_t), dimension(:), allocatable :: voxelIntervals 
          character (len=:), allocatable :: label
          integer, dimension(:), allocatable :: elemIds
          logical :: found
+         type(coords), dimension(:), allocatable :: nfdeCoords
 
          res%nombre_fichero = trim(adjustl( &
             this%getStrAt(pw,J_SRC_MAGNITUDE_FILE)))
@@ -450,12 +443,14 @@ contains
 
          call this%core%get(pw, J_ELEMENTIDS, elemIds)
          if (size(elemIds) /= 1) stop "Planewave must contain a single elementId."
-         cells = this%mesh%getCellRegion(elemIds(1), found)
+         cellRegion = this%mesh%getCellRegion(elemIds(1), found)
          if (.not. found) stop "Planewave elementId not found."
-         if (size(cells%voxels) /= 1) stop "Planewave must contain a single voxel region."
-
-         res%coor1 = cells%voxels(1)%ini%cell(:)
-         res%coor2 = cells%voxels(1)%end%cell(:)
+         voxelIntervals = cellRegion%getIntervalsOfType(CELL_TYPE_VOXEL)
+         if (size(voxelIntervals) /= 1) stop "Planewave must contain a single voxel region."
+         
+         nfdeCoords = cellIntervalsToCoords(voxelIntervals)
+         res%coor1 = [nfdeCoords(1)%Xi, nfdeCoords(1)%Yi, nfdeCoords(1)%Zi] 
+         res%coor2 = [nfdeCoords(1)%Xe, nfdeCoords(1)%Ye, nfdeCoords(1)%Ze]
 
          res%isRC = .false.
          res%nummodes = 1
@@ -856,6 +851,35 @@ contains
    !    type(json_value), pointer :: root
    !    ! TODO
    ! end function
+
+   function cellIntervalsToCoords(intervals) result(res)
+      type(coords), dimension(:), allocatable :: res
+      type(cell_interval_t), dimension(:), intent(in) :: intervals
+      type(cell_interval_t) :: auxInterval
+      integer :: i, j
+      integer, dimension(3) :: diff
+
+      allocate(res(size(intervals)))
+      do i = 1, size(intervals)
+         auxInterval = intervals(i)
+
+         res(i)%Or = auxInterval%getOrientation()
+
+         diff = auxInterval%end%cell - auxInterval%ini%cell
+         do j = 1, 3
+            if (diff(j) > 0) auxInterval%end%cell(j) = auxInterval%end%cell(j) - 1
+            if (diff(j) < 0) auxInterval%end%cell(j) = auxInterval%end%cell(j) + 1 
+         end do
+         
+         res(i)%Xi = auxInterval%ini%cell(DIR_X)
+         res(i)%Yi = auxInterval%ini%cell(DIR_Y)
+         res(i)%Zi = auxInterval%ini%cell(DIR_Z)
+         res(i)%Xe = auxInterval%end%cell(DIR_X)
+         res(i)%Ye = auxInterval%end%cell(DIR_Y)
+         res(i)%Ze = auxInterval%end%cell(DIR_Z)
+      end do
+
+   end function
 
    function getIntAt(this, place, path, found) result(res)
       integer :: res
