@@ -52,6 +52,7 @@ endfunction ()
 add_fortran_test_executable (smbjson_tests
     "test_fhash.f90"
     "test_idchildtable.f90"
+    "test_cells.f90"
     "test_mesh_add_get.f90"
     "test_polyline_to_linel.f90"
     "test_node_to_pixel.f90"

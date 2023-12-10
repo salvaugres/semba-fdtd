@@ -15,8 +15,7 @@ module parser_tools_mod
       type(json_value), pointer :: p
    end type
 contains
-   
-   function getPixelsFromElementIds(mesh, ids) result(res)
+      function getPixelsFromElementIds(mesh, ids) result(res)
       type(pixel_t), dimension(:), allocatable :: res
       type(mesh_t), intent(in) :: mesh
       integer, dimension(:), allocatable, intent(in) :: ids
@@ -47,9 +46,9 @@ contains
       
    end function
 
-   function jsonValueFilterByKeyValues(core, srcs, key, values) result (out)
+   function jsonValueFilterByKeyValues(core, srcs, key, values) result (res)
       type(json_core) :: core
-      type(json_value_ptr), allocatable :: out(:)
+      type(json_value_ptr), allocatable :: res(:)
       type(json_value), pointer :: srcs
 
       character (kind=JSON_CK, len=*) :: key
@@ -62,24 +61,24 @@ contains
          if (allocated(foundEntries)) deallocate(foundEntries)
          foundEntries = jsonValueFilterByKeyValue(core, srcs, key, values(i))
          if (size(foundEntries) == 0) continue
-         if (allocated(out)) then
-            allocate(tmp(size(out)))
-            tmp = out
-            deallocate(out)
-            allocate(out(size(tmp) + size(foundEntries)))
-            out(:size(tmp)) = tmp
-            out((size(tmp)+1):) = foundEntries
+         if (allocated(res)) then
+            allocate(tmp(size(res)))
+            tmp = res
+            deallocate(res)
+            allocate(res(size(tmp) + size(foundEntries)))
+            res(:size(tmp)) = tmp
+            res((size(tmp)+1):) = foundEntries
             deallocate(tmp)
          else
-            allocate(out(size(foundEntries)))
-            out = foundEntries
+            allocate(res(size(foundEntries)))
+            res = foundEntries
          end if
       end do
    end function
 
-   function jsonValueFilterByKeyValue(core, place, key, value) result (out)
+   function jsonValueFilterByKeyValue(core, place, key, value) result (res)
       type(json_core) :: core
-      type(json_value_ptr), allocatable :: out(:)
+      type(json_value_ptr), allocatable :: res(:)
       character (kind=JSON_CK, len=*) :: key, value
       type(json_value), pointer :: place, src
       character (kind=JSON_CK, len=:), allocatable :: type
@@ -95,13 +94,13 @@ contains
          end if
       end do
 
-      allocate(out(n))
+      allocate(res(n))
       j = 1
       do i = 1, core%count(place)
          call core%get_child(place, i, src)
          call core%get(src, key, type, found)
          if(found .and. type == value) then
-            out(j)%p => src
+            res(j)%p => src
             j = j + 1
          end if
       end do

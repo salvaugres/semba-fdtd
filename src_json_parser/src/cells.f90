@@ -1,40 +1,55 @@
 module cells_mod
 
+   integer, parameter :: DIR_NULL = 0
    integer, parameter :: DIR_X = 1
    integer, parameter :: DIR_Y = 2
    integer, parameter :: DIR_Z = 3
 
-   real, dimension(3), parameter :: FIRST_CELL_POSITION = [1.0, 1.0, 1.0]
+   integer, dimension(3), parameter :: FIRST_CELL_POSITION = [1, 1, 1]
+
+   integer, parameter :: CELL_TYPE_PIXEL = 0
+   integer, parameter :: CELL_TYPE_LINEL = 1
+   integer, parameter :: CELL_TYPE_SURFEL = 2
+   integer, parameter :: CELL_TYPE_VOXEL = 3
 
    ! --- Cells
    type :: cell_t
-      real, dimension(3) :: cell
-      character (len=:), allocatable :: tag
+      integer, dimension(3) :: cell
    end type
 
    type, extends(cell_t) :: pixel_t
+      character (len=:), allocatable :: tag
    end type
 
    type, extends(cell_t) :: linel_t
       integer :: orientation                ! DIR_X, DIR_Y, DIR_Z
+      character (len=:), allocatable :: tag
    end type
 
    type, extends(cell_t) :: surfel_t
       integer :: orientation                ! DIR_X, DIR_Y, DIR_Z
+      character (len=:), allocatable :: tag
    end type
 
    type, extends(cell_t) :: voxel_t
+      character (len=:), allocatable :: tag
    end type
 
    type :: cell_interval_t
-      ! Cell intervals are CLOSED intervals [ini, end].
       type(cell_t) :: ini, end
+   contains
+      procedure :: getType => cell_interval_getType
+      procedure :: getOrientation => cell_interval_getOrientation
+      procedure :: getSize => cell_interval_getSize
+      procedure, private :: varyingDirections => cell_interval_varyingDirections
    end type
 
    type :: cell_region_t
-      type(cell_interval_t), dimension(:), allocatable :: pixels, linels, surfels, voxels
+      ! Cell regions are defined by semi-open intervals [ini, end).
+      ! For linels and surfels, varying directions define orientation.
+      type(cell_interval_t), dimension(:), allocatable :: intervals
    contains
-      procedure :: toPixels => cell_region_toPixels
+      procedure :: getIntervalsOfType => cell_region_getIntervalsOfType
    end type
 
    interface operator(==)
@@ -69,5 +84,57 @@ contains
          a%orientation == b%orientation
    end function
 
+   elemental function cell_interval_getType(this) result(res)
+      class(cell_interval_t), intent(in) :: this
+      integer :: res
+      res = this%varyingDirections()
+   end function
+
+   elemental function cell_interval_getOrientation(this) result(res)
+      class(cell_interval_t), intent(in) :: this
+      integer :: res
+      integer :: i
+      select case (this%getType())
+       case (CELL_TYPE_LINEL)
+         block
+            integer :: diff
+            do i = DIR_X, DIR_Z
+               diff = this%end%cell(i) - this%ini%cell(i)
+               if (diff == 0) continue
+               if (diff > 0) res = i
+               if (diff < 0) res = -i
+               return
+            end do
+         end block
+       case (CELL_TYPE_SURFEL)
+         block
+            integer, dimension(3) :: diff
+            diff = this%end%cell - this%ini%cell
+            res = findloc(diff, 0)
+            if ( diff(mod(i+1,3)) < 0 .and. diff(mod(i+2,3)) < 0) &
+               res = - res
+         end block
+       case default
+         res = DIR_NULL
+      end select
+   end function
+
+   elemental function cell_interval_getSize(this) result(res)
+      class(cell_interval_t), intent(in) :: this
+      integer :: res
+      
+   end function
+
+   elemental function cell_interval_varyingDirections(this) result(res)
+      class(cell_interval_t), intent(in) :: this
+      integer :: res
+      integer :: i
+      res = 0
+      do i = DIR_X, DIR_Z
+         if ((this%end%cell(i) - this%ini%cell(i)) /= 0) res = res + 1
+      end do
+   end function
+
+   ! procedure :: getIntervalsOfType => cell_region_getIntervalsOfType
 
 end module

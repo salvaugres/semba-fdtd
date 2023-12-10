@@ -152,7 +152,6 @@ contains
       type(linel_t), dimension(:), allocatable :: res
       class(mesh_t), intent(in) :: mesh
       type(polyline_t), intent(in) :: polyline
-
       type(coordinate_t) :: iC, eC, mC
       integer :: i, j, dir, lastSegment, nLinelsInSegment
       integer, dimension(3) :: segment

@@ -35,16 +35,21 @@ module smbjson
       procedure :: readPMCRegions
       procedure :: readBoundary
       procedure :: readPlanewaves
+      procedure :: readNodalSources
       procedure :: readProbes
       procedure :: readMoreProbes
+      procedure :: readBlockProbes
       procedure :: readThinWires
       !
       procedure :: readMesh
       !
       procedure :: getIntAt
+      procedure :: getIntsAt
       procedure :: getRealAt
       procedure :: getStrAt
-      procedure :: contains
+      procedure :: getJSONValuePtrAt
+      procedure :: existsAt
+      procedure :: getCellRegionsWithMaterialType
    end type
    interface parser_t
       module procedure parser_ctor
@@ -104,11 +109,11 @@ contains
       ! Sources
       ! res%boxSrc = this%readBoxSources()
       res%plnSrc = this%readPlanewaves()
-      ! res%nodSrc = this%readNodalSources()
+      res%nodSrc = this%readNodalSources()
       ! Probes
       res%oldSonda = this%readProbes()
       res%sonda = this%readMoreProbes()
-      ! res%BloquePrb = this%readBlockProbes()
+      res%BloquePrb = this%readBlockProbes()
       ! res%VolPrb = this%readVolumicProbes()
       ! Thin elements
       res%tWires = this%readThinWires()
@@ -171,10 +176,7 @@ contains
                   block
                      type(cell_region_t) :: cR
                      type(cell_interval_t), dimension(:), allocatable :: intervals
-                     cR%pixels = readCellIntervals(je, J_PIXELS)
-                     cR%linels = readCellIntervals(je, J_LINELS)
-                     cR%surfels = readCellIntervals(je, J_SURFELS)
-                     cR%voxels = readCellIntervals(je, J_VOXELS)
+                     cR%intervals = readCellIntervals(je, J_CELL_INTERVALS)
                      call mesh%addCellRegion(id, cR)
                   end block
                 case default
@@ -189,7 +191,7 @@ contains
          type(json_value), pointer, intent(in) :: place
          character (len=*), intent(in) :: path
          type(cell_interval_t), dimension(:), allocatable :: res
-         
+
          type(json_value), pointer :: intervalsPlace, interval
          integer :: i, nIntervals
          real, dimension(:), allocatable :: cellIni, cellEnd
@@ -300,32 +302,78 @@ contains
    end function
 
    function readMaterials(this) result (res)
-      type(parser_t) :: this
+      class(parser_t) :: this
       type(Materials) :: res
 
-      type(json_value), pointer :: jmr
-      type(json_value_ptr) :: jmat
-      character (len=:), allocatable ::typeStr
+      type(json_value), pointer :: jmats
+      type(json_value_ptr), dimension(:), allocatable :: simples
 
-      integer :: i, matId
+      integer :: i
 
-      call this%core%get(this%root, J_MATERIAL_REGIONS, jmr)
-      do i, this%core%count()
-         this%matTable%getId(this%getIntAt(jmr, J_MATERIAL_ID))
-         typeStr = this%getStrAt(jmat%p, J_TYPE)
-         if (J_TYPE == J_MAT_TYPE_SIMPLE)
-      end do
-      
+      call this%core%get(this%root, J_MATERIALS, jmats)
+      simples = jsonValueFilterByKeyValues(&
+         this%core, jmats, J_TYPE, [J_MAT_TYPE_SIMPLE])
+
+      if (size(simples) /= 0) stop "Error reading materials. Read dielectric is TBD."
+
+      res%n_Mats = size(simples)
+      res%n_Mats_max = size(simples)
+      allocate(res%Mats(size(simples)))
+
    end function
 
-   function readPECRegions() result (res)
+   function readPECRegions(this) result (res)
+      class(parser_t), intent(in) :: this
       type(PECRegions) :: res
-      
+      type(cell_region_t), dimension(:), allocatable :: cRs
+      res = buildPECPMCRegion(&
+         this%getCellRegionsWithMaterialType(J_MAT_TYPE_PEC))
    end function
 
-   function readPMCRegions() result (res)
+   function readPMCRegions(this) result (res)
+      class(parser_t), intent(in) :: this
       type(PECRegions) :: res
-      ! TODO
+      res = buildPECPMCRegion(&
+         this%getCellRegionsWithMaterialType(J_MAT_TYPE_PMC))
+   end function
+
+   function buildPECPMCRegion(cRs) result(res)
+      type(PECRegions) :: res
+      type(cell_region_t), dimension(:), allocatable, intent(in) :: cRs
+      call addCellIntervalsAsCoords(cRs, CELL_TYPE_LINEL,  res%Lins)
+      call addCellIntervalsAsCoords(cRs, CELL_TYPE_SURFEL, res%Surfs)
+      call addCellIntervalsAsCoords(cRs, CELL_TYPE_VOXEL,  res%Vols)
+      res%nLins = size(res%lins)
+      res%nSurfs = size(res%surfs)
+      res%nVols = size(res%vols)
+      res%nLins_max = size(res%Lins)
+      res%nSurfs_max = size(res%Surfs)
+      res%nVols_max = size(res%Vols)
+   contains
+      subroutine addCellIntervalsAsCoords(cellRegions, cellType, res)
+         type(coords), dimension(:), pointer :: res
+         type(cell_region_t), dimension(:), allocatable, intent(in) :: cellRegions
+         integer, intent(in) :: cellType
+         type(cell_interval_t), dimension(:), pointer :: intervals
+         integer :: i
+
+         do i = 1, size(cellRegions)
+            intervals = [intervals, cellRegions(i)%getIntervalsOfType(cellType)]
+         end do
+
+         allocate(res(size(intervals)))
+         res(:)%Xi = intervals(:)%ini%cell(DIR_X)
+         res(:)%Yi = intervals(:)%ini%cell(DIR_Y)
+         res(:)%Zi = intervals(:)%ini%cell(DIR_Z)
+         res(:)%Xe = intervals(:)%end%cell(DIR_X)
+         res(:)%Ye = intervals(:)%end%cell(DIR_Y)
+         res(:)%Ze = intervals(:)%end%cell(DIR_Z)
+         if (cellType == CELL_TYPE_LINEL .or. &
+             cellType == CELL_TYPE_SURFEL) then
+            res(:)%Or = intervals(:)%getOrientation()
+         end if
+      end subroutine
+
    end function
 
    ! function readDielectricRegions() result (res)
@@ -415,10 +463,11 @@ contains
       end function
    end function
 
-   ! function readNodalSources() result (res)
-   !    type(NodSource) :: res
-   !    ! TODO
-   ! end function
+   function readNodalSources(this) result (res)
+      class(parser_t), intent(in) :: this
+      type(NodSource) :: res
+      ! TODO
+   end function
 
    function readProbes(this) result (res)
       class(parser_t) :: this
@@ -626,10 +675,9 @@ contains
       end function
    end function
 
-   function readBlockProbes() result (res)
+   function readBlockProbes(this) result (res)
+      class(parser_t), intent(in) :: this
       type(BloqueProbes) :: res
-
-      stop "TODO"
       ! TODO
    end function
 
@@ -818,6 +866,24 @@ contains
       call this%core%get(place, path, res, found)
    end function
 
+   function getIntsAt(this, place, path, found) result(res)
+      integer, dimension(:), allocatable :: res
+      class(parser_t) :: this
+      type(json_value), pointer :: place
+      character(len=*) :: path
+      logical, intent(out), optional :: found
+      call this%core%get(place, path, res, found)
+   end function
+
+   function getjsonValuePtrAt(this, place, path, found) result(res)
+      type(json_value), pointer :: res
+      class(parser_t) :: this
+      type(json_value), pointer :: place
+      character(len=*) :: path
+      logical, intent(out), optional :: found
+      call this%core%get(place, path, res, found)
+   end function
+
    function getRealAt(this, place, path, found) result(res)
       real :: res
       class(parser_t) :: this
@@ -836,11 +902,43 @@ contains
       call this%core%get(place, path, res, found)
    end function
 
-   function contains(this, place, path) result(res)
+   function existsAt(this, place, path) result(res)
       logical :: res
       class(parser_t) :: this
       type(json_value), pointer :: place
       character(len=*) :: path
       call this%core%info(place, path, found=res)
    end function
+
+   function getCellRegionsWithMaterialType(this, matType) result(res)
+      class(parser_t) :: this
+      character (len=*), intent(in) :: matType
+      type(cell_region_t), dimension(:), allocatable :: res
+
+      logical :: found
+      type(json_value), pointer :: jmrs, jmr
+      type(json_value_ptr) :: jm
+      integer, dimension(:), allocatable :: eIds
+      type(cell_region_t) :: cR
+      integer :: i, j
+      integer :: numCellRegions
+
+      call this%core%get(this%root, J_MATERIAL_REGIONS, jmrs, found)
+      if (.not. found) return
+
+      do i = 1, this%core%count(jmrs)
+         call this%core%get_child(jmrs, i, jmr)
+         jm = this%matTable%getId(this%getIntAt(jmr, J_MATERIAL_ID))
+
+         if (matType /= this%getStrAt(jm%p, J_TYPE)) continue
+         eIds = this%getIntsAt(jmr, J_ELEMENTIDS)
+         do j = 1, size(eIds)
+            cR = this%mesh%getCellRegion(eIds(j), found)
+            if (found) then
+               res = [res, cR]
+            end if
+         end do
+      end do
+   end function
+
 end module

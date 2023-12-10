@@ -54,6 +54,7 @@ module labels_mod
    character (len=*), parameter :: J_SURFELS = "surfels"
    character (len=*), parameter :: J_LINELS = "linels"
    character (len=*), parameter :: J_PIXELS = "pixels"
+   character (len=*), parameter :: J_CELL_INTERVALS = "intervals"
    character (len=*), parameter :: J_ELEMENTIDS = "elementIds"
 
    ! type(NFDEGeneral)
