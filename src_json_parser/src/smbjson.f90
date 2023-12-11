@@ -56,7 +56,7 @@ module smbjson
    end interface
 
 
-   type, private :: connector_t
+   type, private :: termination_t
       integer :: connectorType
       real :: r, l, c
    end type
@@ -361,7 +361,7 @@ contains
          intervals = [intervals, cellRegions(i)%getIntervalsOfType(cellType)]
       end do
       res = cellIntervalsToCoords(intervals)
-      
+
    end subroutine
 
 
@@ -739,7 +739,7 @@ contains
 
          block
             type(json_value_ptr) :: mat
-            type(connector_t) :: conn
+            type(termination_t) :: conn
             mat = this%matTable%getId(this%getIntAt(cable, J_CAB_INI_CONN_ID))
             conn = readConnectorMaterial(mat%p)
             res%tl = conn%connectorType
@@ -751,7 +751,7 @@ contains
 
          block
             type(json_value_ptr) :: mat
-            type(connector_t) :: conn
+            type(termination_t) :: conn
             mat = this%matTable%getId(this%getIntAt(cable, J_CAB_END_CONN_ID))
             conn = readConnectorMaterial(mat%p)
             res%tr = conn%connectorType
@@ -792,7 +792,7 @@ contains
       end function
 
       function readConnectorMaterial(mat) result(res)
-         type(connector_t) :: res
+         type(termination_t) :: res
          type(json_value), pointer, intent(in) :: mat
          res%connectorType = strToConnectorType(this%getStrAt(mat, J_MAT_CONNECTOR_TYPE))
          call this%core%get(mat, J_MAT_CONNECTOR_RESISTANCE, res%r, default=0.0)

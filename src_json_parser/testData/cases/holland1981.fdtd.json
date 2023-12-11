@@ -19,7 +19,7 @@
     "materials": [
         {
             "id": 1,
-            "name": "wireMaterial",
+            "name": "wire_material",
             "type": "wire",
             "radius": 0.02,
             "resistancePerMeter": 0.0,
@@ -27,9 +27,9 @@
         },
         {
             "id": 2,
-            "name": "OpenConnectorMaterial",
-            "type": "connector",
-            "connectorType": "open"
+            "name": "openTerminalMaterial",
+            "type": "wireTerminal",
+            "terminationType": "open"
         }
     ],
 
@@ -38,22 +38,22 @@
             "numberOfCells": [20, 20, 22],
             "steps": { "x": [0.1], "y": [0.1], "z": [0.1] }
         },
-        "coordinates": [
+        "relativeCoordinates": [
             {"id": 1, "position": [11, 11,  7]},
             {"id": 2, "position": [11, 11, 12]},
             {"id": 3, "position": [11, 11, 17]}
         ],
-        "elements": {
-            "nodes": [
-                {"id": 1, "coordinateIds": [2]}
-            ],
-            "polylines": [
-                {"id": 2, "coordinateIds": [1, 2, 3]}
-            ],
-            "cellRegions": [
-                {"id": 3, "intervals": [ [ [2, 2, 2], [20, 20, 22] ]] }
-            ]
-        }
+        "elements": [
+            {"id": 1, "type": "node", "coordinateIds": [2]},
+            {"id": 2, "type": "polyline", "coordinateIds": [1, 2, 3] },
+            {
+                "id": 3, 
+                "type": "cellRegion", 
+                "intervals": [ 
+                    [ [1, 1, 1], [19, 19, 21] ]
+                ] 
+            }
+        ]
     },
 
     "cables": [

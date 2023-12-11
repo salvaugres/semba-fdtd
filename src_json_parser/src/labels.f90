@@ -4,7 +4,8 @@ module labels_mod
    character (len=*), parameter :: J_NAME = "name"
    character (len=*), parameter :: J_ID = "id"
    character (len=*), parameter :: J_TYPE = "type"
-   
+   character (len=*), parameter :: J_ELEMENTIDS = "elementIds"
+
    character (len=*), parameter :: J_DIR_X = "x"
    character (len=*), parameter :: J_DIR_Y = "y"
    character (len=*), parameter :: J_DIR_Z = "z"
@@ -16,19 +17,19 @@ module labels_mod
    character (len=*), parameter :: J_MAT_TYPE_PMC = "pmc"
    character (len=*), parameter :: J_MAT_TYPE_SIMPLE = "simple"
    character (len=*), parameter :: J_MAT_TYPE_WIRE = "wire"
-   character (len=*), parameter :: J_MAT_TYPE_CONNECTOR = "connector"
+   character (len=*), parameter :: J_MAT_TYPE_WIRE_TERMINAL = "wireTerminal"
 
    character (len=*), parameter :: J_MAT_WIRE_RADIUS = "radius"
    character (len=*), parameter :: J_MAT_WIRE_RESISTANCE = "resistancePerMeter"
-   character (len=*), parameter :: J_MAT_WIRE_INDUCTANCE = "inductancerPermeter"
+   character (len=*), parameter :: J_MAT_WIRE_INDUCTANCE = "inductancePermeter"
    
-   character (len=*), parameter :: J_MAT_CONNECTOR_TYPE = "connectorType"
-   character (len=*), parameter :: J_MAT_CONNECTOR_TYPE_OPEN = "open"
-   character (len=*), parameter :: J_MAT_CONNECTOR_TYPE_SHORT = "short"
-   character (len=*), parameter :: J_MAT_CONNECTOR_TYPE_SERIES = "series"
-   character (len=*), parameter :: J_MAT_CONNECTOR_RESISTANCE = "resistance"
-   character (len=*), parameter :: J_MAT_CONNECTOR_INDUCTANCE = "inductance"
-   character (len=*), parameter :: J_MAT_CONNECTOR_CAPACITANCE = "capacitance"
+   character (len=*), parameter :: J_MAT_WIRETERM_TERMINATION = "terminationType"
+   character (len=*), parameter :: J_MAT_WIRETERM_TYPE_OPEN = "open"
+   character (len=*), parameter :: J_MAT_WIRETERM_TYPE_SHORT = "short"
+   character (len=*), parameter :: J_MAT_WIRETERM_TYPE_SERIES = "series"
+   character (len=*), parameter :: J_MAT_WIRETERM_RESISTANCE = "resistance"
+   character (len=*), parameter :: J_MAT_WIRETERM_INDUCTANCE = "inductance"
+   character (len=*), parameter :: J_MAT_WIRETERM_CAPACITANCE = "capacitance"
 
    ! -- materialRegions
    character (len=*), parameter :: J_MATERIAL_REGIONS = "materialRegions"
@@ -47,15 +48,10 @@ module labels_mod
    character (len=*), parameter :: J_COORDINATE_POS = "position"
    character (len=*), parameter :: J_COORDINATE_IDS = "coordinateIds"
    character (len=*), parameter :: J_ELEMENTS = "elements"
-   character (len=*), parameter :: J_POLYLINES = "polylines"
-   character (len=*), parameter :: J_NODES = "nodes"
-   character (len=*), parameter :: J_CELL_REGIONS = "cellRegions"
-   character (len=*), parameter :: J_VOXELS = "voxels"
-   character (len=*), parameter :: J_SURFELS = "surfels"
-   character (len=*), parameter :: J_LINELS = "linels"
-   character (len=*), parameter :: J_PIXELS = "pixels"
+   character (len=*), parameter :: J_ELEM_TYPE_NODE = "node"
+   character (len=*), parameter :: J_ELEM_TYPE_POLYLINE = "polyline"
+   character (len=*), parameter :: J_ELEM_TYPE_CELL_REGION = "cellRegion"
    character (len=*), parameter :: J_CELL_INTERVALS = "intervals"
-   character (len=*), parameter :: J_ELEMENTIDS = "elementIds"
 
    ! type(NFDEGeneral)
    character (len=*), parameter :: J_GENERAL = "general"

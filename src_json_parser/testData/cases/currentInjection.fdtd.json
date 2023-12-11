@@ -18,15 +18,13 @@
                 "z": [0.1]
             }
         },
-        "elements": {
-            "cellRegions": [
-                {"id": 1, "intervals": [ [[11,  1, 11], [11,  6, 11]] ]},
-                {"id": 2, "intervals": [ [[ 6,  6, 11], [16, 16, 11]] ]},
-                {"id": 3, "intervals": [ [[11, 16, 11], [11, 21, 11]] ]},
-                {"id": 4, "intervals": [ [[10,  3, 10], [12,  3, 12]] ]},
-                {"id": 5, "intervals": [ [[10, 18, 10], [12, 18, 12]] ]}
-            ]
-        }
+        "elements": [
+            {"id": 1, "type": "cellRegion", "intervals": [ [[11,  1, 11], [11,  6, 11]] ]},
+            {"id": 2, "type": "cellRegion", "intervals": [ [[ 6,  6, 11], [16, 16, 11]] ]},
+            {"id": 3, "type": "cellRegion", "intervals": [ [[11, 16, 11], [11, 21, 11]] ]},
+            {"id": 4, "type": "cellRegion", "intervals": [ [[10,  3, 10], [12,  3, 12]] ]},
+            {"id": 5, "type": "cellRegion", "intervals": [ [[10, 18, 10], [12, 18, 12]] ]}
+        ]
     },
 
     "materials": [ {"id": 1, "type": "PEC"} ],

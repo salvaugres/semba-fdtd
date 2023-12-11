@@ -6,6 +6,9 @@
 Coordinates in mesh are considered to be relative to the cells, starting in (0,0,0).
 Elements are geometrical entities which reference the coordinates or specify cells in the mesh.
 
+If one or more directions increase, all of them must increase.
+If one direction increases and other decreases, is undefined behavior.
+
 ## materials
 Allowed types: pec, pmc, simple
 

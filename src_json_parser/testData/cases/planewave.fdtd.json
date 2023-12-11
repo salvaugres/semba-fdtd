@@ -10,23 +10,15 @@
     "mesh": {
         "grid": {
             "numberOfCells": [10, 10, 10],
-            "steps": {
-                "x": [0.1],
-                "y": [0.1],
-                "z": [0.1]
-            }
+            "steps": { "x": [0.1], "y": [0.1], "z": [0.1] }
         },
-        "coordinates": [
+        "relativeCoordinates": [
             {"id": 1, "position": [4, 4, 4]}
         ],
-        "elements": {
-            "nodes": [ 
-                {"id": 1, "coordinateIds": [1]} 
-            ],
-            "cellRegions": [
-                {"id": 2, "voxels": [ [ [2, 2, 2], [10, 10, 10] ] ]}
-            ]
-        }
+        "elements": [
+            {"id": 1, "type": "node", "coordinateIds": [1]},
+            {"id": 2, "type": "cellRegion", "intervals": [ [ [1, 1, 1], [9, 9, 9] ] ]}
+        ]
 
     },
 
