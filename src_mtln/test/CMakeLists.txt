@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.22)
+cmake_minimum_required(VERSION 3.5)
 enable_language (C Fortran)
 enable_testing ()
 
@@ -29,9 +29,13 @@ function (add_fortran_test_executable TARGET)
     create_test_sourcelist (_ main.c ${TEST_FILES_MANGLED})
 
     add_library (${TARGET}_fortran ${TEST_FILES} "testingTools.f90")
-    target_link_libraries (${TARGET}_fortran mtlnsolver)
+
+    # target_link_directories(${TARGET}_fortran PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../external/lapack)
+    # target_link_libraries (${TARGET}_fortran mtlnsolver lapack blas)
+    
     add_executable (${TARGET} main.c)
     target_link_libraries (${TARGET} ${TARGET}_fortran)
+
 
     set (INDEX 0)
     list (LENGTH TEST_FILES LEN)
@@ -58,5 +62,8 @@ get_target_property(mtlnsolver_INCLUDES mtlnsolver INCLUDE_DIRECTORIES)
 #     ${mtlnsolver_INCLUDES}
 # )
 
+# target_link_directories(mtlnsolver_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../external/lapack)
 target_link_libraries  (mtlnsolver_tests mtlnsolver)
+# target_link_libraries  (mtlnsolver_tests lapack blas)
+# target_link_libraries  (mtlnsolver_tests ${CMAKE_CURRENT_SOURCE_DIR}/../external/lapack/liblapack.lib ${CMAKE_CURRENT_SOURCE_DIR}/../external/lapack/libblas.lib)
 

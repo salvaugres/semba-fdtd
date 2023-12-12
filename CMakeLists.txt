@@ -28,11 +28,11 @@ endfunction()
 
 message(STATUS ${CMAKE_Fortran_COMPILER_ID})
 
-message(STATUS "Adding source files...")
-add_sources(. SRCS)
-message(STATUS ${SRCS})
+# message(STATUS "Adding source files...")
+# add_sources(. SRCS)
+# message(STATUS ${SRCS})
 
-add_executable(semba-fdtd ${SRCS})
+# add_executable(semba-fdtd ${SRCS})
 
 # Set a default build type if none was specified
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)

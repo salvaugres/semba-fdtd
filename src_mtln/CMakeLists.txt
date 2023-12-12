@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.5)
+cmake_minimum_required (VERSION 3.7)
 
 project (mtlnsolver)
 enable_language (Fortran)
@@ -12,14 +12,28 @@ set(CMAKE_Fortran_MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/mod)
 
 include_directories(src/)
 
+# add_subdirectory(external/lapack)
+
 add_library(mtlnsolver
 	"src/mtlnsolver.f90"
+	"src/utils.f90"
 )
 
-# message(STATUS "json-fortran include dirs: " ${jsonfortran_INCLUDE_DIRS})
-# message(STATUS "json-fortran lib dirs: " ${jsonfortran_LIBRARY_DIRS})
-# include_directories    (mtln_fortran PRIVATE ${jsonfortran_INCLUDE_DIRS})
-# target_link_directories(mtln_fortran PRIVATE ${jsonfortran_LIBRARY_DIRS})
-# target_link_libraries  (mtlnsolver PRIVATE semba-types)
+# set(LAPACK_DIR ${CMAKE_CURRENT_SOURCE_DIR}/external/lapack/build/lib/Debug/lib/)
+# message("lapack dir " ${LAPACK_DIR})
+# find_package(BLAS)
+# find_package(LAPACK)
+# if(LAPACK_FOUND AND BLAS_FOUND)
+#    set(lapackblas_libraries "${BLAS_LIBRARIES} ${LAPACK_LIBRARIES}")
+# endif()
 
-add_subdirectory(test)
+# message("LAPACK lib found " ${LAPACK_FOUND})
+# message("BLAS lib found " ${BLAS_FOUND})
+
+# target_link_directories(mtlnsolver PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/external/libs)
+# target_link_libraries  (mtlnsolver lapack blas)
+# target_link_libraries(mtlnsolver lapack blas)
+# target_link_libraries(mtlnsolver ${CMAKE_CURRENT_SOURCE_DIR}/external/libs/LAPACK ${CMAKE_CURRENT_SOURCE_DIR}/external/libs/BLAS)
+
+# add_subdirectory(test)
+

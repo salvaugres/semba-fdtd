@@ -1,0 +1,3 @@
+[submodule "src_mtln/external/lapack"]
+	path = src_mtln/external/lapack
+	url = git@github.com:Reference-LAPACK/lapack.git
