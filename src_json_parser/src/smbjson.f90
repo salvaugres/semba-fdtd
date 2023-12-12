@@ -349,21 +349,18 @@ contains
       res%nSurfs_max = size(res%Surfs)
       res%nVols_max = size(res%Vols)
    contains
-   subroutine addCellIntervalsAsCoords(cellRegions, cellType, res)
-      type(coords), dimension(:), pointer :: res
-      type(cell_region_t), dimension(:), allocatable, intent(in) :: cellRegions
-      integer, intent(in) :: cellType
-      type(cell_interval_t), dimension(:), pointer :: intervals
-      integer :: i
+      subroutine addCellIntervalsAsCoords(cellRegions, cellType, res)
+         type(coords), dimension(:), pointer :: res
+         type(cell_region_t), dimension(:), allocatable, intent(in) :: cellRegions
+         integer, intent(in) :: cellType
+         type(cell_interval_t), dimension(:), allocatable :: intervals
+         integer :: i
 
-      do i = 1, size(cellRegions)
-         intervals = [intervals, cellRegions(i)%getIntervalsOfType(cellType)]
-      end do
-      res = cellIntervalsToCoords(intervals)
-
-   end subroutine
-
-
+         do i = 1, size(cellRegions)
+            intervals = [intervals, cellRegions(i)%getIntervalsOfType(cellType)]
+         end do
+         res = cellIntervalsToCoords(intervals)
+      end subroutine
    end function
 
    ! function readDielectricRegions() result (res)
@@ -947,7 +944,10 @@ contains
       integer :: numCellRegions
 
       call this%core%get(this%root, J_MATERIAL_REGIONS, jmrs, found)
-      if (.not. found) return
+      if (.not. found) then
+         allocate(res(0))
+         return
+      end if
 
       do i = 1, this%core%count(jmrs)
          call this%core%get_child(jmrs, i, jmr)
