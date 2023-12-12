@@ -71,8 +71,17 @@ contains
       allocate(pD%despl)
       allocate(pD%front)
       allocate(pD%Mats)
+      
       allocate(pD%pecRegs)
+      allocate(pD%pecRegs%lins(0))
+      allocate(pD%pecRegs%surfs(0))
+      allocate(pD%pecRegs%vols(0))
+
       allocate(pD%pmcRegs)
+      allocate(pD%pmcRegs%lins(0))
+      allocate(pD%pmcRegs%surfs(0))
+      allocate(pD%pmcRegs%vols(0))
+      
       allocate(pD%DielRegs)
       allocate(pD%LossyThinSurfs)
       allocate(pD%frqDepMats)

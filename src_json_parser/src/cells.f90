@@ -5,8 +5,6 @@ module cells_mod
    integer, parameter :: DIR_Y = 2
    integer, parameter :: DIR_Z = 3
 
-   integer, dimension(3), parameter :: FIRST_CELL_POSITION = [1, 1, 1]
-
    integer, parameter :: CELL_TYPE_PIXEL = 0
    integer, parameter :: CELL_TYPE_LINEL = 1
    integer, parameter :: CELL_TYPE_SURFEL = 2
@@ -102,10 +100,13 @@ contains
             integer :: diff
             do i = DIR_X, DIR_Z
                diff = this%end%cell(i) - this%ini%cell(i)
-               if (diff == 0) continue
-               if (diff > 0) res = i
-               if (diff < 0) res = -i
-               return
+               if (diff > 0) then
+                  res = i
+                  return
+               else if (diff < 0) then
+                  res = -i
+                  return
+               end if
             end do
          end block
        case (CELL_TYPE_SURFEL)

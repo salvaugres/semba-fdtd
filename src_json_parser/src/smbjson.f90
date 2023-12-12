@@ -55,11 +55,12 @@ module smbjson
       module procedure parser_ctor
    end interface
 
-
    type, private :: termination_t
       integer :: connectorType
       real :: r, l, c
    end type
+
+   integer, private, parameter :: FIRST_CELL_START = 1
 contains
    function parser_ctor(filename) result(res)
       type(parser_t) :: res
@@ -98,10 +99,24 @@ contains
       res%matriz = this%readMediaMatrix()
       res%despl = this%readGrid()
       res%front = this%readBoundary()
+      
       ! Materials
       res%mats = this%readMaterials()
       res%pecRegs = this%readPECRegions()
       res%pmcRegs = this%readPMCRegions()
+
+      block
+         type(json_value), pointer :: ent
+         character(len=:), allocatable :: name
+         integer :: i
+         do i = 1, this%core%count(this%root)
+
+            call this%core%get_child(this%root, i, ent)
+            call this%core%info(ent, name=name)
+            print *, name
+         end do
+      end block
+      
       ! res%DielRegs = this%readDielectricRegions()
       ! res%LossyThinSurfs = this%readLossyThinSurfaces()
       ! res%frqDepMats = this%readFrequencyDependentMaterials()
@@ -307,11 +322,9 @@ contains
       type(json_value), pointer :: jmats
       type(json_value_ptr), dimension(:), allocatable :: simples
 
-      integer :: i
-
       call this%core%get(this%root, J_MATERIALS, jmats)
-      simples = jsonValueFilterByKeyValues(&
-         this%core, jmats, J_TYPE, [J_MAT_TYPE_SIMPLE])
+      simples = jsonValueFilterByKeyValue( &
+         this%core, jmats, J_TYPE, J_MAT_TYPE_SIMPLE)
 
       if (size(simples) /= 0) stop "Error reading materials. Read dielectric is TBD."
 
@@ -354,12 +367,16 @@ contains
          type(cell_region_t), dimension(:), allocatable, intent(in) :: cellRegions
          integer, intent(in) :: cellType
          type(cell_interval_t), dimension(:), allocatable :: intervals
+         type(coords), dimension(:), allocatable :: coords
          integer :: i
 
+         allocate(intervals(0))
          do i = 1, size(cellRegions)
             intervals = [intervals, cellRegions(i)%getIntervalsOfType(cellType)]
          end do
-         res = cellIntervalsToCoords(intervals)
+         coords = cellIntervalsToCoords(intervals)
+         allocate(res(size(coords)))
+         res = coords
       end subroutine
    end function
 
@@ -400,9 +417,14 @@ contains
       type(json_value), pointer :: sources
       type(json_value_ptr), allocatable :: pws(:)
       integer :: i
+      logical :: found
 
-      call this%core%get(this%root, J_SOURCES, sources)
-      pws = jsonValueFilterByKeyValue(this%core, sources, J_SRC_TYPE, J_PW_TYPE)
+      call this%core%get(this%root, J_SOURCES, sources, found)
+      if (found) then
+         pws = jsonValueFilterByKeyValue(this%core, sources, J_SRC_TYPE, J_PW_TYPE)
+      else
+         allocate(pws(0))
+      end if
       allocate(res%collection(size(pws)))
       do i=1, size(pws)
          res%collection(i) = readPlanewave(pws(i)%p)
@@ -416,7 +438,7 @@ contains
          type(json_value), pointer :: pw
 
          type(cell_region_t) :: cellRegion
-         type(cell_interval_t), dimension(:), allocatable :: voxelIntervals 
+         type(cell_interval_t), dimension(:), allocatable :: voxelIntervals
          character (len=:), allocatable :: label
          integer, dimension(:), allocatable :: elemIds
          logical :: found
@@ -443,9 +465,9 @@ contains
          if (.not. found) stop "Planewave elementId not found."
          voxelIntervals = cellRegion%getIntervalsOfType(CELL_TYPE_VOXEL)
          if (size(voxelIntervals) /= 1) stop "Planewave must contain a single voxel region."
-         
+
          nfdeCoords = cellIntervalsToCoords(voxelIntervals)
-         res%coor1 = [nfdeCoords(1)%Xi, nfdeCoords(1)%Yi, nfdeCoords(1)%Zi] 
+         res%coor1 = [nfdeCoords(1)%Xi, nfdeCoords(1)%Yi, nfdeCoords(1)%Zi]
          res%coor2 = [nfdeCoords(1)%Xe, nfdeCoords(1)%Ye, nfdeCoords(1)%Ze]
 
          res%isRC = .false.
@@ -864,17 +886,26 @@ contains
          diff = auxInterval%end%cell - auxInterval%ini%cell
          do j = 1, 3
             if (diff(j) > 0) auxInterval%end%cell(j) = auxInterval%end%cell(j) - 1
-            if (diff(j) < 0) auxInterval%end%cell(j) = auxInterval%end%cell(j) + 1 
+            if (diff(j) < 0) auxInterval%end%cell(j) = auxInterval%end%cell(j) + 1
          end do
-         
-         res(i)%Xi = auxInterval%ini%cell(DIR_X)
-         res(i)%Yi = auxInterval%ini%cell(DIR_Y)
-         res(i)%Zi = auxInterval%ini%cell(DIR_Z)
-         res(i)%Xe = auxInterval%end%cell(DIR_X)
-         res(i)%Ye = auxInterval%end%cell(DIR_Y)
-         res(i)%Ze = auxInterval%end%cell(DIR_Z)
-      end do
 
+         call convertInterval(res(i)%Xi, res(i)%Xe, auxInterval, DIR_X)
+         call convertInterval(res(i)%Yi, res(i)%Ye, auxInterval, DIR_Y)
+         call convertInterval(res(i)%Zi, res(i)%Ze, auxInterval, DIR_Z)
+      end do
+   contains
+      subroutine convertInterval(xi, xe, interval, dir)
+         integer, intent(out) :: xi, xe
+         type(cell_interval_t), intent(in) :: interval
+         integer, intent(in) :: dir
+         integer :: a, b
+         a = interval%ini%cell(dir) + FIRST_CELL_START
+         b = interval%end%cell(dir) + FIRST_CELL_START
+         if (b < a) then
+            a = interval%end%cell(dir) + 1
+            b = interval%ini%cell(dir) + 1
+         end if
+      end subroutine
    end function
 
    function getIntAt(this, place, path, found) result(res)
@@ -944,23 +975,26 @@ contains
       integer :: numCellRegions
 
       call this%core%get(this%root, J_MATERIAL_REGIONS, jmrs, found)
+      allocate(res(0))
       if (.not. found) then
-         allocate(res(0))
          return
       end if
 
       do i = 1, this%core%count(jmrs)
          call this%core%get_child(jmrs, i, jmr)
-         jm = this%matTable%getId(this%getIntAt(jmr, J_MATERIAL_ID))
+         jm = this%matTable%getId(this%getIntAt(jmr, J_MATERIAL_ID, found))
+         if (.not. found) &
+            stop "Error reading material region: materialId label not found."
 
-         if (matType /= this%getStrAt(jm%p, J_TYPE)) continue
-         eIds = this%getIntsAt(jmr, J_ELEMENTIDS)
-         do j = 1, size(eIds)
-            cR = this%mesh%getCellRegion(eIds(j), found)
-            if (found) then
-               res = [res, cR]
-            end if
-         end do
+         if (matType == this%getStrAt(jm%p, J_TYPE)) then
+            eIds = this%getIntsAt(jmr, J_ELEMENTIDS)
+            do j = 1, size(eIds)
+               cR = this%mesh%getCellRegion(eIds(j), found)
+               if (found) then
+                  res = [res, cR]
+               end if
+            end do
+         end if
       end do
    end function
 
