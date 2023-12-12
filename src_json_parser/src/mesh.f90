@@ -39,6 +39,7 @@ module mesh_mod
    public :: convertPolylineToLinels
    public :: convertNodeToPixels
    
+   integer, public, parameter :: FIRST_CELL_START = 1
    private
 
 contains
@@ -173,7 +174,7 @@ contains
          segment = segment / nLinelsInSegment
          do j = 1, nLinelsInSegment
             mC%position = iC%position + segment * (real(j-1) + 0.5)
-            res(lastSegment)%cell = floor(mc%position) + FIRST_CELL_POSITION
+            res(lastSegment)%cell = floor(mc%position) + FIRST_CELL_START
             res(lastSegment)%orientation = dir
             if (j == 1) then
                res(lastSegment)%tag = trim(intToString(polyline%coordIds(i)))
@@ -240,7 +241,7 @@ contains
          return
       end if
       allocate(res(1))
-      res(1)%cell = c%position + FIRST_CELL_POSITION
+      res(1)%cell = c%position + FIRST_CELL_START
       res(1)%tag = trim(intToString(node%coordIds(1)))
    end function
 

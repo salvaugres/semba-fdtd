@@ -30,12 +30,9 @@ contains
       allocate(res(size(ids)))
       do i = 1, size(ids)
          node = mesh%getNode(ids(i), nodeFound)
-         cellRegion = mesh%getCellRegion(ids(i), cellRegionFound)
          if (nodeFound) then 
             pixels = convertNodeToPixels(mesh, node)
-         else if (cellRegionFound) then
-            pixels = cellRegion%toPixels()
-         else
+         else 
             stop "Error converting pixels."   
          end if
          if (size(pixels) /= 1) then 

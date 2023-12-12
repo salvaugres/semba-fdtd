@@ -60,7 +60,6 @@ module smbjson
       real :: r, l, c
    end type
 
-   integer, private, parameter :: FIRST_CELL_START = 1
 contains
    function parser_ctor(filename) result(res)
       type(parser_t) :: res
@@ -104,23 +103,11 @@ contains
       res%mats = this%readMaterials()
       res%pecRegs = this%readPECRegions()
       res%pmcRegs = this%readPMCRegions()
-
-      block
-         type(json_value), pointer :: ent
-         character(len=:), allocatable :: name
-         integer :: i
-         do i = 1, this%core%count(this%root)
-
-            call this%core%get_child(this%root, i, ent)
-            call this%core%info(ent, name=name)
-            print *, name
-         end do
-      end block
-      
       ! res%DielRegs = this%readDielectricRegions()
       ! res%LossyThinSurfs = this%readLossyThinSurfaces()
       ! res%frqDepMats = this%readFrequencyDependentMaterials()
       ! res%aniMats = this%readAnisotropicMaterials()
+      
       ! Sources
       ! res%boxSrc = this%readBoxSources()
       res%plnSrc = this%readPlanewaves()
@@ -152,7 +139,7 @@ contains
       type(coordinate_t) :: c
       logical :: found
 
-      call this%core%get(this%root, J_MESH//'.'//J_COORDINATES, jcs, found=found)
+      call this%core%get(this%root, J_MESH//'.'//J_RELATIVE_COORDINATES, jcs, found=found)
       if (found) then
          do i = 1, this%core%count(jcs)
             call this%core%get_child(jcs, i, jc)
@@ -321,10 +308,14 @@ contains
 
       type(json_value), pointer :: jmats
       type(json_value_ptr), dimension(:), allocatable :: simples
+      logical :: found
 
-      call this%core%get(this%root, J_MATERIALS, jmats)
-      simples = jsonValueFilterByKeyValue( &
-         this%core, jmats, J_TYPE, J_MAT_TYPE_SIMPLE)
+      call this%core%get(this%root, J_MATERIALS, jmats, found)
+      if (found) then
+         simples = jsonValueFilterByKeyValue(this%core, jmats, J_TYPE, J_MAT_TYPE_SIMPLE)
+      else
+         allocate(simples(0))
+      end if
 
       if (size(simples) /= 0) stop "Error reading materials. Read dielectric is TBD."
 
@@ -874,21 +865,12 @@ contains
       type(coords), dimension(:), allocatable :: res
       type(cell_interval_t), dimension(:), intent(in) :: intervals
       type(cell_interval_t) :: auxInterval
-      integer :: i, j
-      integer, dimension(3) :: diff
+      integer :: i
 
       allocate(res(size(intervals)))
       do i = 1, size(intervals)
          auxInterval = intervals(i)
-
          res(i)%Or = auxInterval%getOrientation()
-
-         diff = auxInterval%end%cell - auxInterval%ini%cell
-         do j = 1, 3
-            if (diff(j) > 0) auxInterval%end%cell(j) = auxInterval%end%cell(j) - 1
-            if (diff(j) < 0) auxInterval%end%cell(j) = auxInterval%end%cell(j) + 1
-         end do
-
          call convertInterval(res(i)%Xi, res(i)%Xe, auxInterval, DIR_X)
          call convertInterval(res(i)%Yi, res(i)%Ye, auxInterval, DIR_Y)
          call convertInterval(res(i)%Zi, res(i)%Ze, auxInterval, DIR_Z)
@@ -898,13 +880,13 @@ contains
          integer, intent(out) :: xi, xe
          type(cell_interval_t), intent(in) :: interval
          integer, intent(in) :: dir
-         integer :: a, b
-         a = interval%ini%cell(dir) + FIRST_CELL_START
-         b = interval%end%cell(dir) + FIRST_CELL_START
-         if (b < a) then
-            a = interval%end%cell(dir) + 1
-            b = interval%ini%cell(dir) + 1
+         xi = interval%ini%cell(dir) + FIRST_CELL_START
+         xe = interval%end%cell(dir)
+         if (xe < xi) then
+            xi = interval%end%cell(dir) + 1 + FIRST_CELL_START
+            xe = interval%ini%cell(dir) + 1 
          end if
+
       end subroutine
    end function
 

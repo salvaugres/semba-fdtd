@@ -44,7 +44,7 @@ module labels_mod
    ! -- Mesh and geometry.
    character (len=*), parameter :: J_MESH = "mesh"
 
-   character (len=*), parameter :: J_COORDINATES = "coordinates"
+   character (len=*), parameter :: J_RELATIVE_COORDINATES = "relativeCoordinates"
    character (len=*), parameter :: J_COORDINATE_POS = "position"
    character (len=*), parameter :: J_COORDINATE_IDS = "coordinateIds"
    character (len=*), parameter :: J_ELEMENTS = "elements"
