@@ -29,7 +29,7 @@
             "id": 2,
             "name": "openTerminalMaterial",
             "type": "wireTerminal",
-            "terminationType": "open"
+            "termination": "open"
         }
     ],
 

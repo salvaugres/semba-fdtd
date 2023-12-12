@@ -23,7 +23,7 @@ module labels_mod
    character (len=*), parameter :: J_MAT_WIRE_RESISTANCE = "resistancePerMeter"
    character (len=*), parameter :: J_MAT_WIRE_INDUCTANCE = "inductancePermeter"
    
-   character (len=*), parameter :: J_MAT_WIRETERM_TERMINATION = "terminationType"
+   character (len=*), parameter :: J_MAT_WIRETERM_TERMINATION = "termination"
    character (len=*), parameter :: J_MAT_WIRETERM_TYPE_OPEN = "open"
    character (len=*), parameter :: J_MAT_WIRETERM_TYPE_SHORT = "short"
    character (len=*), parameter :: J_MAT_WIRETERM_TYPE_SERIES = "series"

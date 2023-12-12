@@ -1,4 +1,4 @@
-integer function test_idchildtable() result(error_cnt)
+integer function test_idchildtable() result(err)
    use idchildtable_mod
    use parser_tools_mod, only: json_value_ptr
    use testingTools
@@ -14,16 +14,16 @@ integer function test_idchildtable() result(error_cnt)
    type(json_value), pointer :: root => null()
    type(json_value_ptr) :: mat
 
-   error_cnt = 0
+   err = 0
    call jsonfile%initialize()
    if (jsonfile%failed()) then
-      error_cnt = error_cnt + 1
+      err = err + 1
       return
    end if
 
    call jsonfile%load(filename = filename)
    if (jsonfile%failed()) then
-      error_cnt = error_cnt + 1
+      err = err + 1
       return
    end if
 
@@ -32,13 +32,20 @@ integer function test_idchildtable() result(error_cnt)
 
    tbl = IdChildTable_t(core, root, J_MATERIALS)
 
-   if (tbl%count() /= 2) error_cnt = error_cnt + 1
+   if (tbl%count() /= 2) err = err + 1
    block
-      character (len=:), allocatable :: name
+      character (len=:), allocatable :: matType
+      logical :: found
+
       mat = tbl%getId(1)
-      
-      call core%get(mat%p, J_NAME, name)
-      if (name /= "wireMaterial") error_cnt = error_cnt + 1
+      call core%get(mat%p, J_TYPE, matType, found)
+      if (.not. found) err = err + 1
+      if (matType /= J_MAT_TYPE_WIRE) err = err + 1
+
+      mat = tbl%getId(2)
+      call core%get(mat%p, J_TYPE, matType, found)
+      if (.not. found) err = err + 1
+      if (matType /= J_MAT_TYPE_WIRE_TERMINAL) err = err + 1
    end block
 end function
 

@@ -115,7 +115,7 @@ contains
             do i = DIR_X, DIR_Z
                if (diff(i) == 0) res = i
             end do
-            if ( diff(mod(i+1,3)) < 0 .and. diff(mod(i+2,3)) < 0) &
+            if ( diff(mod(res,3)+1) < 0 .and. diff(mod(res+1,3)+1) < 0) &
                res = - res
          end block
        case default

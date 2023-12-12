@@ -147,32 +147,31 @@ contains
             call res%addCoordinate(id, c)
          end do
       end if
-      call addElementsOfType(res, J_NODES)
-      call addElementsOfType(res, J_POLYLINES)
-      call addElementsOfType(res, J_CELL_REGIONS)
+      call addElements(res)
 
    contains
-      subroutine addElementsOfType(mesh, elementType)
+      subroutine addElements(mesh)
          type(mesh_t), intent(inout) :: mesh
-         character(len=*), intent(in) :: elementType
+         character (len=:), allocatable :: elementType
          type(json_value), pointer :: jes, je
          integer :: id, i
          type(node_t) :: e
          integer, dimension(:), allocatable :: coordIds
          logical :: found
-         call this%core%get(this%root, J_MESH//'.'//J_ELEMENTS//'.'//elementType, jes, found=found)
+         call this%core%get(this%root, J_MESH//'.'//J_ELEMENTS, jes, found=found)
          if (found) then
             do i = 1, this%core%count(jes)
                call this%core%get_child(jes, i, je)
                call this%core%get(je, J_ID, id)
+               call this%core%get(je, J_TYPE, elementType)
                select case (elementType)
-                case (J_NODES)
+                case (J_ELEM_TYPE_NODE)
                   call this%core%get(je, J_COORDINATE_IDS, coordIds)
                   call mesh%addElement(id, node_t(coordIds))
-                case (J_POLYLINES)
+                case (J_ELEM_TYPE_POLYLINE)
                   call this%core%get(je, J_COORDINATE_IDS, coordIds)
                   call mesh%addElement(id, polyline_t(coordIds))
-                CASE (J_CELL_REGIONS)
+                CASE (J_ELEM_TYPE_CELL_REGION)
                   block
                      type(cell_region_t) :: cR
                      type(cell_interval_t), dimension(:), allocatable :: intervals
@@ -741,7 +740,7 @@ contains
             type(json_value_ptr) :: mat
             type(termination_t) :: conn
             mat = this%matTable%getId(this%getIntAt(cable, J_CAB_INI_CONN_ID))
-            conn = readConnectorMaterial(mat%p)
+            conn = readWireTerminalMaterial(mat%p)
             res%tl = conn%connectorType
             res%R_LeftEnd = conn%r
             res%L_LeftEnd = conn%l
@@ -753,7 +752,7 @@ contains
             type(json_value_ptr) :: mat
             type(termination_t) :: conn
             mat = this%matTable%getId(this%getIntAt(cable, J_CAB_END_CONN_ID))
-            conn = readConnectorMaterial(mat%p)
+            conn = readWireTerminalMaterial(mat%p)
             res%tr = conn%connectorType
             res%R_RightEnd = conn%r
             res%L_RightEnd = conn%l
@@ -791,24 +790,24 @@ contains
          end block
       end function
 
-      function readConnectorMaterial(mat) result(res)
+      function readWireTerminalMaterial(mat) result(res)
          type(termination_t) :: res
          type(json_value), pointer, intent(in) :: mat
-         res%connectorType = strToConnectorType(this%getStrAt(mat, J_MAT_CONNECTOR_TYPE))
-         call this%core%get(mat, J_MAT_CONNECTOR_RESISTANCE, res%r, default=0.0)
-         call this%core%get(mat, J_MAT_CONNECTOR_INDUCTANCE, res%l, default=0.0)
-         call this%core%get(mat, J_MAT_CONNECTOR_CAPACITANCE, res%c, default=0.0)
+         res%connectorType = strToTermination(this%getStrAt(mat, J_MAT_WIRETERM_TERMINATION))
+         call this%core%get(mat, J_MAT_WIRETERM_RESISTANCE, res%r, default=0.0)
+         call this%core%get(mat, J_MAT_WIRETERM_INDUCTANCE, res%l, default=0.0)
+         call this%core%get(mat, J_MAT_WIRETERM_CAPACITANCE, res%c, default=0.0)
       end function
 
-      function strToConnectorType(label) result(res)
+      function strToTermination(label) result(res)
          character (len=:), allocatable, intent(in) :: label
          integer :: res
          select case (label)
-          case (J_MAT_CONNECTOR_TYPE_OPEN)
+          case (J_MAT_WIRETERM_TYPE_OPEN)
             res = MATERIAL_CONS
-          case (J_MAT_CONNECTOR_TYPE_SERIES)
+          case (J_MAT_WIRETERM_TYPE_SERIES)
             res = SERIES_CONS
-          case (J_MAT_CONNECTOR_TYPE_SHORT)
+          case (J_MAT_WIRETERM_TYPE_SHORT)
             res = MATERIAL_CONS
          end select
       end function
@@ -826,11 +825,11 @@ contains
 
          mat = this%matTable%getId(this%getIntAt(cable, J_CAB_INI_CONN_ID, found=found))
          if (.not. found) return
-         if (this%getStrAt(mat%p, J_TYPE) /= J_MAT_TYPE_CONNECTOR) return
+         if (this%getStrAt(mat%p, J_TYPE) /= J_MAT_TYPE_WIRE_TERMINAL) return
 
          mat = this%matTable%getId(this%getIntAt(cable, J_CAB_END_CONN_ID, found=found))
          if (.not. found) return
-         if (this%getStrAt(mat%p, J_TYPE) /= J_MAT_TYPE_CONNECTOR) return
+         if (this%getStrAt(mat%p, J_TYPE) /= J_MAT_TYPE_WIRE_TERMINAL) return
 
          call this%core%get(cable, J_ELEMENTIDS, elementIds, found=found)
          if (.not. found) return
