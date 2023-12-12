@@ -1,7 +1,7 @@
 module mtlnsolver_mod
 
     ! use NFDETypes
-    use Utils
+    use utils
     
     implicit none
 

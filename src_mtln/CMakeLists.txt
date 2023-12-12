@@ -12,12 +12,20 @@ set(CMAKE_Fortran_MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/mod)
 
 include_directories(src/)
 
-# add_subdirectory(external/lapack)
-
 add_library(mtlnsolver
 	"src/mtlnsolver.f90"
 	"src/utils.f90"
 )
+
+set(LAPACK_DIR "/mnt/c/Users/lm/workspace/fdtd-tests/external/opensemba-fdtd/src_mtln/external/lapack/build/lib/")
+set(LAPACK_LIB ${LAPACK_DIR}liblapack.a)
+set(BLAS_LIB ${LAPACK_DIR}libblas.a)
+
+target_link_libraries(mtlnsolver ${LAPACK_LIB} ${BLAS_LIB})
+
+
+add_executable(mierda "src/mierda.f90")
+target_link_libraries(mierda mtlnsolver)
 
 # set(LAPACK_DIR ${CMAKE_CURRENT_SOURCE_DIR}/external/lapack/build/lib/Debug/lib/)
 # message("lapack dir " ${LAPACK_DIR})
