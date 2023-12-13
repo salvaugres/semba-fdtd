@@ -1,16 +1,18 @@
 module mtlnsolver_mod
 
     ! use NFDETypes
-    use utils
+    use utils_mod
     
     implicit none
 
     type, public :: mtl_t
         character (len=:), allocatable :: name
         integer  :: number_of_conductors
-        real, allocatable :: lpul(:,:,:), cpul(:,:,:), rpul(:,:,:), gpul(:,:,:)
-        real, allocatable :: u(:,:), du(:,:), duNorm(:,:,:)
+        real, allocatable, dimension(:,:,:) :: lpul, cpul, rpul, gpul
+        real, allocatable, dimension(:,:) :: u, du
+        real, allocatable, dimension(:,:,:) :: duNorm(:,:,:)
         real :: time, dt
+        ! real, allocatable, dimension(:,:) :: v, i
         ! real, allocatable :: longitudinalE(:,:), transversalE(:,:)
         ! real, allocatable :: vTerm(:,:,:), iTerm(:,:,:)
         
@@ -23,7 +25,12 @@ module mtlnsolver_mod
         ! procedure :: get_time_range
         procedure :: getPhaseVelocities
         procedure :: checkPulDimensions
-
+        !TODO
+        ! procedure :: setResistanceInRegion
+        ! procedure :: setResistanceAtPoint
+        ! procedure :: setConductanceInRegion
+        ! procedure :: setConductanceAtPoint
+        ! procedure :: addDispersiveConnector
 
     end type mtl_t
     
@@ -40,7 +47,7 @@ contains
         real, intent(in), dimension(:,:) :: node_positions
         integer, intent(in), dimension(:) :: divisions
         character(len=*), intent(in) :: name
-
+        real, allocatable, dimension(:,:) :: v, i
         res%name = name
         
         call res%checkPULDimensions(lpul, cpul, rpul, gpul)
@@ -50,8 +57,6 @@ contains
 
         res%time = 0.0
         res%dt = res%getMaxTimeStep()
-        
-        
         
         call res%initLC(lpul, cpul)
         call res%initRG(rpul, gpul)
@@ -97,36 +102,37 @@ contains
             (size(cpul, 1) /= size(cpul, dim = 2)).or.&
             (size(rpul, 1) /= size(rpul, dim = 2)).or.&
             (size(gpul, 1) /= size(gpul, dim = 2))) then
-            stop
-            ! stoponerror(1, 10, 'PUL matrices are not square')
+            error stop 'PUL matrices are not square'
         endif
 
         if ((size(lpul, 1) /= size(cpul, 1)).or.&
             (size(lpul, 1) /= size(rpul, 1)).or.&
             (size(lpul, 1) /= size(gpul, 1))) then
-            stop
-            ! stoponerror(1, 10, 'PUL matrices do not have the same dimensions')
+            error stop 'PUL matrices do not have the same dimensions'
         endif   
         
     end subroutine checkPULDimensions
 
     function getPhaseVelocities(this) result(res)
         class(mtl_t) :: this
-        real :: res(size(this%u,1) - 1, this%number_of_conductors)
-        real :: eigenvalues(this%number_of_conductors)
+        real, dimension(size(this%u,1) - 1, this%number_of_conductors) :: res
+        real, dimension(2*this%number_of_conductors) :: ev
+        real, dimension(this%number_of_conductors) :: phase_vels
         integer :: k
-
-        res = reshape(source = [(1.0/sqrt(getEigenValues(matmul(this%lpul(k,:,:), this%cpul(k+1,:,:)))), k = 1, size(this%u, 1) -1)],shape = [size(this%u,1) - 1, this%number_of_conductors])
+        
+        do k = 1, size(this%u, 1) - 1
+            ev = getEigenValues(dble(matmul(this%lpul(k,:,:), this%cpul(k+1,:,:))))
+            res(k,:) = 1.0/sqrt(ev(1:this%number_of_conductors))
+        enddo
+        ! test = reshape(source = [(1.0/sqrt(getEigenValues(dble(matmul(this%lpul(k,:,:), this%cpul(k+1,:,:)))))(1:this%number_of_conductors) , k = 1, size(this%u, 1) -1)],shape = [size(this%u,1) - 1, this%number_of_conductors])
 
     end function getPhaseVelocities
 
     function getMaxTimeStep(this) result(res)
         class(mtl_t) :: this
         real :: res
-        ! real :: res(size(this%u,1) - 1, this%number_of_conductors)
         
-        res= minval(this%duNorm/maxval(this%getPhaseVelocities()))
-        
+        res= minval(pack(this%duNorm, this%duNorm /= 0))/maxval(this%getPhaseVelocities())
 
     end function getMaxTimeStep
 
@@ -134,8 +140,8 @@ contains
         class(mtl_t) :: this
         real, intent(in), dimension(:,:) :: lpul, cpul
         integer :: i
-        allocate(this%lpul(size(this%du, 1) - 1, size(lpul, 1), size(lpul, 1)))
-        allocate(this%cpul(size(this%du, 1), size(cpul, 1), size(cpul, 1)))
+        allocate(this%lpul(size(this%u, 1) - 1, size(lpul, 1), size(lpul, 1)))
+        allocate(this%cpul(size(this%u, 1), size(cpul, 1), size(cpul, 1)))
 
         do i = 1, size(this%lpul, 1) 
             this%lpul(i,:,:) = lpul(:,:) 
@@ -149,8 +155,8 @@ contains
         class(mtl_t) :: this
         real, intent(in), dimension(:,:) :: rpul, gpul
         integer :: i
-        allocate(this%rpul(size(this%du, 1) - 1, size(rpul, 1), size(rpul, 1)))
-        allocate(this%gpul(size(this%du, 1), size(gpul, 1), size(gpul, 1)))
+        allocate(this%rpul(size(this%u, 1) - 1, size(rpul, 1), size(rpul, 1)))
+        allocate(this%gpul(size(this%u, 1), size(gpul, 1), size(gpul, 1)))
 
         do i = 1, size(this%rpul, 1) 
             this%rpul(i,:,:) = rpul(:,:) 
@@ -166,7 +172,7 @@ contains
         integer, intent(in) :: numberOfSteps
         real, intent (in) ::finalTime
         
-        ! this% dt = finalTime/numberOfSteps
+        this%dt = finalTime/numberOfSteps
 
     end subroutine setTimeStep        
 

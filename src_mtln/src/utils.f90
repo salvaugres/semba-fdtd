@@ -1,14 +1,14 @@
-module utils
+module utils_mod
 
+   use iso_fortran_env, only: real64
    implicit none
-
+   
 contains
 
    function eye(dim) result(res)
       real, dimension(dim, dim) :: res
       integer, intent(in) :: dim
       integer :: i
-
 
       res = 0
       do i = 1, dim
@@ -18,16 +18,31 @@ contains
    end function eye
 
    function getEigenValues(matrix) result(eigvals)
-      real, intent(in) :: matrix(:,:)
-      real :: m(size(matrix,1),size(matrix,1))
-      real :: eigvals(size(matrix,1))
-      real :: wi(size(matrix,1))
-      real :: vl(1,size(matrix,1)), vr(1,size(matrix,1))
-      double precision :: work(50)
-      integer :: info
+      integer, parameter :: DP = real64
+      real(DP), intent(in) :: matrix(:,:)
+      real(DP), allocatable, dimension(:,:) :: m1, m2, vl, vr
+      real(DP), allocatable, dimension(:) :: eigvals_real, eigvals_imag
+      real(DP), allocatable, dimension(:) :: eigvals      
+      real(DP) :: dummy(1,1)
+      real(DP), allocatable, dimension(:) :: work
+      integer :: info, n, lwork, nb = 64
+      n = size(matrix,1)
+      allocate(m1(n,n), m2(n,n),eigvals_real(n), eigvals_imag(n), eigvals(2*n), vl(n,n), vr(n,n))
 
-      m = matrix
-      call dgeev('n','n', size(matrix,1), m, size(matrix,1),eigvals,wi,vl,1,vr,work, 50, info)
+      lwork = -1
+      m1 = matrix
+      m2 = matrix
+      call dgeev('n','n', n, m1, n, eigvals_real, eigvals_imag, dummy,1,dummy,1,dummy, lwork, info)
+      
+      lwork = max((nb+2)*n, nint(dummy(1,1)))
+      Allocate (work(lwork))
+      
+      call dgeev('n','n', n, m2, n, eigvals_real, eigvals_imag, vl,n,vr,n,work, lwork, info)
+      eigvals = [eigvals_real, eigvals_imag]
+      ! eigvals = cmplx(eigvals_real, eigvals_imag)
+      ! eigvals(:)%re = eigvals_real
+      ! eigvals(:)%im = eigvals_imag
+      ! write(*,*) eigvals
 
    end function getEigenValues
 
@@ -50,4 +65,4 @@ contains
       if (info.ne.0) stop 'Matrix inversion failed!'
    end function inv
 
-end module utils
+end module utils_mod

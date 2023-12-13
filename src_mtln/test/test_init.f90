@@ -1,6 +1,7 @@
 integer function test_init() result(error_cnt)    
     use mtlnsolver_mod
     use testingTools_mod
+
     implicit none
 
     character(len=*), parameter :: name = 'line0'

@@ -30,8 +30,6 @@ function (add_fortran_test_executable TARGET)
 
     add_library (${TARGET}_fortran ${TEST_FILES} "testingTools.f90")
 
-    # target_link_directories(${TARGET}_fortran PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../external/lapack)
-    # target_link_libraries (${TARGET}_fortran mtlnsolver lapack blas)
     
     add_executable (${TARGET} main.c)
     target_link_libraries (${TARGET} ${TARGET}_fortran)
@@ -54,16 +52,10 @@ endfunction ()
 # ctest is sensible to extension. ONLY WORKS with ".f90" AND NOT with ".F90"
 add_fortran_test_executable (mtlnsolver_tests
     "test_init.f90"
+    "test_eigvals.f90"
+    "test_time_step.f90"
 )
 
 get_target_property(mtlnsolver_INCLUDES mtlnsolver INCLUDE_DIRECTORIES)
-
-# include_directories    (test PRIVATE 
-#     ${mtlnsolver_INCLUDES}
-# )
-
-# target_link_directories(mtlnsolver_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../external/lapack)
 target_link_libraries  (mtlnsolver_tests mtlnsolver)
-# target_link_libraries  (mtlnsolver_tests lapack blas)
-# target_link_libraries  (mtlnsolver_tests ${CMAKE_CURRENT_SOURCE_DIR}/../external/lapack/liblapack.lib ${CMAKE_CURRENT_SOURCE_DIR}/../external/lapack/libblas.lib)
 
