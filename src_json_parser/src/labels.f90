@@ -79,23 +79,32 @@ module labels_mod
    ! -- source types
    character (len=*), parameter :: J_SOURCES = "sources"
    character (len=*), parameter :: J_SRC_MAGNITUDE_FILE = "magnitudeFile"
-   character (len=*), parameter :: J_SRC_TYPE = "type"
+   
    ! type(Planewave)
-   character (len=*), parameter :: J_PW_TYPE = "planewave"
-   character (len=*), parameter :: J_PW_ATTRIBUTE = "attribute"
-   character (len=*), parameter :: J_PW_DIRECTION = "direction"
-   character (len=*), parameter :: J_PW_DIRECTION_THETA = "theta"
-   character (len=*), parameter :: J_PW_DIRECTION_PHI = "phi"
-   character (len=*), parameter :: J_PW_POLARIZATION = "polarization"
-   character (len=*), parameter :: J_PW_POLARIZATION_ALPHA = "alpha"
-   character (len=*), parameter :: J_PW_POLARIZATION_BETA  = "beta"
+   character (len=*), parameter :: J_SRC_PW_TYPE = "planewave"
+   character (len=*), parameter :: J_SRC_PW_ATTRIBUTE = "attribute"
+   character (len=*), parameter :: J_SRC_PW_DIRECTION = "direction"
+   character (len=*), parameter :: J_SRC_PW_DIRECTION_THETA = "theta"
+   character (len=*), parameter :: J_SRC_PW_DIRECTION_PHI = "phi"
+   character (len=*), parameter :: J_SRC_PW_POLARIZATION = "polarization"
+   character (len=*), parameter :: J_SRC_PW_POLARIZATION_ALPHA = "alpha"
+   character (len=*), parameter :: J_SRC_PW_POLARIZATION_BETA  = "beta"
+   
    ! type(SourceOnLine)
+   character (len=*), parameter :: J_SRC_NS_TYPE = "nodalSource"
+   character (len=*), parameter :: J_SRC_NS_FIELD = "field"
+   character (len=*), parameter :: J_SRC_NS_FIELD_CURRENT = "current"
 
    ! --- probe types
    character (len=*), parameter :: J_PROBES = "probes"
-   character (len=*), parameter :: J_PR_TYPE = "type"
    character (len=*), parameter :: J_PR_OUTPUT_NAME = "name"
    character (len=*), parameter :: J_PR_DIRECTIONS = "directions"
+   character (len=*), parameter :: J_PR_TYPE_FARFIELD = "farField"
+   character (len=*), parameter :: J_PR_TYPE_ELECTRIC = "electric"
+   character (len=*), parameter :: J_PR_TYPE_MAGNETIC = "magnetic"
+   character (len=*), parameter :: J_PR_TYPE_CURRENT = "current"
+   character (len=*), parameter :: J_PR_TYPE_VOLTAGE = "voltage"
+   character (len=*), parameter :: J_PR_TYPE_BULK_CURRENT = "bulkCurrent"
 
    ! domain stuff
    character (len=*), parameter :: J_PR_DOMAIN = "domain"
@@ -116,11 +125,8 @@ module labels_mod
    character (len=*), parameter :: J_PR_DOMAIN_FREQ_STEP  = "frequencyStep"
 
    ! type(Sonda)
-   character (len=*), parameter :: J_PR_FARFIELD = "farField"
+   
    ! type(MasSonda)
-   character (len=*), parameter :: J_PR_ELECTRIC = "electric"
-   character (len=*), parameter :: J_PR_MAGNETIC = "magnetic"
-   character (len=*), parameter :: J_PR_CURRENT = "current"
-   character (len=*), parameter :: J_PR_VOLTAGE = "voltage"
+
 
 end module

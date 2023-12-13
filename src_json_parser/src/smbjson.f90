@@ -412,7 +412,7 @@ contains
 
       call this%core%get(this%root, J_SOURCES, sources, found)
       if (found) then
-         pws = jsonValueFilterByKeyValue(this%core, sources, J_SRC_TYPE, J_PW_TYPE)
+         pws = jsonValueFilterByKeyValue(this%core, sources, J_TYPE, J_SRC_PW_TYPE)
       else
          allocate(pws(0))
       end if
@@ -438,17 +438,17 @@ contains
          res%nombre_fichero = trim(adjustl( &
             this%getStrAt(pw,J_SRC_MAGNITUDE_FILE)))
 
-         call this%core%get(pw, J_PW_ATTRIBUTE, label, found)
+         call this%core%get(pw, J_SRC_PW_ATTRIBUTE, label, found)
          if (found) then
             res%atributo = trim(adjustl(label))
          else
             res%atributo = ""
          endif
 
-         call this%core%get(pw, J_PW_DIRECTION//'.'//J_PW_DIRECTION_THETA, res%theta)
-         call this%core%get(pw, J_PW_DIRECTION//'.'//J_PW_DIRECTION_PHI, res%phi)
-         call this%core%get(pw, J_PW_POLARIZATION//'.'//J_PW_POLARIZATION_ALPHA, res%alpha)
-         call this%core%get(pw, J_PW_POLARIZATION//'.'//J_PW_POLARIZATION_BETA, res%beta)
+         call this%core%get(pw, J_SRC_PW_DIRECTION//'.'//J_SRC_PW_DIRECTION_THETA, res%theta)
+         call this%core%get(pw, J_SRC_PW_DIRECTION//'.'//J_SRC_PW_DIRECTION_PHI, res%phi)
+         call this%core%get(pw, J_SRC_PW_POLARIZATION//'.'//J_SRC_PW_POLARIZATION_ALPHA, res%alpha)
+         call this%core%get(pw, J_SRC_PW_POLARIZATION//'.'//J_SRC_PW_POLARIZATION_BETA, res%beta)
 
          call this%core%get(pw, J_ELEMENTIDS, elemIds)
          if (size(elemIds) /= 1) stop "Planewave must contain a single elementId."
@@ -468,9 +468,24 @@ contains
    end function
 
    function readNodalSources(this) result (res)
-      class(parser_t), intent(in) :: this
       type(NodSource) :: res
-      ! TODO
+      class(parser_t) :: this
+      type(json_value), pointer :: sources
+      type(json_value_ptr), dimension(:), allocatable :: nodSrcs
+      logical :: found
+      
+      call this%core%get(this%root, J_SOURCES, sources, found)
+      if (.not. found) then
+         allocate(res%NodalSource(0))
+         return
+      end if
+
+      nodSrcs = jsonValueFilterByKeyValues(this%core, sources, J_TYPE, [J_SRC_NS_TYPE])
+      if (size(nodSrcs) == 0) then 
+         allocate(res%NodalSource(0))         
+         return
+      end if
+
    end function
 
    function readProbes(this) result (res)
@@ -480,10 +495,10 @@ contains
       type(json_value_ptr), allocatable :: ps(:)
       integer :: i
       character (len=*), dimension(1), parameter :: validTypes = &
-         (/J_PR_FARFIELD/)
+         (/J_PR_TYPE_FARFIELD/)
 
       call this%core%get(this%root, J_PROBES, probes)
-      ps = jsonValueFilterByKeyValues(this%core, probes, J_PR_TYPE, validTypes)
+      ps = jsonValueFilterByKeyValues(this%core, probes, J_TYPE, validTypes)
       allocate(res%probes(size(ps)))
       do i=1, size(ps)
          res%probes(i) = readProbe(ps(i)%p)
@@ -532,10 +547,10 @@ contains
       type(json_value_ptr), allocatable :: ps(:)
       integer :: i
       character (len=*), dimension(4), parameter :: validTypes = &
-         [J_PR_ELECTRIC, J_PR_MAGNETIC, J_PR_CURRENT, J_PR_VOLTAGE]
+         [J_PR_TYPE_ELECTRIC, J_PR_TYPE_MAGNETIC, J_PR_TYPE_CURRENT, J_PR_TYPE_VOLTAGE]
 
       call this%core%get(this%root, J_PROBES, probes)
-      ps = jsonValueFilterByKeyValues(this%core, probes, J_PR_TYPE, validTypes)
+      ps = jsonValueFilterByKeyValues(this%core, probes, J_TYPE, validTypes)
       allocate(res%collection(size(ps)))
       do i=1, size(ps)
          res%collection(i) = readProbe(ps(i)%p)
@@ -559,14 +574,14 @@ contains
          call this%core%get(p, J_PR_OUTPUT_NAME, outputName)
          res%outputrequest = trim(adjustl(outputName))
 
-         call this%core%get(p, J_PR_TYPE, typeLabel)
+         call this%core%get(p, J_TYPE, typeLabel)
 
          call getDomain(p, res)
 
          call this%core%get(p, J_ELEMENTIDS, elemIds, found=elementIdsFound)
          pixels = getPixelsFromElementIds(this%mesh, elemIds)
 
-         if (typeLabel == J_PR_CURRENT .or. typeLabel == J_PR_VOLTAGE) then
+         if (typeLabel == J_PR_TYPE_CURRENT .or. typeLabel == J_PR_TYPE_VOLTAGE) then
             allocate(res%cordinates(size(pixels)))
             do i = 1, size(pixels)
                res%cordinates(i)%tag = pixels(i)%tag
@@ -603,7 +618,7 @@ contains
 
          res%type1 = NP_T1_PLAIN
 
-         call this%core%get(domain, J_PR_TYPE, domainType)
+         call this%core%get(domain, J_TYPE, domainType)
          res%type2 = strToDomainType(domainType)
 
          call this%core%get(domain, J_PR_DOMAIN_TIME_START, res%tstart, default=0.0)
@@ -647,7 +662,7 @@ contains
          character (len=:), allocatable :: typeLabel
          character (len=1), optional :: dirLabel
          select case (typeLabel)
-          case (J_PR_ELECTRIC)
+          case (J_PR_TYPE_ELECTRIC)
             if (.not. present(dirLabel)) then
                stop "Dir label must be present"
             end if
@@ -659,7 +674,7 @@ contains
              case (J_DIR_Z)
                res = NP_COR_EZ
             end select
-          case (J_PR_MAGNETIC)
+          case (J_PR_TYPE_MAGNETIC)
             if (.not. present(dirLabel)) then
                stop "Dir label must be present"
             end if
@@ -671,18 +686,33 @@ contains
              case (J_DIR_Z)
                res = NP_COR_HZ
             end select
-          case (J_PR_CURRENT)
+          case (J_PR_TYPE_CURRENT)
             res = NP_COR_WIRECURRENT
-          case (J_PR_VOLTAGE)
+          case (J_PR_TYPE_VOLTAGE)
             res = NP_COR_DDP
          end select
       end function
    end function
 
    function readBlockProbes(this) result (res)
-      class(parser_t), intent(in) :: this
+      class(parser_t) :: this
       type(BloqueProbes) :: res
-      ! TODO
+      type(json_value_ptr), dimension(:), allocatable :: bps
+      type(json_value), pointer :: probes
+      logical :: found
+
+      call this%core%get(this%root, J_PROBES, probes, found)
+      if (.not. found) then
+         allocate(res%bp(0))
+         return
+      end if
+
+      bps = jsonValueFilterByKeyValues(this%core, probes, J_TYPE, [J_PR_TYPE_BULK_CURRENT])
+      if (size(bps) == 0) then 
+         allocate(res%bp(0))         
+         return
+      end if
+
    end function
 
    ! function readVolumicProbes() result (res)

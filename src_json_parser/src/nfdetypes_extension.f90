@@ -71,7 +71,7 @@ contains
       allocate(pD%despl)
       allocate(pD%front)
       allocate(pD%Mats)
-      
+
       allocate(pD%pecRegs)
       allocate(pD%pecRegs%lins(0))
       allocate(pD%pecRegs%surfs(0))
@@ -81,24 +81,30 @@ contains
       allocate(pD%pmcRegs%lins(0))
       allocate(pD%pmcRegs%surfs(0))
       allocate(pD%pmcRegs%vols(0))
-      
+
       allocate(pD%DielRegs)
       allocate(pD%LossyThinSurfs)
       allocate(pD%frqDepMats)
       allocate(pD%aniMats)
+
+
+      allocate(pD%plnSrc)
       allocate(pD%nodSrc)
+      allocate(pD%nodSrc%NodalSource(0))
+      allocate(pD%boxSrc)
+
+      !
       allocate(pD%Sonda)
       allocate(pD%oldSONDA)
       allocate(pD%BloquePrb)
+      allocate(pD%BloquePrb%bp(0))
       allocate(pD%VolPrb)
-      
+
       allocate(pD%tWires)
       allocate(pD%tWires%tw(0))
 
-      allocate(pD%sWires)
       allocate(pD%tSlots)
-      allocate(pD%boxSrc)
-      allocate(pD%plnSrc)
+      allocate(pD%sWires)
 
    end subroutine
 
@@ -160,9 +166,9 @@ contains
       logical :: allAssociated
 
       allAssociated = &
-         associated(a%Lins) .and. associated(b%Lins) .and. & 
+         associated(a%Lins) .and. associated(b%Lins) .and. &
          associated(a%Surfs) .and. associated(b%Surfs) .and. &
-         associated(a%Vols) .and. associated(b%Vols) 
+         associated(a%Vols) .and. associated(b%Vols)
       if (.not. allAssociated) then
          pecregions_eq = .false.
          return
@@ -172,10 +178,10 @@ contains
          (a%nVols == b%nVols) .and. &
          (a%nSurfs == b%nSurfs) .and. &
          (a%nLins == b%nLins) .and. &
-         all(a%Lins == b%Lins) .and. & 
+         all(a%Lins == b%Lins) .and. &
          all(a%Vols == b%Vols) .and. &
          all(a%Surfs == b%Surfs)
-          
+
    end function pecregions_eq
 
    elemental logical function dielectric_eq(a, b)
@@ -583,6 +589,11 @@ contains
 
    elemental logical function nodsource_eq(a, b)
       type(NodSource), intent(in) :: a, b
+      if (.not. associated(a%NodalSource) .or. &
+         .not. associated(b%NodalSource)) then
+         nodsource_eq = .false.
+         return
+      end if
       nodsource_eq = &
          (a%n_nodSrc == b%n_nodSrc) .and. &
          (a%n_nodSrc_max == b%n_nodSrc_max) .and. &
@@ -855,6 +866,10 @@ contains
 
    elemental logical function bloqueprobes_eq(a, b)
       type(BloqueProbes), intent(in) :: a, b
+      if (.not. associated(a%bp) .or. .not. associated(b%bp)) then
+         bloqueprobes_eq = .false.
+         return
+      end if
       bloqueprobes_eq = &
          (a%n_bp == b%n_bp) .and. &
          (a%n_bp_max == b%n_bp_max) .and. &
