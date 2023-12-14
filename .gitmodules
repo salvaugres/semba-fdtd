@@ -1,3 +1,7 @@
 [submodule "src_mtln/external/lapack"]
 	path = src_mtln/external/lapack
 	url = git@github.com:Reference-LAPACK/lapack.git
+
+[submodule "src_mtln/external/fhash"]
+	path = src_mtln/external/fhash
+	url = git@github.com:LKedward/fhash.git

@@ -1,6 +1,6 @@
 integer function test_time_step() result(error_cnt)    
 
-    use mtlnsolver_mod
+    use mtl_mod
     use testingTools_mod
 
     implicit none

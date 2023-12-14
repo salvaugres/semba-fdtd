@@ -1,5 +1,5 @@
 integer function test_eigvals() result(error_cnt)    
-    use mtlnsolver_mod
+    use utils_mod
     use testingTools_mod
 
     use iso_fortran_env, only: real64

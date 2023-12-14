@@ -29,6 +29,7 @@ function (add_fortran_test_executable TARGET)
     create_test_sourcelist (_ main.c ${TEST_FILES_MANGLED})
 
     add_library (${TARGET}_fortran ${TEST_FILES} "testingTools.f90")
+    target_link_libraries (${TARGET}_fortran fhash)
 
     
     add_executable (${TARGET} main.c)
@@ -54,6 +55,7 @@ add_fortran_test_executable (mtlnsolver_tests
     "test_init.f90"
     "test_eigvals.f90"
     "test_time_step.f90"
+    "test_fhash.f90"
 )
 
 get_target_property(mtlnsolver_INCLUDES mtlnsolver INCLUDE_DIRECTORIES)

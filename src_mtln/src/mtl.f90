@@ -1,4 +1,4 @@
-module mtlnsolver_mod
+module mtl_mod
 
     ! use NFDETypes
     use utils_mod
@@ -36,7 +36,7 @@ module mtlnsolver_mod
     
     interface mtl_t
         module procedure mtlCtor
-    end interface mtl_t
+    end interface
             
 
 contains
@@ -54,15 +54,13 @@ contains
         res%number_of_conductors = size(lpul, 1)
 
         call res%initDirections(divisions, node_positions)
-
-        res%time = 0.0
-        res%dt = res%getMaxTimeStep()
-        
         call res%initLC(lpul, cpul)
         call res%initRG(rpul, gpul)
         
+        res%time = 0.0
+        res%dt = res%getMaxTimeStep()
         
-    end function mtlCtor
+    end function
       
     subroutine initDirections(this, divisions, node_positions)
         class(mtl_t) :: this
@@ -92,7 +90,7 @@ contains
                               shape = [sum(divisions), this%number_of_conductors, this%number_of_conductors], &
                               order=[2,3,1])
     
-    end subroutine initDirections
+    end subroutine
 
     subroutine checkPULDimensions(this, lpul, cpul, rpul, gpul)
         class(mtl_t) :: this
@@ -111,7 +109,7 @@ contains
             error stop 'PUL matrices do not have the same dimensions'
         endif   
         
-    end subroutine checkPULDimensions
+    end subroutine
 
     function getPhaseVelocities(this) result(res)
         class(mtl_t) :: this
@@ -126,7 +124,7 @@ contains
         enddo
         ! test = reshape(source = [(1.0/sqrt(getEigenValues(dble(matmul(this%lpul(k,:,:), this%cpul(k+1,:,:)))))(1:this%number_of_conductors) , k = 1, size(this%u, 1) -1)],shape = [size(this%u,1) - 1, this%number_of_conductors])
 
-    end function getPhaseVelocities
+    end function
 
     function getMaxTimeStep(this) result(res)
         class(mtl_t) :: this
@@ -134,7 +132,7 @@ contains
         
         res= minval(pack(this%duNorm, this%duNorm /= 0))/maxval(this%getPhaseVelocities())
 
-    end function getMaxTimeStep
+    end function
 
     subroutine initLC(this, lpul, cpul)
         class(mtl_t) :: this
@@ -149,7 +147,7 @@ contains
         do i = 1, size(this%cpul, 1)
             this%cpul(i,:,:) = cpul(:,:)
         enddo
-    end subroutine initLC
+    end subroutine
 
     subroutine initRG(this, rpul, gpul)
         class(mtl_t) :: this
@@ -164,7 +162,7 @@ contains
         do i = 1, size(this%gpul, 1)
             this%gpul(i,:,:) = gpul(:,:)
         enddo
-    end subroutine initRG
+    end subroutine
 
 
     subroutine setTimeStep(this, numberOfSteps, finalTime)
@@ -174,7 +172,7 @@ contains
         
         this%dt = finalTime/numberOfSteps
 
-    end subroutine setTimeStep        
+    end subroutine        
 
 
-end module mtlnsolver_mod
+end module mtl_mod

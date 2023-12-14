@@ -11,21 +11,27 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_Fortran_MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/mod)
 
 include_directories(src/)
+add_subdirectory(external/fhash/)
 
 add_library(mtlnsolver
-	"src/mtlnsolver.f90"
-	"src/domain.f90"
-	"src/mtln.f90"
-	"src/networks.f90"
-	"src/networks_bundles.f90"
+	"src/mtl.f90"
+	"src/mtl_bundle.f90"
+	"src/mtln_solver.f90"
+	"src/network.f90"
+	"src/network_bundle.f90"
 	"src/utils.f90"
+	"src/probes.f90"
 )
 
 set(LAPACK_DIR "/mnt/c/users/alberto/Work/ugr-fdtd/fdtd/src_mtln/external/lapack/build/lib/")
 set(LAPACK_LIB ${LAPACK_DIR}liblapack.a)
 set(BLAS_LIB ${LAPACK_DIR}libblas.a)
 
-target_link_libraries(mtlnsolver ${LAPACK_LIB} ${BLAS_LIB})
+target_link_libraries(mtlnsolver 
+	${LAPACK_LIB} 
+	${BLAS_LIB} 
+	fhash
+)
 
 add_subdirectory(test)
 
