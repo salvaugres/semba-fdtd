@@ -1,20 +1,21 @@
 module mtln_solver_mod 
 
-    ! use fhash, only: fhash_tbl_t, key=>fhash_key, fhash_iter_t, fhash_key_t
+    use fhash, only: fhash_tbl_t, key=>fhash_key, fhash_iter_t, fhash_key_t
     use mtl_bundle_mod
     use network_bundle_mod
     implicit none
 
     type, public :: mtln_t
         real :: time, dt
-        ! type(fhash_tbl_t) :: bundles
-        type(mtl_bundle_t), allocatable, dimension(:) :: bundles !lista de MLTD
+        type(fhash_tbl_t) :: bundles ! dict{name:bundle} of MLTD
+        ! type(mtl_bundle_t), allocatable, dimension(:) :: bundles 
         type(network_bundle_t), allocatable, dimension(:) :: networks !lista de NetworkD, no de network
         character(len=:), allocatable, dimension(:) :: names
     contains
 
-        ! procedure :: setBundle => mtln_setBundle
-        ! procedure :: getBundle => mtln_getBundle
+        procedure :: setBundle => mtln_setBundle
+        procedure :: getBundle => mtln_getBundle
+        procedure :: findBundle => mtln_findBundle
         procedure :: updateBundlesTimeStep
         procedure :: updatePULTerms
         procedure :: addNetwork
@@ -50,7 +51,7 @@ contains
         res%time  = 0.0
         allocate(res%networks(0))
         do i = 1, size(bundles)
-            ! call res%setBundle(bundles(i)%name, bundles(i))
+            call res%setBundle(bundles(i)%name, bundles(i))
             ! call res%addBundle(bundles(i))
         end do
         do i = 1, size(networks)
@@ -107,22 +108,22 @@ contains
 
     subroutine updateProbes(this)
         class(mtln_t) :: this
-        ! type(fhash_iter_t) :: iter
-        ! class(fhash_key_t), allocatable :: name
-        ! class(*), allocatable :: bundle
-        ! integer :: i
-        ! iter = fhash_iter_t(this%bundles)
-        ! do while(iter%next(name,bundle))
-        !     select type(bundle)
-        !     type is (mtl_bundles_t)
+        type(fhash_iter_t) :: iter
+        class(fhash_key_t), allocatable :: name
+        class(*), allocatable :: bundle
+        integer :: i
+        iter = fhash_iter_t(this%bundles)
+        do while(iter%next(name,bundle))
+            select type(bundle)
+            type is (mtl_bundle_t)
                 
-        !         do i = 1, size(bundle%probes)
-        !             ! bundle%probes(i)%update(this%time, bundle%v, bundle%i)
-        !         end do
-        !         ! call this%setBundle(name%to_string(), bundle)                      
+                do i = 1, size(bundle%probes)
+                    ! bundle%probes(i)%update(this%time, bundle%v, bundle%i)
+                end do
+                ! call this%setBundle(name%to_string(), bundle)                      
 
-        !     end select
-        ! end do
+            end select
+        end do
 
     end subroutine
 
@@ -153,39 +154,42 @@ contains
 
     subroutine updateBundlesTimeStep(this, dt)
         class(mtln_t) :: this
-        ! type(fhash_iter_t) :: iter
-        ! class(fhash_key_t), allocatable :: name
-        ! class(*), allocatable :: bundle
+        type(fhash_iter_t) :: iter
+        class(fhash_key_t), allocatable :: name
+        class(*), allocatable :: bundle
+        ! class(mtl_bundle_t), pointer :: ptr
         real :: dt
 
-        ! iter = fhash_iter_t(this%bundles)
-        ! do while(iter%next(name,bundle))
+        iter = fhash_iter_t(this%bundles)
+        do while(iter%next(name,bundle))
+
+            ! this%findBundle(name)
         !     select type(bundle)
-        !     type is (mtl_bundles_t)
+        !     type is (mtl_bundle_t)
         !         bundle%dt = dt
         !         ! call this%setBundle(name%to_string(), bundle)                      
-        !    end select
-        ! end do
+        !     end select
+        end do
 
     end subroutine
 
     subroutine updatePULTerms(this)
         class(mtln_t) :: this
-        ! type(fhash_iter_t) :: iter
-        ! class(fhash_key_t), allocatable :: name
-        ! class(*), allocatable :: bundle
+        type(fhash_iter_t) :: iter
+        class(fhash_key_t), allocatable :: name
+        class(*), allocatable :: bundle
 
-        ! iter = fhash_iter_t(this%bundles)
-        ! do while(iter%next(name,bundle))
-        !     select type(bundle)
-        !     type is (mtl_bundles_t)
-        !         call bundle%updateLRTerms()
-        !         call bundle%updateCGTerms()
-        !         ! for p in bundle.probes:
-        !         !     p.resize_frames(len(t), bundle.number_of_conductors)
-        !         ! call this%setBundle(name%to_string(), bundle)                      
-        !     end select
-        ! end do
+        iter = fhash_iter_t(this%bundles)
+        do while(iter%next(name,bundle))
+            select type(bundle)
+            type is (mtl_bundle_t)
+                call bundle%updateLRTerms()
+                call bundle%updateCGTerms()
+                ! for p in bundle.probes:
+                !     p.resize_frames(len(t), bundle.number_of_conductors)
+                ! call this%setBundle(name%to_string(), bundle)                      
+            end select
+        end do
    
     end subroutine
 
@@ -209,37 +213,58 @@ contains
 
     end subroutine
 
-    ! subroutine mtln_setBundle(this, name, bundle)
-    !     class(mtln_t) :: this
-    !     character(len=*), intent(in) :: name
-    !     class(mtl_bundles_t), intent(in) :: bundle
-    !     call this%bundles%set(key(name), value = bundle)
-    !     if (bundle%dt < this%dt) then
-    !         this%dt = bundle%dt
-    !     end if
+    subroutine mtln_setBundle(this, name, bundle)
+        class(mtln_t) :: this
+        character(len=*), intent(in) :: name
+        class(mtl_bundle_t), intent(in) :: bundle
+        call this%bundles%set(key(name), value = bundle)
+        if (bundle%dt < this%dt) then
+            this%dt = bundle%dt
+        end if
 
-    ! end subroutine
+    end subroutine
 
-    ! function mtln_getBundle(this, name, found) result(res)
-    !     class(mtln_t) :: this
-    !     type(mtl_bundles_t) :: res
-    !     character(len=*), intent(in) :: name
-    !     integer :: stat
-    !     logical, intent(out), optional :: found
-    !     class(*), allocatable :: d
+    function mtln_getBundle(this, name, found) result(res)
+        class(mtln_t) :: this
+        type(mtl_bundle_t) :: res
+        character(len=*), intent(in) :: name
+        integer :: stat
+        logical, intent(out), optional :: found
+        class(*), allocatable :: d
   
-    !     if (present(found)) found = .false.
+        if (present(found)) found = .false.
 
-    !     call this%bundles%get_raw(key(name), d, stat)
-    !     if (stat /= 0) return
+        call this%bundles%get_raw(key(name), d, stat)
+        if (stat /= 0) return
   
-    !     select type(d)
-    !      type is (mtl_bundles_t)
-    !        res = d
-    !        if (present(found)) found = .true.
-    !     end select
+        select type(d)
+         type is (mtl_bundle_t)
+           res = d
+           if (present(found)) found = .true.
+        end select
 
-    ! end function
+    end function
+
+    function mtln_findBundle(this, name, found) result(res)
+        class(mtln_t) :: this
+        class(*), pointer :: res
+        ! character(len=*), intent(in) :: name
+        class(fhash_key_t), allocatable :: name
+        integer :: stat
+        logical, intent(out), optional :: found
+        class(*), allocatable :: d
+
+
+        if (present(found)) found = .false.
+        call this%bundles%get_raw_ptr(name, res, stat = stat)
+        if (stat /= 0) return
+
+        select type(res)
+            type is(mtl_bundle_t)
+            if (present(found)) found = .true.
+        end select
+
+    end function
 
     ! subroutine (this)
     !     class(mtln_t) :: this

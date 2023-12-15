@@ -9,6 +9,7 @@ integer function test_fhash() result(error_cnt)
     type(fhash_tbl_t) :: tbl
     type(mtl_bundle_t) :: bundle
     class(*), allocatable :: bundle_from_hash_1, bundle_from_hash_2
+    class(*), pointer :: ptr 
     integer :: stat, n_cond
     error_cnt = 0
 
@@ -36,5 +37,7 @@ integer function test_fhash() result(error_cnt)
         error_cnt = error_cnt +1
     end if
 
-
 end function
+
+
+

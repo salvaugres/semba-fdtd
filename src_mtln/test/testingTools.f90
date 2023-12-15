@@ -1,9 +1,25 @@
 module testingTools_mod
+
+    use mtl_bundle_mod
+    use fhash, only: fhash_tbl_t, key=>fhash_key
+
     implicit none
 
 
     contains
 
+    ! function findBundle(tbl, name) result(ptr)
+    !     class(fhash_tbl_t), intent(in) :: tbl
+    !     character (len=*), intent(in) :: name
+    !     type(mtl_bundle_t), pointer :: ptr 
+    !     type(mtl_bundle_t) :: bdl
+    !     integer :: st
+    
+    !     call tbl%get_ptr()
+    !     ! ptr => bdl
+    
+    ! end function
+    
     subroutine comparePULMatrices(error_cnt, m_line, m_input)
         integer, intent(inout) :: error_cnt
         real, intent(in), dimension(:,:,:) :: m_line
@@ -21,7 +37,7 @@ module testingTools_mod
             end if
         end do
         
-    end subroutine comparePULMatrices
+    end subroutine 
 
     function checkNear_dp(target, number, rel_tol) result(is_near)
         double precision, intent(in) :: target, number
@@ -36,7 +52,7 @@ module testingTools_mod
             is_near = abs(target-number)/target < rel_tol
         endif
 
-    end function checkNear_dp
+    end function 
 
     function checkNear(target, number, rel_tol) result(is_near)
         real, intent(in) :: target, number
@@ -51,7 +67,7 @@ module testingTools_mod
             is_near = abs(target-number)/target < rel_tol
         endif
 
-    end function checkNear
+    end function 
 
  end module testingTools_mod
  

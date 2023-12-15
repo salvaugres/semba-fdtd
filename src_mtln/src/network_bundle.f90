@@ -1,5 +1,6 @@
 module network_bundle_mod
 
+    use fhash, only: fhash_tbl_t
     use mtl_bundle_mod
 
     implicit none
@@ -45,13 +46,13 @@ contains
 
     subroutine updateVoltages(this, bundles)
         class(network_bundle_t) :: this
-        class(mtl_bundle_t), dimension(:), intent(in) :: bundles
+        class(fhash_tbl_t), intent(in) :: bundles
         !TODO
     end subroutine 
 
     subroutine updateCurrents(this, bundles)
         class(network_bundle_t) :: this
-        class(mtl_bundle_t), dimension(:), intent(in) :: bundles
+        class(fhash_tbl_t), intent(in) :: bundles
         !TODO
     end subroutine 
 

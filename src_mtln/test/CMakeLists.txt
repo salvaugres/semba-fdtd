@@ -56,6 +56,7 @@ add_fortran_test_executable (mtlnsolver_tests
     "test_eigvals.f90"
     "test_time_step.f90"
     "test_fhash.f90"
+    "test_fhash_ptr.f90"
 )
 
 get_target_property(mtlnsolver_INCLUDES mtlnsolver INCLUDE_DIRECTORIES)
