@@ -21,6 +21,7 @@
             "id": 1,
             "name": "wire_material",
             "type": "wire",
+            "inductanceModel": "holland",
             "radius": 0.02,
             "resistancePerMeter": 0.0,
             "inductancePerMeter": 0.0
@@ -29,7 +30,7 @@
             "id": 2,
             "name": "openTerminalMaterial",
             "type": "wireTerminal",
-            "termination": "open"
+            "termination": {"type": "open"}
         }
     ],
 

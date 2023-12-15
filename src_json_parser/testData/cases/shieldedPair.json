@@ -1,0 +1,111 @@
+{
+    "format": "FDTD Input file",
+    "__comments": "Shielded pair.",
+	
+    "general": {
+        "timeStep": 1e-12,
+        "numberOfSteps": 1000
+    },
+  
+    "boundary": { "all": { "type": "mur" } },
+
+	"materials": [
+		{
+			"id": 1,
+			"name": "InnerCoaxial",
+			"type": "multiwire",
+			"inductancePerMeter": [
+				[3.13182309e-07, 7.45674981e-08],
+				[7.45674981e-08, 3.13182309e-07]
+			],
+			"capacitancePerMeter": [
+				[85.0e-12, -20.5e-12],
+				[-20.5e-12, 85.0e-12 ]
+			],
+			"transferImpedancePerMeter" : {
+				"resistiveTerm" : 0.0,
+				"inductiveTerm" : 4.0e-9,
+				"direction": "inwards"
+			}
+		},
+		{
+			"id": 2,
+			"name": "Shield",
+			"type": "wire",
+			"radius": 0.0001,
+			"__referenceInductancePerMeter": 5.362505362505362e-07,
+			"__referenceCapacitancePerMeter": 20.72e-12,
+			"resistancePerMeter": 22.9e-3
+		},
+		{
+			"id": 3,
+			"name": "leftTerminal",
+			"type": "multiwireTerminal",
+			"terminations" : [
+				{"type": "series", "resistance": 50 },
+				{"type": "series", "resistance": 50 }
+			]
+		},
+		{
+			"id": 4,
+			"name": "ShieldTerminal",
+			"type": "wireTerminal",
+			"termination": {
+				"type": "series",
+				"resistance": 50.0
+			}
+		}
+	],
+	
+	"mesh": {
+		"grid": {
+			"numberOfCells": [2, 2, 20],
+			"steps": {"x": [1.0], "y": [1.0], "z": [0.00540]}
+		},
+		"relativeCoordinates": [
+			{"id": 1, "position": [1, 1,  1] },
+			{"id": 2, "position": [1, 1, 19] },
+			{"id": 3, "position": [1, 1,  1] },
+			{"id": 4, "position": [1, 1,  1] },
+			{"id": 5, "position": [1, 1, 19] },
+			{"id": 6, "position": [1, 1, 19] }
+		],
+		"elements": [
+			{ "id": 1, "type": "polyline", "coordinateIds": [1, 2]},
+			{ "id": 2, "type": "polyline", "coordinateIds": [3, 5]},
+			{ "id": 3, "type": "polyline", "coordinateIds": [4, 6]},
+			{ "id": 4, "type": "node",     "coordinateIds": [2] }
+		]
+	},
+	
+	"probes": [
+		{
+			"name": "v",
+			"type": "voltage",
+			"elementIds": [4]
+		},
+		{
+			"name": "i",
+			"type": "current",
+			"elementIds": [4]
+		}
+	],
+
+	"cables": [
+		{
+			"name": "line_1",
+			"cableMaterialId": 1,
+			"initialConnectorId": 3,
+			"endConnectorId": 3,
+			"elementIds": [ 2,3 ],
+			"containedWithinElementId": 1
+		},
+		{
+			"name": "line_0",
+			"cableMaterialId": 2,
+			"initialConnectorId": 4,
+			"endConnectorId": 4,
+			"elementIds": [ 1 ]
+		}		
+	]
+}

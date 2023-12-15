@@ -70,21 +70,11 @@ contains
       expected%pecRegs%Surfs(1)%Xe = 15
       expected%pecRegs%Surfs(1)%Ye = 15
       expected%pecRegs%Surfs(1)%Ze = 11
-      
-      ! ! Entry line (No need to provide return path)
-      ! expected%pecRegs%Lins(1)%Xi = 11
-      ! expected%pecRegs%Lins(1)%Yi =  1
-      ! expected%pecRegs%Lins(1)%Zi = 11
-
-      ! expected%pecRegs%Lins(1)%Xe = 11
-      ! expected%pecRegs%Lins(1)%Ye =  5
-      ! expected%pecRegs%Lins(1)%Ze = 11
 
       ! Exit line
       expected%pecRegs%Lins(1)%Xi = 11
       expected%pecRegs%Lins(1)%Yi = 16
       expected%pecRegs%Lins(1)%Zi = 11
-
       expected%pecRegs%Lins(1)%Xe = 11
       expected%pecRegs%Lins(1)%Ye = 20
       expected%pecRegs%Lins(1)%Ze = 11

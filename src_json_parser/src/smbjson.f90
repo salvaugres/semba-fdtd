@@ -98,7 +98,7 @@ contains
       res%matriz = this%readMediaMatrix()
       res%despl = this%readGrid()
       res%front = this%readBoundary()
-      
+
       ! Materials
       res%mats = this%readMaterials()
       res%pecRegs = this%readPECRegions()
@@ -107,7 +107,7 @@ contains
       ! res%LossyThinSurfs = this%readLossyThinSurfaces()
       ! res%frqDepMats = this%readFrequencyDependentMaterials()
       ! res%aniMats = this%readAnisotropicMaterials()
-      
+
       ! Sources
       ! res%boxSrc = this%readBoxSources()
       res%plnSrc = this%readPlanewaves()
@@ -343,32 +343,15 @@ contains
    function buildPECPMCRegion(cRs) result(res)
       type(PECRegions) :: res
       type(cell_region_t), dimension(:), allocatable, intent(in) :: cRs
-      call addCellIntervalsAsCoords(cRs, CELL_TYPE_LINEL,  res%Lins)
-      call addCellIntervalsAsCoords(cRs, CELL_TYPE_SURFEL, res%Surfs)
-      call addCellIntervalsAsCoords(cRs, CELL_TYPE_VOXEL,  res%Vols)
+      call addCellRegionsAsCoords(cRs, CELL_TYPE_LINEL,  res%Lins)
+      call addCellRegionsAsCoords(cRs, CELL_TYPE_SURFEL, res%Surfs)
+      call addCellRegionsAsCoords(cRs, CELL_TYPE_VOXEL,  res%Vols)
       res%nLins = size(res%lins)
       res%nSurfs = size(res%surfs)
       res%nVols = size(res%vols)
       res%nLins_max = size(res%Lins)
       res%nSurfs_max = size(res%Surfs)
       res%nVols_max = size(res%Vols)
-   contains
-      subroutine addCellIntervalsAsCoords(cellRegions, cellType, res)
-         type(coords), dimension(:), pointer :: res
-         type(cell_region_t), dimension(:), allocatable, intent(in) :: cellRegions
-         integer, intent(in) :: cellType
-         type(cell_interval_t), dimension(:), allocatable :: intervals
-         type(coords), dimension(:), allocatable :: coords
-         integer :: i
-
-         allocate(intervals(0))
-         do i = 1, size(cellRegions)
-            intervals = [intervals, cellRegions(i)%getIntervalsOfType(cellType)]
-         end do
-         coords = cellIntervalsToCoords(intervals)
-         allocate(res(size(coords)))
-         res = coords
-      end subroutine
    end function
 
    ! function readDielectricRegions() result (res)
@@ -473,7 +456,8 @@ contains
       type(json_value), pointer :: sources
       type(json_value_ptr), dimension(:), allocatable :: nodSrcs
       logical :: found
-      
+      integer :: i
+
       call this%core%get(this%root, J_SOURCES, sources, found)
       if (.not. found) then
          allocate(res%NodalSource(0))
@@ -481,18 +465,48 @@ contains
       end if
 
       nodSrcs = jsonValueFilterByKeyValues(this%core, sources, J_TYPE, [J_SRC_NS_TYPE])
-      if (size(nodSrcs) == 0) then 
-         allocate(res%NodalSource(0))         
+      if (size(nodSrcs) == 0) then
+         allocate(res%NodalSource(0))
          return
       end if
 
+      allocate(res%NodalSource(size(nodSrcs)))
+      res%n_nodSrc = size(nodSrcs)
+      res%n_nodSrc_max = size(nodSrcs)
+      do i = 1, size(nodSrcs)
+         res%NodalSource(i) = readCurrentFieldSource(nodSrcs(i)%p)
+      end do
+   contains
+      function readCurrentFieldSource(jns) result(res)
+         type(Curr_Field_Src) :: res
+         type(json_value), pointer :: jns, entry
+
+         select case (this%getStrAt(jns, J_SRC_NS_FIELD))
+          case (J_SRC_NS_FIELD_CURRENT)
+            res%isElec = .false.
+            res%isMagnet = .false.
+            res%isCurrent = .true.
+          case default
+            stop 'Error reading current field source. Field label not recognized.'
+         end select
+         res%isInitialValue = .false.
+         res%name = trim(adjustl(this%getStrAt(jns, J_SRC_MAGNITUDE_FILE)))
+
+         block
+            type(cell_region_t), dimension(:), allocatable :: cRs
+            type(coords), dimension(:), allocatable :: coords
+            cRs = this%getAsCellRegionsAt(jns, J_ELEMENTIDS)
+            coords = addCellRegionsAsCoords(cRs)
+         end block
+
+      end function
    end function
 
    function readProbes(this) result (res)
       class(parser_t) :: this
       type(Sondas) :: res
       type(json_value), pointer :: probes
-      type(json_value_ptr), allocatable :: ps(:)
+      type(json_value_ptr), dimension(:), allocatable :: ps
       integer :: i
       character (len=*), dimension(1), parameter :: validTypes = &
          (/J_PR_TYPE_FARFIELD/)
@@ -512,31 +526,7 @@ contains
          type(json_value), pointer :: p
 
          stop 'read abstract sonda is TBD. TODO'
-         ! integer :: i, j, k
-         ! character (len=:), allocatable :: typeLabel, tag
-         ! character(kind=CK,len=1), dimension(:), allocatable :: dirLabels
-         ! type(Cell), dimension(:), allocatable :: cells
 
-         ! call this%core%get(p, J_PR_OUTPUT_NAME, tag)
-         ! res%outputrequest = trim(adjustl(tag))
-
-         ! call this%core%get(p, J_PR_TYPE, typeLabel)
-
-         ! call getDomain(p, res)
-
-         ! cells = getCells(p, J_PIXELS)
-         ! call this%core%get(p, J_PR_DIRECTIONS, dirLabels)
-         ! allocate(res%cordinates(size(cells) * size(dirLabels)))
-         ! do i = 1, size(cells)
-         !    k = (i-1) * size(dirLabels)
-         !    do j = 1, size(dirLabels)
-         !       res%cordinates(k+j)%tag = tag
-         !       res%cordinates(k+j)%Xi = int (cells(i)%v(1))
-         !       res%cordinates(k+j)%Yi = int (cells(i)%v(2))
-         !       res%cordinates(k+j)%Zi = int (cells(i)%v(3))
-         !       res%cordinates(k+j)%Or = strToProbeType(typeLabel, dirLabels(j))
-         !    end do
-         ! end do
       end function
    end function
 
@@ -708,8 +698,8 @@ contains
       end if
 
       bps = jsonValueFilterByKeyValues(this%core, probes, J_TYPE, [J_PR_TYPE_BULK_CURRENT])
-      if (size(bps) == 0) then 
-         allocate(res%bp(0))         
+      if (size(bps) == 0) then
+         allocate(res%bp(0))
          return
       end if
 
@@ -914,7 +904,7 @@ contains
          xe = interval%end%cell(dir)
          if (xe < xi) then
             xi = interval%end%cell(dir) + 1 + FIRST_CELL_START
-            xe = interval%ini%cell(dir) + 1 
+            xe = interval%ini%cell(dir) + 1
          end if
 
       end subroutine

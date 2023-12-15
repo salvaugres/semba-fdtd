@@ -15,6 +15,27 @@ module parser_tools_mod
       type(json_value), pointer :: p
    end type
 contains
+   subroutine addCellRegionsAsCoords(res, cellRegions, cellType)
+      type(coords), dimension(:), pointer :: res
+      type(cell_region_t), dimension(:), allocatable, intent(in) :: cellRegions
+      integer, intent(in), optional :: cellType
+      type(cell_interval_t), dimension(:), allocatable :: intervals
+      type(coords), dimension(:), allocatable :: coords
+      integer :: i
+
+      allocate(intervals(0))
+      do i = 1, size(cellRegions)
+         if (present(cellType)) then
+            intervals = [intervals, cellRegions(i)%getIntervalsOfType(cellType)]
+         else 
+            intervals = [intervals, cellRegions(i)%intervals]
+         end if
+      end do
+      coords = cellIntervalsToCoords(intervals)
+      allocate(res(size(coords)))
+      res = coords
+   end subroutine
+
    function getPixelsFromElementIds(mesh, ids) result(res)
       type(pixel_t), dimension(:), allocatable :: res
       type(mesh_t), intent(in) :: mesh
