@@ -100,7 +100,9 @@ contains
       expected%nodSrc%NodalSource(1)%c2P(1)%Ye =  5
       expected%nodSrc%NodalSource(1)%c2P(1)%Ze = 11
       expected%nodSrc%NodalSource(1)%c2P(1)%Or = iEx
-
+      expected%nodSrc%NodalSource(1)%c2P(1)%xc = 1.0
+      expected%nodSrc%NodalSource(1)%c2P(1)%yc = 0.0
+      expected%nodSrc%NodalSource(1)%c2P(1)%zc = 0.0
       ! Expected probes
       ! oldSonda
       expected%oldSONDA%n_probes = 0

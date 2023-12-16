@@ -478,6 +478,7 @@ contains
       do i = 1, size(nodSrcs)
          res%NodalSource(i) = readCurrentFieldSource(nodSrcs(i)%p)
       end do
+
    contains
       function readCurrentFieldSource(jns) result(res)
          type(Curr_Field_Src) :: res
@@ -485,6 +486,7 @@ contains
 
          select case (this%getStrAt(jns, J_SRC_NS_FIELD))
           case (J_SRC_NS_FIELD_CURRENT)
+            res%isField = .false.
             res%isElec = .false.
             res%isMagnet = .false.
             res%isCurrent = .true.
@@ -498,8 +500,9 @@ contains
          res%n_C1P = 0
 
          call addCellRegionsAsScaledCoords(res%c2P, &
-            this%mesh%getCellRegions( &
-               this%getIntsAt(jns, J_ELEMENTIDS)))
+            this%mesh%getCellRegions(&
+               this%getIntsAt(jns, J_ELEMENTIDS)), CELL_TYPE_LINEL)
+            
          res%n_C2P = size(res%C2p)
          
       end function
