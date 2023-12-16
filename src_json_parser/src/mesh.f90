@@ -32,8 +32,9 @@ module mesh_mod
       procedure :: getNode => mesh_getNode
       procedure :: getPolyline => mesh_getPolyline
 
-      procedure :: addCellRegion => mesh_addCellRegion
-      procedure :: getCellRegion => mesh_getCellRegion
+      procedure :: addCellRegion  => mesh_addCellRegion
+      procedure :: getCellRegion  => mesh_getCellRegion
+      procedure :: getCellRegions => mesh_getCellRegions
    end type
 
    public :: convertPolylineToLinels
@@ -144,6 +145,22 @@ contains
          res = d
          if (present(found)) found = .true.
       end select
+   
+   end function
+
+   function mesh_getCellRegions(this, ids) result (res)
+      class(mesh_t) :: this
+      type(cell_region_t), dimension(:), allocatable :: res
+      integer, dimension(:), intent(in) :: ids
+      type(cell_region_t) :: cR
+      logical :: found
+      integer :: i
+
+      allocate(res(0))
+      do i = 1, size(ids)
+         cR = this%getCellRegion(ids(i), found)
+         if (found) res = [res, cR]
+      end do
    
    end function
 

@@ -40,6 +40,8 @@ module smbjson
       procedure :: readMoreProbes
       procedure :: readBlockProbes
       procedure :: readThinWires
+      procedure :: readSlantedWires
+      procedure :: readThinSlots
       !
       procedure :: readMesh
       !
@@ -119,8 +121,8 @@ contains
       ! res%VolPrb = this%readVolumicProbes()
       ! Thin elements
       res%tWires = this%readThinWires()
-      ! res%sWires = this%readSlantedWires()
-      ! res%tSlots = this%readThinSlots()
+      res%sWires = this%readSlantedWires()
+      res%tSlots = this%readThinSlots()
 
       ! Cleanup
       call this%core%destroy()
@@ -343,9 +345,9 @@ contains
    function buildPECPMCRegion(cRs) result(res)
       type(PECRegions) :: res
       type(cell_region_t), dimension(:), allocatable, intent(in) :: cRs
-      call addCellRegionsAsCoords(cRs, CELL_TYPE_LINEL,  res%Lins)
-      call addCellRegionsAsCoords(cRs, CELL_TYPE_SURFEL, res%Surfs)
-      call addCellRegionsAsCoords(cRs, CELL_TYPE_VOXEL,  res%Vols)
+      call addCellRegionsAsCoords(res%Lins, cRs, CELL_TYPE_LINEL)
+      call addCellRegionsAsCoords(res%Surfs, cRs, CELL_TYPE_SURFEL)
+      call addCellRegionsAsCoords(res%Vols, cRs, CELL_TYPE_VOXEL)
       res%nLins = size(res%lins)
       res%nSurfs = size(res%surfs)
       res%nVols = size(res%vols)
@@ -354,36 +356,36 @@ contains
       res%nVols_max = size(res%Vols)
    end function
 
-   ! function readDielectricRegions() result (res)
-   !    type(DielectricRegions) :: res
-   !    ! TODO
-   ! end function
+   function readDielectricRegions() result (res)
+      type(DielectricRegions) :: res
+      ! TODO
+   end function
 
-   ! function readLossyThinSurfaces() result (res)
-   !    type(LossyThinSurfaces) :: res
-   !    ! TODO
-   ! end function
+   function readLossyThinSurfaces() result (res)
+      type(LossyThinSurfaces) :: res
+      ! TODO
+   end function
 
-   ! function readFrequencyDependentMaterials() result (res)
-   !    type(FreqDepenMaterials) :: res
-
-
-   !    ! TODO
-   ! end function
-
-   ! function readAnisotropicMaterials() result (res)
-   !    type(ANISOTROPICelements_t) :: res
+   function readFrequencyDependentMaterials() result (res)
+      type(FreqDepenMaterials) :: res
 
 
-   !    ! TODO
-   ! end function
+      ! TODO
+   end function
 
-   ! function readBoxSources() result (res)
-   !    type(Boxes) :: res
+   function readAnisotropicMaterials() result (res)
+      type(ANISOTROPICelements_t) :: res
 
 
-   !    ! TODO
-   ! end function
+      ! TODO
+   end function
+
+   function readBoxSources() result (res)
+      type(Boxes) :: res
+
+
+      ! TODO
+   end function
 
    function readPlanewaves(this) result (res)
       class(parser_t) :: this
@@ -490,15 +492,16 @@ contains
             stop 'Error reading current field source. Field label not recognized.'
          end select
          res%isInitialValue = .false.
-         res%name = trim(adjustl(this%getStrAt(jns, J_SRC_MAGNITUDE_FILE)))
+         res%nombre = trim(adjustl(this%getStrAt(jns, J_SRC_MAGNITUDE_FILE)))
 
-         block
-            type(cell_region_t), dimension(:), allocatable :: cRs
-            type(coords), dimension(:), allocatable :: coords
-            cRs = this%getAsCellRegionsAt(jns, J_ELEMENTIDS)
-            coords = addCellRegionsAsCoords(cRs)
-         end block
+         allocate(res%c1P(0))
+         res%n_C1P = 0
 
+         call addCellRegionsAsScaledCoords(res%c2P, &
+            this%mesh%getCellRegions( &
+               this%getIntsAt(jns, J_ELEMENTIDS)))
+         res%n_C2P = size(res%C2p)
+         
       end function
    end function
 
@@ -705,12 +708,10 @@ contains
 
    end function
 
-   ! function readVolumicProbes() result (res)
-   !    type(VolProbes) :: res
-
-
-   !    ! TODO
-   ! end function
+   function readVolumicProbes() result (res)
+      type(VolProbes) :: res
+      ! TODO
+   end function
 
    function readThinWires(this) result (res)
       class(parser_t) :: this
@@ -869,45 +870,16 @@ contains
       end function
    end function
 
-   ! function readSlantedWires() result (res)
-   !    type(SlantedWires) :: res
-   !    ! TODO
-   ! end function
+   function readSlantedWires(this) result (res)
+      class(parser_t) :: this
+      type(SlantedWires) :: res
+      ! TODO
+   end function
 
-   ! function readThinSlots() result (res)
-   !    type(ThinSlots) :: res
-
-   !    type(json_value), pointer :: root
-   !    ! TODO
-   ! end function
-
-   function cellIntervalsToCoords(intervals) result(res)
-      type(coords), dimension(:), allocatable :: res
-      type(cell_interval_t), dimension(:), intent(in) :: intervals
-      type(cell_interval_t) :: auxInterval
-      integer :: i
-
-      allocate(res(size(intervals)))
-      do i = 1, size(intervals)
-         auxInterval = intervals(i)
-         res(i)%Or = auxInterval%getOrientation()
-         call convertInterval(res(i)%Xi, res(i)%Xe, auxInterval, DIR_X)
-         call convertInterval(res(i)%Yi, res(i)%Ye, auxInterval, DIR_Y)
-         call convertInterval(res(i)%Zi, res(i)%Ze, auxInterval, DIR_Z)
-      end do
-   contains
-      subroutine convertInterval(xi, xe, interval, dir)
-         integer, intent(out) :: xi, xe
-         type(cell_interval_t), intent(in) :: interval
-         integer, intent(in) :: dir
-         xi = interval%ini%cell(dir) + FIRST_CELL_START
-         xe = interval%end%cell(dir)
-         if (xe < xi) then
-            xi = interval%end%cell(dir) + 1 + FIRST_CELL_START
-            xe = interval%ini%cell(dir) + 1
-         end if
-
-      end subroutine
+   function readThinSlots(this) result (res)
+      class(parser_t) :: this
+      type(ThinSlots) :: res
+      ! TODO
    end function
 
    function getIntAt(this, place, path, found) result(res)

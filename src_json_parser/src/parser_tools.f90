@@ -4,6 +4,7 @@ module parser_tools_mod
    use cells_mod
    use json_module
    use json_kinds
+   use NFDETypes, only: coords, coords_scaled
 
    use, intrinsic :: iso_fortran_env , only: error_unit
 
@@ -15,12 +16,13 @@ module parser_tools_mod
       type(json_value), pointer :: p
    end type
 contains
+
    subroutine addCellRegionsAsCoords(res, cellRegions, cellType)
       type(coords), dimension(:), pointer :: res
-      type(cell_region_t), dimension(:), allocatable, intent(in) :: cellRegions
+      type(cell_region_t), dimension(:), intent(in) :: cellRegions
       integer, intent(in), optional :: cellType
       type(cell_interval_t), dimension(:), allocatable :: intervals
-      type(coords), dimension(:), allocatable :: coords
+      type(coords), dimension(:), allocatable :: cs
       integer :: i
 
       allocate(intervals(0))
@@ -31,10 +33,72 @@ contains
             intervals = [intervals, cellRegions(i)%intervals]
          end if
       end do
-      coords = cellIntervalsToCoords(intervals)
-      allocate(res(size(coords)))
-      res = coords
+      cs = cellIntervalsToCoords(intervals)
+      allocate(res(size(cs)))
+      res = cs
    end subroutine
+
+   subroutine addCellRegionsAsScaledCoords(res, cellRegions, cellType)
+      type(coords_scaled), dimension(:), pointer :: res
+      type(cell_region_t), dimension(:), intent(in) :: cellRegions
+      integer, intent(in), optional :: cellType
+      type(cell_interval_t), dimension(:), allocatable :: intervals
+      type(coords), dimension(:), pointer :: cs
+      integer :: i
+      
+      if (present(cellType)) then
+         call addCellRegionsAsCoords(cs, cellRegions, cellType)
+      else
+         call addCellRegionsAsCoords(cs, cellRegions)
+      end if
+
+      allocate(res(size(cs)))
+      res(:)%Xi = cs(:)%Xi
+      res(:)%Xe = cs(:)%Xe
+      res(:)%Yi = cs(:)%Yi
+      res(:)%Ye = cs(:)%Ye
+      res(:)%Zi = cs(:)%Zi
+      res(:)%Ze = cs(:)%Ze
+      res(:)%Or = cs(:)%Or
+      res(:)%tag = cs(:)%tag
+   end subroutine
+
+   
+
+   function cellIntervalsToCoords(intervals) result(res)
+      type(coords), dimension(:), allocatable :: res
+      type(cell_interval_t), dimension(:), intent(in) :: intervals
+      type(cell_interval_t) :: auxInterval
+      integer :: i
+
+      allocate(res(size(intervals)))
+      do i = 1, size(intervals)
+         auxInterval = intervals(i)
+         res(i)%Or = auxInterval%getOrientation()
+         call convertInterval(res(i)%Xi, res(i)%Xe, auxInterval, DIR_X)
+         call convertInterval(res(i)%Yi, res(i)%Ye, auxInterval, DIR_Y)
+         call convertInterval(res(i)%Zi, res(i)%Ze, auxInterval, DIR_Z)
+      end do
+   contains
+      subroutine convertInterval(xi, xe, interval, dir)
+         integer, intent(out) :: xi, xe
+         type(cell_interval_t), intent(in) :: interval
+         integer, intent(in) :: dir
+         xi = interval%ini%cell(dir) + FIRST_CELL_START
+         xe = interval%end%cell(dir)
+         if (xe < xi) then
+            xi = interval%end%cell(dir) + 1 + FIRST_CELL_START
+            xe = interval%ini%cell(dir) + 1
+         end if
+
+      end subroutine
+   end function
+
+   function coordsToScaledCoords(cs) result(res)
+      type(coords), dimension(:), intent(in) :: cs
+      type(coords_scaled), dimension(:), allocatable :: res
+      ! TODO
+   end function
 
    function getPixelsFromElementIds(mesh, ids) result(res)
       type(pixel_t), dimension(:), allocatable :: res
