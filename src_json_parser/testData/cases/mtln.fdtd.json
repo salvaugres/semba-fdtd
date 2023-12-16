@@ -17,7 +17,7 @@
 			"radius": 0.0001,
 			"resistancePerMeter": 22.9e-3,
 			"__referenceInductancePerMeter": 5.481553487168089e-07,
-			"__referenceCapacitancePerMeter": 2.0270004E-11,
+			"__referenceCapacitancePerMeter": 2.0270004E-11
 		},
 		{
 			"id": 11,
@@ -282,163 +282,153 @@
 	],
 	"mesh": {
 		"grid": {
+			"numberOfCells": [2, 7, 100],
+			"steps": {
+				"x": [1.0], 
+				"y": [0.033],  ?
+				"z": [0.03]} ?
 		},
 		"relativeCoordinates": [
-			{"id": 1 , "position": [ 0.0   0.0 0.000]},
-			{"id": 2 , "position": [ 0.0   0.0 0.540]},
-			{"id": 3 , "position": [ 0.0   0.0 0.540]},
-			{"id": 4 , "position": [ 0.0   0.0 0.540]},
-			{"id": 5 , "position": [ 0.343 0.0 0.540]},
-			{"id": 6 , "position": [ 0.0   0.0 0.705]},
-			{"id": 7 , "position": [ 0.0   0.0 0.705]},
-			{"id": 8 , "position": [ 0.0   0.0 0.705]},
-			{"id": 9 , "position": [ 0.356 0.0 0.705]},
-			{"id": 10, "position": [ 0.0 0.0 0.883]},
-			{"id": 11, "position": [ 0.0 0.0 0.000]},
-			{"id": 12, "position": [ 0.0 0.0 0.000]},
-			{"id": 13, "position": [ 0.0 0.0 0.000]},
-			{"id": 14, "position": [ 0.0 0.0 0.000]},
-			{"id": 15, "position": [ 0.0 0.0 0.540]},
-			{"id": 16, "position": [ 0.0 0.0 0.540]},
-			{"id": 17, "position": [ 0.0 0.0 0.540]},
-			{"id": 18, "position": [ 0.0 0.0 0.540]},
-			{"id": 19, "position": [ 0.0 0.0 0.540]},
-			{"id": 20, "position": [ 0.0 0.0 0.540]},
-			{"id": 21, "position": [ 0.0 0.0 0.540]},
-			{"id": 22, "position": [ 0.0 0.0 0.540]},
-			{"id": 23, "position": [ 0.343 0.0 0.540]},
-			{"id": 24, "position": [ 0.0 0.0 0.705]},
-			{"id": 25, "position": [ 0.0 0.0 0.705]},
-			{"id": 26, "position": [ 0.0 0.0 0.705]},
-			{"id": 27, "position": [ 0.0 0.0 0.705]},
-			{"id": 28, "position": [ 0.0 0.0 0.705]},
-			{"id": 29, "position": [ 0.0 0.0 0.705]},
-			{"id": 30, "position": [ 0.356 0.0 0.705]},
-			{"id": 31, "position": [ 0.356 0.0 0.705]},
-			{"id": 32, "position": [ 0.0 0.0 0.883]},
-			{"id": 33, "position": [ 0.0 0.0 0.000]},
-			{"id": 34, "position": [ 0.0 0.0 0.000]},
-			{"id": 35, "position": [ 0.0 0.0 0.000]},
-			{"id": 36, "position": [ 0.0 0.0 0.000]},
-			{"id": 37, "position": [ 0.0 0.0 0.000]},
-			{"id": 38, "position": [ 0.0 0.0 0.000]},
-			{"id": 39, "position": [ 0.0 0.0 0.000]},
-			{"id": 40, "position": [ 0.0 0.0 0.000]},
-			{"id": 41, "position": [ 0.0 0.0 0.540]},
-			{"id": 42, "position": [ 0.0 0.0 0.540]},
-			{"id": 43, "position": [ 0.0 0.0 0.540]},
-			{"id": 44, "position": [ 0.0 0.0 0.540]},
-			{"id": 45, "position": [ 0.0 0.0 0.540]},
-			{"id": 46, "position": [ 0.0 0.0 0.540]},
-			{"id": 47, "position": [ 0.0 0.0 0.540]},
-			{"id": 48, "position": [ 0.0 0.0 0.540]},
-			{"id": 49, "position": [ 0.0 0.0 0.540]},
-			{"id": 50, "position": [ 0.0 0.0 0.540]},
-			{"id": 51, "position": [ 0.343 0.0 0.540]},
-			{"id": 52, "position": [ 0.343 0.0 0.540]},
-			{"id": 53, "position": [ 0.0 0.0 0.540]},
-			{"id": 54, "position": [ 0.0 0.0 0.540]},
-			{"id": 55, "position": [ 0.0 0.0 0.540]},
-			{"id": 56, "position": [ 0.0 0.0 0.540]},
-			{"id": 57, "position": [ 0.0 0.0 0.540]},
-			{"id": 58, "position": [ 0.0 0.0 0.540]},
-			{"id": 59, "position": [ 0.0 0.0 0.705]},
-			{"id": 60, "position": [ 0.0 0.0 0.705]},
-			{"id": 61, "position": [ 0.0 0.0 0.705]},
-			{"id": 62, "position": [ 0.0 0.0 0.705]},
-			{"id": 63, "position": [ 0.0 0.0 0.705]},
-			{"id": 64, "position": [ 0.0 0.0 0.705]},
-			{"id": 65, "position": [ 0.0 0.0 0.705]},
-			{"id": 66, "position": [ 0.0 0.0 0.705]},
-			{"id": 67, "position": [ 0.0 0.0 0.705]},
-			{"id": 68, "position": [ 0.0 0.0 0.705]},
-			{"id": 69, "position": [ 0.356 0.0 0.705]},
-			{"id": 70, "position": [ 0.356 0.0 0.705]},
-			{"id": 71, "position": [ 0.356 0.0 0.705]},
-			{"id": 72, "position": [ 0.356 0.0 0.705]},
-			{"id": 73, "position": [ 0.0 0.0 0.705]},
-			{"id": 74, "position": [ 0.0 0.0 0.705]},
-			{"id": 75, "position": [ 0.0 0.0 0.883]},
-			{"id": 76, "position": [ 0.0 0.0 0.883]},
-			{"id": 77, "position": [ 0.0 0.0 0.1]},
-			{"id": 78, "position": [ 0.0 0.0 0.3]},
-			{"id": 79, "position": [ 0.0 0.0 0.42]},
-			{"id": 80, "position": [ 0.0 0.0 0.00]},
-			{"id": 81, "position": [ 0.0 0.0 0.540]},
-			{"id": 82, "position": [ 0.0 0.0 0.540]},
-			{"id": 83, "position": [ 0.0 0.0 0.705]},
-			{"id": 84, "position": [ 0.0 0.0 0.540]},
-			{"id": 85, "position": [ 0.3 0.0 0.540]},
-			{"id": 86, "position": [ 0.343 0.0 0.54]}
+			{"id": 1 , "position": [ 0, 0, 18]},
+			{"id": 2 , "position": [ 0, 0, 18]},
+			{"id": 3 , "position": [ 0, 0, 18]},
+			{"id": 4 , "position": [ 0, 0, 18]},
+			{"id": 5 , "position": [ 0.343, 0.0, 18]}, // TODO
+			{"id": 6 , "position": [ 0, 0, 0.705]},    // TODO
+			{"id": 7 , "position": [ 0, 0, 0.705]},    // TODO
+			{"id": 8 , "position": [ 0, 0, 0.705]},    // TODO
+			{"id": 9 , "position": [ 0.356, 0, 0.705]},// TODO
+			{"id": 10, "position": [ 0, 0, 0.883]},    // TODO
+			{"id": 11, "position": [ 0, 0, 0]},
+			{"id": 12, "position": [ 0, 0, 0]},
+			{"id": 13, "position": [ 0, 0, 0]},
+			{"id": 14, "position": [ 0, 0, 0]},
+			{"id": 15, "position": [ 0, 0, 18]},
+			{"id": 16, "position": [ 0, 0, 18]},
+			{"id": 17, "position": [ 0, 0, 18]},
+			{"id": 18, "position": [ 0, 0, 18]},
+			{"id": 19, "position": [ 0, 0, 18]},
+			{"id": 20, "position": [ 0, 0, 18]},
+			{"id": 21, "position": [ 0, 0, 18]},
+			{"id": 22, "position": [ 0, 0, 18]},
+			{"id": 23, "position": [ 0.343, 0, 18]}, // TODO
+			{"id": 24, "position": [ 0, 0, 0.705]}, // TODO
+			{"id": 25, "position": [ 0, 0, 0.705]}, // TODO
+			{"id": 26, "position": [ 0, 0, 0.705]}, // TODO
+			{"id": 27, "position": [ 0, 0, 0.705]}, // TODO
+			{"id": 28, "position": [ 0, 0, 0.705]}, // TODO
+			{"id": 29, "position": [ 0, 0, 0.705]}, // TODO
+			{"id": 30, "position": [ 0.356, 0, 0.705]}, // TODO
+			{"id": 31, "position": [ 0.356, 0, 0.705]}, // TODO
+			{"id": 32, "position": [ 0, 0, 0.883]}, // TODO
+			{"id": 33, "position": [ 0, 0, 0]},
+			{"id": 34, "position": [ 0, 0, 0]},
+			{"id": 35, "position": [ 0, 0, 0]},
+			{"id": 36, "position": [ 0, 0, 0]},
+			{"id": 37, "position": [ 0, 0, 0]},
+			{"id": 38, "position": [ 0, 0, 0]},
+			{"id": 39, "position": [ 0, 0, 0]},
+			{"id": 40, "position": [ 0, 0, 0]},
+			{"id": 41, "position": [ 0, 0, 18]},
+			{"id": 42, "position": [ 0, 0, 18]},
+			{"id": 43, "position": [ 0, 0, 18]},
+			{"id": 44, "position": [ 0, 0, 18]},
+			{"id": 45, "position": [ 0, 0, 18]},
+			{"id": 46, "position": [ 0, 0, 18]},
+			{"id": 47, "position": [ 0, 0, 18]},
+			{"id": 48, "position": [ 0, 0, 18]},
+			{"id": 49, "position": [ 0, 0, 18]},
+			{"id": 50, "position": [ 0, 0, 18]},
+			{"id": 51, "position": [ 0.343, 0, 18]}, // TODO
+			{"id": 52, "position": [ 0.343, 0, 18]}, // TODO
+			{"id": 53, "position": [ 0, 0, 18]},
+			{"id": 54, "position": [ 0, 0, 18]},
+			{"id": 55, "position": [ 0, 0, 18]},
+			{"id": 56, "position": [ 0, 0, 18]},
+			{"id": 57, "position": [ 0, 0, 18]},
+			{"id": 58, "position": [ 0, 0, 18]},
+			{"id": 59, "position": [ 0, 0, 0.705]}, // TODO
+			{"id": 60, "position": [ 0, 0, 0.705]}, // TODO
+			{"id": 61, "position": [ 0, 0, 0.705]}, // TODO
+			{"id": 62, "position": [ 0, 0, 0.705]}, // TODO
+			{"id": 63, "position": [ 0, 0, 0.705]}, // TODO
+			{"id": 64, "position": [ 0, 0, 0.705]}, // TODO
+			{"id": 65, "position": [ 0, 0, 0.705]}, // TODO
+			{"id": 66, "position": [ 0, 0, 0.705]}, // TODO
+			{"id": 67, "position": [ 0, 0, 0.705]}, // TODO
+			{"id": 68, "position": [ 0, 0, 0.705]}, // TODO
+			{"id": 69, "position": [ 0.356, 0, 0.705]}, // TODO
+			{"id": 70, "position": [ 0.356, 0, 0.705]}, // TODO
+			{"id": 71, "position": [ 0.356, 0, 0.705]}, // TODO
+			{"id": 72, "position": [ 0.356, 0, 0.705]}, // TODO
+			{"id": 73, "position": [ 0, 0, 0.705]}, // TODO
+			{"id": 74, "position": [ 0, 0, 0.705]}, // TODO
+			{"id": 75, "position": [ 0, 0, 0.883]}, // TODO
+			{"id": 76, "position": [ 0, 0, 0.883]}, // TODO
+			{"id": 77, "position": [ 0, 0, 0.1]}, // TODO
+			{"id": 78, "position": [ 0, 0, 0.3]}, // TODO
+			{"id": 79, "position": [ 0, 0, 0.42]}, // TODO
+			{"id": 80, "position": [ 0, 0, 0.00]}, // TODO
+			{"id": 81, "position": [ 0, 0, 18]},
+			{"id": 82, "position": [ 0, 0, 18]},
+			{"id": 83, "position": [ 0, 0, 0.705]}, // TODO
+			{"id": 84, "position": [ 0, 0, 18]},
+			{"id": 85, "position": [ 0.3, 0, 18]}, // TODO
+			{"id": 86, "position": [ 0.343, 0, 0.18]} // TODO
 		],
-		"elements": {
-			"_line_description": "elemId materialId layerId coordId1 coordId2",
-			"line": [
-				"1 0 1 1 2",
-				"2 0 1 3 5",
-				"3 0 1 4 6",
-				"4 0 1 7 9",
-				"5 0 1 8 10",
-				"6 0 1 11 15",
-				"7 0 1 12 16",
-				"8 0 1 13 17",
-				"9 0 1 14 18",
-				"10 0 1 19 23",
-				"11 0 1 20 24",
-				"12 0 1 21 25",
-				"13 0 1 22 26",
-				"14 0 1 27 30",
-				"15 0 1 28 31",
-				"16 0 1 29 32",
-				"17 0 1 33 41",
-				"18 0 1 34 42",
-				"19 0 1 35 43",
-				"20 0 1 36 44",
-				"21 0 1 37 45",
-				"22 0 1 38 46",
-				"23 0 1 39 47",
-				"24 0 1 40 48",
-				"25 0 1 49 51",
-				"26 0 1 50 52",
-				"27 0 1 53 59",
-				"28 0 1 54 60",
-				"29 0 1 55 61",
-				"30 0 1 56 62",
-				"31 0 1 57 63",
-				"32 0 1 58 64",
-				"33 0 1 65 69",
-				"34 0 1 66 70",
-				"35 0 1 67 71",
-				"36 0 1 68 72",
-				"37 0 1 73 75",
-				"38 0 1 74 76"
-			],
-			"_node_description": "elemId materialId layerId coordId",
-			"node": [
-				"39 0 1 77",
-				"40 0 1 78",
-				"41 0 1 79",
-				"42 0 1 80",
-				"43 0 1 81",
-				"44 0 1 82",
-				"45 0 1 83",
-				"46 0 1 84",
-				"47 0 1 85",
-				"48 0 1 86"
-			]
-		}
-			{"id": XX, "type": "junction", "unitedCoordinateIds": [[2, 3, 4]]},
-			{"id": XX, "type": "junction", "unitedCoordinateIds": [[15, 19, 20]]},						
-			{"id": XX, "type": "junction", "unitedCoordinateIds": [
-				[41,53], 
-				[42,54], 
-				[43,55], 
-				[44,56], 
-				[45,57], 
-				[46,58], 
-				[47,49], 
-				[48,50]
-				]}
+		"elements": [
+			{"id": 1,  "type": "polyline", "coordinateIds": [ 1,  2]},				
+			{"id": 2 , "type": "polyline", "coordinateIds": [ 3,  5]},				
+			{"id": 3 , "type": "polyline", "coordinateIds": [ 4,  6]},				
+			{"id": 4 , "type": "polyline", "coordinateIds": [ 7,  9]},				
+			{"id": 5 , "type": "polyline", "coordinateIds": [ 8, 10]},
+			{"id": 6,  "type": "polyline", "coordinateIds": [11, 15]},
+			{"id": 7,  "type": "polyline", "coordinateIds": [12, 16]},
+			{"id": 8,  "type": "polyline", "coordinateIds": [13, 17]},
+			{"id": 9,  "type": "polyline", "coordinateIds": [14, 18]},
+			{"id": 10, "type": "polyline", "coordinateIds": [19, 23]},
+			{"id": 11, "type": "polyline", "coordinateIds": [20, 24]},
+			{"id": 12, "type": "polyline", "coordinateIds": [21, 25]},
+			{"id": 13, "type": "polyline", "coordinateIds": [22, 26]},
+			{"id": 14, "type": "polyline", "coordinateIds": [27, 30]},
+			{"id": 15, "type": "polyline", "coordinateIds": [28, 31]},
+			{"id": 16, "type": "polyline", "coordinateIds": [29, 32]},
+			{"id": 17, "type": "polyline", "coordinateIds": [33, 41]},
+			{"id": 18, "type": "polyline", "coordinateIds": [34, 42]},
+			{"id": 19, "type": "polyline", "coordinateIds": [35, 43]},
+			{"id": 20, "type": "polyline", "coordinateIds": [36, 44]},
+			{"id": 21, "type": "polyline", "coordinateIds": [37, 45]},
+			{"id": 22, "type": "polyline", "coordinateIds": [38, 46]},
+			{"id": 23, "type": "polyline", "coordinateIds": [39, 47]},
+			{"id": 24, "type": "polyline", "coordinateIds": [40, 48]},
+			{"id": 25, "type": "polyline", "coordinateIds": [49, 51]},
+			{"id": 26, "type": "polyline", "coordinateIds": [50, 52]},
+			{"id": 27, "type": "polyline", "coordinateIds": [53, 59]},
+			{"id": 28, "type": "polyline", "coordinateIds": [54, 60]},
+			{"id": 29, "type": "polyline", "coordinateIds": [55, 61]},
+			{"id": 30, "type": "polyline", "coordinateIds": [56, 62]},
+			{"id": 31, "type": "polyline", "coordinateIds": [57, 63]},
+			{"id": 32, "type": "polyline", "coordinateIds": [58, 64]},
+			{"id": 33, "type": "polyline", "coordinateIds": [65, 69]},
+			{"id": 34, "type": "polyline", "coordinateIds": [66, 70]},
+			{"id": 35, "type": "polyline", "coordinateIds": [67, 71]},
+			{"id": 36, "type": "polyline", "coordinateIds": [68, 72]},
+			{"id": 37, "type": "polyline", "coordinateIds": [73, 75]},
+			{"id": 38, "type": "polyline", "coordinateIds": [74, 76]},
+			{"id": 39, "type": "node", "coordinateIds": [77]},
+			{"id": 40, "type": "node", "coordinateIds": [78]},
+			{"id": 41, "type": "node", "coordinateIds": [79]},
+			{"id": 42, "type": "node", "coordinateIds": [80]},
+			{"id": 43, "type": "node", "coordinateIds": [81]},
+			{"id": 44, "type": "node", "coordinateIds": [82]},
+			{"id": 45, "type": "node", "coordinateIds": [83]},
+			{"id": 46, "type": "node", "coordinateIds": [84]},
+			{"id": 47, "type": "node", "coordinateIds": [85]},
+			{"id": 48, "type": "node", "coordinateIds": [86]},
+			{"id": 49, "type": "junction", "unitedCoordinateIds": [[2, 3, 4]]},
+			{"id": 50, "type": "junction", "unitedCoordinateIds": [[15, 19, 20]]},						
+			{"id": 51, "type": "junction", "unitedCoordinateIds": [ [41,53], [42,54], [43,55], [44,56], [45,57], [46,58], [47,49], [48,50] ]}
+		]
 	
 	},
 	
