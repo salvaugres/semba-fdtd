@@ -52,6 +52,7 @@ module smbjson
       procedure :: getJSONValuePtrAt
       procedure :: existsAt
       procedure :: getCellRegionsWithMaterialType
+      procedure :: getDomain
    end type
    interface parser_t
       module procedure parser_ctor
@@ -62,6 +63,12 @@ module smbjson
       real :: r, l, c
    end type
 
+   type, private :: domain_t
+      real :: tstart, tstop, tstep
+      real :: fstart, fstop, fstep
+      character(len=:), allocatable :: filename
+      integer :: type1, type2
+   end type
 contains
    function parser_ctor(filename) result(res)
       type(parser_t) :: res
@@ -575,7 +582,7 @@ contains
 
          call this%core%get(p, J_TYPE, typeLabel)
 
-         call getDomain(p, res)
+         call setDomain(res, this%getDomain(p, J_PR_DOMAIN))
 
          call this%core%get(p, J_ELEMENTIDS, elemIds, found=elementIdsFound)
          pixels = getPixelsFromElementIds(this%mesh, elemIds)
@@ -605,56 +612,20 @@ contains
          end if
       end function
 
-      subroutine getDomain(p, res)
+      subroutine setDomain(res, domain)
          type(MasSonda), intent(inout) :: res
-         type(json_value), pointer :: p, domain
+         type(domain_t), intent(in) :: domain
 
-         character (len=:),allocatable :: fn, domainType
-         logical :: found
-         real :: val
-
-         call this%core%get(p, J_PR_DOMAIN, domain)
-
-         res%type1 = NP_T1_PLAIN
-
-         call this%core%get(domain, J_TYPE, domainType)
-         res%type2 = strToDomainType(domainType)
-
-         call this%core%get(domain, J_PR_DOMAIN_TIME_START, res%tstart, default=0.0)
-         call this%core%get(domain, J_PR_DOMAIN_TIME_STOP,  res%tstop,  default=0.0)
-         call this%core%get(domain, J_PR_DOMAIN_TIME_STEP,  res%tstep,  default=0.0)
-         call this%core%get(domain, J_PR_DOMAIN_FREQ_START, res%fstart, default=0.0)
-         call this%core%get(domain, J_PR_DOMAIN_FREQ_STOP,  res%fstop,  default=0.0)
-         call this%core%get(domain, J_PR_DOMAIN_FREQ_STEP,  res%fstep,  default=0.0)
-
-         call this%core%get(domain, J_PR_DOMAIN_FILENAME, fn, found)
-         if (found) then
-            res%filename = trim(adjustl(fn))
-         else
-            res%filename = " "
-         endif
+         res%tstart = domain%tstart
+         res%tstep = domain%tstep
+         res%tstop = domain%tstop
+         res%fstart = domain%fstart
+         res%fstep = domain%fstep
+         res%fstop = domain%fstop
+         res%filename = domain%filename
+         res%type1 = domain%type1
+         res%type2 = domain%type2
       end subroutine
-
-      function strToDomainType(typeLabel) result(res)
-         integer (kind=4) :: res
-         character (len=:), allocatable :: typeLabel
-         select case (typeLabel)
-          case (J_PR_DOMAIN_TIME)
-            res = NP_T2_TIME
-          case (J_PR_DOMAIN_FREQ)
-            res = NP_T2_FREQ
-          case (J_PR_DOMAIN_TRANSFER)
-            res = NP_T2_TRANSFER
-          case (J_PR_DOMAIN_TIMEFREQ)
-            res = NP_T2_TIMEFREQ
-          case (J_PR_DOMAIN_TIMETRANSF)
-            res = NP_T2_TIMETRANSF
-          case (J_PR_DOMAIN_FREQTRANSF)
-            res = NP_T2_FREQTRANSF
-          case (J_PR_DOMAIN_TIMEFREQTRANSF)
-            res = NP_T2_TIMEFRECTRANSF
-         end select
-      end function
 
       function strToProbeType(typeLabel, dirLabel) result(res)
          integer (kind=4) :: res
@@ -699,6 +670,7 @@ contains
       type(json_value_ptr), dimension(:), allocatable :: bps
       type(json_value), pointer :: probes
       logical :: found
+      integer :: i
 
       call this%core%get(this%root, J_PROBES, probes, found)
       if (.not. found) then
@@ -712,6 +684,57 @@ contains
          return
       end if
 
+      res%n_bp = size(bps)
+      res%n_bp_max = size(bps)
+      allocate(res%bp(size(bps)))
+      do i = 1, size(bps)
+         res%bp(i) = readBlockProbe(bps(i)%p)
+      end do
+   contains
+      function readBlockProbe(bp) result(res)
+         type(BloqueProbe) :: res
+         type(json_value), pointer :: bp
+         type(coords), dimension(:), allocatable :: cs
+       
+         call setDomain(res, this%getDomain(bp, J_PR_DOMAIN))
+         
+         block 
+            type(cell_region_t), dimension(:), allocatable :: cRs
+
+            cRs = this%mesh%getCellRegions(this%getIntsAt(bp, J_ELEMENTIDS))
+            if (size(cRs) /= 1) stop "Block probe must be defined by a single cell region."
+
+            if (size(cRs(1)%intervals) /= 1) stop "Block probe must be defined by a single cell interval."
+            cs = cellIntervalsToCoords(cRs(1)%intervals)
+            
+            res%i1  = cs(1)%xi
+            res%i2  = cs(1)%xe
+            res%j1  = cs(1)%ye
+            res%j2  = cs(1)%ye
+            res%k1  = cs(1)%ze
+            res%k2  = cs(1)%ze
+            res%nml = cs(1)%Or
+         end block
+
+         res%outputrequest = trim(adjustl( &
+            this%getStrAt(bp, J_PR_OUTPUT_NAME)))
+         res%skip = 1
+         res%tag = ''
+      end function
+
+      subroutine setDomain(res, domain)
+         type(BloqueProbe), intent(inout) :: res
+         type(domain_t), intent(in) :: domain
+
+         res%tstart = domain%tstart
+         res%tstep = domain%tstep
+         res%tstop = domain%tstop
+         res%fstart = domain%fstart
+         res%fstep = domain%fstep
+         res%fstop = domain%fstop
+         res%FileNormalize = domain%filename
+         res%type2 = domain%type2
+      end subroutine
    end function
 
    function readVolumicProbes() result (res)
@@ -880,6 +903,61 @@ contains
       class(parser_t) :: this
       type(SlantedWires) :: res
       ! TODO
+   end function
+
+   function getDomain(this, place, path) result(res)
+      class(parser_t) :: this
+      type(domain_t) :: res
+      type(json_value), pointer :: place
+      character(len=*), intent(in) :: path
+
+      type(json_value), pointer :: domain
+      character (len=:),allocatable :: fn, domainType
+      logical :: found
+      real :: val
+
+      call this%core%get(place, path, domain, found)
+      if (.not. found) return
+
+      res%type1 = NP_T1_PLAIN
+
+      call this%core%get(domain, J_TYPE, domainType)
+      res%type2 = strToDomainType(domainType)
+
+      call this%core%get(domain, J_PR_DOMAIN_TIME_START, res%tstart, default=0.0)
+      call this%core%get(domain, J_PR_DOMAIN_TIME_STOP,  res%tstop,  default=0.0)
+      call this%core%get(domain, J_PR_DOMAIN_TIME_STEP,  res%tstep,  default=0.0)
+      call this%core%get(domain, J_PR_DOMAIN_FREQ_START, res%fstart, default=0.0)
+      call this%core%get(domain, J_PR_DOMAIN_FREQ_STOP,  res%fstop,  default=0.0)
+      call this%core%get(domain, J_PR_DOMAIN_FREQ_STEP,  res%fstep,  default=0.0)
+
+      call this%core%get(domain, J_PR_DOMAIN_FILENAME, fn, found)
+      if (found) then
+         res%filename = trim(adjustl(fn))
+      else
+         res%filename = " "
+      endif
+   contains
+      function strToDomainType(typeLabel) result(res)
+         integer (kind=4) :: res
+         character (len=:), allocatable :: typeLabel
+         select case (typeLabel)
+          case (J_PR_DOMAIN_TIME)
+            res = NP_T2_TIME
+          case (J_PR_DOMAIN_FREQ)
+            res = NP_T2_FREQ
+          case (J_PR_DOMAIN_TRANSFER)
+            res = NP_T2_TRANSFER
+          case (J_PR_DOMAIN_TIMEFREQ)
+            res = NP_T2_TIMEFREQ
+          case (J_PR_DOMAIN_TIMETRANSF)
+            res = NP_T2_TIMETRANSF
+          case (J_PR_DOMAIN_FREQTRANSF)
+            res = NP_T2_FREQTRANSF
+          case (J_PR_DOMAIN_TIMEFREQTRANSF)
+            res = NP_T2_TIMEFRECTRANSF
+         end select
+      end function
    end function
 
    function readThinSlots(this) result (res)
