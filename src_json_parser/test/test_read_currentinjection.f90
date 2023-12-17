@@ -135,10 +135,10 @@ contains
       expected%BloquePrb%bp(1)%fstop = 0.0
       expected%BloquePrb%bp(1)%fstep = 0.0
       expected%BloquePrb%bp(1)%i1 = 10
-      expected%BloquePrb%bp(1)%j1 =  3
-      expected%BloquePrb%bp(1)%k1 = 10
       expected%BloquePrb%bp(1)%i2 = 11
+      expected%BloquePrb%bp(1)%j1 =  3
       expected%BloquePrb%bp(1)%j2 =  3
+      expected%BloquePrb%bp(1)%k1 = 10
       expected%BloquePrb%bp(1)%k2 = 11
       expected%BloquePrb%bp(1)%skip = 1
       expected%BloquePrb%bp(1)%nml = iEy
@@ -155,10 +155,10 @@ contains
       expected%BloquePrb%bp(2)%fstop = 0.0
       expected%BloquePrb%bp(2)%fstep = 0.0
       expected%BloquePrb%bp(2)%i1 = 10
-      expected%BloquePrb%bp(2)%j1 = 18
-      expected%BloquePrb%bp(2)%k1 = 10
       expected%BloquePrb%bp(2)%i2 = 11
+      expected%BloquePrb%bp(2)%j1 = 18
       expected%BloquePrb%bp(2)%j2 = 18
+      expected%BloquePrb%bp(2)%k1 = 10
       expected%BloquePrb%bp(2)%k2 = 11
       expected%BloquePrb%bp(2)%skip = 1
       expected%BloquePrb%bp(2)%nml = iEy

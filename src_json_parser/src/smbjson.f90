@@ -709,9 +709,9 @@ contains
             
             res%i1  = cs(1)%xi
             res%i2  = cs(1)%xe
-            res%j1  = cs(1)%ye
+            res%j1  = cs(1)%yi
             res%j2  = cs(1)%ye
-            res%k1  = cs(1)%ze
+            res%k1  = cs(1)%zi
             res%k2  = cs(1)%ze
             res%nml = cs(1)%Or
          end block
