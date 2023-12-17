@@ -71,6 +71,7 @@ contains
       allocate(pD%despl)
       allocate(pD%front)
       allocate(pD%Mats)
+      allocate(pD%Mats%Mats(0))
 
       allocate(pD%pecRegs)
       allocate(pD%pecRegs%lins(0))

@@ -57,6 +57,7 @@ add_fortran_test_executable (smbjson_tests
     "test_polyline_to_linel.f90"
     "test_node_to_pixel.f90"
     "test_parser_tools_interval_to_coords.f90"
+    "test_parser_ctor.f90"
     "test_read_planewave.f90"
     "test_read_holland1981.f90"
     "test_read_currentinjection.f90"

@@ -18,8 +18,8 @@ module smbjson
    type, public :: parser_t
       private
       character (len=:), allocatable :: filename
-      type(json_file) :: jsonfile
-      type(json_core) :: core
+      type(json_file), pointer :: jsonfile => null()
+      type(json_core), pointer :: core => null()
       type(json_value), pointer :: root => null()
       type(mesh_t) :: mesh
       type(IdChildTable_t) :: matTable
@@ -73,7 +73,6 @@ contains
    function parser_ctor(filename) result(res)
       type(parser_t) :: res
       character(len=*), intent(in) :: filename
-
       res%filename = filename
    end function
 
@@ -81,11 +80,11 @@ contains
       class(parser_t) :: this
       type(Parseador) :: res !! Problem Description
 
-      ! Initializes aux variables.
+      allocate(this%jsonfile)
       call this%jsonfile%initialize()
       if (this%jsonfile%failed()) then
          call this%jsonfile%print_error_message(error_unit)
-         stop
+         return
       end if
 
       call this%jsonfile%load(filename = this%filename)
@@ -94,6 +93,7 @@ contains
          stop
       end if
 
+      allocate(this%core)
       call this%jsonfile%get_core(this%core)
       call this%jsonfile%get('.', this%root)
 
