@@ -37,8 +37,8 @@ add_library(semba-types
 	"src_main_pub/errorreport.F90"
 )
 
-option(CompileWithHDF "Use HDF" ON)
-option(CompileWithMPI "Use MPI" ON)
+option(CompileWithHDF "Use HDF" OFF)
+option(CompileWithMPI "Use MPI" OFF)
 option(CompileWithJSON "Compile JSON format parser" OFF)
 
 if (CompileWithJSON)
