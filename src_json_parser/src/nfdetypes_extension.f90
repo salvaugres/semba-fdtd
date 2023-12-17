@@ -86,25 +86,24 @@ contains
       allocate(pD%LossyThinSurfs)
       allocate(pD%frqDepMats)
       allocate(pD%aniMats)
-
-
+      !
       allocate(pD%plnSrc)
+      allocate(pD%plnSrc%collection(0))
       allocate(pD%nodSrc)
       allocate(pD%nodSrc%NodalSource(0))
       allocate(pD%boxSrc)
-
       !
       allocate(pD%Sonda)
       allocate(pD%oldSONDA)
       allocate(pD%BloquePrb)
       allocate(pD%BloquePrb%bp(0))
       allocate(pD%VolPrb)
-
+      !
       allocate(pD%tWires)
       allocate(pD%tWires%tw(0))
 
-      allocate(pD%tSlots)
       allocate(pD%sWires)
+      allocate(pD%tSlots)
 
    end subroutine
 

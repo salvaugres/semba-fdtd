@@ -4,7 +4,7 @@ module parser_tools_mod
    use cells_mod
    use json_module
    use json_kinds
-   use NFDETypes, only: coords, coords_scaled
+   use NFDETypes
 
    use, intrinsic :: iso_fortran_env , only: error_unit
 
@@ -29,7 +29,7 @@ contains
       do i = 1, size(cellRegions)
          if (present(cellType)) then
             intervals = [intervals, cellRegions(i)%getIntervalsOfType(cellType)]
-         else 
+         else
             intervals = [intervals, cellRegions(i)%intervals]
          end if
       end do
@@ -43,14 +43,23 @@ contains
       type(cell_region_t), dimension(:), intent(in) :: cellRegions
       integer, intent(in), optional :: cellType
       type(cell_interval_t), dimension(:), allocatable :: intervals
-      type(coords), dimension(:), pointer :: cs
+      type(coords), dimension(:), allocatable :: cs
       integer :: i
-      
-      if (present(cellType)) then
-         call addCellRegionsAsCoords(cs, cellRegions, cellType)
-      else
-         call addCellRegionsAsCoords(cs, cellRegions)
+
+      allocate(intervals(0))
+      do i = 1, size(cellRegions)
+         if (present(cellType)) then
+            intervals = [intervals, cellRegions(i)%getIntervalsOfType(cellType)]
+         else
+            intervals = [intervals, cellRegions(i)%intervals]
+         end if
+      end do
+
+      if (any(intervals%getType() /= CELL_TYPE_LINEL)) then
+         stop "Error converting cell regions to scaled coordinates. Only linels are supported."
       end if
+
+      cs = cellIntervalsToCoords(intervals)
 
       allocate(res(size(cs)))
       res(:)%Xi = cs(:)%Xi
@@ -61,9 +70,28 @@ contains
       res(:)%Ze = cs(:)%Ze
       res(:)%Or = cs(:)%Or
       res(:)%tag = cs(:)%tag
-   end subroutine
 
-   
+      res(:)%xc = 0.0
+      res(:)%yc = 0.0
+      res(:)%zc = 0.0
+      do i = 1, size(cs)
+         select case (cs(i)%Or)
+          case (iEx)
+            res(i)%xc = 1.0
+          case (-iEx)
+            res(i)%xc = -1.0
+          case (iEy)
+            res(i)%yc = 1.0
+          case (-iEy)
+            res(i)%yc = -1.0
+          case (iEz)
+            res(i)%zc = 1.0
+          case (-iEz)
+            res(i)%zc = -1.0
+         end select
+      end do
+
+   end subroutine
 
    function cellIntervalsToCoords(ivls) result(res)
       type(coords), dimension(:), allocatable :: res
@@ -76,6 +104,7 @@ contains
          call convertInterval(res(i)%Xi, res(i)%Xe, ivls(i), DIR_X)
          call convertInterval(res(i)%Yi, res(i)%Ye, ivls(i), DIR_Y)
          call convertInterval(res(i)%Zi, res(i)%Ze, ivls(i), DIR_Z)
+         res(i)%tag = ''
       end do
    contains
       subroutine convertInterval(xi, xe, interval, dir)
@@ -86,7 +115,7 @@ contains
          a = interval%ini%cell(dir) + FIRST_CELL_START
          b = interval%end%cell(dir) + FIRST_CELL_START
          if (a < b) then
-            xi = a 
+            xi = a
             xe = b - 1
          else if (a == b) then
             xi = a
@@ -97,12 +126,6 @@ contains
          end if
 
       end subroutine
-   end function
-
-   function coordsToScaledCoords(cs) result(res)
-      type(coords), dimension(:), intent(in) :: cs
-      type(coords_scaled), dimension(:), allocatable :: res
-      ! TODO
    end function
 
    function getPixelsFromElementIds(mesh, ids) result(res)

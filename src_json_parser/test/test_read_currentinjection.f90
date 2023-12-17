@@ -64,20 +64,24 @@ contains
       allocate(expected%pecRegs%Lins(1))
       
       ! PEC square
+      expected%pecRegs%Surfs(1)%Or = +iEz
       expected%pecRegs%Surfs(1)%Xi = 6
       expected%pecRegs%Surfs(1)%Xe = 15
       expected%pecRegs%Surfs(1)%Yi = 6
       expected%pecRegs%Surfs(1)%Ye = 15
       expected%pecRegs%Surfs(1)%Zi = 11
       expected%pecRegs%Surfs(1)%Ze = 11
+      expected%pecRegs%Surfs(1)%tag = ''
 
       ! Exit line
+      expected%pecRegs%Lins(1)%Or = +iEy
       expected%pecRegs%Lins(1)%Xi = 11
-      expected%pecRegs%Lins(1)%Yi = 16
-      expected%pecRegs%Lins(1)%Zi = 11
       expected%pecRegs%Lins(1)%Xe = 11
+      expected%pecRegs%Lins(1)%Yi = 16
       expected%pecRegs%Lins(1)%Ye = 20
+      expected%pecRegs%Lins(1)%Zi = 11
       expected%pecRegs%Lins(1)%Ze = 11
+      expected%pecRegs%Lins(1)%tag = ''
 
       ! Expected sources.
       expected%nodSrc%n_nodSrc = 1
@@ -93,15 +97,17 @@ contains
       expected%nodSrc%NodalSource(1)%isInitialValue = .false.
       allocate(expected%nodSrc%NodalSource(1)%c1P(0))
       allocate(expected%nodSrc%NodalSource(1)%c2P(1))
+      expected%nodSrc%NodalSource(1)%n_C2P = 1
+      expected%nodSrc%NodalSource(1)%c2P(1)%Or = iEy
       expected%nodSrc%NodalSource(1)%c2P(1)%Xi = 11
       expected%nodSrc%NodalSource(1)%c2P(1)%Xe = 11
       expected%nodSrc%NodalSource(1)%c2P(1)%Yi =  1
       expected%nodSrc%NodalSource(1)%c2P(1)%Ye =  5
       expected%nodSrc%NodalSource(1)%c2P(1)%Zi = 11
       expected%nodSrc%NodalSource(1)%c2P(1)%Ze = 11
-      expected%nodSrc%NodalSource(1)%c2P(1)%Or = iEx
-      expected%nodSrc%NodalSource(1)%c2P(1)%xc = 1.0
-      expected%nodSrc%NodalSource(1)%c2P(1)%yc = 0.0
+      expected%nodSrc%NodalSource(1)%c2P(1)%tag = ''
+      expected%nodSrc%NodalSource(1)%c2P(1)%xc = 0.0
+      expected%nodSrc%NodalSource(1)%c2P(1)%yc = 1.0
       expected%nodSrc%NodalSource(1)%c2P(1)%zc = 0.0
       ! Expected probes
       ! oldSonda

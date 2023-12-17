@@ -478,6 +478,9 @@ contains
       do i = 1, size(nodSrcs)
          res%NodalSource(i) = readCurrentFieldSource(nodSrcs(i)%p)
       end do
+      do i = 1, size(nodSrcs)
+         res%n_C2P_max = max(res%n_C2P_max, res%NodalSource(i)%n_C2P)
+      end do
 
    contains
       function readCurrentFieldSource(jns) result(res)
@@ -501,10 +504,10 @@ contains
 
          call addCellRegionsAsScaledCoords(res%c2P, &
             this%mesh%getCellRegions(&
-               this%getIntsAt(jns, J_ELEMENTIDS)), CELL_TYPE_LINEL)
-            
+            this%getIntsAt(jns, J_ELEMENTIDS)), CELL_TYPE_LINEL)
+
          res%n_C2P = size(res%C2p)
-         
+
       end function
    end function
 
