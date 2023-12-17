@@ -855,7 +855,9 @@ contains
       function readWireTerminalMaterial(mat) result(res)
          type(termination_t) :: res
          type(json_value), pointer, intent(in) :: mat
-         res%connectorType = strToTermination(this%getStrAt(mat, J_MAT_WIRETERM_TERMINATION))
+         character (len=:), allocatable :: label
+         label = this%getStrAt(mat, J_MAT_WIRETERM_TERMINATION)
+         res%connectorType = strToTermination(label)
          call this%core%get(mat, J_MAT_WIRETERM_RESISTANCE, res%r, default=0.0)
          call this%core%get(mat, J_MAT_WIRETERM_INDUCTANCE, res%l, default=0.0)
          call this%core%get(mat, J_MAT_WIRETERM_CAPACITANCE, res%c, default=0.0)
