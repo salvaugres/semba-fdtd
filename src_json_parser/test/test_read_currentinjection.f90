@@ -126,7 +126,7 @@ contains
       expected%BloquePrb%n_bp_max = 2
       allocate(expected%BloquePrb%bp(2))
       expected%BloquePrb%bp(1)%outputrequest = "bulk_current_at_entry"
-      expected%BloquePrb%bp(1)%FileNormalize = ' '
+      expected%BloquePrb%bp(1)%FileNormalize = ''
       expected%BloquePrb%bp(1)%type2 = NP_T2_TIME
       expected%BloquePrb%bp(1)%tstart = 0.0
       expected%BloquePrb%bp(1)%tstop = 0.0
@@ -140,10 +140,10 @@ contains
       expected%BloquePrb%bp(1)%i2 = 11
       expected%BloquePrb%bp(1)%j2 =  3
       expected%BloquePrb%bp(1)%k2 = 11
-      expected%BloquePrb%bp(1)%skip = 0
+      expected%BloquePrb%bp(1)%skip = 1
       expected%BloquePrb%bp(1)%nml = iEy
       expected%BloquePrb%bp(1)%t = BcELECT
-      expected%BloquePrb%bp(1)%tag = " "
+      expected%BloquePrb%bp(1)%tag = ""
 
       expected%BloquePrb%bp(2)%outputrequest = "bulk_current_at_exit"
       expected%BloquePrb%bp(2)%FileNormalize = ' '
@@ -160,10 +160,10 @@ contains
       expected%BloquePrb%bp(2)%i2 = 11
       expected%BloquePrb%bp(2)%j2 = 18
       expected%BloquePrb%bp(2)%k2 = 11
-      expected%BloquePrb%bp(2)%skip = 0
+      expected%BloquePrb%bp(2)%skip = 1
       expected%BloquePrb%bp(2)%nml = iEy
       expected%BloquePrb%bp(2)%t = BcELECT
-      expected%BloquePrb%bp(2)%tag = " "
+      expected%BloquePrb%bp(2)%tag = ""
    end function
 end function
 

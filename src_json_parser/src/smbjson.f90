@@ -720,6 +720,8 @@ contains
             this%getStrAt(bp, J_PR_OUTPUT_NAME)))
          res%skip = 1
          res%tag = ''
+         res%t = BcELECT
+         
       end function
 
       subroutine setDomain(res, domain)
