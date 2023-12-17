@@ -1,4 +1,4 @@
-integer function test_read_currentinjection() result(error_cnt)
+integer function test_read_currentinjection() result(err)
    use smbjson
    use testingTools
 
@@ -8,12 +8,12 @@ integer function test_read_currentinjection() result(error_cnt)
    type(Parseador) :: problem, expected
    type(parser_t) :: parser
    logical :: areSame
-   error_cnt = 0
+   err = 0
 
    expected = expectedProblemDescription()
    parser = parser_t(filename)
    problem = parser%readProblemDescription()
-   call testEquality(error_cnt, expected, problem)
+   call expect_eq(err, expected, problem)
 
 contains
    function expectedProblemDescription() result (expected)
@@ -65,10 +65,10 @@ contains
       
       ! PEC square
       expected%pecRegs%Surfs(1)%Xi = 6
-      expected%pecRegs%Surfs(1)%Yi = 6
-      expected%pecRegs%Surfs(1)%Zi = 11
       expected%pecRegs%Surfs(1)%Xe = 15
+      expected%pecRegs%Surfs(1)%Yi = 6
       expected%pecRegs%Surfs(1)%Ye = 15
+      expected%pecRegs%Surfs(1)%Zi = 11
       expected%pecRegs%Surfs(1)%Ze = 11
 
       ! Exit line
@@ -94,10 +94,10 @@ contains
       allocate(expected%nodSrc%NodalSource(1)%c1P(0))
       allocate(expected%nodSrc%NodalSource(1)%c2P(1))
       expected%nodSrc%NodalSource(1)%c2P(1)%Xi = 11
-      expected%nodSrc%NodalSource(1)%c2P(1)%Yi =  1
-      expected%nodSrc%NodalSource(1)%c2P(1)%Zi = 11
       expected%nodSrc%NodalSource(1)%c2P(1)%Xe = 11
+      expected%nodSrc%NodalSource(1)%c2P(1)%Yi =  1
       expected%nodSrc%NodalSource(1)%c2P(1)%Ye =  5
+      expected%nodSrc%NodalSource(1)%c2P(1)%Zi = 11
       expected%nodSrc%NodalSource(1)%c2P(1)%Ze = 11
       expected%nodSrc%NodalSource(1)%c2P(1)%Or = iEx
       expected%nodSrc%NodalSource(1)%c2P(1)%xc = 1.0

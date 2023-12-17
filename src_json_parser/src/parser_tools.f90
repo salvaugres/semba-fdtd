@@ -65,30 +65,35 @@ contains
 
    
 
-   function cellIntervalsToCoords(intervals) result(res)
+   function cellIntervalsToCoords(ivls) result(res)
       type(coords), dimension(:), allocatable :: res
-      type(cell_interval_t), dimension(:), intent(in) :: intervals
-      type(cell_interval_t) :: auxInterval
+      type(cell_interval_t), dimension(:), intent(in) :: ivls
       integer :: i
 
-      allocate(res(size(intervals)))
-      do i = 1, size(intervals)
-         auxInterval = intervals(i)
-         res(i)%Or = auxInterval%getOrientation()
-         call convertInterval(res(i)%Xi, res(i)%Xe, auxInterval, DIR_X)
-         call convertInterval(res(i)%Yi, res(i)%Ye, auxInterval, DIR_Y)
-         call convertInterval(res(i)%Zi, res(i)%Ze, auxInterval, DIR_Z)
+      allocate(res(size(ivls)))
+      do i = 1, size(ivls)
+         res(i)%Or = ivls(i)%getOrientation()
+         call convertInterval(res(i)%Xi, res(i)%Xe, ivls(i), DIR_X)
+         call convertInterval(res(i)%Yi, res(i)%Ye, ivls(i), DIR_Y)
+         call convertInterval(res(i)%Zi, res(i)%Ze, ivls(i), DIR_Z)
       end do
    contains
       subroutine convertInterval(xi, xe, interval, dir)
          integer, intent(out) :: xi, xe
          type(cell_interval_t), intent(in) :: interval
          integer, intent(in) :: dir
-         xi = interval%ini%cell(dir) + FIRST_CELL_START
-         xe = interval%end%cell(dir)
-         if (xe < xi) then
-            xi = interval%end%cell(dir) + 1 + FIRST_CELL_START
-            xe = interval%ini%cell(dir) + 1
+         integer :: a, b
+         a = interval%ini%cell(dir) + FIRST_CELL_START
+         b = interval%end%cell(dir) + FIRST_CELL_START
+         if (a < b) then
+            xi = a 
+            xe = b - 1
+         else if (a == b) then
+            xi = a
+            xe = b
+         else
+            xi = b + 1
+            xe = a - 1
          end if
 
       end subroutine
