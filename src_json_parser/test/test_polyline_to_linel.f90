@@ -56,7 +56,7 @@ integer function test_polyline_to_linel() result(err_cnt)
       !        3
       !      /
       !    1
-      class(linel_t), dimension(:), allocatable :: ls
+      type(linel_t), dimension(:), allocatable :: ls
       ls = convertPolylineToLinels(mesh, polyline_t([1, 3]))
       if (size(ls) /= 0) err_cnt = err_cnt + 1
    end block

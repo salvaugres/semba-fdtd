@@ -338,15 +338,16 @@ contains
       class(parser_t), intent(in) :: this
       type(PECRegions) :: res
       type(cell_region_t), dimension(:), allocatable :: cRs
-      res = buildPECPMCRegion(&
-         this%getCellRegionsWithMaterialType(J_MAT_TYPE_PEC))
+      cRs = this%getCellRegionsWithMaterialType(J_MAT_TYPE_PEC)
+      res = buildPECPMCRegion(cRs)
    end function
 
    function readPMCRegions(this) result (res)
       class(parser_t), intent(in) :: this
       type(PECRegions) :: res
-      res = buildPECPMCRegion(&
-         this%getCellRegionsWithMaterialType(J_MAT_TYPE_PMC))
+      type(cell_region_t), dimension(:), allocatable :: cRs
+      cRs = this%getCellRegionsWithMaterialType(J_MAT_TYPE_PMC)
+      res = buildPECPMCRegion(cRs)
    end function
 
    function buildPECPMCRegion(cRs) result(res)
