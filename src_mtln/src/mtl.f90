@@ -47,7 +47,7 @@ contains
         real, intent(in), dimension(:,:) :: node_positions
         integer, intent(in), dimension(:) :: divisions
         character(len=*), intent(in) :: name
-        real, allocatable, dimension(:,:) :: v, i
+        ! real, allocatable, dimension(:,:) :: v, i
         res%name = name
         
         call res%checkPULDimensions(lpul, cpul, rpul, gpul)

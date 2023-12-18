@@ -21,6 +21,8 @@ add_library(mtlnsolver
 	"src/network_bundle.f90"
 	"src/utils.f90"
 	"src/probes.f90"
+	"src/types.f90"
+	"src/dispersive.f90"
 )
 
 set(LAPACK_DIR "/mnt/c/users/alberto/Work/ugr-fdtd/fdtd/src_mtln/external/lapack/build/lib/")

@@ -1,25 +1,25 @@
 module mtln_solver_mod 
 
     use fhash, only: fhash_tbl_t, key=>fhash_key, fhash_iter_t, fhash_key_t
+    use types_mod, only: bundle_iter_t
     use mtl_bundle_mod
     use network_bundle_mod
     implicit none
 
+
     type, public :: mtln_t
         real :: time, dt
         type(fhash_tbl_t) :: bundles ! dict{name:bundle} of MLTD
-        ! type(mtl_bundle_t), allocatable, dimension(:) :: bundles 
         type(network_bundle_t), allocatable, dimension(:) :: networks !lista de NetworkD, no de network
         character(len=:), allocatable, dimension(:) :: names
     contains
 
-        procedure :: setBundle => mtln_setBundle
+        procedure :: addBundle => mtln_setBundle
         procedure :: getBundle => mtln_getBundle
         procedure :: findBundle => mtln_findBundle
         procedure :: updateBundlesTimeStep
         procedure :: updatePULTerms
         procedure :: addNetwork
-        ! procedure :: addBundle
         procedure :: getTimeRange
         procedure :: computeNWVoltageTerms
         procedure :: runUntil
@@ -51,8 +51,7 @@ contains
         res%time  = 0.0
         allocate(res%networks(0))
         do i = 1, size(bundles)
-            call res%setBundle(bundles(i)%name, bundles(i))
-            ! call res%addBundle(bundles(i))
+            call res%addBundle(bundles(i)%name, bundles(i))
         end do
         do i = 1, size(networks)
             call res%addNetwork(networks(i))
@@ -75,7 +74,14 @@ contains
 
     subroutine advanceBundlesVoltage(this)
         class(mtln_t) :: this
-        !TODO
+        type(bundle_iter_t) :: iter
+        class(fhash_key_t), allocatable :: name
+        class(mtl_bundle_t), pointer :: bundle
+        iter = bundle_iter_t(this%bundles)
+        do while(iter%findNext(name,bundle))
+            call bundle%updateSources(this%time, this%dt)
+            call bundle%advanceVoltage()
+        enddo
     end subroutine
 
     subroutine advanceNWVoltage(this)
@@ -90,7 +96,13 @@ contains
 
     subroutine advanceBundlesCurrent(this)
         class(mtln_t) :: this
-        !TODO
+        type(bundle_iter_t) :: iter
+        class(fhash_key_t), allocatable :: name
+        class(mtl_bundle_t), pointer :: bundle
+        iter = bundle_iter_t(this%bundles)
+        do while(iter%findNext(name,bundle))
+            call bundle%advanceCurrent()
+        enddo
     end subroutine advanceBundlesCurrent
 
     subroutine updateNWCurrent(this)
@@ -108,21 +120,15 @@ contains
 
     subroutine updateProbes(this)
         class(mtln_t) :: this
-        type(fhash_iter_t) :: iter
+        type(bundle_iter_t) :: iter
         class(fhash_key_t), allocatable :: name
-        class(*), allocatable :: bundle
+        class(mtl_bundle_t), pointer :: bundle
         integer :: i
-        iter = fhash_iter_t(this%bundles)
-        do while(iter%next(name,bundle))
-            select type(bundle)
-            type is (mtl_bundle_t)
-                
-                do i = 1, size(bundle%probes)
-                    ! bundle%probes(i)%update(this%time, bundle%v, bundle%i)
-                end do
-                ! call this%setBundle(name%to_string(), bundle)                      
-
-            end select
+        iter = bundle_iter_t(this%bundles)
+        do while(iter%findNext(name,bundle))
+            do i = 1, size(bundle%probes)
+                call bundle%probes(i)%update(this%time, bundle%v, bundle%i)
+            end do
         end do
 
     end subroutine
@@ -131,8 +137,8 @@ contains
     subroutine addNetwork(this, network)
         class(mtln_t) :: this
         class(network_bundle_t) :: network
-        !call network%updateIndexNumbers(this%bundles)
         this%networks = [this%networks, network]
+        call network%updateIndexNumbers(this%bundles)
     end subroutine
 
 
@@ -148,47 +154,38 @@ contains
         class(mtln_t) :: this
         integer :: i
         do i = 1, size(this%networks)
-            call this%networks(i)%computeVoltageTerms
+            call this%networks(i)%computeNWVoltageTerms(this%dt)
         end do
     end subroutine
 
     subroutine updateBundlesTimeStep(this, dt)
         class(mtln_t) :: this
-        type(fhash_iter_t) :: iter
+        type(bundle_iter_t) :: iter
         class(fhash_key_t), allocatable :: name
-        class(*), allocatable :: bundle
-        ! class(mtl_bundle_t), pointer :: ptr
+        class(mtl_bundle_t), pointer :: bundle
         real :: dt
 
-        iter = fhash_iter_t(this%bundles)
-        do while(iter%next(name,bundle))
-
-            ! this%findBundle(name)
-        !     select type(bundle)
-        !     type is (mtl_bundle_t)
-        !         bundle%dt = dt
-        !         ! call this%setBundle(name%to_string(), bundle)                      
-        !     end select
+        iter = bundle_iter_t(this%bundles)
+        do while(iter%findNext(name,bundle))
+            bundle%dt = dt
         end do
 
     end subroutine
 
-    subroutine updatePULTerms(this)
+    subroutine updatePULTerms(this, n_time_steps)
         class(mtln_t) :: this
-        type(fhash_iter_t) :: iter
+        integer, intent(in) :: n_time_steps
+        type(bundle_iter_t) :: iter
         class(fhash_key_t), allocatable :: name
-        class(*), allocatable :: bundle
-
-        iter = fhash_iter_t(this%bundles)
-        do while(iter%next(name,bundle))
-            select type(bundle)
-            type is (mtl_bundle_t)
+        class(mtl_bundle_t), pointer :: bundle
+        integer :: i
+        iter = bundle_iter_t(this%bundles)
+        do while(iter%findNext(name,bundle))
                 call bundle%updateLRTerms()
                 call bundle%updateCGTerms()
-                ! for p in bundle.probes:
-                !     p.resize_frames(len(t), bundle.number_of_conductors)
-                ! call this%setBundle(name%to_string(), bundle)                      
-            end select
+                do i = 1, size(bundle%probes)
+                    call bundle%probes(i)%resizeFrames(n_time_steps, bundle%number_of_conductors)
+                enddo
         end do
    
     end subroutine
@@ -196,6 +193,7 @@ contains
     subroutine runUntil(this, final_time, dt)
         class(mtln_t) :: this
         real, intent(in) :: final_time
+        integer :: n_time_steps
         real, intent(in), optional :: dt
         integer :: i
 
@@ -204,10 +202,11 @@ contains
             call this%updateBundlesTimeStep(dt)
         end if  
 
+        n_time_steps = this%getTimeRange(final_time)
         call this%computeNWVoltageTerms()
-        call this%updatePULTerms()
+        call this%updatePULTerms(n_time_steps)
 
-        do i = 1, this%getTimeRange(final_time)
+        do i = 1, n_time_steps
             call this%step()
         end do
 
@@ -248,7 +247,6 @@ contains
     function mtln_findBundle(this, name, found) result(res)
         class(mtln_t) :: this
         class(*), pointer :: res
-        ! character(len=*), intent(in) :: name
         class(fhash_key_t), allocatable :: name
         integer :: stat
         logical, intent(out), optional :: found
@@ -265,10 +263,5 @@ contains
         end select
 
     end function
-
-    ! subroutine (this)
-    !     class(mtln_t) :: this
-    !     !TODO
-    ! end subroutine 
 
 end module mtln_solver_mod
