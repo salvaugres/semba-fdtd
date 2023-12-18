@@ -3129,7 +3129,8 @@ contains
                                       !    output( ii)%item( i)%Serialized%valor_y(Ntimeforvolumic,conta) = Jy
                                       !    output( ii)%item( i)%Serialized%valor_z(Ntimeforvolumic,conta) = Jz
                                           !la corriente va a lo largo del edge
-                                           output( ii)%item( i)%Serialized%valor(Ntimeforvolumic,conta)   = Jy+Jz !en realidad es toda la circulacion. lo calculado no son jz o jy ojo 041023
+                                           output( ii)%item( i)%Serialized%valor(Ntimeforvolumic,conta)   = abs(Jy+Jz) !en realidad es toda la circulacion. lo calculado no son jz o jy ojo 041023 
+                                           !lo tomo en valor absoluto por coherencia con la corriente en superficies que va en sqrt() 151223
                                            output( ii)%item( i)%Serialized%valor_x(Ntimeforvolumic,conta) = Jy+Jz
                                            output( ii)%item( i)%Serialized%valor_y(Ntimeforvolumic,conta) = 0.0_RKIND
                                            output( ii)%item( i)%Serialized%valor_z(Ntimeforvolumic,conta) = 0.0_RKIND
@@ -3144,7 +3145,8 @@ contains
                                       !    output( ii)%item( i)%Serialized%valor_y(Ntimeforvolumic,conta) = 0.0_RKIND
                                       !    output( ii)%item( i)%Serialized%valor_z(Ntimeforvolumic,conta) = Jz   
                                           !la corriente va a lo largo del edge
-                                           output( ii)%item( i)%Serialized%valor(Ntimeforvolumic,conta) = Jx+Jz !en realidad es toda la circulacion. lo calculado no son jz o jy ojo 041023
+                                           output( ii)%item( i)%Serialized%valor(Ntimeforvolumic,conta) = abs(Jx+Jz) !en realidad es toda la circulacion. lo calculado no son jz o jy ojo 041023   
+                                           !lo tomo en valor absoluto por coherencia con la corriente en superficies que va en sqrt() 151223
                                            output( ii)%item( i)%Serialized%valor_x(Ntimeforvolumic,conta) = 0.0_RKIND  
                                            output( ii)%item( i)%Serialized%valor_y(Ntimeforvolumic,conta) = Jx+Jz 
                                            output( ii)%item( i)%Serialized%valor_z(Ntimeforvolumic,conta) = 0.0_RKIND
@@ -3158,12 +3160,14 @@ contains
                                       !    output( ii)%item( i)%Serialized%valor_x(Ntimeforvolumic,conta) = Jx
                                       !    output( ii)%item( i)%Serialized%valor_y(Ntimeforvolumic,conta) = Jy
                                       !    output( ii)%item( i)%Serialized%valor_z(Ntimeforvolumic,conta) = 0.0_RKIND   
-                                           output( ii)%item( i)%Serialized%valor(Ntimeforvolumic,conta)  = Jx+Jy !en realidad es toda la circulacion. lo calculado no son jz o jy ojo 041023 
+                                           output( ii)%item( i)%Serialized%valor(Ntimeforvolumic,conta)  = abs(Jx+Jy) !en realidad es toda la circulacion. lo calculado no son jz o jy ojo 041023     
+                                           !lo tomo en valor absoluto por coherencia con la corriente en superficies que va en sqrt() 151223
                                           output( ii)%item( i)%Serialized%valor_x(Ntimeforvolumic,conta) = 0.0_RKIND 
                                           output( ii)%item( i)%Serialized%valor_y(Ntimeforvolumic,conta) = 0.0_RKIND
                                           output( ii)%item( i)%Serialized%valor_z(Ntimeforvolumic,conta) = Jx+Jy
                                        endif
-                                       if (((sgg%med(sggMiEx(III - b%Ex%XI, JJJ - b%Ex%YI, KKK - b%Ex%ZI))%Is%Line.AND.sgg%med(sggMiEx(III - b%Ex%XI, JJJ - b%Ex%YI, KKK - b%Ex%ZI))%Is%PEC)).and.(iii <= SINPML_fullsize(iEx)%XE).and.(jjj <= SINPML_fullsize(iEx)%YE).and.(kkk <= SINPML_fullsize(iEx)%ZE)) then
+                                       if (((sgg%med(sggMiEx(III - b%Ex%XI, JJJ - b%Ex%YI, KKK - b%Ex%ZI))%Is%Line.AND.sgg%med(sggMiEx(III - b%Ex%XI, JJJ - b%Ex%YI, KKK - b%Ex%ZI))%Is%PEC)).and.&
+                                           (iii <= SINPML_fullsize(iEx)%XE).and.(jjj <= SINPML_fullsize(iEx)%YE).and.(kkk <= SINPML_fullsize(iEx)%ZE)) then
                                           if ((.not.sgg%med(sggMiHy(III - b%Hy%XI  , JJJ - b%Hy%YI  , KKK - b%Hy%ZI  ))%Is%PEC).and. &
                                           (.not.sgg%med(sggMiHy(III - b%Hy%XI  , JJJ - b%Hy%YI  , KKK - b%Hy%ZI-1))%Is%PEC).and. &
                                           (.not.sgg%med(sggMiHz(III - b%Hz%XI  , JJJ - b%Hz%YI  , KKK - b%Hz%ZI  ))%Is%PEC).and. &
@@ -3176,13 +3180,15 @@ contains
                                       !      output( ii)%item( i)%Serialized%valor_x(Ntimeforvolumic,conta) = 0.0_RKIND
                                       !      output( ii)%item( i)%Serialized%valor_y(Ntimeforvolumic,conta) = Jy
                                       !      output( ii)%item( i)%Serialized%valor_z(Ntimeforvolumic,conta) = Jz         
-                                           output( ii)%item( i)%Serialized%valor(Ntimeforvolumic,conta)   = Jy+Jz !en realidad es toda la circulacion. lo calculado no son jz o jy ojo 041023
+                                           output( ii)%item( i)%Serialized%valor(Ntimeforvolumic,conta)   = abs(Jy+Jz) !en realidad es toda la circulacion. lo calculado no son jz o jy ojo 041023      
+                                           !lo tomo en valor absoluto por coherencia con la corriente en superficies que va en sqrt() 151223
                                            output( ii)%item( i)%Serialized%valor_x(Ntimeforvolumic,conta) = Jy+Jz
                                            output( ii)%item( i)%Serialized%valor_y(Ntimeforvolumic,conta) = 0.0_RKIND
                                            output( ii)%item( i)%Serialized%valor_z(Ntimeforvolumic,conta) = 0.0_RKIND
                                           endif
                                        endif
-                                       if (((sgg%med(sggMiEy(III - b%Ey%XI, JJJ - b%Ey%YI, KKK - b%Ey%ZI))%Is%Line.AND.sgg%med(sggMiEy(III - b%Ey%XI, JJJ - b%Ey%YI, KKK - b%Ey%ZI))%Is%PEC)).and.(iii <= SINPML_fullsize(iEy)%XE).and.(jjj <= SINPML_fullsize(iEy)%YE).and.(kkk <= SINPML_fullsize(iEy)%ZE)) then
+                                       if (((sgg%med(sggMiEy(III - b%Ey%XI, JJJ - b%Ey%YI, KKK - b%Ey%ZI))%Is%Line.AND.sgg%med(sggMiEy(III - b%Ey%XI, JJJ - b%Ey%YI, KKK - b%Ey%ZI))%Is%PEC)).and. &
+                                           (iii <= SINPML_fullsize(iEy)%XE).and.(jjj <= SINPML_fullsize(iEy)%YE).and.(kkk <= SINPML_fullsize(iEy)%ZE)) then
                                           if ((.not.sgg%med(sggMiHz(III - b%Hz%XI  , JJJ - b%Hz%YI  , KKK - b%Hz%ZI  ))%Is%PEC).and. &
                                           (.not.sgg%med(sggMiHz(III - b%Hz%XI-1, JJJ - b%Hz%YI  , KKK - b%Hz%ZI  ))%Is%PEC).and. &
                                           (.not.sgg%med(sggMiHx(III - b%Hx%XI  , JJJ - b%Hx%YI  , KKK - b%Hx%ZI  ))%Is%PEC).and. &
@@ -3195,13 +3201,15 @@ contains
                                       !      output( ii)%item( i)%Serialized%valor_x(Ntimeforvolumic,conta) = Jx
                                       !      output( ii)%item( i)%Serialized%valor_y(Ntimeforvolumic,conta) = 0.0_RKIND
                                       !      output( ii)%item( i)%Serialized%valor_z(Ntimeforvolumic,conta) = Jz      
-                                           output( ii)%item( i)%Serialized%valor(Ntimeforvolumic,conta) = Jx+Jz !en realidad es toda la circulacion. lo calculado no son jz o jy ojo 041023
+                                           output( ii)%item( i)%Serialized%valor(Ntimeforvolumic,conta) = abs(Jx+Jz) !en realidad es toda la circulacion. lo calculado no son jz o jy ojo 041023    
+                                           !lo tomo en valor absoluto por coherencia con la corriente en superficies que va en sqrt() 151223
                                            output( ii)%item( i)%Serialized%valor_x(Ntimeforvolumic,conta) = 0.0_RKIND  
                                            output( ii)%item( i)%Serialized%valor_y(Ntimeforvolumic,conta) = Jx+Jz 
                                            output( ii)%item( i)%Serialized%valor_z(Ntimeforvolumic,conta) = 0.0_RKIND
                                           endif
                                        endif
-                                       if (((sgg%med(sggMiEz(III - b%Ez%XI, JJJ - b%Ez%YI, KKK - b%Ez%ZI))%Is%Line.AND.sgg%med(sggMiEz(III - b%Ez%XI, JJJ - b%Ez%YI, KKK - b%Ez%ZI))%Is%PEC)).and.(iii <= SINPML_fullsize(iEz)%XE).and.(jjj <= SINPML_fullsize(iEz)%YE).and.(kkk <= SINPML_fullsize(iEz)%ZE)) then
+                                       if (((sgg%med(sggMiEz(III - b%Ez%XI, JJJ - b%Ez%YI, KKK - b%Ez%ZI))%Is%Line.AND.sgg%med(sggMiEz(III - b%Ez%XI, JJJ - b%Ez%YI, KKK - b%Ez%ZI))%Is%PEC)).and. &
+                                           (iii <= SINPML_fullsize(iEz)%XE).and.(jjj <= SINPML_fullsize(iEz)%YE).and.(kkk <= SINPML_fullsize(iEz)%ZE)) then
                                           if ((.not.sgg%med(sggMiHx(III - b%Hx%XI  , JJJ - b%Hx%YI  , KKK - b%Hx%ZI  ))%Is%PEC).and. &
                                           (.not.sgg%med(sggMiHx(III - b%Hx%XI  , JJJ - b%Hx%YI-1, KKK - b%Hx%ZI  ))%Is%PEC).and. &
                                           (.not.sgg%med(sggMiHy(III - b%Hy%XI  , JJJ - b%Hy%YI  , KKK - b%Hy%ZI  ))%Is%PEC).and. &
@@ -3214,7 +3222,8 @@ contains
                                       !       output( ii)%item( i)%Serialized%valor_x(Ntimeforvolumic,conta) = Jx
                                       !       output( ii)%item( i)%Serialized%valor_y(Ntimeforvolumic,conta) = Jy
                                       !       output( ii)%item( i)%Serialized%valor_z(Ntimeforvolumic,conta) = 0.0_RKIND    
-                                             output( ii)%item( i)%Serialized%valor(Ntimeforvolumic,conta)  = Jx+Jy !en realidad es toda la circulacion. lo calculado no son jz o jy ojo 041023 
+                                             output( ii)%item( i)%Serialized%valor(Ntimeforvolumic,conta)  = abs(Jx+Jy) !en realidad es toda la circulacion. lo calculado no son jz o jy ojo 041023      
+                                           !lo tomo en valor absoluto por coherencia con la corriente en superficies que va en sqrt() 151223
                                              output( ii)%item( i)%Serialized%valor_x(Ntimeforvolumic,conta) = 0.0_RKIND
                                              output( ii)%item( i)%Serialized%valor_y(Ntimeforvolumic,conta) = 0.0_RKIND
                                              output( ii)%item( i)%Serialized%valor_z(Ntimeforvolumic,conta) = Jx+Jy

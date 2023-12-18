@@ -5475,38 +5475,39 @@ subroutine resume_casuistics
 #ifdef CompileWithStochastic
       if (stochastic.and.simu_devia) call inject_deviasources(layoutnumber,Hwires) !solo son los segmentos los afectados
 #endif
- 
-!!!machaca el campo que haya metido el wires
 
-#ifdef CompileWithOpenMP
-!$OMP PARALLEL DO DEFAULT(SHARED)  private(Nodo)
-#endif
-      do n=1,HWires%NumChargeNodes
-         Nodo => HWires%ChargeNode(n)
-!!!!140220 pon a PEC los viejos notouch=already_YEEadvanced_byconformal_changedtoPECfield que tenga conectado un nodo
-         !debe ser lo primero que se hace para overridear el call conformal_advance_E 
-         if (associated(nodo%already_YEEadvanced_byconformal_changedtoPECfield1)) then
-             nodo%already_YEEadvanced_byconformal_changedtoPECfield1=0.0_RKIND
-         endif
-         if (associated(nodo%already_YEEadvanced_byconformal_changedtoPECfield2)) then
-             nodo%already_YEEadvanced_byconformal_changedtoPECfield2=0.0_RKIND
-         endif
-         if (associated(nodo%already_YEEadvanced_byconformal_changedtoPECfield3)) then
-             nodo%already_YEEadvanced_byconformal_changedtoPECfield3=0.0_RKIND
-         endif
-         if (associated(nodo%already_YEEadvanced_byconformal_changedtoPECfield4)) then
-             nodo%already_YEEadvanced_byconformal_changedtoPECfield4=0.0_RKIND
-         endif
-         if (associated(nodo%already_YEEadvanced_byconformal_changedtoPECfield5)) then
-             nodo%already_YEEadvanced_byconformal_changedtoPECfield5=0.0_RKIND
-         endif
-         if (associated(nodo%already_YEEadvanced_byconformal_changedtoPECfield6)) then
-             nodo%already_YEEadvanced_byconformal_changedtoPECfield6=0.0_RKIND
-         endif
-      end do
-#ifdef CompileWithOpenMP
-!$OMP END PARALLEL DO
-#endif
+
+!!!!!!!!!!!!!!!051223 no pongo a cero los already_YEEadvanced_byconformal_changedtoPECfield !No son cero, sino lo que se updatee mas lo que se inyecte
+!!!machaca el campo que haya metido el wires
+!!!#ifdef CompileWithOpenMP
+!!!!$OMP PARALLEL DO DEFAULT(SHARED)  private(Nodo)
+!!!#endif
+!!!      do n=1,HWires%NumChargeNodes
+!!!         Nodo => HWires%ChargeNode(n)
+!!!!!!!140220 pon a PEC los viejos notouch=already_YEEadvanced_byconformal_changedtoPECfield que tenga conectado un nodo
+!!!         !debe ser lo primero que se hace para overridear el call conformal_advance_E 
+!!!         if (associated(nodo%already_YEEadvanced_byconformal_changedtoPECfield1)) then
+!!!             nodo%already_YEEadvanced_byconformal_changedtoPECfield1=0.0_RKIND
+!!!         endif
+!!!         if (associated(nodo%already_YEEadvanced_byconformal_changedtoPECfield2)) then
+!!!             nodo%already_YEEadvanced_byconformal_changedtoPECfield2=0.0_RKIND
+!!!         endif
+!!!         if (associated(nodo%already_YEEadvanced_byconformal_changedtoPECfield3)) then
+!!!             nodo%already_YEEadvanced_byconformal_changedtoPECfield3=0.0_RKIND
+!!!         endif
+!!!         if (associated(nodo%already_YEEadvanced_byconformal_changedtoPECfield4)) then
+!!!             nodo%already_YEEadvanced_byconformal_changedtoPECfield4=0.0_RKIND
+!!!         endif
+!!!         if (associated(nodo%already_YEEadvanced_byconformal_changedtoPECfield5)) then
+!!!             nodo%already_YEEadvanced_byconformal_changedtoPECfield5=0.0_RKIND
+!!!         endif
+!!!         if (associated(nodo%already_YEEadvanced_byconformal_changedtoPECfield6)) then
+!!!             nodo%already_YEEadvanced_byconformal_changedtoPECfield6=0.0_RKIND
+!!!         endif
+!!!      end do
+!!!#ifdef CompileWithOpenMP
+!!!!$OMP END PARALLEL DO
+!!!#endif
 !
       
    return
