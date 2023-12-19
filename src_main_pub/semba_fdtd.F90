@@ -371,7 +371,7 @@ PROGRAM SEMBA_FDTD_launcher
 #ifdef CompilePrivateVersion   
    call cargaNFDE
 #else
-   call cargaFDTDJSON(chain2, parser)
+   call cargaFDTDJSON(fichin, parser)
 #endif   
 !!!!!!!!!!!!!!!!!!!!!!!
    sgg%extraswitches=parser%switches
@@ -2543,11 +2543,14 @@ end subroutine cargaNFDE
       character(len=1024), intent(in) :: filename
       type(Parseador), pointer :: parsed
       
+      character(len=:), allocatable :: usedFilename    
       type(fdtdjson_parser_t) :: parser
       
-      parser = fdtdjson_parser_t(filename)
+      usedFilename = adjustl(trim(filename)) // ".json"
+      parser = fdtdjson_parser_t(usedFilename)
+      
+      allocate(parsed)
       parsed = parser%readProblemDescription()
-
    end subroutine cargaFDTDJSON
 #endif
 
