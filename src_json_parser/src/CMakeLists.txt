@@ -1,10 +1,10 @@
 cmake_minimum_required (VERSION 3.18)
 
 add_library(smbjson 
-	"smbjson.f90"
-	"labels.f90"
-	"idchildtable.f90"
+	"labels_mod.f90"
 	"cells.f90"
+	"smbjson.f90"
+	"idchildtable.f90"
 	"mesh.f90"
 	"parser_tools.f90"
 	"nfdetypes_extension.f90" 

@@ -41,12 +41,13 @@ PROGRAM SEMBA_FDTD_launcher
    USE Solver
    USE Resuming
    !nfde parser stuff
+   USE NFDETypes
 #ifdef CompilePrivateVersion      
-   USE NFDETypes
    USE ParseadorClass
-#else
-   USE NFDETypes
-#endif   
+#endif
+#ifdef CompileWithJSON
+   USE smbjson, only: fdtdjson_parser_t => parser_t
+#endif 
    USE Preprocess
    USE storeData
    
@@ -369,11 +370,8 @@ PROGRAM SEMBA_FDTD_launcher
    call print_credits 
 #ifdef CompilePrivateVersion   
    call cargaNFDE
-#else               
-   print *,'Currently the parser is privative. The user must build by the input type using the info in nfde_types.F90.'    
-   print *,'You can also contact us for CAD solutions to generate this info it in an automatic manner for general geometries,'
-   print *,'and to have also access to advanced models not included here: stochastic analysis, multiwire and conformal cables, LF acceleration, etc.'
-   stop
+#else
+   call cargaFDTDJSON(chain2, parser)
 #endif   
 !!!!!!!!!!!!!!!!!!!!!!!
    sgg%extraswitches=parser%switches
@@ -2464,17 +2462,17 @@ subroutine cargaNFDE
       CALL MPI_Barrier (SUBCOMM_MPI, ierr)
       if (layoutnumber==0) then
            NFDE_FILE => cargar_NFDE_FILE (fileFDE)
-!!!ya se allocatea dentro
+      !!!ya se allocatea dentro
       else
            ALLOCATE (NFDE_FILE)
       endif
-!
+      !
       write(dubuf,*) '[OK]';  call print11(layoutnumber,dubuf)
       !--->
       WRITE (dubuf,*) 'INIT Sharing file through MPI'; CALL print11 (layoutnumber, dubuf)
-!
+      !
       CALL MPI_Barrier (SUBCOMM_MPI, ierr)
-!
+      !
       numero=NFDE_FILE%numero
       call MPI_BCAST(numero, 1_4, MPI_INTEGER8, 0_4, SUBCOMM_MPI, ierr)      
       if (layoutnumber/=0) then
@@ -2483,11 +2481,11 @@ subroutine cargaNFDE
           ALLOCATE (NFDE_FILE%lineas(NFDE_FILE%numero))
       endif
       CALL MPI_Barrier (SUBCOMM_MPI, ierr)
-!CREAMOS EL DERIVED TYPE y lo enviamos !para evitar el error de Marconi asociado a PSM2_MQ_RECVREQS_MAX 100617
+      !CREAMOS EL DERIVED TYPE y lo enviamos !para evitar el error de Marconi asociado a PSM2_MQ_RECVREQS_MAX 100617
 
       CALL build_derived_t_linea(mpi_t_linea_t)
 
-!problema del limite de mandar mas de 2^29 bytes con MPI!!!  Los soluciono partiendo en maxmpibytes (2^27) (algo menos por prudencia)! 040716
+      !problema del limite de mandar mas de 2^29 bytes con MPI!!!  Los soluciono partiendo en maxmpibytes (2^27) (algo menos por prudencia)! 040716
       troncho=ceiling(maxmpibytes*1.0_8/(max_linea*1.0_8+8.0_8),8)
      !!! print *,'numero,troncho ',numero,troncho
       do i8=1,numero,troncho
@@ -2505,20 +2503,20 @@ subroutine cargaNFDE
        !!!  if (layoutnumber==1) print *,NFDE_FILE%lineas(i8)%len,' ',trim(adjustl(NFDE_FILE%lineas(i8)%dato)) 
        !!!  if (layoutnumber==1) print *,NFDE_FILE%lineas(i8+longitud-1)%len,' ',trim(adjustl(NFDE_FILE%lineas(i8+longitud-1)%dato))
           CALL MPI_Barrier (SUBCOMM_MPI, ierr)
-    !      do i=1,numero
-    !          call MPI_BCAST(NFDE_FILE%lineas(i)%len, 1_4, MPI_INTEGER4, 0_4, SUBCOMM_MPI, ierr)
-    !          call MPI_BCAST(NFDE_FILE%lineas(i)%dato, MAX_LINEA, MPI_CHARACTER, 0_4, SUBCOMM_MPI, ierr)
-    !          CALL MPI_Barrier (SUBCOMM_MPI, ierr) !para evitar el error de Marconi asociado a PSM2_MQ_RECVREQS_MAX 100617
-    !      end do
+         !      do i=1,numero
+         !          call MPI_BCAST(NFDE_FILE%lineas(i)%len, 1_4, MPI_INTEGER4, 0_4, SUBCOMM_MPI, ierr)
+         !          call MPI_BCAST(NFDE_FILE%lineas(i)%dato, MAX_LINEA, MPI_CHARACTER, 0_4, SUBCOMM_MPI, ierr)
+         !          CALL MPI_Barrier (SUBCOMM_MPI, ierr) !para evitar el error de Marconi asociado a PSM2_MQ_RECVREQS_MAX 100617
+         !      end do
       end do
-!solo para debugeo
-      !!!open(6729,file='comprob_'//trim(adjustl(dubuf))//'.nfde',form='formatted')
-      !!!write(6729,'(2i12)') NFDE_FILE%numero,NFDE_FILE%targ
-      !!!do i=1,numero
-      !!!   write(6729,'(i6,a)') NFDE_FILE%lineas(i)%len,trim(adjustl(NFDE_FILE%lineas(i)%dato))
-      !!!end do
-      !!!close (6729)
-!!!!!!
+      !solo para debugeo
+            !!!open(6729,file='comprob_'//trim(adjustl(dubuf))//'.nfde',form='formatted')
+            !!!write(6729,'(2i12)') NFDE_FILE%numero,NFDE_FILE%targ
+            !!!do i=1,numero
+            !!!   write(6729,'(i6,a)') NFDE_FILE%lineas(i)%len,trim(adjustl(NFDE_FILE%lineas(i)%dato))
+            !!!end do
+            !!!close (6729)
+      !!!!!!
 #else
     NFDE_FILE => cargar_NFDE_FILE (fileFDE)
 #endif
@@ -2538,6 +2536,19 @@ subroutine cargaNFDE
    return
 
 end subroutine cargaNFDE
+#endif
+
+#ifdef CompileWithJSON
+   subroutine cargaFDTDJSON(filename, parsed)
+      character(len=1024), intent(in) :: filename
+      type(Parseador), pointer :: parsed
+      
+      type(fdtdjson_parser_t) :: parser
+      
+      parser = fdtdjson_parser_t(filename)
+      parsed = parser%readProblemDescription()
+
+   end subroutine cargaFDTDJSON
 #endif
 
 !!!!!!!!!!!!!!!!!
