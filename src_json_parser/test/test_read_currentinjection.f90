@@ -53,16 +53,6 @@ contains
       ! Expected boundaries.
       expected%front%tipoFrontera(:) = F_MUR
 
-      ! Expected materials.
-      expected%mats%n_Mats = 1
-      expected%mats%n_Mats_max = 1
-      allocate(expected%mats%mats(1))
-      expected%mats%mats(1)%id = 1
-      expected%mats%mats(1)%eps = EPSILON_VACUUM
-      expected%mats%mats(1)%mu = MU_VACUUM
-      expected%mats%mats(1)%sigma = 0.0
-      expected%mats%mats(1)%sigmam = 0.0
-
       ! Expected material regions.
       expected%pecRegs%nVols = 0
       expected%pecRegs%nSurfs = 1
@@ -100,7 +90,7 @@ contains
       expected%nodSrc%n_C1P_max = 0
       expected%nodSrc%n_C2P_max = 1
       allocate(expected%nodSrc%NodalSource(1))
-      expected%nodSrc%NodalSource(1)%nombre = "waveform.exc"
+      expected%nodSrc%NodalSource(1)%nombre = "gauss.exc"
       expected%nodSrc%NodalSource(1)%isElec = .false.
       expected%nodSrc%NodalSource(1)%isMagnet = .false.
       expected%nodSrc%NodalSource(1)%isCurrent = .true.

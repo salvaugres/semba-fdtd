@@ -39,7 +39,7 @@
             "name": "entry_line_curent",
             "type": "nodalSource", 
             "field": "current",
-            "magnitudeFile": "waveform.exc", 
+            "magnitudeFile": "gauss.exc", 
             "elementIds": [1]
         }
     ],

@@ -70,8 +70,29 @@ contains
       allocate(pD%matriz)
       allocate(pD%despl)
       allocate(pD%front)
-      allocate(pD%Mats)
-      allocate(pD%Mats%Mats(0))
+
+      allocate(pD%mats)
+      pD%mats%n_Mats = 3
+      pD%mats%n_Mats_max = 3
+      allocate(pD%mats%mats(3))
+
+      pD%mats%mats(1)%id = 1
+      pD%mats%mats(1)%eps = EPSILON_VACUUM
+      pD%mats%mats(1)%mu = MU_VACUUM
+      pD%mats%mats(1)%sigma = 0.0
+      pD%mats%mats(1)%sigmam = 0.0
+
+      pD%mats%mats(2)%id = 2
+      pD%mats%mats(2)%eps = EPSILON_VACUUM
+      pD%mats%mats(2)%mu = MU_VACUUM
+      pD%mats%mats(2)%sigma = SIGMA_PEC
+      pD%mats%mats(2)%sigmam = 0.0
+
+      pD%mats%mats(3)%id = 3
+      pD%mats%mats(3)%eps = EPSILON_VACUUM
+      pD%mats%mats(3)%mu = MU_VACUUM
+      pD%mats%mats(3)%sigma = 0.0
+      pD%mats%mats(3)%sigmam =SIGMA_PMC
 
       allocate(pD%pecRegs)
       allocate(pD%pecRegs%lins(0))
@@ -155,7 +176,7 @@ contains
 
    elemental logical function Materials_eq(a, b)
       type(Materials), intent(in) :: a, b
-      
+
       Materials_eq = &
          (a%n_Mats == b%n_Mats) .and. &
          (a%n_Mats_max == b%n_Mats_max) .and. &

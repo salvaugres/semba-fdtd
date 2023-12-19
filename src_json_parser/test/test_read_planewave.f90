@@ -52,19 +52,9 @@ contains
       ! Expected boundaries.
       expected%front%tipoFrontera(:) = F_MUR
 
-      ! Expected materials.
-      expected%mats%n_Mats = 1
-      expected%mats%n_Mats_max = 1
-      allocate(expected%mats%mats(1))
-      expected%mats%mats(1)%id = 1
-      expected%mats%mats(1)%eps = EPSILON_VACUUM
-      expected%mats%mats(1)%mu = MU_VACUUM
-      expected%mats%mats(1)%sigma = 0.0
-      expected%mats%mats(1)%sigmam = 0.0
-
       ! Expected sources.
       allocate(expected%plnSrc%collection(1))
-      expected%plnSrc%collection(1)%nombre_fichero = "gauss_100MHz.exc"
+      expected%plnSrc%collection(1)%nombre_fichero = "gauss.exc"
       expected%plnSrc%collection(1)%atributo = ""
       expected%plnSrc%collection(1)%coor1 = [2, 2, 2]
       expected%plnSrc%collection(1)%coor2 = [9, 9, 9]

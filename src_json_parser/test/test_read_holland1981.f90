@@ -68,7 +68,7 @@ contains
 
       ! Expected sources.
       allocate(expected%plnSrc%collection(1))
-      expected%plnSrc%collection(1)%nombre_fichero = "waveform.exc"
+      expected%plnSrc%collection(1)%nombre_fichero = "gauss.exc"
       expected%plnSrc%collection(1)%atributo = ""
       expected%plnSrc%collection(1)%coor1 = (/2, 2, 2/)
       expected%plnSrc%collection(1)%coor2 = (/19, 19, 21/)

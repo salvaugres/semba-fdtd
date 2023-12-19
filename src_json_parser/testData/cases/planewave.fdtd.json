@@ -29,7 +29,7 @@
     "sources": [
         {
             "type": "planewave",
-            "magnitudeFile": "gauss_100MHz.exc",
+            "magnitudeFile": "gauss.exc",
             "elementIds": [2],
             "direction": {
                 "theta": 0.0,

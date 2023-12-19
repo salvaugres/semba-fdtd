@@ -30,7 +30,6 @@ module smbjson
       procedure :: readGeneral
       procedure :: readGrid
       procedure :: readMediaMatrix
-      procedure :: readMaterials
       procedure :: readPECRegions
       procedure :: readPMCRegions
       procedure :: readBoundary
@@ -109,7 +108,6 @@ contains
       res%front = this%readBoundary()
 
       ! Materials
-      res%mats = this%readMaterials()
       res%pecRegs = this%readPECRegions()
       res%pmcRegs = this%readPMCRegions()
       ! res%DielRegs = this%readDielectricRegions()
@@ -328,33 +326,6 @@ contains
             type = F_PML
          end select
       end function
-   end function
-
-   function readMaterials(this) result (res)
-      class(parser_t) :: this
-      type(Materials) :: res
-
-      type(json_value), pointer :: jmats
-      type(json_value_ptr), dimension(:), allocatable :: simples
-      logical :: found
-
-      res%n_Mats = 1
-      res%n_Mats_max = 1
-      allocate(res%mats(1))
-      res%mats(1)%id = 1
-      res%mats(1)%eps = EPSILON_VACUUM
-      res%mats(1)%mu = MU_VACUUM
-      res%mats(1)%sigma = 0.0
-      res%mats(1)%sigmam = 0.0
-
-      ! Other materials.
-      call this%core%get(this%root, J_MATERIALS, jmats, found)
-      if (found) then
-         simples = jsonValueFilterByKeyValue(this%core, jmats, J_TYPE, J_MAT_TYPE_SIMPLE)
-         if (size(simples) /= 0) stop "Error reading materials. Read dielectric is TBD."   
-      end if
-   contains
-      
    end function
 
    function readPECRegions(this) result (res)
