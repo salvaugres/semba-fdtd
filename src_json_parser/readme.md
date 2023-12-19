@@ -1,3 +1,7 @@
+# Compiling and testing
+
+ ctest --test-dir build/src_json_parser/test/ --output-on-failure
+
 # The FDTD json format.
 
 ## general
