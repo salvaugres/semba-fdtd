@@ -338,19 +338,23 @@ contains
       type(json_value_ptr), dimension(:), allocatable :: simples
       logical :: found
 
+      res%n_Mats = 1
+      res%n_Mats_max = 1
+      allocate(res%mats(1))
+      res%mats(1)%id = 1
+      res%mats(1)%eps = EPSILON_VACUUM
+      res%mats(1)%mu = MU_VACUUM
+      res%mats(1)%sigma = 0.0
+      res%mats(1)%sigmam = 0.0
+
+      ! Other materials.
       call this%core%get(this%root, J_MATERIALS, jmats, found)
       if (found) then
          simples = jsonValueFilterByKeyValue(this%core, jmats, J_TYPE, J_MAT_TYPE_SIMPLE)
-      else
-         allocate(simples(0))
+         if (size(simples) /= 0) stop "Error reading materials. Read dielectric is TBD."   
       end if
-
-      if (size(simples) /= 0) stop "Error reading materials. Read dielectric is TBD."
-
-      res%n_Mats = size(simples)
-      res%n_Mats_max = size(simples)
-      allocate(res%Mats(size(simples)))
-
+   contains
+      
    end function
 
    function readPECRegions(this) result (res)

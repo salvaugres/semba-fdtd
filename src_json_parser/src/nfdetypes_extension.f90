@@ -155,6 +155,7 @@ contains
 
    elemental logical function Materials_eq(a, b)
       type(Materials), intent(in) :: a, b
+      
       Materials_eq = &
          (a%n_Mats == b%n_Mats) .and. &
          (a%n_Mats_max == b%n_Mats_max) .and. &
