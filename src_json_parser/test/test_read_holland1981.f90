@@ -88,7 +88,6 @@ contains
       expected%oldSONDA%n_probes_max = 0
       allocate(expected%oldSONDA%probes(0))
       ! sonda
-      expected%Sonda%len_cor_max = 0
       expected%Sonda%length = 1
       expected%Sonda%length_max = 1
       allocate(expected%Sonda%collection(1))
@@ -103,12 +102,14 @@ contains
       expected%Sonda%collection(1)%fstop = 0.0
       expected%Sonda%collection(1)%fstep = 0.0
       allocate(expected%Sonda%collection(1)%cordinates(1))
+      expected%Sonda%collection(1)%len_cor = 1
       expected%Sonda%collection(1)%cordinates(1)%tag = '2'
       expected%Sonda%collection(1)%cordinates(1)%Xi = 2 ! Coord id as tag.
       expected%Sonda%collection(1)%cordinates(1)%Yi = 0
       expected%Sonda%collection(1)%cordinates(1)%Zi = 0
       expected%Sonda%collection(1)%cordinates(1)%Or = NP_COR_WIRECURRENT
-
+      expected%Sonda%len_cor_max = 1
+      
       ! Expected thin wires
       allocate(expected%tWires%tw(1))
       expected%tWires%tw(1)%rad=0.02

@@ -837,6 +837,7 @@ contains
       if (a%type1 /= b%type1) return
       if (a%type2 /= b%type2) return
       if (a%outputrequest /= b%outputrequest) return
+      if (a%len_cor /= b%len_cor) return
 
       if (.not. associated(a%cordinates) .or. .not. associated(b%cordinates)) return
       if (all(.not. a%cordinates == b%cordinates)) return

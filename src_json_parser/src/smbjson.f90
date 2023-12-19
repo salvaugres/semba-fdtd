@@ -605,6 +605,8 @@ contains
                end do
             end do
          end if
+
+         res%len_cor = size(res%cordinates)
       end function
 
       subroutine setDomain(res, domain)

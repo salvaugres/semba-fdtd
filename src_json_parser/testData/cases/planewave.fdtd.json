@@ -3,8 +3,8 @@
     "__comments": "Planewave passing through an empty box.",
 
     "general": {
-        "timeStep": 1e-12,
-        "numberOfSteps": 1000
+        "timeStep": 10e-12,
+        "numberOfSteps": 2000
     },
     
     "mesh": {
