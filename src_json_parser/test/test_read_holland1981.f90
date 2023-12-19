@@ -56,16 +56,6 @@ contains
       expected%front%propiedadesPML(:)%orden = 2.0
       expected%front%propiedadesPML(:)%refl = 0.001
 
-      ! Expected materials.
-      expected%mats%n_Mats = 1
-      expected%mats%n_Mats_max = 1
-      allocate(expected%mats%mats(1))
-      expected%mats%mats(1)%id = 1
-      expected%mats%mats(1)%eps = EPSILON_VACUUM
-      expected%mats%mats(1)%mu = MU_VACUUM
-      expected%mats%mats(1)%sigma = 0.0
-      expected%mats%mats(1)%sigmam = 0.0
-
       ! Expected sources.
       allocate(expected%plnSrc%collection(1))
       expected%plnSrc%collection(1)%nombre_fichero = "gauss.exc"
@@ -108,7 +98,7 @@ contains
       expected%Sonda%collection(1)%cordinates(1)%Yi = 0
       expected%Sonda%collection(1)%cordinates(1)%Zi = 0
       expected%Sonda%collection(1)%cordinates(1)%Or = NP_COR_WIRECURRENT
-      expected%Sonda%len_cor_max = 1
+      
       
       ! Expected thin wires
       allocate(expected%tWires%tw(1))

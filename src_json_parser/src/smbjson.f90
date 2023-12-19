@@ -278,7 +278,7 @@ contains
          allocate(dest(0 : numberOfCells-1))
          if (size(vec) == 1) then
             dest(:) = vec(1)
-         else 
+         else
             dest = vec
          end if
       end subroutine
@@ -691,10 +691,10 @@ contains
          type(BloqueProbe) :: res
          type(json_value), pointer :: bp
          type(coords), dimension(:), allocatable :: cs
-       
+
          call setDomain(res, this%getDomain(bp, J_PR_DOMAIN))
-         
-         block 
+
+         block
             type(cell_region_t), dimension(:), allocatable :: cRs
 
             cRs = this%mesh%getCellRegions(this%getIntsAt(bp, J_ELEMENTIDS))
@@ -702,7 +702,7 @@ contains
 
             if (size(cRs(1)%intervals) /= 1) write(error_unit, *) "Block probe must be defined by a single cell interval."
             cs = cellIntervalsToCoords(cRs(1)%intervals)
-            
+
             res%i1  = cs(1)%xi
             res%i2  = cs(1)%xe
             res%j1  = cs(1)%yi
@@ -717,7 +717,7 @@ contains
          res%skip = 1
          res%tag = ''
          res%t = BcELECT
-         
+
       end function
 
       subroutine setDomain(res, domain)
@@ -782,6 +782,9 @@ contains
          type(ThinWire) :: res
          type(json_value), pointer, intent(in) :: cable
 
+         character (len=:), allocatable :: entry
+         type(json_value), pointer :: je, je2
+         integer :: i
          block
             type(json_value_ptr) :: mat
             mat = this%matTable%getId(this%getIntAt(cable, J_CAB_MAT_ID))
@@ -797,6 +800,7 @@ contains
          block
             type(json_value_ptr) :: mat
             type(termination_t) :: conn
+            character (len=:), allocatable :: label
             mat = this%matTable%getId(this%getIntAt(cable, J_CAB_INI_CONN_ID))
             conn = readWireTerminalMaterial(mat%p)
             res%tl = conn%connectorType
@@ -821,26 +825,16 @@ contains
          block
             type(linel_t), dimension(:), allocatable :: linels
             integer :: i
-            block
-               integer, dimension(:), allocatable :: elementIds
-               type(polyline_t) :: polyline
-               character (len=:), allocatable :: entry
-               type(json_value), pointer :: je, je2
 
-               do i = 1, this%core%count(cable)
-                  call this%core%get_child (cable, i, je2)
-                  call this%core%info(je2, name=entry)
-                  write(*,*) entry
-               end do
-
-               call this%core%get(cable, J_ELEMENTIDS, elementIds)
-               if (size(elementIds) /= 1) then
-                  write(error_unit, *) "Thin wires must be defined by a single polyline element."
-               end if
-               polyline = this%mesh%getPolyline(elementIds(1))
-               linels = convertPolylineToLinels(this%mesh, polyline)
-            end block
-
+            integer, dimension(:), allocatable :: elementIds
+            type(polyline_t) :: polyline
+            call this%core%get(cable, J_ELEMENTIDS, elementIds)
+            if (size(elementIds) /= 1) then
+               write(error_unit, *) "Thin wires must be defined by a single polyline element."
+            end if
+            polyline = this%mesh%getPolyline(elementIds(1))
+            linels = convertPolylineToLinels(this%mesh, polyline)
+           
             res%n_twc = size(linels)
             res%n_twc_max = size(linels)
             allocate(res%twc(size(linels)))
@@ -857,9 +851,14 @@ contains
 
       function readWireTerminalMaterial(mat) result(res)
          type(termination_t) :: res
-         type(json_value), pointer, intent(in) :: mat
+         type(json_value), pointer :: mat
          character (len=:), allocatable :: label
-         label = this%getStrAt(mat, J_MAT_WIRETERM_TERMINATION)
+         logical :: found
+         label = this%getStrAt(&
+            mat, J_MAT_WIRETERM_TERMINATION//'.'//J_TYPE, found)
+         if (.not. found) then
+            write(error_unit, *) "Error reading wire terminal. Termination type not found."
+         end if
          res%connectorType = strToTermination(label)
          call this%core%get(mat, J_MAT_WIRETERM_RESISTANCE, res%r, default=0.0)
          call this%core%get(mat, J_MAT_WIRETERM_INDUCTANCE, res%l, default=0.0)
