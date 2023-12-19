@@ -1,25 +1,52 @@
 module testingTools_mod
 
-    use mtl_bundle_mod
-    use fhash, only: fhash_tbl_t, key=>fhash_key
 
     implicit none
+    type :: entry
+        real, dimension(:), allocatable :: x
+    end type entry
+
+    interface operator(*)
+        module procedure dotmul
+    end interface operator(*)
 
 
     contains
 
-    ! function findBundle(tbl, name) result(ptr)
-    !     class(fhash_tbl_t), intent(in) :: tbl
-    !     character (len=*), intent(in) :: name
-    !     type(mtl_bundle_t), pointer :: ptr 
-    !     type(mtl_bundle_t) :: bdl
-    !     integer :: st
-    
-    !     call tbl%get_ptr()
-    !     ! ptr => bdl
-    
-    ! end function
-    
+    elemental function componentSum(a) result(res)
+        type(entry), intent(in) :: a
+        real :: res
+        res = sum(a%x)
+    end function
+
+
+    function dotmul(a,b) result(res)
+        type(entry), dimension(:,:,:), intent(in) :: a
+        type(entry), dimension(:,:), intent(in) :: b
+        type(entry), dimension(:,:,:),allocatable :: breshaped
+  
+        real, dimension(size(A,1), size(A,2), 1) :: res_temp
+        real, dimension(size(A,1), size(A,2)) :: res
+        integer :: i,j,k,nz
+        real :: tmp
+        
+        breshaped = reshape(b, [size(b,1),size(b,2),1])
+        do nz = 1, size(a,1)
+           do j=1,size(breshaped,3)
+              do i=1,size(A,2)
+                    tmp = 0.0 
+                    do k=1,size(A,3)
+                       tmp = tmp + dot_product(a(nz,i,k)%x, breshaped(nz,k,j)%x)
+                    enddo
+                    res_temp(nz,i,j) = tmp
+              enddo
+           enddo
+        enddo
+        
+        res = reshape(res_temp, [size(b,1),size(b,2)])
+  
+    end function
+        
     subroutine comparePULMatrices(error_cnt, m_line, m_input)
         integer, intent(inout) :: error_cnt
         real, intent(in), dimension(:,:,:) :: m_line
