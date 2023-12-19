@@ -250,21 +250,40 @@ contains
       res%nY = this%getIntAt(this%root, P//'.'//J_NUMBER_OF_CELLS//'(2)')
       res%nZ = this%getIntAt(this%root, P//'.'//J_NUMBER_OF_CELLS//'(3)')
 
-      call getRealVec(P//'.'//J_STEPS//'.x', res%desX)
-      call getRealVec(P//'.'//J_STEPS//'.y', res%desY)
-      call getRealVec(P//'.'//J_STEPS//'.z', res%desZ)
+      call assignDes(P//'.'//J_STEPS//'.x', res%desX, res%nX)
+      call assignDes(P//'.'//J_STEPS//'.y', res%desY, res%nY)
+      call assignDes(P//'.'//J_STEPS//'.z', res%desZ, res%nZ)
+
+      res%mx1 = 0
+      res%my1 = 0
+      res%mz1 = 0
+      res%mx2 = res%nX
+      res%my2 = res%nY
+      res%mz2 = res%nZ
+
+
    contains
-      subroutine getRealVec(path, dest)
+      subroutine assignDes(path, dest, numberOfCells)
          character(kind=CK, len=*) :: path
          real, dimension(:), pointer :: dest
          real, dimension(:), allocatable :: vec
+         integer, intent(in) :: numberOfCells
          logical :: found = .false.
 
          call this%core%get(this%root, path, vec, found)
-         if (found) then
-            allocate(dest(size(vec)))
-            dest = vec
+         if (.not. found) then
+            stop 'Error reading grid: steps not found.'
          endif
+         if (size(vec) /= 1 .and. size(vec) /= numberOfCells) then
+            stop 'Error reading grid: steps must be of size 1 (for regulr grids) or equal to the number of cells.'
+         end if
+
+         allocate(dest(0 : numberOfCells-1))
+         if (size(vec) == 1) then
+            dest(:) = vec(1)
+         else 
+            dest = vec
+         end if
       end subroutine
    end function
 

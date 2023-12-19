@@ -37,12 +37,18 @@ contains
       expected%despl%nY = 20
       expected%despl%nZ = 22
 
-      allocate(expected%despl%desX(1))
-      allocate(expected%despl%desY(1))
-      allocate(expected%despl%desZ(1))
-      expected%despl%desX = (/0.1/)
-      expected%despl%desY = (/0.1/)
-      expected%despl%desZ = (/0.1/)
+      allocate(expected%despl%desX(20))
+      allocate(expected%despl%desY(20))
+      allocate(expected%despl%desZ(22))
+      expected%despl%desX = 0.1
+      expected%despl%desY = 0.1
+      expected%despl%desZ = 0.1
+      expected%despl%mx1 = 0
+      expected%despl%mx2 = 20
+      expected%despl%my1 = 0
+      expected%despl%my2 = 20
+      expected%despl%mz1 = 0
+      expected%despl%mz2 = 22
 
       ! Expected boundaries.
       expected%front%tipoFrontera(:) = F_PML
