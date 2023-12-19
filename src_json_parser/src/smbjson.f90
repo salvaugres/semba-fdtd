@@ -89,7 +89,7 @@ contains
       call this%jsonfile%load(filename = this%filename)
       if (this%jsonfile%failed()) then
          call this%jsonfile%print_error_message(error_unit)
-         stop
+         return
       end if
 
       allocate(this%core)
@@ -189,7 +189,6 @@ contains
                   end block
                 case default
                   write (error_unit, *) 'Invalid element type'
-                  stop
                end select
             end do
          end if
@@ -270,10 +269,10 @@ contains
 
          call this%core%get(this%root, path, vec, found)
          if (.not. found) then
-            stop 'Error reading grid: steps not found.'
+            write(error_unit, *) 'Error reading grid: steps not found.'
          endif
          if (size(vec) /= 1 .and. size(vec) /= numberOfCells) then
-            stop 'Error reading grid: steps must be of size 1 (for regulr grids) or equal to the number of cells.'
+            write(error_unit, *) 'Error reading grid: steps must be of size 1 (for regulr grids) or equal to the number of cells.'
          end if
 
          allocate(dest(0 : numberOfCells-1))
@@ -438,11 +437,11 @@ contains
          call this%core%get(pw, J_SRC_PW_POLARIZATION//'.'//J_SRC_PW_POLARIZATION_BETA, res%beta)
 
          call this%core%get(pw, J_ELEMENTIDS, elemIds)
-         if (size(elemIds) /= 1) stop "Planewave must contain a single elementId."
+         if (size(elemIds) /= 1) write(error_unit, *) "Planewave must contain a single elementId."
          cellRegion = this%mesh%getCellRegion(elemIds(1), found)
-         if (.not. found) stop "Planewave elementId not found."
+         if (.not. found) write(error_unit, *) "Planewave elementId not found."
          voxelIntervals = cellRegion%getIntervalsOfType(CELL_TYPE_VOXEL)
-         if (size(voxelIntervals) /= 1) stop "Planewave must contain a single voxel region."
+         if (size(voxelIntervals) /= 1) write(error_unit, *) "Planewave must contain a single voxel region."
 
          nfdeCoords = cellIntervalsToCoords(voxelIntervals)
          res%coor1 = [nfdeCoords(1)%Xi, nfdeCoords(1)%Yi, nfdeCoords(1)%Zi]
@@ -496,7 +495,7 @@ contains
             res%isMagnet = .false.
             res%isCurrent = .true.
           case default
-            stop 'Error reading current field source. Field label not recognized.'
+            write(error_unit, *) 'Error reading current field source. Field label not recognized.'
          end select
          res%isInitialValue = .false.
          res%nombre = trim(adjustl(this%getStrAt(jns, J_SRC_MAGNITUDE_FILE)))
@@ -536,7 +535,7 @@ contains
          type(abstractSonda) :: res
          type(json_value), pointer :: p
 
-         stop 'read abstract sonda is TBD. TODO'
+         write(error_unit, *) 'read abstract sonda is TBD. TODO'
 
       end function
    end function
@@ -631,7 +630,7 @@ contains
          select case (typeLabel)
           case (J_PR_TYPE_ELECTRIC)
             if (.not. present(dirLabel)) then
-               stop "Dir label must be present"
+               write(error_unit, *) "Dir label must be present"
             end if
             select case (dirLabel)
              case (J_DIR_X)
@@ -643,7 +642,7 @@ contains
             end select
           case (J_PR_TYPE_MAGNETIC)
             if (.not. present(dirLabel)) then
-               stop "Dir label must be present"
+               write(error_unit, *) "Dir label must be present"
             end if
             select case (dirLabel)
              case (J_DIR_X)
@@ -699,9 +698,9 @@ contains
             type(cell_region_t), dimension(:), allocatable :: cRs
 
             cRs = this%mesh%getCellRegions(this%getIntsAt(bp, J_ELEMENTIDS))
-            if (size(cRs) /= 1) stop "Block probe must be defined by a single cell region."
+            if (size(cRs) /= 1) write(error_unit, *) "Block probe must be defined by a single cell region."
 
-            if (size(cRs(1)%intervals) /= 1) stop "Block probe must be defined by a single cell interval."
+            if (size(cRs(1)%intervals) /= 1) write(error_unit, *) "Block probe must be defined by a single cell interval."
             cs = cellIntervalsToCoords(cRs(1)%intervals)
             
             res%i1  = cs(1)%xi
@@ -824,12 +823,19 @@ contains
             integer :: i
             block
                integer, dimension(:), allocatable :: elementIds
-               type(json_value_ptr) :: mat
                type(polyline_t) :: polyline
+               character (len=:), allocatable :: entry
+               type(json_value), pointer :: je, je2
+
+               do i = 1, this%core%count(cable)
+                  call this%core%get_child (cable, i, je2)
+                  call this%core%info(je2, name=entry)
+                  write(*,*) entry
+               end do
 
                call this%core%get(cable, J_ELEMENTIDS, elementIds)
                if (size(elementIds) /= 1) then
-                  stop "Thin wires must be defined by a single polyline element."
+                  write(error_unit, *) "Thin wires must be defined by a single polyline element."
                end if
                polyline = this%mesh%getPolyline(elementIds(1))
                linels = convertPolylineToLinels(this%mesh, polyline)
@@ -1043,7 +1049,7 @@ contains
          call this%core%get_child(jmrs, i, jmr)
          jm = this%matTable%getId(this%getIntAt(jmr, J_MATERIAL_ID, found))
          if (.not. found) &
-            stop "Error reading material region: materialId label not found."
+            write(error_unit, *) "Error reading material region: materialId label not found."
 
          if (matType == this%getStrAt(jm%p, J_TYPE)) then
             eIds = this%getIntsAt(jmr, J_ELEMENTIDS)
