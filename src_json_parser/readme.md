@@ -20,8 +20,8 @@ This project uses the ctest tool available within cmake. Once build, you can run
     ctest --test-dir <BUILD_DIR>/src_json_parser/test/ --output-on-failure
 
 
-# The FDTD JSON format
-This format aims to provide a way to input data for a FDTD simulation. Being in JSON, it can be easily navigated with most text editors, such as Visual Studio Code or Notepad++. There are also multiple tools to read and write them.
+# The FDTD-JSON format
+This format aims to provide a way to input data for a full FDTD simulation. Being in JSON, it can be easily navigated with most text editors, such as Visual Studio Code or Notepad++. There are also multiple tools to read and write them.
 
 The following are examples of different cases:
  1. An empty space illuminated by a plane wave: [planewave.fdtd.json](testData/cases/planewave.fdtd.json). The field at a point close to the center is recorded.
@@ -30,14 +30,14 @@ The following are examples of different cases:
  4. A shielded pair of wires feeded by a voltage source in one of its ends: [shieldedPair.fdtd.json](testData/cases/shieldedPair.fdtd.json). The interior of the shield uses a multiconductor transmision line (MTL) algortihm to evolve the common mode currents which are induced in the shield and propagated inside using a transfer impedance. 
  5. A multiconductor transmission line network (MTLN) case which includes three cable bundles with a bifurcation: [mtln.fdtd.json](testData/cases/mtln.fdtd.json). 
  
-## Entries description
+## FDTD-JSON objects description
 All units are assumed to be SI-MKS. 
 
 Angle brackets `<entry>` indicate that that entry is mandatory.
 Square brackets `[entry]` are optional entries.
 
 ### `<general>`
-This entry must be always present and contains general information regarding the solver. It must contain:
+This object must always be present and contains general information regarding the solver. It must contain the following entries:
 
 - `<timeStep>`: A real number indicating the time step used by the solver, in seconds. 
 - `<numberOfSteps>`: An integer for the number of steps which the solver will iterate.
@@ -52,12 +52,15 @@ Example:
 ### `[boundary]`
 This specifies the boundaries which will be used to terminate the computational domain. 
 If `boundary` is not present it defaults to a `mur` absorbing condition in all bounds.
-The entries of `boundary` are *boundary objects* labelled with the place where they will be applied: `all` means all boundaries and `xLower`, `xUpper`, `yLower`, `yUpper`, `zLower` `zUpper`. 
-*Boundary objects* are defined by their `<type>` which can be:
+The entries within `boundary` are objects labelled with the place where they will be applied: 
+ - `all`, or
+ - `xLower`, `xUpper`, `yLower`, `yUpper`, `zLower` `zUpper`. 
+ 
+These objects must contain a `<type>` label which can be:
  * `pec` for perfectly electric conducting termination.
  * `pmc` for perfectly magnetic conducting termination.
  * `mur` for Mur's first order absorbing boundary condition.
- * `pml` for perfectly matched layer termination. If this `type` is selected, the *boundary object* must also contain:
+ * `pml` for perfectly matched layer termination. If this `type` is selected, it must also contain:
     - `<layers>`: with an integer indicating the number of pml layers which will be used. TODO REVIEW
     - `<order>`: TODO REVIEW
     - `<reflection>`: TODO REVIEW
@@ -74,34 +77,55 @@ Example:
     }
 
 ### `<mesh>`
-Coordinates in mesh are considered to be relative to the cells, starting in (0,0,0).
-Elements are geometrical entities which reference the coordinates or specify cells in the mesh.
+All the geometrical information of the case is exclusively stored by the `mesh` object. Being this an FDTD simulation it is request to define a `grid` which defines the simulation cells.
 
+#### `<grid>`
+
+
+
+#### `[coordinates]`
+This is an array of objects which must contain the following entries:
+ * `<id>`: an integer number that must be unique within this array.
+ * `<relativePosition>`: Containing an array of 3 numbers which can be integer or reals, 
+    - When these numbers are integers, they indicate the lowest point of the corresponding cell. 
+    - When the numbers are real, the whole part indicates the cell and the fractional part indicates the fractional position within that cell.
+
+#### `[elements]`
+// TODO
+
+Elements are geometrical entities which reference the coordinates or specify cells in the mesh.
 If one or more directions increase, all of them must increase.
 If one direction increases and other decreases, is undefined behavior.
 
-## materials
-Allowed types: pec, pmc, simple
+
+## `[materials]`
+This entry is an array formed by all the physical models contained in the simulation. Each object within the array must contain:
+- `<id>`: An integer number that uniquely identifies the material.
+
+// TODO
 
 ### simple
 simple type is an isotropic material with specified relative permittivity, relative permeability, electric conductivity and/or magnetic conductivity.
 
-## materialRegions
+## `[materialRegions]`
+This entry stores associations between `materials` and `elements`. 
+
+// TODO
 
 
-## probes
+## `[probes]`
 
 Require type and at least one elementIds or cellRegions entry.
 Require a domain.
-### domain
-### type
+### `<type>`
 If type is bulkCurrent:
     \[field\]: electric, magnetic (DEFAULTS TO FIRST)
+### `[domain]`
 
-# sources
+# `[sources]`
 All sources require type and at least one elementIds or cellRegions entry.
 
-## type
+## `<type>`
 If type is Planewave
 
 If type is nodalSource
@@ -109,4 +133,4 @@ If type is nodalSource
     \[isInitialField\]: false, true (DEFAULTS TO FIRST)
 
 
-# cables
+# `[cables]`

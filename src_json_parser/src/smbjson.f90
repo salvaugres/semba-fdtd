@@ -148,7 +148,7 @@ contains
       type(coordinate_t) :: c
       logical :: found
 
-      call this%core%get(this%root, J_MESH//'.'//J_RELATIVE_COORDINATES, jcs, found=found)
+      call this%core%get(this%root, J_MESH//'.'//J_COORDINATES, jcs, found=found)
       if (found) then
          do i = 1, this%core%count(jcs)
             call this%core%get_child(jcs, i, jc)
