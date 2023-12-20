@@ -55,7 +55,7 @@ If `boundary` is not present it defaults to a `mur` absorbing condition in all b
 The entries within `boundary` are objects labelled with the place where they will be applied: 
  - `all`, or
  - `xLower`, `xUpper`, `yLower`, `yUpper`, `zLower` `zUpper`. 
- 
+
 These objects must contain a `<type>` label which can be:
  * `pec` for perfectly electric conducting termination.
  * `pmc` for perfectly magnetic conducting termination.
@@ -77,26 +77,37 @@ Example:
     }
 
 ### `<mesh>`
-All the geometrical information of the case is exclusively stored by the `mesh` object. Being this an FDTD simulation it is request to define a `grid` which defines the simulation cells.
+All the geometrical information of the case is exclusively stored by the `mesh` object. 
 
 #### `<grid>`
-
-
+The `grid` object represents a collection of rectangular cuboids or *cells* which tessellate the space to form a structured mesh. This object is defined with the following entries:
+- `<numberOfCells>` is an array of three positive integers which indicate the number of cells in each Cartesian direction.
+- `<steps>` is an object which contains three arrays, labeled with `<x>`, `<y>` and `<z>` which represent the cell sizes in that direction. Each array may contain a single real to define a [regular grid](https://en.wikipedia.org/wiki/Regular_grid); or, alternatively, a number of reals equal to the number of cells to define a [rectilinear grid](https://en.wikipedia.org/wiki/Regular_grid).
 
 #### `[coordinates]`
-This is an array of objects which must contain the following entries:
+This is an array of objects which represent Cartesian coordinates within the grid. Each object of the array must contain the following entries:
  * `<id>`: an integer number that must be unique within this array.
- * `<relativePosition>`: Containing an array of 3 numbers which can be integer or reals, 
-    - When these numbers are integers, they indicate the lowest point of the corresponding cell. 
-    - When the numbers are real, the whole part indicates the cell and the fractional part indicates the fractional position within that cell.
+ * `<relativePosition>`: Containing an array of 3 numbers which can be integer or reals. The whole part of the number indicates the cell and the fractional part indicates the fractional position within that cell.
+
+ TODO EXAMPLE IMAGE
 
 #### `[elements]`
-// TODO
+The `elements` entry is an array of objects, each of which represents a geometrical entity. Within this format context the concept of element is broader than usually because they can be relatively complex geometrical entities. An *element objects* must contain a 
+ * `<id>` formed by an integer which uniquely identifies it within the `elements` array.
+ * `<type>` which can be one of the following: 
+   - `node`, representing a point in space. Elements with this type include a `<coordinateIds>` entry which is an array of a single integer with the id of a coordinate and which must exist in the within the `mesh` `coordinates` array.
+   - `polyline`, representing an oriented collection of segments. It must contain a list `<coordinateIds>` with at least two coordinates.
+   - `junction`, representing a topological connection between different entities. TODO REVIEW ?AND REMOVE?.
+   - `cellRegion`, containing a list of  one or more `<intervals>` defined following the [interval convention](#####interval-convention). 
 
-Elements are geometrical entities which reference the coordinates or specify cells in the mesh.
+##### `interval` convention
+An `interval` is formed by two triplets $\mathbf{a} = \{a_x, a_y, a_z\}$ and $\mathbf{b} = \{b_x, b_y, b_z\}$ of integer numbers which define three closed-open intervals $[a_x, b_x)$, $[a_y, b_y)$, and $[a_z, b_z)$. 
+
+ hich allow to specify points within the grid (pixels), oriented lines (linels), oriented surfaces 
 If one or more directions increase, all of them must increase.
 If one direction increases and other decreases, is undefined behavior.
 
+TODO IMAGE
 
 ## `[materials]`
 This entry is an array formed by all the physical models contained in the simulation. Each object within the array must contain:

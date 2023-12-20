@@ -16,8 +16,8 @@
             "numberOfCells": [10, 10, 10],
             "steps": { "x": [0.1], "y": [0.1], "z": [0.1] }
         },
-        "relativeCoordinates": [
-            {"id": 1, "position": [4, 4, 4]}
+        "coordinates": [
+            {"id": 1, "relativePosition": [4, 4, 4]}
         ],
         "elements": [
             {"id": 1, "type": "node", "coordinateIds": [1]},
