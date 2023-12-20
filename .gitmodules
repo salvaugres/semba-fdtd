@@ -4,5 +4,5 @@
 	ignore = dirty
 [submodule "src_json_parser/external/fhash"]
 	path = src_json_parser/external/fhash
-	url = git@github.com:LKedward/fhash.git
+	url = git@github.com:opensemba/fhash.git
 	ignore = dirty
