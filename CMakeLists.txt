@@ -67,7 +67,7 @@ endif()
 
 if(CMAKE_Fortran_COMPILER_ID MATCHES "GNU")
 	message(STATUS "Gfortran found...")
-	set(CMAKE_Fortran_FLAGS "-ffree-form -ffree-line-length-0 -fdec -fcheck=bounds")
+	set(CMAKE_Fortran_FLAGS "-ffree-form -ffree-line-length-none -fdec -fcheck=bounds")
 	add_definitions(-DCompileWithIncludeMpifh)
 endif()
 if(CMAKE_Fortran_COMPILER_ID MATCHES "^Intel")
@@ -111,4 +111,4 @@ add_definitions(
 -DCompileWithDMMA
 -DCompileWithSGBC
 -DCompileWithWires
-)
+ )

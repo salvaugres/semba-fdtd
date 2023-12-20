@@ -1192,12 +1192,12 @@ subroutine calc_g1g2gm1gm2_compo(sgg,compo,eps00,mu00,SGBCDispersive)
                             sigmatemp                                            *width  /2.0_rkind) / &
                            (compo%transversaldeltah)
             else
-            epsilon = ((epr_adyacente(0)+epr_adyacente(1))/2.0_rkind  * eps0 *(compo%transversaldeltah-width)   + &
-                        eprtemp                                       * eps0 *width             ) / &
-                           (compo%transversaldeltah)
-            sigma =   ((sig_adyacente(0)+sig_adyacente(1))/2.0_rkind         *(compo%transversaldeltah-width)   + &
-                        sigmatemp                                            *width             ) / &
-                           (compo%transversaldeltah)
+                epsilon = ((epr_adyacente(0)+epr_adyacente(1))/2.0_rkind  * eps0 *(compo%transversaldeltah-width)   + &
+                            eprtemp                                       * eps0 *width             ) / &
+                               (compo%transversaldeltah)
+                sigma =   ((sig_adyacente(0)+sig_adyacente(1))/2.0_rkind         *(compo%transversaldeltah-width)   + &
+                            sigmatemp                                            *width             ) / &
+                               (compo%transversaldeltah)
             endif
 !!!!!ajusta primero los g1 y g2 de los bordes del espesor de la capa !ojo en sgbcdispersive no se utilizan las constantes kappa, beta, g3 en lo putos filo_placas. solo en el interior
             call g1g2(sgg%dt,epsilon,sigma,g1,g2)
@@ -1253,7 +1253,7 @@ subroutine calc_g1g2gm1gm2_compo(sgg,compo,eps00,mu00,SGBCDispersive)
             else
                 ib=sgg%Med(compo%jmed)%multiport(1)%numcapas !ultima capa
                 delta_entreEinterno_temp=compo%delta_entreEinterno(compo%depth-1)     
-            endif
+            endif   
             width     =sgg%med(compo%jmed)%Multiport(1)%width(ib)
             sigmatemp= sgg%Med(compo%jmed)%multiport(1)%sigma(ib)
             eprtemp=   sgg%Med(compo%jmed)%multiport(1)%epr(ib)  
@@ -1589,17 +1589,17 @@ subroutine depth(compo,sgg,jmed,SGBCFreq,SGBCresol,SGBCdepth)
                     compo%delta_entreEinterno(celdainicial:celdafinal)=width/anchocapa
                     continue
                 else  
-                celdainicial=celdafinal+1
-                celdafinal=celdainicial+anchocapa-1
-                if ((i==numcapas).and.ultimacapamas1) then
-!rellena el sobrante con la ultima capa si no es una division cabal
-                        anchocapa=anchocapa+1
-                        celdafinal=celdafinal+1
-                endif
-                compo%capa(celdainicial:celdafinal) = i
-                compo%delta_entreEinterno(celdainicial:celdafinal)=width/anchocapa
-                continue
-            endif
+	                celdainicial=celdafinal+1
+	                celdafinal=celdainicial+anchocapa-1
+	                if ((i==numcapas).and.ultimacapamas1) then
+	!rellena el sobrante con la ultima capa si no es una division cabal
+	                        anchocapa=anchocapa+1
+	                        celdafinal=celdafinal+1
+	                endif
+	                compo%capa(celdainicial:celdafinal) = i
+	                compo%delta_entreEinterno(celdainicial:celdafinal)=width/anchocapa
+	                continue
+	            endif
             endif
         end do
         if (precuenta==1) then

@@ -38,6 +38,10 @@ module HollandWires
    use wiresHolland_devia
 #endif
 
+
+#ifdef CompileWithThickWires  
+    use Thick_m
+#endif    
    !
    implicit none
    
@@ -54,7 +58,7 @@ module HollandWires
 !!!
    private
 
-   public InitWires,AdvanceWiresE,AdvanceWiresEcrank,StoreFieldsWires,DestroyWires, GetHwires,ReportWireJunctions,calc_wirehollandconstants
+   public InitWires,AdvanceWiresE,AdvanceWiresH,AdvanceWiresEcrank,StoreFieldsWires,DestroyWires, GetHwires,ReportWireJunctions,calc_wirehollandconstants
 
 
 
@@ -64,9 +68,10 @@ contains
    ! Subroutine to initialize the parameters
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
    subroutine InitWires(sgg,sggMiNo,sggMiEx,sggMiEy,sggMiEz,sggMiHx,sggMiHy,sggMiHz,layoutnumber,size,ThereAreWires,resume,makeholes,connectendings,isolategroupgroups,dontsplitnodes,stableradholland,fieldtotl, &
-   Ex,Ey,Ez,Idxe,Idye,Idze,Idxh,Idyh,Idzh, &
-   inductance_model,groundwires,strictOLD,TAPARRABOS,g2,wiresflavor,SINPML_fullsize,fullsize,wirecrank,dtcritico, &
-   eps00,mu00,simu_devia,stochastic,verbose,factorradius,factordelta)
+   Ex,Ey,Ez,Hx,Hy,Hz,Idxe,Idye,Idze,Idxh,Idyh,Idzh, &
+   inductance_model,wirethickness,groundwires,strictOLD,TAPARRABOS,g2,wiresflavor,SINPML_fullsize,fullsize,wirecrank,dtcritico, &
+   eps00,mu00,simu_devia,stochastic,verbose,factorradius,factordelta)     
+      integer, intent(IN) :: wirethickness
       logical :: simu_devia,stochastic,verbose
       REAL (KIND=RKIND), intent(in)           ::  eps00,mu00
       REAL (KIND=RKIND)           ::  eps000,mu000  !son dummies
@@ -84,11 +89,14 @@ contains
            Idxh(sgg%ALLOC(iEx)%XI : sgg%ALLOC(iEx)%XE), &
            Idyh(sgg%ALLOC(iEy)%YI : sgg%ALLOC(iEy)%YE), &
            Idzh(sgg%ALLOC(iEz)%ZI : sgg%ALLOC(iEz)%ZE)
-      
-      REAL (KIND=RKIND)   , intent(in), target      :: &
-           Ex(sgg%Alloc(iEx)%XI : sgg%Alloc(iEx)%XE,sgg%Alloc(iEx)%YI : sgg%Alloc(iEx)%YE,sgg%Alloc(iEx)%ZI : sgg%Alloc(iEx)%ZE),&
-           Ey(sgg%Alloc(iEy)%XI : sgg%Alloc(iEy)%XE,sgg%Alloc(iEy)%YI : sgg%Alloc(iEy)%YE,sgg%Alloc(iEy)%ZI : sgg%Alloc(iEy)%ZE),&
-           Ez(sgg%Alloc(iEz)%XI : sgg%Alloc(iEz)%XE,sgg%Alloc(iEz)%YI : sgg%Alloc(iEz)%YE,sgg%Alloc(iEz)%ZI : sgg%Alloc(iEz)%ZE)
+                                                           
+        REAL (KIND=RKIND)   , intent(in), target      :: &
+            Ex(sgg%Alloc(iEx)%XI : sgg%Alloc(iEx)%XE,sgg%Alloc(iEx)%YI : sgg%Alloc(iEx)%YE,sgg%Alloc(iEx)%ZI : sgg%Alloc(iEx)%ZE),&
+            Ey(sgg%Alloc(iEy)%XI : sgg%Alloc(iEy)%XE,sgg%Alloc(iEy)%YI : sgg%Alloc(iEy)%YE,sgg%Alloc(iEy)%ZI : sgg%Alloc(iEy)%ZE),&
+            Ez(sgg%Alloc(iEz)%XI : sgg%Alloc(iEz)%XE,sgg%Alloc(iEz)%YI : sgg%Alloc(iEz)%YE,sgg%Alloc(iEz)%ZI : sgg%Alloc(iEz)%ZE),&
+            Hx(sgg%alloc(iHx)%XI : sgg%alloc(iHx)%XE,sgg%alloc(iHx)%YI : sgg%alloc(iHx)%YE,sgg%alloc(iHx)%ZI : sgg%alloc(iHx)%ZE),&
+            Hy(sgg%alloc(iHy)%XI : sgg%alloc(iHy)%XE,sgg%alloc(iHy)%YI : sgg%alloc(iHy)%YE,sgg%alloc(iHy)%ZI : sgg%alloc(iHy)%ZE),&
+            Hz(sgg%alloc(iHz)%XI : sgg%alloc(iHz)%XE,sgg%alloc(iHz)%YI : sgg%alloc(iHz)%YE,sgg%alloc(iHz)%ZI : sgg%alloc(iHz)%ZE)
 
 
       integer (KIND=INTEGERSIZEOFMEDIAMATRICES), intent(in) :: &
@@ -142,6 +150,7 @@ contains
       REAL (KIND=RKIND_wires)           ::  df1,df3,df2,Ddf1,Ddf3,Ddf2,vf1,vf3,vf2,runit
       character (len=14)  ::  whoami
       character (len=3), dimension(1:3) :: DIR
+      
       !!!
 !
       eps0=eps00; mu0=mu00; !chapuz para convertir la variables de paso en globales
@@ -240,7 +249,7 @@ contains
          HWires%NullSegment%qplus_qminus         =0.0_RKIND_wires
          HWires%NullSegment%current_for_devia =0.0_RKIND_wires
          HWires%NullSegment%qplus_qminus_for_devia =0.0_RKIND_wires 
-         HWires%NullSegment%field_main2wire_for_devia         =0.0_RKIND_wires
+         HWires%NullSegment%Efield_main2wire_for_devia         =0.0_RKIND_wires
          HWires%NullSegment%inv_Lind_acum            =0.0_RKIND_wires
          HWires%NullSegment%Lind_acum            =0.0_RKIND_wires
          HWires%NullSegment%Lind            =0.0_RKIND_wires
@@ -1178,7 +1187,7 @@ contains
          do i1=1,HWires%NumCurrentSegments
             nullify (HWires%CurrentSegment(i1)%ChargePlus,HWires%CurrentSegment(i1)%ChargeMinus,  &
             HWires%CurrentSegment(i1)%TipoWire, &
-            HWires%CurrentSegment(i1)%field_main2wire,HWires%CurrentSegment(i1)%field_wire2main)
+            HWires%CurrentSegment(i1)%Efield_main2wire,HWires%CurrentSegment(i1)%Efield_wire2main)
             !
             HWires%CurrentSegment(i1)%R      = 0.0_RKIND_wires
             HWires%CurrentSegment(i1)%Resist      = 0.0_RKIND_wires
@@ -1295,9 +1304,9 @@ contains
                      select case (HWires%CurrentSegment(conta)%tipofield)
                      case (iEx)
                         ! default
-                        HWires%CurrentSegment(conta)%field_wire2main => Ex(i1,j1,k1) 
-                        HWires%CurrentSegment(conta)%field_main2wire => Ex(i1,j1,k1) 
-                        !
+                        HWires%CurrentSegment(conta)%Efield_wire2main => Ex(i1,j1,k1) 
+                        HWires%CurrentSegment(conta)%Efield_main2wire => Ex(i1,j1,k1) 
+!!al final se reapuntan los del thickness
                         HWires%CurrentSegment(conta)%delta=1.0_RKIND_wires / Idxe(i1)    !ojo esto de los delta habra que corregirlo  para uniones
                         HWires%CurrentSegment(conta)%deltaTransv1=1.0_RKIND_wires / Idyh(j1)
                         if (k1 <= sgg%ALLOC(iEz)%ZE) then !esta corriente en el limite de los alloc nunca se precisa
@@ -1316,8 +1325,8 @@ contains
                         !fin dama
                       case (iEy)
                         ! default
-                        HWires%CurrentSegment(conta)%field_wire2main => Ey(i1,j1,k1) 
-                        HWires%CurrentSegment(conta)%field_main2wire => Ey(i1,j1,k1) 
+                        HWires%CurrentSegment(conta)%Efield_wire2main => Ey(i1,j1,k1) 
+                        HWires%CurrentSegment(conta)%Efield_main2wire => Ey(i1,j1,k1)      
                         !
                         HWires%CurrentSegment(conta)%delta=1.0_RKIND_wires / Idye(j1)
                         if (k1 <= sgg%ALLOC(iEz)%ZE) then !esta corriente en el limite de los alloc nunca se precisa
@@ -1337,8 +1346,8 @@ contains
                         !fin dama
                       case (iEz)
                         ! default
-                        HWires%CurrentSegment(conta)%field_wire2main => Ez(i1,j1,k1) 
-                        HWires%CurrentSegment(conta)%field_main2wire => Ez(i1,j1,k1) 
+                        HWires%CurrentSegment(conta)%Efield_wire2main => Ez(i1,j1,k1) 
+                        HWires%CurrentSegment(conta)%Efield_main2wire => Ez(i1,j1,k1)  
                         !
                         HWires%CurrentSegment(conta)%delta=1.0_RKIND_wires / Idze(k1)
                         HWires%CurrentSegment(conta)%deltaTransv1=1.0_RKIND_wires / Idxh(i1)
@@ -1606,6 +1615,11 @@ contains
          desp=HWires%CurrentSegment(i1)%delta
          despT1=HWires%CurrentSegment(i1)%deltaTransv1
          despT2=HWires%CurrentSegment(i1)%deltaTransv2
+         ! Esto no debe ser preciso. la hipotesis es que vuelve promediando a una celda
+         if (wirethickness>1) then        !solo tiene impacto en la %cte2 de acople y en la fuente de carga para que sea de voltaje
+           despT1=wirethickness*despT1
+           despT2=wirethickness*despT2
+         endif
          r0=HWires%CurrentSegment(i1)%TipoWire%Radius   ! CON SU RADIO
          if ((r0 < 1e-9*desp)) then
             write(BUFF,'(a,e12.2e3)') 'wir0_WARNING: WIRE radius too small ',r0
@@ -1970,9 +1984,9 @@ contains
                       call WarnErrReport(buff,.true.)
                    endif
                 endif
-                if (isLossy) then !alguno extremo lossy con conductividad desconocida (multiports de sabrina)
+                if (isLossy) then !alguno extremo lossy con conductividad desconocida (multiports de ss)
                    if (abs(sigt) < 1.0e-19_RKIND_wires) then
-                      sigt=1e4 ! asignale una resistencia de contacto por defecto si es nula !tipico de los composites de Sabrina !habra algun dia que afinar esto
+                      sigt=1e4 ! asignale una resistencia de contacto por defecto si es nula !tipico de los composites de ss !habra algun dia que afinar esto
                       write (buff,*)  'wir1_WARNING:  A Lossy segment with unknown conductivity. Assuming a STANDARD value of 1e4 S/m ', i,j,k,sigt,ispec,isLossy
                       call WarnErrReport(buff)
                    endif
@@ -2202,7 +2216,7 @@ contains
          dummy%L_devia = givenautoin_devia
          dummy%givenautoin_devia =givenautoin_devia
               dummy%resist_devia =     resist_devia
-!!!ojooooo \E7\E7\E7\E7110517 acumulo en %lind toda la autoinduccion para que los calculos de capacidad la tengan en cuenta completa    
+!!!ojooooo  acumulo en %lind toda la autoinduccion para que los calculos de capacidad la tengan en cuenta completa    
          if (.not.fieldtotl) then
              dummy%Lind=dummy%Lind+givenautoin
 !
@@ -3714,17 +3728,25 @@ contains
       call resume_casuistics
     
       !!!!!!!!find crank-nicolson coefficients
-
+       
       if (wirecrank) then
           call init_wirecrank
       endif
 
 
-
-
 !!!!Se arregla lo del resuming permit scaling 221118 pero realmente no se por que. deberia ser lo mismo. Es redundante, pero....
        eps000=eps0;mu000=mu0; !niapa para evitar lo del rkind 020719
        call calc_wirehollandconstants(sgg,G2,fieldtotl,wiresflavor,mu000,eps000,simu_devia)
+       
+#ifdef CompileWithThickWires
+!!!init extra thick stuff !hay que hacerlo aqui al final con toda la info
+!!!ojo si permittivity scaling y si mpi.... habra que rehacer
+      do conta=1,HWires%NumCurrentSegments
+            if (wirethickness>1) &
+                call init_thick(sgg,eps000,mu000,Ex,Ey,Ez,Hx,Hy,Hz,Idxe,Idye,Idze,Idxh,Idyh,Idzh,HWires%CurrentSegment(conta),wirethickness)
+      end do
+#endif      
+      !!
       return
 
    contains
@@ -3828,8 +3850,8 @@ contains
                          HWires%CurrentSegment(conta)%cte5=0.0_RKIND_wires
                 endif
                     
-                HWires%CurrentSegment(conta)%field_wire2main => HWires%null_field  ! YES de-embedding
-                HWires%CurrentSegment(conta)%field_main2wire => HWires%null_field  ! YES de-embedding
+                HWires%CurrentSegment(conta)%Efield_wire2main => HWires%null_field  ! YES de-embedding
+                HWires%CurrentSegment(conta)%Efield_main2wire => HWires%null_field  ! YES de-embedding
             
 end subroutine deembed_segment
    
@@ -4144,7 +4166,7 @@ subroutine resume_casuistics
             HWires%CurrentSegment(i1)%qplus_qminus         =0.0_RKIND_wires
             HWires%CurrentSegment(i1)%current_for_devia =0.0_RKIND_wires
             HWires%CurrentSegment(i1)%qplus_qminus_for_devia =0.0_RKIND_wires 
-            HWires%CurrentSegment(i1)%field_main2wire_for_devia =0.0_RKIND_wires 
+            HWires%CurrentSegment(i1)%Efield_main2wire_for_devia =0.0_RKIND_wires 
          end do
 #ifdef CompileWithMPI
          !Initialize MPI counters (later written to disk)
@@ -4161,7 +4183,7 @@ subroutine resume_casuistics
             READ (14) HWires%CurrentSegment(i1)%qplus_qminus
             READ (14) HWires%CurrentSegment(i1)%current_for_devia
             READ (14) HWires%CurrentSegment(i1)%qplus_qminus_for_devia
-            READ (14) HWires%CurrentSegment(i1)%field_main2wire_for_devia
+            READ (14) HWires%CurrentSegment(i1)%Efield_main2wire_for_devia
          end do
 #ifdef CompileWithMPI
          READ (14) Hwires%NumNeededCurrentUpMPI,Hwires%NumNeededCurrentDownMPI
@@ -5087,7 +5109,10 @@ subroutine resume_casuistics
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
-   subroutine AdvanceWiresE(sgg,timeinstant, layoutnumber,wiresflavor,simu_devia,stochastic,experimentalVideal)
+   subroutine AdvanceWiresE(sgg,timeinstant, layoutnumber,wiresflavor,simu_devia,stochastic,experimentalVideal,wirethickness,eps0,mu0)
+                    
+      REAL (KIND=RKIND), intent(IN)           ::  eps0,mu0
+      integer, intent(IN) :: wirethickness
       logical :: simu_devia,stochastic,experimentalVideal
       type (SGGFDTDINFO), intent(IN)      ::  sgg
 
@@ -5281,8 +5306,16 @@ subroutine resume_casuistics
       do n=1,HWires%NumCurrentSegments
          Segmento => HWires%CurrentSegment(n)
          if (.not.Segmento%IsShielded) then
-!171216quitado            Segmento%field_wire2main_past = real(Segmento%field_wire2main,KIND=RKIND_wires)
-            Segmento%field_wire2main=real(Segmento%field_wire2main,KIND=RKIND_wires) - Segmento%cte5 * Segmento%Current
+!171216quitado            Segmento%Efield_wire2main_past = real(Segmento%Efield_wire2main,KIND=RKIND_wires)
+#ifdef CompileWithThickWires
+             if (wirethickness>1) then
+                call Advance_Thick_Efield_wire2main(sgg,segmento,eps0,mu0,wirethickness)
+             endif 
+#endif                      
+             if (wirethickness==1) then
+                segmento%efield_wire2main=real(segmento%efield_wire2main,kind=rkind_wires) &
+                    - segmento%cte5 * segmento%current
+             endif
          endif
       end do
 
@@ -5325,7 +5358,9 @@ subroutine resume_casuistics
                   Multiline%b1I(is1,is2)* Segmento2%CurrentPast            + &
                   Multiline%b2I(is1,is2)*(Segmento2%fractionPlus*Qplus-Segmento2%fractionMinus*QMinus)
                   if(.not.(Segmento%IsShielded.and.Segmento2%IsShielded)) then
-                     Segmento%Current = Segmento%Current + Multiline%b3I(is1,is2)*real(Segmento2%field_main2wire,KIND=RKIND_wires)
+                      !!!lo he descomentado a 300523 porque creo que estaba mal. ojo si algun dia se usa el flavor transition. pongo un stop para avisar
+                     Segmento%Current = Segmento%Current + Multiline%b3I(is1,is2)*real(Segmento2%Efield_main2wire,KIND=RKIND_wires)
+                     stop
                   end if
                end do
             end do
@@ -5357,7 +5392,15 @@ subroutine resume_casuistics
                Segmento%qplus_qminus=Segmento%fractionPlus*Qplus-Segmento%fractionMinus*QMinus
                Segmento%Current=Segmento%cte1*Segmento%Current - Segmento%cte3*(Segmento%qplus_qminus)
                if (.not.Segmento%IsShielded) then
-                    Segmento%Current = Segmento%Current + Segmento%cte2*real(Segmento%field_main2wire,KIND=RKIND_wires)
+#ifdef CompileWithThickWires
+                   if (wirethickness>1) then
+                       call Advance_Thick_Efield_main2wire(sgg,segmento,eps0,mu0,wirethickness)
+                   endif 
+#endif                            
+                   if (wirethickness==1) then
+                     Segmento%Current = Segmento%Current + &
+                         Segmento%cte2*real(Segmento%Efield_main2wire,KIND=RKIND_wires)
+                   endif           
                endif
             endif
          end do
@@ -5389,7 +5432,8 @@ subroutine resume_casuistics
                    !!!    endif
                    !!!else
                        !lo de siempre. aniado lo anterior para ver lo de las fuentes duras !C=Q/V-> C=c^-2/L-> Q=V*C=V/(L c^2)
-                       if (Segmento%Vsource%soft) then !fuentes blandas usuales 230323
+                       if (Segmento%Vsource%soft) then !fuentes blandas usuales 230323 
+                           !fuentes de voltaje. para que sean de carga hay que comentar el Lind
                            Segmento%Current = Segmento%Current + &
                                  Segmento%cte3 * Vincid  / (Segmento%Lind * InvMu(Segmento%indexmed)*InvEps(Segmento%indexmed))
                            !I use the capacitance to find the incident charge
@@ -5469,9 +5513,52 @@ subroutine resume_casuistics
    end subroutine AdvanceWiresE
 
 !!!
+!!!!!!!!!!!!!!!!
+!!!!!!
 
 
+   subroutine AdvanceWiresH(sgg,timeinstant, layoutnumber,wiresflavor,simu_devia,stochastic,experimentalVideal,wirethickness,eps0,mu0)
+                    
+      REAL (KIND=RKIND), intent(IN)           ::  eps0,mu0
+      integer, intent(IN) :: wirethickness
+      logical :: simu_devia,stochastic,experimentalVideal
+      type (SGGFDTDINFO), intent(IN)      ::  sgg
 
+      integer (kind=4)  :: n,jmed,layoutnumber,iw1,is1,is2
+
+      integer (kind=4), intent(IN)  ::  timeinstant
+      REAL (KIND=RKIND_wires)   ::  Iplus,IMinus,Qplus,QMinus,timei
+      REAL (KIND=RKIND_wires)   ::  Vincid,Iincid
+      type (CurrentSegments), pointer  ::  Segmento, Segmento2
+      type (ChargeNodes), pointer  ::  Nodo
+      type (TMultiline), pointer                      ::  Multiline
+      character(len=*), INTENT(in) :: wiresflavor
+      timei = sgg%tiempo(timeinstant) 
+   
+!
+
+      do n=1,HWires%NumCurrentSegments
+         Segmento => HWires%CurrentSegment(n)
+#ifdef CompileWithThickWires
+         if (wirethickness>1) then
+            call Advance_Thick_Hfield_wire2main(sgg,Segmento,eps0,mu0)
+         endif 
+#endif                      
+        if (wirethickness==1) then
+            continue
+        endif
+      end do
+
+      
+   return
+
+   end subroutine AdvanceWiresH
+
+!!!
+
+
+!!!!!!!
+!!!!!!!
 
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
    !Advancing charge and current routine
@@ -5539,8 +5626,8 @@ subroutine resume_casuistics
 
       do n=1,HWires%NumCurrentSegments
          Segmento => HWires%CurrentSegment(n)
-!171216quitado         Segmento%field_wire2main_past = Segmento%field_wire2main
-         Segmento%field_wire2main=real(Segmento%field_wire2main,KIND=RKIND_wires) - Segmento%cte5 * Segmento%Current
+!171216quitado         Segmento%Efield_wire2main_past = Segmento%Efield_wire2main
+         Segmento%Efield_wire2main=real(Segmento%Efield_wire2main,KIND=RKIND_wires) - Segmento%cte5 * Segmento%Current
       end do
 
 
@@ -5557,7 +5644,7 @@ subroutine resume_casuistics
          d(n)=        segmento%rightCU       * Segmento%Current
          d(n)= d(n) + segmento%rightCHminus  * Segmento%ChargeMinus%ChargePresent
          d(n)= d(n) + segmento%rightCHplus   * Segmento%ChargePlus%ChargePresent
-         d(n)= d(n) + real(Segmento%field_wire2main,KIND=RKIND_wires)
+         d(n)= d(n) + real(Segmento%Efield_wire2main,KIND=RKIND_wires)
          if (Segmento%ChargeMinus%NumCurrentMinus==1) d(n)= d(n) + segmento%rightCUminus  * Segmento%ChargeMinus%CurrentMinus_1%Current
          if (Segmento%ChargePlus%NumCurrentPlus==1  ) d(n)= d(n) + segmento%rightCUplus   * Segmento%ChargePlus%CurrentPlus_1%Current
          if (.not.simu_devia) then             
@@ -5704,7 +5791,7 @@ subroutine resume_casuistics
          write(14,err=634) HWires%CurrentSegment(i1)%qplus_qminus
          write(14,err=634) HWires%CurrentSegment(i1)%current_for_devia
          write(14,err=634) HWires%CurrentSegment(i1)%qplus_qminus_for_devia
-         write(14,err=634) HWires%CurrentSegment(i1)%field_main2wire_for_devia
+         write(14,err=634) HWires%CurrentSegment(i1)%Efield_main2wire_for_devia
       end do
       !
 #ifdef CompileWithMPI

@@ -122,7 +122,7 @@ contains
    subroutine launch_simulation(sgg,sggMtag,sggMiNo,sggMiEx,sggMiEy,sggMiEz,sggMiHx,sggMiHy,sggMiHz,cfl,SINPML_Fullsize,fullsize,nEntradaRoot,finaltimestep,resume,saveall,makeholes,  &
    connectendings,isolategroupgroups,dontsplitnodes,stableradholland,flushsecondsFields,mtlnberenger, &
    flushsecondsData,layoutnumber,size,createmap, &
-   inductance_model, inductance_order, maxCPUtime,time_desdelanzamiento,nresumeable2,resume_fromold,  &
+   inductance_model, inductance_order, wirethickness, maxCPUtime,time_desdelanzamiento,nresumeable2,resume_fromold,  &
    groundwires,noSlantedcrecepelo , SGBC,SGBCDispersive,mibc,attfactorc,attfactorw, &
    alphamaxpar,alphaOrden,kappamaxpar,mur_second,murafterpml,MEDIOEXTRA, &
    singlefilewrite,maxSourceValue,NOcompomur,ADE,conformalskin,&
@@ -185,6 +185,7 @@ contains
       TYPE (MedioExtra_t), INTENT (IN) :: MEDIOEXTRA
       logical :: mur_second,MurAfterPML,stableradholland,singlefilewrite,NF2FFDecim,SGBCcrank,fieldtotl,finishedwithsuccess,permitscaling,mtlnberenger,niapapostprocess,planewavecorr
       REAL (KIND=RKIND), intent (in)  ::  alphamaxpar,alphaOrden,kappamaxpar, mindistwires,SGBCFreq,SGBCresol
+      integer (kind=4), intent(in) :: wirethickness
       !!!!!!!
       integer (kind=4), intent(in) :: layoutnumber,size,mpidir
       integer (kind=4) :: precision
@@ -574,7 +575,7 @@ contains
          call WarnErrReport(buff)
          write(buff,*) 'connectendings=',connectendings,', isolategroupgroups=',isolategroupgroups,', dontsplitnodes=',dontsplitnodes
          call WarnErrReport(buff)
-         write(buff,*) 'stableradholland=',stableradholland,'mtlnberenger=',mtlnberenger,' inductance_model=',inductance_model,', inductance_order=',inductance_order,', groundwires=',groundwires,' ,fieldtotl=',fieldtotl,' noSlantedcrecepelo =',noSlantedcrecepelo 
+         write(buff,*) 'wirethickness ', wirethickness, 'stableradholland=',stableradholland,'mtlnberenger=',mtlnberenger,' inductance_model=',inductance_model,', inductance_order=',inductance_order,', groundwires=',groundwires,' ,fieldtotl=',fieldtotl,' noSlantedcrecepelo =',noSlantedcrecepelo 
          call WarnErrReport(buff)
          write(buff,*) 'SGBC=',SGBC,', mibc=',mibc,', attfactorc=',attfactorc,', attfactorw=',attfactorw
          call WarnErrReport(buff)
@@ -687,8 +688,8 @@ contains
 #endif
          write(dubuf,*) 'Init Holland Wires...';  call print11(layoutnumber,dubuf)
          call InitWires       (sgg,sggMiNo,sggMiEx,sggMiEy,sggMiEz,sggMiHx,sggMiHy,sggMiHz,layoutnumber,size,Thereare%Wires,resume,makeholes,connectendings,isolategroupgroups,dontsplitnodes,stableradholland,fieldtotl, &
-         Ex,Ey,Ez,Idxe,Idye,Idze,Idxh,Idyh,Idzh, &
-         inductance_model,groundwires,strictOLD,TAPARRABOS,g2,wiresflavor,SINPML_fullsize,fullsize,wirecrank,dtcritico,eps0,mu0,simu_devia,stochastic,verbose,factorradius,factordelta)
+         Ex,Ey,Ez,Hx,Hy,Hz,Idxe,Idye,Idze,Idxh,Idyh,Idzh, &
+         inductance_model,wirethickness,groundwires,strictOLD,TAPARRABOS,g2,wiresflavor,SINPML_fullsize,fullsize,wirecrank,dtcritico,eps0,mu0,simu_devia,stochastic,verbose,factorradius,factordelta)
       l_auxinput=thereare%Wires
       l_auxoutput=l_auxinput
 #ifdef CompileWithMPI
@@ -1247,7 +1248,7 @@ contains
 !!!!!!!#endif
          !call get_secnds( time_ElecInit)
          !!
-         call Advance_Ex          (Ex, Hy, Hz, Idyh, Idzh, sggMiEx, b,g1,g2)
+         call Advance_Ex          (Ex, Hy, Hz, Idyh, Idzh, sggMiEx, b,g1,g2)    
          call Advance_Ey          (Ey, Hz, Hx, Idzh, Idxh, sggMiEy, b,g1,g2)
          call Advance_Ez          (Ez, Hx, Hy, Idxh, Idyh, sggMiEz, b,g1,g2)
 
@@ -1301,7 +1302,7 @@ contains
                if (wirecrank) then
                   call AdvanceWiresEcrank(sgg,n, layoutnumber,wiresflavor,simu_devia,stochastic)
                else
-                  call AdvanceWiresE(sgg,n, layoutnumber,wiresflavor,simu_devia,stochastic,experimentalVideal)
+                  call AdvanceWiresE(sgg,n, layoutnumber,wiresflavor,simu_devia,stochastic,experimentalVideal,wirethickness,eps0,mu0)
                endif
             endif
          endif
@@ -1439,9 +1440,9 @@ contains
          !!
 
 !         if (sgg%thereareMagneticMedia) then
-            call Advance_Hx           (Hx, Ey, Ez, Idye, Idze, sggMiHx, b,gm1,gm2)
-            call Advance_Hy           (Hy, Ez, Ex, Idze, Idxe, sggMiHy, b,gm1,gm2)
-            call Advance_Hz           (Hz, Ex, Ey, Idxe, Idye, sggMiHz, b,gm1,gm2)
+            call Advance_Hx           (Hx, Ey, Ez, Idye, Idze, sggMiHx, b,gm1,gm2)        
+            call Advance_Hy           (Hy, Ez, Ex, Idze, Idxe, sggMiHy, b,gm1,gm2)     
+            call Advance_Hz           (Hz, Ex, Ey, Idxe, Idye, sggMiHz, b,gm1,gm2)  
          !else
          !   call FreeSpace_Advance_Hx(Hx, Ey, Ez, Idye, Idze,           b,gm1,gm2)
          !   call FreeSpace_Advance_Hy(Hy, Ez, Ex, Idze, Idxe,           b,gm1,gm2)
@@ -1553,7 +1554,20 @@ contains
 #endif
 
          !Must be called here again at the end to enforce any of the previous changes
-         !NO Wire advancing in the H-field part
+         !Posible Wire for thickwires advancing in the H-field part    
+#ifdef CompileWithWires
+         !Wires (only updated here. No need to update in the H-field part)
+         if ((trim(adjustl(wiresflavor))=='holland') .or. &
+             (trim(adjustl(wiresflavor))=='transition')) then
+            IF (Thereare%Wires) then
+               if (wirecrank) then
+                  continue
+               else
+                  call AdvanceWiresH(sgg,n, layoutnumber,wiresflavor,simu_devia,stochastic,experimentalVideal,wirethickness,eps0,mu0)
+               endif
+            endif
+         endif
+#endif
          !PMC BORDERS  H-field advancing (duplicates the H-fields at the interface changing their sign)
          If (Thereare%PMCBorders)     call MinusCloneMagneticPMC(sgg%alloc,sgg%Border,Hx,Hy,Hz,sgg%sweep,layoutnumber,size)
          !Periodic BORDERS  H-field mirroring
@@ -2092,7 +2106,7 @@ contains
          integer(kind = 4)  ::  i, j, k
          integer(kind = INTEGERSIZEOFMEDIAMATRICES)  ::  medio
 #ifdef CompileWithOpenMP
-!$OMP  PARALLEL DO DEFAULT(SHARED) collapse (2) private (i,j,k,medio,Idzhk,Idyhj)
+!$OMP  PARALLEL DO DEFAULT(SHARED) collapse (2) private (i,j,k,medio,Idzhk,Idyhj) 
 #endif
          Do k=1,b%sweepEx%NZ
             Do j=1,b%sweepEx%NY
@@ -2105,7 +2119,7 @@ contains
                End do
             End do
          End do
-#ifdef CompileWithOpenMP
+#ifdef CompileWithOpenMP   
 !$OMP  END PARALLEL DO
 #endif
          return
@@ -2130,7 +2144,7 @@ contains
          integer(kind = 4)  ::  i, j, k
          integer(kind = INTEGERSIZEOFMEDIAMATRICES)  ::  medio
 #ifdef CompileWithOpenMP
-!$OMP  PARALLEL DO DEFAULT(SHARED) collapse (2) private (i,j,k,medio,Idzhk)
+!$OMP  PARALLEL DO DEFAULT(SHARED) collapse (2) private (i,j,k,medio,Idzhk)  
 #endif
          Do k=1,b%sweepEy%NZ
             Do j=1,b%sweepEy%NY
@@ -2171,7 +2185,7 @@ contains
          integer(kind = 4)  ::  i, j, k
          integer(kind = INTEGERSIZEOFMEDIAMATRICES)  ::  medio
 #ifdef CompileWithOpenMP
-!$OMP  PARALLEL DO  DEFAULT(SHARED) collapse (2) private (i,j,k,medio,Idyhj)
+!$OMP  PARALLEL DO  DEFAULT(SHARED) collapse (2) private (i,j,k,medio,Idyhj)    
 #endif
          Do k=1,b%sweepEz%NZ
             Do j=1,b%sweepEz%NY
@@ -2212,12 +2226,12 @@ contains
          integer(kind = 4)  ::  i, j, k
          integer(kind = INTEGERSIZEOFMEDIAMATRICES)  ::  medio
 #ifdef CompileWithOpenMP
-!$OMP  PARALLEL DO  DEFAULT(SHARED) collapse (2) private (i,j,k,medio,Idzek,Idyej)
+!$OMP  PARALLEL DO  DEFAULT(SHARED) collapse (2) private (i,j,k,medio,Idzek,Idyej)     
 #endif
          Do k=1,b%sweepHx%NZ
             Do j=1,b%sweepHx%NY
                Do i=1,b%sweepHx%NX
-            Idzek=Idze(k)
+               Idzek=Idze(k)
                Idyej=Idye(j)
                   medio =sggMiHx(i,j,k)
                   Hx(i,j,k)=GM1(MEDIO)*Hx(i,j,k)+GM2(MEDIO)*((Ey(i,j,k+1)-Ey(i,j,k))*Idzek-(Ez(i,j+1,k)-Ez(i,j,k))*Idyej)
@@ -2249,7 +2263,7 @@ contains
          integer(kind = 4)  ::  i, j, k
          integer(kind = INTEGERSIZEOFMEDIAMATRICES)  ::  medio
 #ifdef CompileWithOpenMP
-!$OMP  PARALLEL DO DEFAULT(SHARED) collapse (2) private (i,j,k,medio,Idzek)
+!$OMP  PARALLEL DO DEFAULT(SHARED) collapse (2) private (i,j,k,medio,Idzek)     
 #endif
          Do k=1,b%sweepHy%NZ
             Do j=1,b%sweepHy%NY
@@ -2286,7 +2300,7 @@ contains
          integer(kind = 4)  ::  i, j, k
          integer(kind = INTEGERSIZEOFMEDIAMATRICES)  ::  medio
 #ifdef CompileWithOpenMP
-!$OMP  PARALLEL DO DEFAULT(SHARED) collapse (2) private (i,j,k,medio,Idyej)
+!$OMP  PARALLEL DO DEFAULT(SHARED) collapse (2) private (i,j,k,medio,Idyej)  
 #endif
          Do k=1,b%sweepHz%NZ
             Do j=1,b%sweepHz%NY

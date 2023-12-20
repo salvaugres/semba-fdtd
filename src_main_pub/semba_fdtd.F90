@@ -92,7 +92,7 @@ PROGRAM SEMBA_FDTD_launcher
    integer (KIND=INTEGERSIZEOFMEDIAMATRICES) , allocatable , dimension(:,:,:) ::  sggMiNo,sggMiEx,sggMiEy,sggMiEz,sggMiHx,sggMiHy,sggMiHz
    character (len=5)  :: NFDEEXTENSION='.nfde',CONFEXTENSION='.conf',CMSHEXTENSION='.cmsh'
    CHARACTER (LEN=20) :: inductance_model,wiresflavor
-   integer (kind=4)   :: inductance_order
+   integer (kind=4)   :: inductance_order,wirethickness
    LOGICAL :: makeholes,connectendings, isolategroupgroups, dontsplitnodes,resume_fromold, pausar, l_aux,skindepthpre,groundwires,noSlantedcrecepelo ,mibc,ade,SGBC,SGBCDispersive,SGBCcrank, &
    conformalskin,CLIPREGION,boundwireradius,vtkindex,createh5bin,wirecrank,ignoreerrors,fatalerror,fatalerror_aux,dummylog,fatalerrornfde2sgg,fieldtotl,finishedwithsuccess,ignoresamplingerrors,l_auxinput, l_auxoutput, &
        ThereArethinslots
@@ -352,7 +352,8 @@ PROGRAM SEMBA_FDTD_launcher
       OPEN (9, file='launch', FORM='formatted',action='read')
       READ (9, '(a)') chain3
       chain3=trim(adjustl(chain3))
-      CLOSE (9)
+      CLOSE (9)               
+       print *,'----> launch input file '//trim(adjustl(chain3))
    endif
 #ifdef CompileWithMPI
    CALL MPI_Barrier (SUBCOMM_MPI, ierr)
@@ -850,7 +851,7 @@ PROGRAM SEMBA_FDTD_launcher
       if ((finaltimestep >= 0).and.(.not.skindepthpre)) then
          CALL launch_simulation (sgg,sggMtag,sggMiNo,sggMiEx,sggMiEy,sggMiEz,sggMiHx,sggMiHy,sggMiHz, cfl,SINPML_fullsize,fullsize, nEntradaRoot, finaltimestep, resume, saveall, &
          & makeholes,connectendings, isolategroupgroups,dontsplitnodes,stableradholland, flushsecondsFields,mtlnberenger, &
-         & flushsecondsData, layoutnumber, size, createmap, inductance_model, inductance_order, maxCPUtime,time_desdelanzamiento, &
+         & flushsecondsData, layoutnumber, size, createmap, inductance_model, inductance_order, wirethickness, maxCPUtime,time_desdelanzamiento, &
          & nresumeable2, resume_fromold,groundwires,noSlantedcrecepelo,SGBC,SGBCDispersive,mibc,attfactorc,attfactorw,&
          & alphamaxpar,alphaOrden,kappamaxpar,mur_second,MurAfterPML,MEDIOEXTRA,singlefilewrite,maxSourceValue,NOcompomur,ADE, &
          & conformalskin,strictOLD,TAPARRABOS,wiresflavor,mindistwires,facesNF2FF,NF2FFDECIM,vtkindex,createh5bin,wirecrank,opcionestotales,SGBCFreq,SGBCresol,SGBCcrank,SGBCDepth,fatalerror,fieldtotl,finishedwithsuccess,permitscaling, &
@@ -1855,7 +1856,19 @@ contains
           !!    opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))
           case ('-forceresampled') !a menos que se pida explicitamente, no se resamplea 120123
               forceresampled=.true.
-              opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))
+              opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))   
+              
+          CASE ('-wirethickness')
+            i = i + 1
+            CALL getcommandargument (chaininput, i, f, length,  statuse)
+            ! Converts the characters to real
+            READ (f,*, ERR=7416) wirethickness
+            GO TO 8416
+7416        CALL stoponerror (layoutnumber, size, 'Invalid wirethickness ',.true.); statuse=-1; !return
+8416        IF (SGBCdepth < -1 ) THEN
+               CALL stoponerror (layoutnumber, size, 'Invalid wirethickness',.true.); statuse=-1; !return
+            END IF
+            opcionespararesumeo = trim (adjustl(opcionespararesumeo)) // ' ' // trim (adjustl(chain))// ' ' // trim (adjustl(f))              
           CASE ('-wiresflavor')
             i = i + 1
             CALL getcommandargument (chaininput, i, f, length,  statuse)
@@ -1899,11 +1912,29 @@ contains
                   (trim(adjustl(wiresflavor)) == 'slanted').xor.  &
                   (trim(adjustl(wiresflavor)) =='semistructured')) )  THEN
                CALL stoponerror (layoutnumber, size, 'Invalid wires flavor->'//trim(adjustl(wiresflavor)),.true.); statuse=-1; !return
-            END IF
-#ifndef CompileWithWires
+            END IF    
+#ifndef CompileWithThickWires
             select case (trim(adjustl(wiresflavor)))
             case ('holland','transition')
-                CALL stoponerror (layoutnumber, size, 'Holland wire flavor not available in this compilation',.true.); statuse=-1; !return
+                if (wirethickness/=1) then
+                    CALL stoponerror (layoutnumber, size, 'Holland wire flavor not available in this compilation',.true.); statuse=-1; !return
+                endif
+            end select   
+#endif    
+#ifndef CompileWithThickWires
+            select case (trim(adjustl(wiresflavor)))
+            case ('holland')
+                if (wirethickness/=1) then
+                    CALL stoponerror (layoutnumber, size, 'Holland wire flavor thickness>1 requires recompiling',.true.); statuse=-1; !return
+                endif
+            end select   
+#endif
+#ifdef CompileWithWires
+            select case (trim(adjustl(wiresflavor)))
+            case ('berenger','slanted','experimental','transition')   
+                if (wirethickness/=1) then
+                    CALL stoponerror (layoutnumber, size, 'Thickness>1 unsupported for this wireflavor',.true.); statuse=-1; !return
+                endif    
             end select   
 #endif
 #ifndef CompileWithBerengerWires
@@ -3287,6 +3318,7 @@ end subroutine cargaNFDE
       inductance_model = 'boutayeb'
       inductance_order = 8
       wiresflavor='holland'
+      wirethickness=1
       mindistwires = 0.5_RKIND
       !
       MurAfterPML = .false.
