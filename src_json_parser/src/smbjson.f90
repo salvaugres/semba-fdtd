@@ -15,6 +15,8 @@ module smbjson
 
    implicit none
 
+   character (len=*), parameter :: SMBJSON_NO_TAG = "X"
+
    type, public :: parser_t
       private
       character (len=:), allocatable :: filename
@@ -844,7 +846,11 @@ contains
                res%twc(i)%i = linels(i)%cell(1)
                res%twc(i)%j = linels(i)%cell(2)
                res%twc(i)%k = linels(i)%cell(3)
-               res%twc(i)%tag = linels(i)%tag
+               if (len_trim( adjustl( linels(i)%tag ) ) == 0) then
+                  res%twc(i)%tag = SMBJSON_NO_TAG
+               else 
+                  res%twc(i)%tag = linels(i)%tag
+               end if
             end do
          end block
       end function

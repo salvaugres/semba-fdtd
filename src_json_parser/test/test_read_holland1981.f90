@@ -113,6 +113,8 @@ contains
       expected%tWires%tw(1)%twc(1:10)%i = 12
       expected%tWires%tw(1)%twc(1:10)%j = 12
       expected%tWires%tw(1)%twc(1:10)%k = [(i, i=8, 17)]
+      
+      expected%tWires%tw(1)%twc(1:10)%tag = SMBJSON_NO_TAG
       expected%tWires%tw(1)%twc(1)%tag = "1" 
       expected%tWires%tw(1)%twc(6)%tag = "2"
       expected%tWires%tw(1)%twc(10)%tag = "3"
