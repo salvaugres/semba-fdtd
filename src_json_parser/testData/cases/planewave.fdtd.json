@@ -7,6 +7,10 @@
         "numberOfSteps": 2000
     },
     
+    "boundary": {
+        "all": {"type": "mur"}
+    },
+
     "mesh": {
         "grid": {
             "numberOfCells": [10, 10, 10],
@@ -20,10 +24,6 @@
             {"id": 2, "type": "cellRegion", "intervals": [ [ [1, 1, 1], [9, 9, 9] ] ]}
         ]
 
-    },
-
-    "boundary": {
-        "all": {"type": "mur"}
     },
 
     "sources": [

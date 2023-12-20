@@ -27,13 +27,31 @@ The following are examples of different cases:
  1. An empty space illuminated by a plane wave: [planewave.fdtd.json](testData/cases/planewave.fdtd.json). The field at a point close to the center is recorded.
  2. A thin straight wire illuminated by a plane wave: [holland1981.fdtd.json](testData/cases/holland1981.fdtd.json) which aims to replicate the case described in https://doi.org/10.1109/TEMC.1981.303899. It contains a probe which records the wire at the middle of the wire.
  3. A current injection which mimics a lightning strike on a square metallic surface: [currentinjection.fdtd.json](testData/cases/currentInjection.fdtd.json). It contains two bulk current probes to measure the current at the entry and exit lines.
- 4. A shielded pair of wires feeded by a voltage source in one of its ends: [shieldedPair.fdtd.json](testData/cases/shieldedPair.fdtd.json). The interior of the shield uses a multiconductor transmision line (MTLN) algortihm to evolve the common mode currents which are induced in the shield and propagated inside using a transfer impedance. 
- 5. 
+ 4. A shielded pair of wires feeded by a voltage source in one of its ends: [shieldedPair.fdtd.json](testData/cases/shieldedPair.fdtd.json). The interior of the shield uses a multiconductor transmision line (MTL) algortihm to evolve the common mode currents which are induced in the shield and propagated inside using a transfer impedance. 
+ 5. A multiconductor transmission line network (MTLN) case which includes three cable bundles with a bifurcation: [mtln.fdtd.json](testData/cases/mtln.fdtd.json). 
  
 ## Entries description
-### `general`
-This entry must contain the following items
-### `boundary`
+All units are assumed to be SI-MKS. 
+
+Angle brackets `<entry>` indicate that that entry is mandatory.
+Square brackets `[entry]` are optional entries.
+
+### `<general>`
+This entry must be always present and contains general information regarding the solver. It must contain:
+
+- `<timeStep>`: A real number indicating the time step used by the solver, in seconds. 
+- `<numberOfSteps>`: An integer for the number of steps which the solver will iterate.
+
+Example:
+
+    "general": {
+        "timeStep": 10e-12,
+        "numberOfSteps": 2000
+    }
+    
+### `[boundary]`
+This specifies the boundaries which will be used to terminate the computational domain. If 
+
 ### `mesh`
 Coordinates in mesh are considered to be relative to the cells, starting in (0,0,0).
 Elements are geometrical entities which reference the coordinates or specify cells in the mesh.
