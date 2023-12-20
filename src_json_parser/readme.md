@@ -20,7 +20,7 @@ This project uses the ctest tool available within cmake. Once build, you can run
     ctest --test-dir <BUILD_DIR>/src_json_parser/test/ --output-on-failure
 
 
-# The FDTD JSON format.
+# The FDTD JSON format
 This format aims to provide a way to input data for a FDTD simulation. Being in JSON, it can be easily navigated with most text editors, such as Visual Studio Code or Notepad++. There are also multiple tools to read and write them.
 
 The following are examples of different cases:
@@ -50,9 +50,30 @@ Example:
     }
     
 ### `[boundary]`
-This specifies the boundaries which will be used to terminate the computational domain. If 
+This specifies the boundaries which will be used to terminate the computational domain. 
+If `boundary` is not present it defaults to a `mur` absorbing condition in all bounds.
+The entries of `boundary` are *boundary objects* labelled with the place where they will be applied: `all` means all boundaries and `xLower`, `xUpper`, `yLower`, `yUpper`, `zLower` `zUpper`. 
+*Boundary objects* are defined by their `<type>` which can be:
+ * `pec` for perfectly electric conducting termination.
+ * `pmc` for perfectly magnetic conducting termination.
+ * `mur` for Mur's first order absorbing boundary condition.
+ * `pml` for perfectly matched layer termination. If this `type` is selected, the *boundary object* must also contain:
+    - `<layers>`: with an integer indicating the number of pml layers which will be used. TODO REVIEW
+    - `<order>`: TODO REVIEW
+    - `<reflection>`: TODO REVIEW
 
-### `mesh`
+Example: 
+
+    "boundary": {
+        "all": {
+            "type": "pml",
+            "layers": 6, 
+            "order": 2.0,
+            "reflection": 0.001
+        }
+    }
+
+### `<mesh>`
 Coordinates in mesh are considered to be relative to the cells, starting in (0,0,0).
 Elements are geometrical entities which reference the coordinates or specify cells in the mesh.
 
