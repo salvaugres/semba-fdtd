@@ -114,7 +114,7 @@ An interval allows specifying regions within the grid which can be a point, an o
 
   In both cases the line would have a size of $|b_x - a_x|$.  
 
-+ An **oriented surface** is defined when one initial and ending value is the same and the other two are different, e.g. $a_x = b_x$, $a_y \neq b_y$, $a_z \neq b_z$. In this case there are four possibilities:
++ An *oriented surface* is defined when one initial and ending value is the same and the other two are different, e.g. $a_x = b_x$, $a_y \neq b_y$, $a_z \neq b_z$. In this case there are four possibilities:
   
   - when the $(b_y - a_y) > 0$ and $(b_z - a_z) > 0$, the surface normal is assumed to be oriented towards $+\hat{x}$.
   - when the $(b_y - a_y) < 0$ and $(b_z - a_z) < 0$, the surface normal is assumed to be oriented towards $-\hat{x}$.
@@ -122,9 +122,7 @@ An interval allows specifying regions within the grid which can be a point, an o
 
   In all cases the size of the surface is 
 
-+ A **volume** is defined when each number in $\mathbf{a}$ is strictly smaller than the numbers in $\mathbf{b}$ for each direction, i.e. $a_x < b_x$, $a_y < b_y$, and $a_z < b_z$. The rest of the cases in which all numbers are different but not necessarily smaller are left as undefined.
-
-+ If one direction increases and other decreases, is undefined behavior.
++ A *volume* is defined when each number in $\mathbf{a}$ is strictly smaller than the numbers in $\mathbf{b}$ for each direction, i.e. $a_x < b_x$, $a_y < b_y$, and $a_z < b_z$. The rest of the cases in which all numbers are different but not necessarily smaller are left as undefined.
 
 TODO EXAMPLES IMAGE
 
