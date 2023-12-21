@@ -14,6 +14,7 @@ module utils_mod
 
 contains
 
+
    elemental function add_entries(a,b) result(res)
       type(entry), intent(in) :: a,b
       type(entry) :: res
@@ -25,6 +26,18 @@ contains
       real :: res
       res = sum(a%x)
    end function
+
+   function sumQComponents(a) result(res)
+      real, dimension(:,:,:,:), intent(in) :: a
+      integer :: i
+      real, allocatable, dimension(:,:,:) :: res
+      allocate(res(size(a,1), size(a,2), size(a,3)))
+      res = 0.0
+      do i = 1, size(a,4)
+          res(:,:,:) = res(:,:,:) + a(:,:,:,i)
+      end do  
+  end function
+
 
    function entryMatmul(a,b) result(res)
       type(entry), dimension(:,:,:), intent(in) :: a

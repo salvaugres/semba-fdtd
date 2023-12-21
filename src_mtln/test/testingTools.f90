@@ -22,6 +22,22 @@ module testingTools_mod
             
     contains
             
+    function dotmatrixmul(a,b) result(res)
+        real, dimension(:,:,:), intent(in) :: a
+        real, dimension(:,:), intent(in) :: b
+        real, dimension(:), allocatable :: res
+        integer :: i,j
+        
+  
+        allocate(res(size(a,1)))
+        do i = 1, size(a,1)
+           res(i) = 0.0
+           do j = 1, size(a,2)
+              res(i) = res(i) + dot_product(a(i,j,:),b(j,:))
+           end do
+        end do
+     end function
+  
     elemental function add_entries(a,b) result(res)
         type(entry), intent(in) :: a,b
         type(entry) :: res
@@ -45,6 +61,29 @@ module testingTools_mod
         type(entry), intent(in) :: a
         real :: res
         res = sum(a%x)
+    end function
+
+    function sumAlongAxis(a) result(res)
+        real, dimension(:,:,:,:), intent(in) :: a
+        integer :: i
+        real, allocatable, dimension(:,:,:) :: res
+        allocate(res(size(a,2), size(a,3), size(a,4)))
+        do i = 1, size(a,1)
+            res(:,:,:) = res(:,:,:) + a(i,:,:,:)
+        end do  
+
+    end function
+
+    function sumAlongLastAxis(a) result(res)
+        real, dimension(:,:,:,:), intent(in) :: a
+        integer :: i
+        real, allocatable, dimension(:,:,:) :: res
+        allocate(res(size(a,1), size(a,2), size(a,3)))
+        res = 0.0
+        do i = 1, size(a,4)
+            res(:,:,:) = res(:,:,:) + a(:,:,:,i)
+        end do  
+
     end function
 
 

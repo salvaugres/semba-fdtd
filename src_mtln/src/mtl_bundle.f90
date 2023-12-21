@@ -73,7 +73,7 @@ contains
         allocate(res%v_term(res%number_of_divisions + 1,res%number_of_conductors,res%number_of_conductors))
         allocate(res%i_diff(res%number_of_divisions + 1,res%number_of_conductors,res%number_of_conductors))
     
-        res%transfer_impedance = transfer_impedance_t(res%number_of_conductors, res%u, res%dt)
+        res%transfer_impedance = transfer_impedance_t(res%number_of_conductors, 0, res%u, res%dt)
 
 
     end function

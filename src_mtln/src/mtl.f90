@@ -61,7 +61,7 @@ contains
         
         res%dt = res%getMaxTimeStep()
         
-        res%connectors = connector_t(res%number_of_conductors, res%u, res%dt)
+        res%connectors = connector_t(res%number_of_conductors, 0, res%u, res%dt)
 
     end function
       
