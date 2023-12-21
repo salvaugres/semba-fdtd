@@ -796,7 +796,7 @@ MODULE NFDETypes
       TYPE (t_linea), DIMENSION (:), POINTER :: lineas
       logical :: thereare_stoch
    END TYPE t_NFDE_FILE
-   !--->
+!--->
 
 END MODULE NFDETypes
 

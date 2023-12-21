@@ -1,0 +1,8 @@
+[submodule "src_json_parser/json-fortran"]
+	path = src_json_parser/external/json-fortran
+	url = git@github.com:lmdiazangulo/json-fortran.git
+	ignore = dirty
+[submodule "src_json_parser/external/fhash"]
+	path = src_json_parser/external/fhash
+	url = git@github.com:opensemba/fhash.git
+	ignore = dirty
