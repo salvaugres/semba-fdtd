@@ -158,7 +158,7 @@ This entry is an array which stores all the electromagnetic sources of the simul
  + `<magnitudeFile>` contains a relative path to the plain text file which will be used as a magnitude for this source. This file must contain two columns, with the first stating the time and the second one the magnitude value; an example magnitude file can be found at [gauss.exc](testData/cases/gauss.exc).
  + `<type>` must be a label of the ones defined below. Some examples of source `type` are `planewave` or `nodalSource`.
  + `<elementIds>` is an array of integers which must exist within the `mesh` `elements` list. These indicate the geometrical place where this source is located. The `type` and number of the allowed elements depends on the source `type` and can be check in the descriptions of each source object, below.
-
+ 
 ## `planewave`
 The `planewave` object represents an electromagnetic plane wave front which propagates towards a $\hat{k}$ direction with an electric field pointing towards $\hat{E}$. The `elementIds` in planewaves must define a single `cellRegion` element formed by a single cuboid region.
 Besides the common entries in [sources](#sources), it must also contain the following ones:
