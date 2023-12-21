@@ -77,7 +77,7 @@ Example:
     }
 
 ### `<mesh>`
-All the geometrical information of the case is exclusively stored by the `mesh` object. 
+All the geometrical information of the simulation case is exclusively stored by the `mesh` object. 
 
 #### `<grid>`
 The `grid` object represents a collection of rectangular cuboids or *cells* which tessellate the space to form a structured mesh. This object is defined with the following entries:
@@ -97,17 +97,36 @@ The `elements` entry is an array of objects, each of which represents a geometri
  * `<type>` which can be one of the following: 
    - `node`, representing a point in space. Elements with this type include a `<coordinateIds>` entry which is an array of a single integer with the id of a coordinate and which must exist in the within the `mesh` `coordinates` array.
    - `polyline`, representing an oriented collection of segments. It must contain a list `<coordinateIds>` with at least two coordinates.
-   - `junction`, representing a topological connection between different entities. TODO REVIEW ?AND REMOVE?.
    - `cellRegion`, containing a list of  one or more `<intervals>` defined following the [interval convention](#####interval-convention). 
 
 ##### `interval` convention
-An `interval` is formed by two triplets $\mathbf{a} = \{a_x, a_y, a_z\}$ and $\mathbf{b} = \{b_x, b_y, b_z\}$ of integer numbers which define three closed-open intervals $[a_x, b_x)$, $[a_y, b_y)$, and $[a_z, b_z)$. 
+An `interval` is formed by a pair of two arrays, each formed by triplets of integer numbers $\mathbf{a} = \{a_x, a_y, a_z\}$ and $\mathbf{b} = \{b_x, b_y, b_z\}$ which define a region formed by three closed-open intervals $[a_x, b_x) \times [a_y, b_y) \times [a_z, b_z)$. 
+Each integer number indicates a Cartesian plane in the `grid` assuming that they are numbered from $0$ to $N$, with $N$ being the number of cells in that direction. 
+The size of the interval is defined as $|a_x - b_x| \times |a_y - b_y| \times |a_z - b_z|$ therefore must be positive or zero.
+An interval allows specifying regions within the grid which can be a point, an oriented line, an oriented surface, or a volume:
 
- hich allow to specify points within the grid (pixels), oriented lines (linels), oriented surfaces 
-If one or more directions increase, all of them must increase.
-If one direction increases and other decreases, is undefined behavior.
++ A **point** is defined when $\mathbf{a} = \mathbf{b}$. In this case, the interval specifies an intersection three grid planes. Points have no orientation.
 
-TODO IMAGE
++ An **oriented line** is defined when the interval has the same initial and ending values in all directions except one, for instance $a_x \neq b_x$. In this case there are two possibilities:
+
+  - when $(b_x - a_x) > 0$, the line is oriented towards $+\hat{x}$.
+  - when $(b_x - a_x) < 0$, the line is oriented towards $-\hat{x}$. 
+
+  In both cases the line would have a size of $|b_x - a_x|$.  
+
++ An **oriented surface** is defined when one initial and ending value is the same and the other two are different, e.g. $a_x = b_x$, $a_y \neq b_y$, $a_z \neq b_z$. In this case there are four possibilities:
+  
+  - when the $(b_y - a_y) > 0$ and $(b_z - a_z) > 0$, the surface normal is assumed to be oriented towards $+\hat{x}$.
+  - when the $(b_y - a_y) < 0$ and $(b_z - a_z) < 0$, the surface normal is assumed to be oriented towards $-\hat{x}$.
+  - The other two cases in which there is a mix of positive and negative signs are undefined.
+
+  In all cases the size of the surface is 
+
++ A **volume** is defined when the initial are strictly smaller than the ending ones for all directions, i.e. $a_x < b_x$, $a_y < b_y$, and $a_z < b_z$. The rest of the cases are left as undefined.
+
++ If one direction increases and other decreases, is undefined behavior.
+
+TODO EXAMPLES IMAGE
 
 ## `[materials]`
 This entry is an array formed by all the physical models contained in the simulation. Each object within the array must contain:
