@@ -220,7 +220,7 @@ contains
       type( bounds_t), intent( IN)  ::  b
       integer( kind = 4), intent( IN)  ::  layoutnumber, size
       !--->
-      character( len = *), intent( IN)  ::  nresumeable2, nEntradaRoot
+      character( LEN=*), intent( IN)  ::  nresumeable2, nEntradaRoot
       type( logic_control), intent( IN)  ::  thereare
       integer( kind=4), intent( IN)  ::  fin
       logical :: existe

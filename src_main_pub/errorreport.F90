@@ -303,7 +303,7 @@ contains
 #ifdef CompileWithNodalSources
          continue
 #else
-         buff=trim(adjustl(whoami))// 'Nodal sources unsupported. Recompile'
+         buff=trim(adjustl(whoami))//' Nodal sources unsupported. Recompile'
          call stoponerror(layoutnumber,size,buff)
 #endif
       endif
@@ -312,7 +312,7 @@ contains
 #ifdef  CompileWithNF2FF
          continue
 #else
-         buff=trim(adjustl(whoami))// 'NF2FF unsupported. Recompile'
+         buff=trim(adjustl(whoami))//' NF2FF unsupported. Recompile'
          call stoponerror(layoutnumber,size,buff)
 #endif
       endif
@@ -321,7 +321,7 @@ contains
 #ifdef CompileWithSGBC
          continue
 #else
-         buff=trim(adjustl(whoami))// 'SGBC unsupported. Recompile'
+         buff=trim(adjustl(whoami))//' SGBC unsupported. Recompile'
          call stoponerror(layoutnumber,size,buff)
 #endif
       endif
@@ -329,7 +329,7 @@ contains
 #ifdef CompileWithNIBC
          continue
 #else
-         buff=trim(adjustl(whoami))// 'MIBC unsupported. Recompile'
+         buff=trim(adjustl(whoami))//' MIBC unsupported. Recompile'
          call stoponerror(layoutnumber,size,buff)
 #endif
       endif
@@ -339,7 +339,7 @@ contains
 #ifdef CompileWithAnisotropic
          continue
 #else
-         buff=trim(adjustl(whoami))// 'Anisotropic unsupported. Recompile'
+         buff=trim(adjustl(whoami))//' Anisotropic unsupported. Recompile'
          call stoponerror(layoutnumber,size,buff)
 #endif
       endif
@@ -348,7 +348,7 @@ contains
 #ifdef CompileWithDMMA
          continue
 #else
-         buff=trim(adjustl(whoami))// 'Thin slots unsupported. Recompile'
+         buff=trim(adjustl(whoami))//' Thin slots unsupported. Recompile'
          call stoponerror(layoutnumber,size,buff)
 #endif
       endif
@@ -357,7 +357,7 @@ contains
 #ifdef CompileWithEDispersives
          continue
 #else
-         buff=trim(adjustl(whoami))// 'Dispersive materials unsupported. Recompile'
+         buff=trim(adjustl(whoami))//' Dispersive materials unsupported. Recompile'
          call stoponerror(layoutnumber,size,buff)
 #endif
       endif
@@ -372,7 +372,7 @@ contains
 #ifdef CompileWithSlantedWires
          continue
 #else
-         buff=trim(adjustl(whoami))// ' WIREs unsupported. Recompile'
+         buff=trim(adjustl(whoami))//'  WIREs unsupported. Recompile'
          call stoponerror(layoutnumber,size,buff)
 #endif
 #endif
@@ -2288,13 +2288,13 @@ contains
                       trim(adjustl(nombrefich))//trim(adjustl(whoamishort))//'_tmp'
         call sleep(2)
         goto 669
-    endif
+      endif
       open (newunit=thefile8,file=trim(adjustl(nombrefich))//trim(adjustl(whoamishort))//'_tmp',err=767 )
-         goto 768
+      goto 768
 767   print *,' '//trim(adjustl(whoamishort))//' ','--> no hay cojones con open definitivo unidad ',thefile8
-         call sleep(2)
+      call sleep(2)
       goto 669
-768     continue         
+768   continue         
       !!!#endif
       return
    end function openfile_mpi
