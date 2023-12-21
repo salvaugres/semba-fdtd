@@ -60,6 +60,7 @@ add_fortran_test_executable (mtlnsolver_tests
     "test_dot_product.f90"
     "test_elemental_component_sum.f90"
     "test_matmul_broadcast.f90"
+    "test_sum_derived_types.f90"
 )
 
 get_target_property(mtlnsolver_INCLUDES mtlnsolver INCLUDE_DIRECTORIES)

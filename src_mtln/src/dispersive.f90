@@ -1,5 +1,6 @@
 module dispersive_mod
-    use utils_mod, only: dotMatmul, entry, componentSum
+    use utils_mod
+    ! use utils_mod, only: dotMatmul, entryMatmul, entry, componentSum, add_entries
     use fhash, only: fhash_tbl_t, key=>fhash_key, fhash_iter_t, fhash_key_t
     implicit none
     
@@ -89,8 +90,15 @@ contains
         this%q3_phi = dotMatmul(this%q3, this%phi)
     end subroutine
 
-    subroutine updatePhi(this)
+    subroutine updatePhi(this, i_prev, i_now)
         class(dispersive_t) :: this
+        real, dimension(:,:), intent(in):: i_prev, i_now
+        integer :: i
+
+        this%phi = entryMatmul(this%q1, i_now) + &
+                   entryMatmul(this%q2, i_prev)
+        !            dotMatmul(this%q3, this%phi)
+
     end subroutine
 
     function getResistiveTerm(this, dict, found) result(res)

@@ -6,12 +6,40 @@ module testingTools_mod
         real, dimension(:), allocatable :: x
     end type entry
 
+    
+    interface operator(+)
+        module procedure add_entries
+    end interface
+    
+    interface operator(==)
+        module procedure compare_entries
+    end interface
+        
     interface operator(*)
         module procedure dotmul
     end interface operator(*)
-
-
+            
+            
     contains
+            
+    elemental function add_entries(a,b) result(res)
+        type(entry), intent(in) :: a,b
+        type(entry) :: res
+        res%x = a%x + b%x
+    end function
+
+    elemental function compare_entries(a,b) result(res)
+        type(entry), intent(in) :: a,b
+        logical :: res
+        integer :: i
+        res = .true.
+        do i = 1, size(a%x)
+            if (a%x(i) /= b%x(i)) then
+                res = .false.
+                return
+            end if
+        end do
+    end function
 
     elemental function componentSum(a) result(res)
         type(entry), intent(in) :: a
