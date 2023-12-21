@@ -896,7 +896,7 @@ contains
       !---------------------------> variables locales <-----------------------------------------------
       real (kind = RKIND)  ::  timei, G2_1, Id,incidente
       integer  ::  i, j, k, i_m, j_m, k_m,jjj
-      character (len=1024)     ::  dubuf
+      character (LEN=BUFSIZE)     ::  dubuf
       !---------------------------> empieza AdvancePlaneWaveE <---------------------------------------
 !!!!
 
@@ -1199,7 +1199,7 @@ contains
       !---------------------------> variables locales <-----------------------------------------------
       real (kind = RKIND)  ::  timei, Gm2_1, Id,incidente
       integer (kind=4)  ::  i, j, k, i_m, j_m, k_m,jjj
-      character (len=1024)     ::  dubuf
+      character (LEN=BUFSIZE)     ::  dubuf
       !---------------------------> empieza AdvancePlaneWaveH <---------------------------------------
       still_planewave_time=.false. !por defecto no va a haber mas actividad de onda plana, a menos que pase por algun incid no trivial
       called_fromobservation=.false. !210419 

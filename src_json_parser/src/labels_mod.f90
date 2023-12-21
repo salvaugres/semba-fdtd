@@ -47,6 +47,7 @@ module labels_mod
    character (len=*), parameter :: J_COORDINATES = "coordinates"
    character (len=*), parameter :: J_COORDINATE_POS = "relativePosition"
    character (len=*), parameter :: J_ELEMENTS = "elements"
+   character (len=*), parameter :: J_COORDINATE_IDS = "coordinateIds"
    character (len=*), parameter :: J_ELEM_TYPE_NODE = "node"
    character (len=*), parameter :: J_ELEM_TYPE_POLYLINE = "polyline"
    character (len=*), parameter :: J_ELEM_TYPE_CELL_REGION = "cellRegion"

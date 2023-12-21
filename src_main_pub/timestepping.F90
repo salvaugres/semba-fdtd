@@ -74,9 +74,9 @@ module Solver
 
 #ifdef CompileWithSGBC
 #ifdef CompileWithStochastic
-   use SGBC_stoch
+   use sgbc_stoch
 #else
-   use SGBC_NOstoch
+   use sgbc_NOstoch
 #endif  
 #endif
 
@@ -112,6 +112,9 @@ module Solver
    USE P_rescale
 #endif   
 !!
+#ifdef CompileWithProfiling
+   use nvtx
+#endif
    implicit none
    private
 
@@ -119,19 +122,26 @@ module Solver
  
 contains
 
-   subroutine launch_simulation(sgg,sggMtag,sggMiNo,sggMiEx,sggMiEy,sggMiEz,sggMiHx,sggMiHy,sggMiHz,cfl,SINPML_Fullsize,fullsize,nEntradaRoot,finaltimestep,resume,saveall,makeholes,  &
-   connectendings,isolategroupgroups,dontsplitnodes,stableradholland,flushsecondsFields,mtlnberenger, &
+   subroutine launch_simulation(sgg,sggMtag,sggMiNo,sggMiEx,sggMiEy,sggMiEz,sggMiHx,sggMiHy,sggMiHz, &
+   SINPML_Fullsize,fullsize,finishedwithsuccess,Eps0,Mu0,tagtype,  &
+!!!los del tipo l%
+   simu_devia,cfl,nEntradaRoot,finaltimestep,resume,saveall,makeholes,  &
+   connectendings,isolategroupgroups,stableradholland,flushsecondsFields,mtlnberenger, &
    flushsecondsData,layoutnumber,size,createmap, &
-   inductance_model, inductance_order, wirethickness, maxCPUtime,time_desdelanzamiento,nresumeable2,resume_fromold,  &
-   groundwires,noSlantedcrecepelo , SGBC,SGBCDispersive,mibc,attfactorc,attfactorw, &
+   inductance_model, inductance_order, wirethickness, maxCPUtime,time_desdelanzamiento, &
+   nresumeable2,resume_fromold,groundwires,noSlantedcrecepelo, sgbc,sgbcDispersive,mibc,attfactorc,attfactorw, &
    alphamaxpar,alphaOrden,kappamaxpar,mur_second,murafterpml,MEDIOEXTRA, &
-   singlefilewrite,maxSourceValue,NOcompomur,ADE,conformalskin,&
-   strictOLD,TAPARRABOS,wiresflavor,mindistwires,facesNF2FF,NF2FFDecim,vtkindex,createh5bin,wirecrank,opcionestotales,SGBCFreq,SGBCresol,SGBCcrank,SGBCDepth,fatalerror,fieldtotl,finishedwithsuccess,permitscaling, &
-   Eps0,Mu0, EpsMuTimeScale_input_parameters &
-   , simu_devia,stochastic,mpidir,verbose,precision,hopf,ficherohopf,niapapostprocess,planewavecorr,tagtype,dontwritevtk,experimentalVideal,forceresampled,factorradius,factordelta &
-   )
+   singlefilewrite,maxSourceValue,NOcompomur,ADE,&
+   conformalskin,strictOLD,TAPARRABOS,wiresflavor,mindistwires,facesNF2FF,NF2FFDecim,vtkindex, &
+   createh5bin,wirecrank, &
+   opcionestotales,sgbcFreq,sgbcresol,sgbccrank,sgbcDepth,fatalerror,fieldtotl,permitscaling, &
+   EpsMuTimeScale_input_parameters, &
+   stochastic,mpidir,verbose,precision,hopf,ficherohopf,niapapostprocess,planewavecorr, &
+   dontwritevtk,experimentalVideal,forceresampled,factorradius,factordelta,noconformalmapvtk )
+
+      logical :: noconformalmapvtk
       logical :: hopf,experimentalVideal,forceresampled
-      character (len=100) :: ficherohopf
+      character (LEN=BUFSIZE) :: ficherohopf
       !!!!!!!!esta feo pero funciona
       logical :: simu_devia,stochastic,verbose,dummylog,dontwritevtk
       !
@@ -177,14 +187,14 @@ contains
       real (kind=RKIND_wires) :: factorradius,factordelta
       REAL (KIND=RKIND_tiempo)     :: at,rdummydt
       REAL (KIND=8)     ::time_desdelanzamiento
-      logical :: hayattmedia = .false.,attinformado = .false., vtkindex,createh5bin,wirecrank,faltalerror,somethingdone,newsomethingdone,call_timing,l_auxoutput,l_auxinput
+      logical :: hayattmedia = .false.,attinformado = .false., vtkindex,createh5bin,wirecrank,fatalerror,somethingdone,newsomethingdone,call_timing,l_auxoutput,l_auxinput
       character(len=BUFSIZE) :: buff
       !
       !!!!!!!PML params!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
       TYPE (MedioExtra_t), INTENT (IN) :: MEDIOEXTRA
-      logical :: mur_second,MurAfterPML,stableradholland,singlefilewrite,NF2FFDecim,SGBCcrank,fieldtotl,finishedwithsuccess,permitscaling,mtlnberenger,niapapostprocess,planewavecorr
-      REAL (KIND=RKIND), intent (in)  ::  alphamaxpar,alphaOrden,kappamaxpar, mindistwires,SGBCFreq,SGBCresol
+      logical :: mur_second,MurAfterPML,stableradholland,singlefilewrite,NF2FFDecim,sgbccrank,fieldtotl,finishedwithsuccess,permitscaling,mtlnberenger,niapapostprocess,planewavecorr
+      REAL (KIND=RKIND), intent (in)  ::  alphamaxpar,alphaOrden,kappamaxpar, mindistwires,sgbcFreq,sgbcresol
       integer (kind=4), intent(in) :: wirethickness
       !!!!!!!
       integer (kind=4), intent(in) :: layoutnumber,size,mpidir
@@ -193,9 +203,9 @@ contains
       type (bounds_t)  ::  b
 
       integer (kind=4), intent(inout)                     ::  finaltimestep
-      logical, intent(in)           ::  resume,saveall,makeholes,connectendings,isolategroupgroups,dontsplitnodes,createmap,groundwires,noSlantedcrecepelo, &
+      logical, intent(in)           ::  resume,saveall,makeholes,connectendings,isolategroupgroups,createmap,groundwires,noSlantedcrecepelo, &
       SGBC,SGBCDispersive,mibc,ADE,conformalskin,NOcompomur,strictOLD,TAPARRABOS
-      CHARACTER (LEN=1024), intent(in) :: opcionestotales
+      CHARACTER (LEN=BUFSIZE), intent(in) :: opcionestotales
       logical, intent(inout)           ::  resume_fromold
       integer (kind=4), intent(in)           ::  maxCPUtime
       character (len=*), intent(in)  ::  nEntradaRoot
@@ -205,17 +215,17 @@ contains
       character (len=*) , intent(in)    ::  inductance_model,wiresflavor !just for wires
       integer(kind=4) , intent(in)    ::  inductance_order
       character (len=*) , intent(in)    ::  nresumeable2
-      character (len=1024)     ::  chari,layoutcharID,dubuf
+      character (LEN=BUFSIZE)     ::  chari,layoutcharID,dubuf
       integer (kind=4)   ::  ini_save,mindum,SGBCDepth
       !Generic
       type (Logic_control)  ::  thereare
       integer (kind=4) :: ierr,ndummy
-      Logical  ::  parar,fatalerror,performflushFields,performflushData,performUnpack,performpostprocess,flushFF, &
+      Logical  ::  parar,performflushFields,performflushData,performUnpack,performpostprocess,flushFF, &
                    performflushXdmf,performflushVTK,everflushed,still_planewave_time,still_planewave_time_aux,planewave_switched_off,thereareplanewave,thereareplanewave_aux,l_aux
 
       integer (kind=4)  ::  i,J,K,r,n,initialtimestep,lastexecutedtimestep,n_info,FIELD,dummyMin,dummyMax
       !
-      character (len=14)  ::  whoami
+      character (LEN=BUFSIZE)  ::  whoami
       !
       TYPE (tiempo_t) :: time_out2
        real (kind=RKIND) :: pscale_alpha
@@ -241,7 +251,7 @@ contains
       thereare%Wires = .false.
       thereare%MultiportS = .false.
       thereare%AnisMultiportS = .false.
-      thereare%SGBCs = .false.
+      thereare%sgbcs = .false.
       thereare%Lumpeds = .false.
       thereare%EDispersives = .false.
       thereare%MDispersives = .false.
@@ -573,13 +583,13 @@ contains
          call WarnErrReport(buff)
          write(buff,*) 'TAPARRABOS=',TAPARRABOS,', wiresflavor=',wiresflavor,', mindistwires=',mindistwires,', wirecrank=',wirecrank , 'makeholes=',makeholes
          call WarnErrReport(buff)
-         write(buff,*) 'connectendings=',connectendings,', isolategroupgroups=',isolategroupgroups,', dontsplitnodes=',dontsplitnodes
+         write(buff,*) 'connectendings=',connectendings,', isolategroupgroups=',isolategroupgroups
          call WarnErrReport(buff)
          write(buff,*) 'wirethickness ', wirethickness, 'stableradholland=',stableradholland,'mtlnberenger=',mtlnberenger,' inductance_model=',inductance_model,', inductance_order=',inductance_order,', groundwires=',groundwires,' ,fieldtotl=',fieldtotl,' noSlantedcrecepelo =',noSlantedcrecepelo 
          call WarnErrReport(buff)
-         write(buff,*) 'SGBC=',SGBC,', mibc=',mibc,', attfactorc=',attfactorc,', attfactorw=',attfactorw
+         write(buff,*) 'sgbc=',sgbc,', mibc=',mibc,', attfactorc=',attfactorc,', attfactorw=',attfactorw
          call WarnErrReport(buff)
-         write(buff,*) 'NOcompomur=',NOcompomur,', ADE=',ADE,', conformalskin=',conformalskin,', SGBCFreq=',SGBCFreq,', SGBCresol=',SGBCresol,', SGBCcrank=',SGBCcrank,', SGBCDepth=',SGBCDepth
+         write(buff,*) 'NOcompomur=',NOcompomur,', ADE=',ADE,', conformalskin=',conformalskin,', sgbcFreq=',sgbcFreq,', sgbcresol=',sgbcresol,', sgbccrank=',sgbccrank,', sgbcDepth=',sgbcDepth
          call WarnErrReport(buff)
          write(buff,*) 'mur_second=',mur_second,', murafterpml=',murafterpml,', facesNF2FF%tr=',facesNF2FF%tr,', facesNF2FF%fr=',facesNF2FF%fr,', facesNF2FF%iz=',facesNF2FF%iz
          call WarnErrReport(buff)
@@ -661,7 +671,7 @@ contains
       endif
 
       !Initborders must be called in first place . Double check that Idxe,h are not needed by other initialization modules
-      !llamalo antes de SGBC y composites, porque overrideo nodos SGBC conectados a hilos
+      !llamalo antes de sgbc y composites, porque overrideo nodos sgbc conectados a hilos
 
       !init lumped debe ir antes de wires porque toca la conductividad del material !mmmm ojoooo 120123
       write(dubuf,*) 'Init Lumped Elements...';  call print11(layoutnumber,dubuf)
@@ -687,7 +697,7 @@ contains
          call MPI_Barrier(SUBCOMM_MPI,ierr)
 #endif
          write(dubuf,*) 'Init Holland Wires...';  call print11(layoutnumber,dubuf)
-         call InitWires       (sgg,sggMiNo,sggMiEx,sggMiEy,sggMiEz,sggMiHx,sggMiHy,sggMiHz,layoutnumber,size,Thereare%Wires,resume,makeholes,connectendings,isolategroupgroups,dontsplitnodes,stableradholland,fieldtotl, &
+         call InitWires       (sgg,sggMiNo,sggMiEx,sggMiEy,sggMiEz,sggMiHx,sggMiHy,sggMiHz,layoutnumber,size,Thereare%Wires,resume,makeholes,connectendings,isolategroupgroups,stableradholland,fieldtotl, &
          Ex,Ey,Ez,Hx,Hy,Hz,Idxe,Idye,Idze,Idxh,Idyh,Idzh, &
          inductance_model,wirethickness,groundwires,strictOLD,TAPARRABOS,g2,wiresflavor,SINPML_fullsize,fullsize,wirecrank,dtcritico,eps0,mu0,simu_devia,stochastic,verbose,factorradius,factordelta)
       l_auxinput=thereare%Wires
@@ -811,23 +821,23 @@ contains
 #endif
 
 #ifdef CompileWithSGBC
-      IF (SGBC)  then
+      IF (sgbc)  then
 #ifdef CompileWithMPI
            call MPI_Barrier(SUBCOMM_MPI,ierr)
 #endif
-            write(dubuf,*) 'Init Multi SGBC...';  call print11(layoutnumber,dubuf)
-            call InitSGBCs(sgg,sggMiEx,sggMiEy,sggMiEz,sggMiHx,sggMiHy,sggMiHz,Ex,Ey,Ez,Hx,Hy,Hz,IDxe,IDye,IDze,IDxh,IDyh,IDzh,layoutnumber,size, &
-                 G1,G2,GM1,GM2,ThereAre%SGBCs,resume,SGBCcrank,SGBCFreq,SGBCresol,SGBCDepth,SGBCDispersive,eps0,mu0,simu_devia,stochastic)
-      l_auxinput= ThereAre%SGBCs
+            write(dubuf,*) 'Init Multi sgbc...';  call print11(layoutnumber,dubuf)
+            call Initsgbcs(sgg,sggMiEx,sggMiEy,sggMiEz,sggMiHx,sggMiHy,sggMiHz,Ex,Ey,Ez,Hx,Hy,Hz,IDxe,IDye,IDze,IDxh,IDyh,IDzh,layoutnumber,size, &
+                 G1,G2,GM1,GM2,ThereAre%sgbcs,resume,sgbccrank,sgbcFreq,sgbcresol,sgbcDepth,sgbcDispersive,eps0,mu0,simu_devia,stochastic)
+      l_auxinput= ThereAre%sgbcs
       l_auxoutput=l_auxinput
 #ifdef CompileWithMPI
       call MPI_Barrier(SUBCOMM_MPI,ierr)
       call MPI_AllReduce( l_auxinput, l_auxoutput, 1_4, MPI_LOGICAL, MPI_LOR, MPI_COMM_WORLD, ierr)
 #endif
          if (l_auxoutput) then
-             write (dubuf,*) '----> there are Structured SGBC elements';  call print11(layoutnumber,dubuf)
+             write (dubuf,*) '----> there are Structured sgbc elements';  call print11(layoutnumber,dubuf)
          else
-              write(dubuf,*) '----> no Structured SGBC elements found';  call print11(layoutnumber,dubuf)
+              write(dubuf,*) '----> no Structured sgbc elements found';  call print11(layoutnumber,dubuf)
         endif
       endif
 #endif
@@ -1009,16 +1019,16 @@ contains
          write(dubuf,*) 'Init MPI MediaMatrix flush...';  call print11(layoutnumber,dubuf)
          call InitMPI(sgg%sweep,sgg%alloc)
          call MPI_Barrier(SUBCOMM_MPI,ierr)
-         !write(dubuf,*) whoami//' [OK]';  call print11(layoutnumber,dubuf,.true.)
-         !write(dubuf,*) whoami//' Init MPI Extra flushings...';  call print11(layoutnumber,dubuf,.true.)
+         !write(dubuf,*) trim(adjustl(whoami))//' [OK]';  call print11(layoutnumber,dubuf,.true.)
+         !write(dubuf,*) trim(adjustl(whoami))//' Init MPI Extra flushings...';  call print11(layoutnumber,dubuf,.true.)
          call InitExtraFlushMPI(layoutnumber,sgg%sweep,sgg%alloc,sgg%med,sgg%nummedia,sggmiEz,sggMiHz)
          call MPI_Barrier(SUBCOMM_MPI,ierr)
-         !write(dubuf,*) whoami//' [OK]';  call print11(layoutnumber,dubuf,.true.)
-         !write(dubuf,*) whoami//' First MPI H flushing...';  call print11(layoutnumber,dubuf,.true.)
+         !write(dubuf,*) trim(adjustl(whoami))//' [OK]';  call print11(layoutnumber,dubuf,.true.)
+         !write(dubuf,*) trim(adjustl(whoami))//' First MPI H flushing...';  call print11(layoutnumber,dubuf,.true.)
          call FlushMPI_H(sgg%alloc,layoutnumber,size, sggmiHx,sggmiHy,sggmiHz)
          call MPI_Barrier(SUBCOMM_MPI,ierr)
-         !write(dubuf,*) whoami//' [OK]';  call print11(layoutnumber,dubuf,.true.)
-         !write(dubuf,*) whoami//' First MPI E flushing...';  call print11(layoutnumber,dubuf,.true.)
+         !write(dubuf,*) trim(adjustl(whoami))//' [OK]';  call print11(layoutnumber,dubuf,.true.)
+         !write(dubuf,*) trim(adjustl(whoami))//' First MPI E flushing...';  call print11(layoutnumber,dubuf,.true.)
          call FlushMPI_E(sgg%alloc,layoutnumber,size, sggmiEx,sggmiEy,sggmiEz)
          call MPI_Barrier(SUBCOMM_MPI,ierr)
 #ifdef CompileWithMPI
@@ -1027,7 +1037,7 @@ contains
          write(dubuf,*) '[OK]';  call print11(layoutnumber,dubuf)
       endif
 #endif
-!!!!!!!!!!!!!!!se supone que la inicializacion de Cray machacara luego a esta que solo uso para flushear medios (lo preciso en SGBCs de momento, pero es bueno tener esta info)
+!!!!!!!!!!!!!!!se supone que la inicializacion de Cray machacara luego a esta que solo uso para flushear medios (lo preciso en sgbcs de momento, pero es bueno tener esta info)
 !!!!!!!!!!!!!!!!!!!!!fin juego con fuego 210815
 
 #ifdef CompileWithMPI
@@ -1155,7 +1165,7 @@ contains
 #ifdef CompileWithMPI
 #ifdef CompileWithStochastic
           if (stochastic)  then
-             call syncstoch_mpi_SGBCs(simu_devia,layoutnumber,size)
+             call syncstoch_mpi_sgbcs(simu_devia,layoutnumber,size)
           endif
 #endif    
 #endif    
@@ -1214,6 +1224,11 @@ contains
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                           
+      
+#ifdef CompileWithProfiling
+      call nvtxStartRange("Antes del bucle N")
+#endif
       ciclo_temporal :  DO while (N <= finaltimestep)
       
       !!Flush the plane-wave logical switching off variable (saves CPU!)
@@ -1248,10 +1263,26 @@ contains
 !!!!!!!#endif
          !call get_secnds( time_ElecInit)
          !!
+
+#ifdef CompileWithProfiling
+      call nvtxStartRange("Antes del bucle EX")
+#endif
          call Advance_Ex          (Ex, Hy, Hz, Idyh, Idzh, sggMiEx, b,g1,g2)    
+#ifdef CompileWithProfiling
+      call nvtxEndRange
+      call nvtxStartRange("Antes del bucle EY")
+#endif
          call Advance_Ey          (Ey, Hz, Hx, Idzh, Idxh, sggMiEy, b,g1,g2)
+         
+#ifdef CompileWithProfiling    
+      call nvtxEndRange
+      call nvtxStartRange("Antes del bucle EZ")
+#endif
          call Advance_Ez          (Ez, Hx, Hy, Idxh, Idyh, sggMiEz, b,g1,g2)
 
+#ifdef CompileWithProfiling    
+      call nvtxEndRange
+#endif
          if (planewavecorr) then
              call FreeSpace_Advance_Ex          (Exvac, Hyvac, Hzvac, Idyh, Idzh,       b,g1,g2)
              call FreeSpace_Advance_Ey          (Eyvac, Hzvac, Hxvac, Idzh, Idxh,       b,g1,g2)
@@ -1354,8 +1385,8 @@ contains
 
 #ifdef CompileWithSGBC
          !MultiportS  H-field advancing
-         IF (Thereare%SGBCs.and.(SGBC))  then
-            call AdvanceSGBCE(real(sgg%dt,RKIND),SGBCDispersive,simu_devia,stochastic)
+         IF (Thereare%sgbcs.and.(sgbc))  then
+            call AdvancesgbcE(real(sgg%dt,RKIND),sgbcDispersive,simu_devia,stochastic)
          endif
 #endif
 !!!
@@ -1440,9 +1471,24 @@ contains
          !!
 
 !         if (sgg%thereareMagneticMedia) then
+
+#ifdef CompileWithProfiling    
+      call nvtxStartRange("Antes del bucle HX")
+#endif
             call Advance_Hx           (Hx, Ey, Ez, Idye, Idze, sggMiHx, b,gm1,gm2)        
+#ifdef CompileWithProfiling    
+      call nvtxEndRange
+      call nvtxStartRange("Antes del bucle HY")
+#endif
             call Advance_Hy           (Hy, Ez, Ex, Idze, Idxe, sggMiHy, b,gm1,gm2)     
+#ifdef CompileWithProfiling    
+      call nvtxEndRange
+      call nvtxStartRange("Antes del bucle HZ")
+#endif
             call Advance_Hz           (Hz, Ex, Ey, Idxe, Idye, sggMiHz, b,gm1,gm2)  
+#ifdef CompileWithProfiling    
+      call nvtxEndRange
+#endif
          !else
          !   call FreeSpace_Advance_Hx(Hx, Ey, Ez, Idye, Idze,           b,gm1,gm2)
          !   call FreeSpace_Advance_Hy(Hy, Ez, Ex, Idze, Idxe,           b,gm1,gm2)
@@ -1511,8 +1557,8 @@ contains
 
 #ifdef CompileWithSGBC
          !MultiportS  H-field advancing
-         IF (Thereare%SGBCs.and.(SGBC))  then
-            call AdvanceSGBCH
+         IF (Thereare%sgbcs.and.(sgbc))  then
+            call AdvancesgbcH
          endif
 #endif
 
@@ -1627,7 +1673,7 @@ contains
 #ifdef CompileWithMPI
 #ifdef CompileWithStochastic
           if (stochastic)  then
-             call syncstoch_mpi_SGBCs(simu_devia,layoutnumber,size)
+             call syncstoch_mpi_sgbcs(simu_devia,layoutnumber,size)
           endif
 #endif    
 #endif    
@@ -1660,7 +1706,8 @@ contains
          IF (Thereare%Observation) then
             !se le pasan los incrementos autenticos (bug que podia aparecer en NF2FF y Bloque currents 17/10/12)
             call UpdateObservation(sgg,sggMiEx,sggMiEy,sggMiEz,sggMiHx,sggMiHy,sggMiHz,sggMtag, n,ini_save, b, Ex, Ey, Ez, Hx, Hy, Hz, dxe, dye, dze, dxh, dyh, dzh,wiresflavor,SINPML_FULLSIZE,wirecrank, &
-                                   Exvac, Eyvac, Ezvac, Hxvac, Hyvac, Hzvac,Excor, Eycor, Ezcor, Hxcor, Hycor, Hzcor,planewavecorr)
+                                   Exvac, Eyvac, Ezvac, Hxvac, Hyvac, Hzvac,Excor, Eycor, Ezcor, Hxcor, Hycor, Hzcor,planewavecorr,noconformalmapvtk)
+
             if (n>=ini_save+BuffObse)  then
                mindum=min(FinalTimeStep,ini_save+BuffObse)
                !write(dubuf,'(a,i9)')  ' INIT DATA FLUSHING n= ',n
@@ -1893,9 +1940,9 @@ contains
 #endif
              call updateconstants(sgg,n,thereare,g1,g2,gM1,gM2, & 
                                Idxe,Idye,Idze,Idxh,Idyh,Idzh, &  !needed by  CPML to be updated
-                               SGBC,mibc,input_conformal_flag, &
+                               sgbc,mibc,input_conformal_flag, &
                                wiresflavor, wirecrank, fieldtotl,&
-                               SGBCDispersive,finaltimestep, &
+                               sgbcDispersive,finaltimestep, &
                                eps0,mu0, &
                                simu_devia, &
                                EpsMuTimeScale_input_parameters,pscale_alpha,still_planewave_time &
@@ -1913,6 +1960,13 @@ contains
          !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
          n=n+1 !sube de iteracion
       end do ciclo_temporal ! End of the time-stepping loop
+      
+                        
+      
+#ifdef CompileWithProfiling
+      call nvtxEndRange
+#endif      
+      
 #ifdef CompileWithConformal
       if(input_conformal_flag)then
             call conformal_final_simulation  (conf_timeSteps, n)
@@ -2108,6 +2162,9 @@ contains
 #ifdef CompileWithOpenMP
 !$OMP  PARALLEL DO DEFAULT(SHARED) collapse (2) private (i,j,k,medio,Idzhk,Idyhj) 
 #endif
+#ifdef CompileWithACC   
+!$ACC parallel loop DEFAULT(present) collapse (2) private (i,j,k,medio,Idzhk,Idyhj)  copyin(Ex,sggMiEx,Hy,Hz,Idyh,Idzh,b,G1,G2) copyout(Ex) 
+#endif
          Do k=1,b%sweepEx%NZ
             Do j=1,b%sweepEx%NY
                Do i=1,b%sweepEx%NX
@@ -2145,6 +2202,9 @@ contains
          integer(kind = INTEGERSIZEOFMEDIAMATRICES)  ::  medio
 #ifdef CompileWithOpenMP
 !$OMP  PARALLEL DO DEFAULT(SHARED) collapse (2) private (i,j,k,medio,Idzhk)  
+#endif
+#ifdef CompileWithACC   
+!$ACC parallel loop  DEFAULT(present) collapse (2) private (i,j,k,medio,Idzhk)     copyin(Ey,sggMiEy,Hz,Hx,Idzh,Idxh,b,G1,G2) copyout(Ey) 
 #endif
          Do k=1,b%sweepEy%NZ
             Do j=1,b%sweepEy%NY
@@ -2187,6 +2247,9 @@ contains
 #ifdef CompileWithOpenMP
 !$OMP  PARALLEL DO  DEFAULT(SHARED) collapse (2) private (i,j,k,medio,Idyhj)    
 #endif
+#ifdef CompileWithACC   
+!$ACC parallel loop   DEFAULT(present) collapse (2) private (i,j,k,medio,Idyhj)        copyin(Ez,sggMiEz,Hx,Hy,Idxh,Idyh,b,G1,G2) copyout(Ez) 
+#endif
          Do k=1,b%sweepEz%NZ
             Do j=1,b%sweepEz%NY
                Do i=1,b%sweepEz%NX
@@ -2228,6 +2291,9 @@ contains
 #ifdef CompileWithOpenMP
 !$OMP  PARALLEL DO  DEFAULT(SHARED) collapse (2) private (i,j,k,medio,Idzek,Idyej)     
 #endif
+#ifdef CompileWithACC   
+!$ACC parallel loop  DEFAULT(present) collapse (2) private (i,j,k,medio,Idzek,Idyej)       copyin(Hx,sggMiHx,Ey,Ez,Idye,Idze,b,GM1,GM2) copyout(Hx) 
+#endif
          Do k=1,b%sweepHx%NZ
             Do j=1,b%sweepHx%NY
                Do i=1,b%sweepHx%NX
@@ -2265,6 +2331,9 @@ contains
 #ifdef CompileWithOpenMP
 !$OMP  PARALLEL DO DEFAULT(SHARED) collapse (2) private (i,j,k,medio,Idzek)     
 #endif
+#ifdef CompileWithACC   
+!$ACC parallel loop DEFAULT(present) collapse (2) private (i,j,k,medio,Idzek)         copyin(Hy,sggMiHy,Ez,Ex,Idze,Idxe,b,GM1,GM2) copyout(Hy) 
+#endif
          Do k=1,b%sweepHy%NZ
             Do j=1,b%sweepHy%NY
                Do i=1,b%sweepHy%NX
@@ -2301,6 +2370,9 @@ contains
          integer(kind = INTEGERSIZEOFMEDIAMATRICES)  ::  medio
 #ifdef CompileWithOpenMP
 !$OMP  PARALLEL DO DEFAULT(SHARED) collapse (2) private (i,j,k,medio,Idyej)  
+#endif
+#ifdef CompileWithACC   
+!$ACC parallel loop  DEFAULT(present) collapse (2) private (i,j,k,medio,Idyej)       copyin(Hz,sggMiHz,Ex,Ey,Idxe,Idye,b,GM1,GM2) copyout(Hz)
 #endif
          Do k=1,b%sweepHz%NZ
             Do j=1,b%sweepHz%NY
@@ -3100,7 +3172,7 @@ contains
 #endif
 
 #ifdef CompileWithSGBC
-      call destroySGBCs(sgg) !!todos deben destruir pq alocatean en funcion de sgg no de si contienen estos materiales que lo controla thereareSGBCs. Lo que habia era IF ((Thereare%SGBCs).and.(SGBC))
+      call destroysgbcs(sgg) !!todos deben destruir pq alocatean en funcion de sgg no de si contienen estos materiales que lo controla therearesgbcs. Lo que habia era IF ((Thereare%sgbcs).and.(sgbc))
 #endif
       call destroyLumped(sgg)
 #ifdef CompileWithEDispersives

@@ -46,5 +46,5 @@ Testing/
 .vscode/launch.json
 .vscode/settings.json
 .vscode/tasks.json
-
-.vscode/ltex.dictionary.en-US.txt
+*/*.bak
+./*.bak

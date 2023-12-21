@@ -90,7 +90,7 @@ contains
       logical, INTENT(OUT)  ::  ThereAreLumped
       integer (kind=4)  ::  jmed,j1,conta,k1,i1
       character(len=BUFSIZE) :: buff
-      character (len=14)  ::  whoami
+      character (LEN=BUFSIZE)  ::  whoami
       type (Nodes_t), pointer :: lumped_
       logical :: unstable
 !

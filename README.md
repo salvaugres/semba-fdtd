@@ -17,14 +17,14 @@ In a nutshell, semba-fdtd capabilities are
 	2. Wire bundles.
 	3. Loaded with p.u.l resistance and inductance wires.
 	4. Grounding through lumped elements.
-- Plane-wave illumination with arbitrary time variation.
+	- Plane-wave illumination with arbitrary time variation.
 - Multiple planewaves illumination for reverberation chamber modeling.
 - Hertzian dipole sources.
-- Equivalent Huygens surfaces.
-- Low frequency thin composites and lossy surfaces.
-- Thin slots.
-- Time, frequency and transfer function probes.
-- Near-to-far field transformation.
+	- Equivalent Huygens surfaces.
+	- Low frequency thin composites and lossy surfaces.
+	- Thin slots.
+	- Time, frequency and transfer function probes .
+	- Near-to-far field transformation.
 
 Most of these capabilities are explained in further detail in the references below
 

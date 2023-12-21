@@ -1,5 +1,5 @@
 # The `smbjson` parser module
-This module allows to read the FDTD JSON format and parse it into the semba-fdtd data structures.
+This module allows to read the [FDTD-JSON format](#the-fdtd-json-format) and parse it into the semba-fdtd data structures.
 
 # Compilation and testing
 ## Compilation with GNU Fortran
@@ -92,14 +92,14 @@ This is an array of objects which represent Cartesian coordinates within the gri
  TODO EXAMPLE IMAGE
 
 #### `[elements]`
-The `elements` entry is an array of objects, each of which represents a geometrical entity. Within this format context the concept of element is broader than usually because they can be relatively complex geometrical entities. An *element objects* must contain a 
+The `elements` entry contains an array of JSON objects, each of which represents a geometrical entity. Within context of this format specification, an *element* can be a relatively simple entity such as `node` or a `polyline`, but it can also be a much more complex geometrical entity such as a `cellRegion`. An *element objects* must contain a 
  * `<id>` formed by an integer which uniquely identifies it within the `elements` array.
  * `<type>` which can be one of the following: 
    - `node`, representing a point in space. Elements with this type include a `<coordinateIds>` entry which is an array of a single integer with the id of a coordinate and which must exist in the within the `mesh` `coordinates` array.
    - `polyline`, representing an oriented collection of segments. It must contain a list `<coordinateIds>` with at least two coordinates.
    - `cellRegion`, containing a list of  one or more `<intervals>` defined following the [interval convention](#####interval-convention). 
 
-##### `interval` convention
+##### The `interval` convention
 An `interval` is formed by a pair of two arrays, each formed by triplets of integer numbers $\mathbf{a} = \{a_x, a_y, a_z\}$ and $\mathbf{b} = \{b_x, b_y, b_z\}$ which define a region formed by three closed-open intervals $[a_x, b_x) \times [a_y, b_y) \times [a_z, b_z)$. 
 Each integer number indicates a Cartesian plane in the `grid` assuming that they are numbered from $0$ to $N$, with $N$ being the number of cells in that direction. 
 The size of the interval is defined as $|a_x - b_x| \times |a_y - b_y| \times |a_z - b_z|$ therefore must be positive or zero.
@@ -151,16 +151,18 @@ If type is bulkCurrent:
 ### `[domain]`
 
 # `[sources]`
-This entry is an array which stores all the electromagnetic sources of the simulation case. Each source is a JSON object which must contain the following information:
- + `<magnitudeFile>` contains a relative path to the plain text file which will be used as a magnitude for this source. The first column must contain the times, and the second one the magnitude value.
- + `<elementIds>` is an array of integers which must exist within the `mesh` `elements` list. These indicate the geometrical place where this source is located. The allowed
- + `<type>` must be a label of the ones defined below.
-
+This entry is an array which stores all the electromagnetic sources of the simulation case. Each source is a JSON object which must contain the following entries:
+ + `<magnitudeFile>` contains a relative path to the plain text file which will be used as a magnitude for this source. This file must contain two columns, with the first stating the time and the second one the magnitude value; an example magnitude file can be found at [gauss.exc](testData/cases/gauss.exc).
+ + `<type>` must be a label of the ones defined below. Some examples of source `type` are `planewave` or `nodalSource`.
+ + `<elementIds>` is an array of integers which must exist within the `mesh` `elements` list. These indicate the geometrical place where this source is located. The `type` and number of the allowed elements depends on the source `type` and can be check in the descriptions of each source object, below.
+ 
 ## `planewave`
-If type is Planewave
+If source JSON object `type` is `planewave`, it must also contain the following entries:
+
 
 ## `nodalSource`
-If type is nodalSource
+TODO
+If `type` is nodalSource
     `[field]`: electric, magnetic, current
 
 

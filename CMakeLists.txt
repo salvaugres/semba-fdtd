@@ -55,6 +55,7 @@ if (CompileExecutable)
 		"src_main_pub/postprocess.F90"
 		"src_main_pub/preprocess.F90"
 		"src_main_pub/resuming.F90"
+		"src_main_pub/interpreta_switches.F90"
 		"src_main_pub/semba_fdtd.F90"
 		"src_main_pub/storegeom.F90"
 		"src_main_pub/timestepping.F90"
@@ -112,3 +113,5 @@ add_definitions(
 -DCompileWithSGBC
 -DCompileWithWires
  )
+
+
