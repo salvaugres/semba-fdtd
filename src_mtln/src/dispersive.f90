@@ -118,8 +118,6 @@ contains
         !     end do
         ! end do
 
-        ! this%q3_phi = dotMatmul(this%q3, this%phi)
-
     end subroutine
 
     subroutine updatePhi(this, i_prev, i_now)
