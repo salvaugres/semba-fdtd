@@ -43,12 +43,12 @@ This object must always be present and contains general information regarding th
 - `<numberOfSteps>`: An integer for the number of steps which the solver will iterate.
 
 Example:
-
+```json
     "general": {
         "timeStep": 10e-12,
         "numberOfSteps": 2000
     }
-    
+    ```
 ### `[boundary]`
 This specifies the boundaries which will be used to terminate the computational domain. 
 If `boundary` is not present it defaults to a `mur` absorbing condition in all bounds.
@@ -66,7 +66,7 @@ These objects must contain a `<type>` label which can be:
     - `<reflection>`: TODO REVIEW
 
 Example: 
-
+```json
     "boundary": {
         "all": {
             "type": "pml",
@@ -75,6 +75,7 @@ Example:
             "reflection": 0.001
         }
     }
+```
 
 ### `<mesh>`
 All the geometrical information of the simulation case is exclusively stored by the `mesh` object. 
@@ -157,8 +158,28 @@ This entry is an array which stores all the electromagnetic sources of the simul
  + `<elementIds>` is an array of integers which must exist within the `mesh` `elements` list. These indicate the geometrical place where this source is located. The `type` and number of the allowed elements depends on the source `type` and can be check in the descriptions of each source object, below.
  
 ## `planewave`
-If source JSON object `type` is `planewave`, it must also contain the following entries:
+The `planewave` object represents an electromagnetic plane wave front which propagates towards a $\hat{k}$ direction with an electric field pointing towards $\hat{E}$. The `elementIds` in planewaves must define a single `cellRegion` element formed by a single cuboid region.
+Besides the common entries in [sources](#sources), it must also contain the following ones:
 
+ + `<direction>`, is an object containing `<theta>` and `<phi>`, which are the angles of the propagation vector $\hat{k} (\theta, \phi)$.
+ + `<polarization>`, is an object containing `<theta>` and `<phi>` which indicates the direction of the electric field vector $\hat{E}(\theta, \phi)$.
+
+An example of a planewave propagating towards $\hat{z}$ and polarized in the $+\hat{x}$ follows,
+```json
+    {
+        "type": "planewave",
+        "magnitudeFile": "gauss.exc",
+        "elementIds": [2],
+        "direction": {
+            "theta": 0.0,
+            "phi": 0.0
+        },
+        "polarization": {
+            "theta": 1.5708,
+            "phi": 0.0
+        }
+    }
+```
 
 ## `nodalSource`
 TODO

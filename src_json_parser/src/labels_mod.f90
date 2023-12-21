@@ -84,11 +84,9 @@ module labels_mod
    character (len=*), parameter :: J_SRC_PW_TYPE = "planewave"
    character (len=*), parameter :: J_SRC_PW_ATTRIBUTE = "attribute"
    character (len=*), parameter :: J_SRC_PW_DIRECTION = "direction"
-   character (len=*), parameter :: J_SRC_PW_DIRECTION_THETA = "theta"
-   character (len=*), parameter :: J_SRC_PW_DIRECTION_PHI = "phi"
    character (len=*), parameter :: J_SRC_PW_POLARIZATION = "polarization"
-   character (len=*), parameter :: J_SRC_PW_POLARIZATION_ALPHA = "alpha"
-   character (len=*), parameter :: J_SRC_PW_POLARIZATION_BETA  = "beta"
+   character (len=*), parameter :: J_SRC_PW_THETA = "theta"
+   character (len=*), parameter :: J_SRC_PW_PHI = "phi"
    
    ! type(SourceOnLine)
    character (len=*), parameter :: J_SRC_NS_TYPE = "nodalSource"
