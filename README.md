@@ -2,7 +2,6 @@
 
 In a nutshell, semba-fdtd capabilities are
 
-<<<<<<< HEAD
 - Cluster working capabilites through MPI.
 - Multiple threads per processor through OpenMP.
 - Closed/symmetric problems by means of PEC and PMC conditions.
@@ -14,33 +13,10 @@ In a nutshell, semba-fdtd capabilities are
 - Equivalent models of multilayered skin-depth materials.
 - Branched multiwires: 
 – Junctions of wires of different radii.
-=======
-	- Cluster working capabilites through MPI.
-	- Multiple threads per processor through OpenMP.
-	- Closed/symmetric problems by means of PEC and PMC conditions.
-	- Open problems by means of PML boundary conditions (CPML formulation) or by Mur ABCs.
-	- Non-uniformly meshed domains by means of mesh-grading techniques.
-	- Bulk lossless and lossy dielectrics.
-	- Materials with frequency dependent relative permittivity and/or permeability, with an arbitrary number of complex-conjugate pole-residue pairs.
-	- Bulk anisotropic lossless and lossy dielectrics.
-	- Equivalent models of multilayered skin-depth materials.
-	- Branched multiwires: 
-	– Junctions of wires of different radii.
->>>>>>> salva_devel
 	1. Junctions of multiwires.
 	2. Wire bundles.
 	3. Loaded with p.u.l resistance and inductance wires.
 	4. Grounding through lumped elements.
-<<<<<<< HEAD
-- Plane-wave illumination with arbitrary time variation.
-- Multiple planewaves illumination for reverberation chamber modeling.
-- Hertzian dipole sources.
-- Equivalent Huygens surfaces.
-- Low frequency thin composites and lossy surfaces.
-- Thin slots.
-- Time, frequency and transfer function probes.
-- Near-to-far field transformation.
-=======
 	- Plane-wave illumination with arbitrary time variation.
 - Multiple planewaves illumination for reverberation chamber modeling.
 - Hertzian dipole sources.
@@ -49,7 +25,6 @@ In a nutshell, semba-fdtd capabilities are
 	- Thin slots.
 	- Time, frequency and transfer function probes .
 	- Near-to-far field transformation.
->>>>>>> salva_devel
 
 Most of these capabilities are explained in further detail in the references below
 
