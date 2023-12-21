@@ -105,9 +105,9 @@ Each integer number indicates a Cartesian plane in the `grid` assuming that they
 The size of the interval is defined as $|a_x - b_x| \times |a_y - b_y| \times |a_z - b_z|$ therefore must be positive or zero.
 An interval allows specifying regions within the grid which can be a point, an oriented line, an oriented surface, or a volume:
 
-+ A **point** is defined when $\mathbf{a} = \mathbf{b}$. In this case, the interval specifies an intersection three grid planes. Points have no orientation.
++ A *point* is defined when $\mathbf{a} = \mathbf{b}$. In this case, the interval specifies an intersection three grid planes. Points have no orientation.
 
-+ An **oriented line** is defined when the interval has the same initial and ending values in all directions except one, for instance $a_x \neq b_x$. In this case there are two possibilities:
++ An *oriented line* is defined when the interval has the same initial and ending values in all directions except one, for instance $a_x \neq b_x$. In this case there are two possibilities:
 
   - when $(b_x - a_x) > 0$, the line is oriented towards $+\hat{x}$.
   - when $(b_x - a_x) < 0$, the line is oriented towards $-\hat{x}$. 
@@ -122,7 +122,7 @@ An interval allows specifying regions within the grid which can be a point, an o
 
   In all cases the size of the surface is 
 
-+ A **volume** is defined when the initial are strictly smaller than the ending ones for all directions, i.e. $a_x < b_x$, $a_y < b_y$, and $a_z < b_z$. The rest of the cases are left as undefined.
++ A **volume** is defined when each number in $\mathbf{a}$ is strictly smaller than the numbers in $\mathbf{b}$ for each direction, i.e. $a_x < b_x$, $a_y < b_y$, and $a_z < b_z$. The rest of the cases in which all numbers are different but not necessarily smaller are left as undefined.
 
 + If one direction increases and other decreases, is undefined behavior.
 
@@ -153,14 +153,17 @@ If type is bulkCurrent:
 ### `[domain]`
 
 # `[sources]`
-All sources require type and at least one elementIds or cellRegions entry.
+This entry is an array which stores all the electromagnetic sources of the simulation case. Each source is a JSON object which must contain the following information:
+ + `<magnitudeFile>` contains a relative path to the plain text file which will be used as a magnitude for this source. The first column must contain the times, and the second one the magnitude value.
+ + `<elementIds>` is an array of integers which must exist within the `mesh` `elements` list. These indicate the geometrical place where this source is located. The allowed
+ + `<type>` must be a label of the ones defined below.
 
-## `<type>`
+## `planewave`
 If type is Planewave
 
+## `nodalSource`
 If type is nodalSource
-    <field>: electric, magnetic, current
-    \[isInitialField\]: false, true (DEFAULTS TO FIRST)
+    `[field]`: electric, magnetic, current
 
 
 # `[cables]`

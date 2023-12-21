@@ -47,3 +47,4 @@ Testing/
 .vscode/settings.json
 .vscode/tasks.json
 
+.vscode/ltex.dictionary.en-US.txt
