@@ -6,19 +6,20 @@ module dispersive_mod
     
     type, public :: dispersive_t
         real :: dt
-        integer :: number_of_divisions, number_of_conductors, numper_of_poles
+        integer :: number_of_divisions, number_of_conductors, number_of_poles
         real, allocatable :: u(:,:)
-        real, allocatable, dimension(:,:) :: q3_phi
-        real, allocatable, dimension(:,:,:) :: d, e, q1_sum, q2_sum
-        real, allocatable, dimension(:,:,:) :: phi
-        real, allocatable, dimension(:,:,:,:) :: q1, q2, q3
+        real, allocatable, dimension(:,:,:) :: d, e
+        complex, allocatable, dimension(:,:) :: q3_phi
+        complex, allocatable, dimension(:,:,:) :: q1_sum, q2_sum
+        complex, allocatable, dimension(:,:,:) :: phi
+        complex, allocatable, dimension(:,:,:,:) :: q1, q2, q3
     contains
-        ! procedure :: vectorSum
         procedure :: updateQ3Phi
         procedure :: updatePhi
-        procedure :: getNumberOfPoles
-        procedure :: getResistiveTerm
-        procedure :: getInductiveTerm
+        procedure :: readResistiveTerm
+        procedure :: readInductiveTerm
+        procedure :: readResidues
+        procedure :: readPoles
         procedure :: findIndex
     end type dispersive_t
     
@@ -29,6 +30,7 @@ module dispersive_mod
     type, extends(dispersive_t) :: connector_t
     contains
         procedure :: addDispersiveConnector
+        procedure :: positionIsEmpty
     end type connector_t
 
     interface connector_t
@@ -39,23 +41,16 @@ module dispersive_mod
     contains
         procedure :: addTransferImpedance
         procedure :: setTransferImpedance
+        procedure :: readDirection
     end type transfer_impedance_t
 
     interface transfer_impedance_t
         module procedure transferImpendaceCtor
     end interface
-    
-
 
 
 contains
     
-    ! elemental function e(this) result(res)
-    !     class(entry) :: this
-    !     allocate(this%x(1))
-    !     this%x=0.0
-    ! end subroutine
-
     function dispersiveCtor(number_of_conductors, number_of_poles, u, dt) result(res)
         type(dispersive_t) :: res
         integer :: number_of_conductors, number_of_divisions, number_of_poles
@@ -78,28 +73,6 @@ contains
 
     end function
 
-    ! function vectorSum(this, v) result(res)
-    !     class(dispersive_t) :: this
-    !     real :: res
-    !     real, dimension(:) :: v
-    !     res = sum(v)
-    ! end function 
-
-    function dotmatrixmul(a,b) result(res)
-        real, dimension(:,:,:), intent(in) :: a
-        real, dimension(:,:), intent(in) :: b
-        real, dimension(:), allocatable :: res
-        integer :: i,j
-
-        allocate(res(size(a,1)))
-        do i = 1, size(a,1)
-            res(i) = 0.0
-            do j = 1, size(a,2)
-                res(i) = res(i) + dot_product(a(i,j,:),b(j,:))
-            end do
-        end do
-    end function
-
     subroutine updateQ3Phi(this)
         class(dispersive_t) :: this
         integer :: i_div,j,k
@@ -107,17 +80,6 @@ contains
         this%q3_phi(:,:) = reshape(source = [(dotmatrixmul(this%q3(i_div, :, :, :), this%phi(i_div, :, :)), i_div = 1, this%number_of_divisions)], &
                                    shape=[this%number_of_divisions, this%number_of_conductors], &
                                    order=[2,1])
-
-        ! do i_div = 1, this%number_of_divisions
-        !     this%q3_phi(i_div,:) = dotmatrixmul(this%q1(i_div, :, :, :), this%phi(i_div, :, :))
-        ! end do
-
-        ! do k = 1, this%numper_of_poles
-        !     do i_div = 1, this%number_of_divisions
-        !         this%q3_phi(i_div,:) = this%q3_phi(i_div,:)+matmul(this%q1(i_div, :, :, k), this%phi(i_div, :, k))
-        !     end do
-        ! end do
-
     end subroutine
 
     subroutine updatePhi(this, i_prev, i_now)
@@ -125,7 +87,7 @@ contains
         real, dimension(:,:), intent(in):: i_prev, i_now
         integer :: i_div,k
 
-        do k = 1, this%numper_of_poles
+        do k = 1, this%number_of_poles
             do i_div = 1, this%number_of_divisions
                 this%phi(i_div,:,k) = matmul(this%q1(i_div,:,:,k), i_now(:,i_div)) + &
                                       matmul(this%q2(i_div,:,:,k), i_prev(:,i_div)) + &
@@ -133,35 +95,29 @@ contains
             end do
         end do
 
-        ! this%phi = entryMatmul(this%q1, i_now) + &
-        !            entryMatmul(this%q2, i_prev)
-        !            dotMatmul(this%q3, this%phi)
-
     end subroutine
 
-    function getNumberOfPoles(this, dict, found) result(res)
-        class(dispersive_t) :: this
+    function readDirection(this, dict, found) result(res)
+        class(transfer_impedance_t) :: this
         type(fhash_tbl_t), intent(in) :: dict
         logical, intent(out), optional :: found
         integer :: stat
         class(*), allocatable :: d
-        integer :: res
+        character(len=:), allocatable :: res
   
-        ! if (present(found)) found = .false.
-        ! call dict%get_raw(key("resistiveTerm"), d, stat)
-        ! if (stat /= 0) return
+        if (present(found)) found = .false.
+        call dict%get_raw(key("direction"), d, stat)
+        if (stat /= 0) return
   
-        ! select type(d)
-        !  type is (real)
-        !    res = d
-        !    if (present(found)) found = .true.
-        ! end select
-        !TODO
-        res  = 0
+        select type(d)
+         type is (real)
+           res = d
+           if (present(found)) found = .true.
+        end select
 
     end function
 
-    function getResistiveTerm(this, dict, found) result(res)
+    function readResistiveTerm(this, dict, found) result(res)
         class(dispersive_t) :: this
         type(fhash_tbl_t), intent(in) :: dict
         logical, intent(out), optional :: found
@@ -181,7 +137,47 @@ contains
 
     end function
 
-    function getInductiveTerm(this, dict, found) result(res)
+    function readResidues(this, dict, found) result(res)
+        class(dispersive_t) :: this
+        type(fhash_tbl_t), intent(in) :: dict
+        logical, intent(out), optional :: found
+        integer :: stat
+        class(*), allocatable :: d
+        complex :: res
+  
+        if (present(found)) found = .false.
+        call dict%get_raw(key("residues"), d, stat)
+        if (stat /= 0) return
+  
+        select type(d)
+         type is (real)
+           res = d
+           if (present(found)) found = .true.
+        end select
+
+    end function
+
+    function readPoles(this, dict, found) result(res)
+        class(dispersive_t) :: this
+        type(fhash_tbl_t), intent(in) :: dict
+        logical, intent(out), optional :: found
+        integer :: stat
+        class(*), allocatable :: d
+        complex :: res
+  
+        if (present(found)) found = .false.
+        call dict%get_raw(key("poles"), d, stat)
+        if (stat /= 0) return
+  
+        select type(d)
+         type is (real)
+           res = d
+           if (present(found)) found = .true.
+        end select
+
+    end function
+
+    function readInductiveTerm(this, dict, found) result(res)
         class(dispersive_t) :: this
         type(fhash_tbl_t), intent(in) :: dict
         logical, intent(out), optional :: found
@@ -215,53 +211,83 @@ contains
         real :: dt
         real, dimension(:,:) :: u
         res%dispersive_t = dispersiveCtor(number_of_conductors, number_of_poles, u, dt)
-
     end function 
+
+    function positionIsEmpty(this, index, conductor) result(res)
+        class(connector_t) :: this
+        integer, intent(in) :: index, conductor
+        logical :: res
+        res = .true.
+        if ((this%d(index, conductor, conductor) /= 0.0).or.&
+            (this%e(index, conductor, conductor) /= 0.0).or.&
+            .not.(all(this%q1(index, conductor, conductor,:) == 0.0)) .or.&
+            .not.(all(this%q2(index, conductor, conductor,:) == 0.0)) .or.&
+            .not.(all(this%q3(index, conductor, conductor,:) == 0.0))) then
+                res = .false.
+        end if
+    end function
 
     subroutine addDispersiveConnector(this, position, conductor, model)
         class(connector_t) :: this
         real, dimension(3), intent(in) :: position
         integer, intent(in) :: conductor
-        type(fhash_tbl_t) :: model
-        integer :: index, connector_number_of_poles, i
+        type(fhash_tbl_t), intent(in) :: model
         type(connector_t) :: new_connector
-        index = this%findIndex(position)
-        !TODO
-        !read poles and residues
-        !combine into complex p and r
-        !assign to q1, q2 and q3
-        ! self.q1[index, conductor, conductor] -= (residues / poles) * (
-        !     1 - (np.exp(poles * self.dt) - 1) / (poles * self.dt)
-        ! )
-        ! self.q2[index, conductor, conductor] += (residues / poles) * (
-        !     1 / (poles * self.dt)
-        !     + np.exp(poles * self.dt) * (1 - 1 / (poles * self.dt))
-        ! )
-        ! self.q3[index, conductor, conductor] += np.exp(poles * self.dt)
+        complex, allocatable, dimension(:) :: poles, residues, q1,q2,q3
+        integer :: index, connector_number_of_poles, i
 
-        connector_number_of_poles = this%getNumberOfPoles(model)
-        !al añadir un connector, si es necesario amplia la dimensión, y luego añade valores
-        !si no, añade el polo/res a la posicion correspondiente        
-        if (connector_number_of_poles > this%numper_of_poles) then
-            new_connector = connector_t(this%number_of_conductors, connector_number_of_poles, this%u, this%dt)
-            new_connector%q1(:,:,:,1:this%numper_of_poles) = this%q1 !copy
-            do i = 1, connector_number_of_poles
-                new_connector%q1(index, conductor,conductor,i) = new_connector%q1(index, conductor,conductor,i) + 10.0 !assign new values, 10.0 is a placeholder
-            end do
-            call move_alloc(from=new_connector%q1, to= this%q1)
-        else 
-            do i = 1, connector_number_of_poles
-                this%q1(index, conductor, conductor,i) = this%q1(index, conductor, conductor,i) + 10.0 !the values of the new pole/residue operation
-            end do
+        index = this%findIndex(position)
+        if (.not.this%positionIsEmpty(index, conductor))then
+            error stop 'Dispersive connector already in conductor at position'
         end if
 
-        this%d(index, conductor, conductor) = this%d(index, conductor, conductor) + this%getResistiveTerm(model)
-        this%e(index, conductor, conductor) = this%e(index, conductor, conductor) + this%getInductiveTerm(model)
+        poles = this%readPoles(model)
+        residues = this%readResidues(model)
+        connector_number_of_poles = size(residues)
+        q1 = - (residues/poles) * (1.0-(exp(poles*this%dt)-1.0)/(poles*this%dt))
+        q2 =   (residues/poles) * (1.0/(poles*this%dt) + exp(poles*this%dt)*(1.0-1.0/(poles*this%dt)))
+        q3 =   exp(poles*this%dt)
+
+        if (connector_number_of_poles > this%number_of_poles) then
+            new_connector = connector_t(this%number_of_conductors, connector_number_of_poles, this%u, this%dt)
+            new_connector%q1(:,:,:,1:this%number_of_poles) = this%q1
+            new_connector%q2(:,:,:,1:this%number_of_poles) = this%q2
+            new_connector%q3(:,:,:,1:this%number_of_poles) = this%q3
+            ! new_connector%phi(:,:,:) = this%phi
+            ! new_connector%d(:,:,:) = this%d
+            ! new_connector%e(:,:,:) = this%e
+            ! new_connector%q3_phi(:,:,:) = 0.0
+
+            new_connector%q1(index, conductor,conductor,:) = q1(:)
+            new_connector%q2(index, conductor,conductor,:) = q2(:)
+            new_connector%q3(index, conductor,conductor,:) = q3(:)
+            ! do i = 1, connector_number_of_poles
+            !     new_connector%q1(index, conductor,conductor,i) = new_connector%q1(index, conductor,conductor,i) + q1(i)
+            !     new_connector%q2(index, conductor,conductor,i) = new_connector%q2(index, conductor,conductor,i) + q2(i)
+            !     new_connector%q3(index, conductor,conductor,i) = new_connector%q3(index, conductor,conductor,i) + q3(i)
+            ! end do
+
+            call move_alloc(from=new_connector%q1, to= this%q1)
+            call move_alloc(from=new_connector%q2, to= this%q2)
+            call move_alloc(from=new_connector%q3, to= this%q3)
+
+        else 
+            this%q1(index, conductor, conductor,:) = q1(i)
+            this%q2(index, conductor, conductor,:) = q2(i)
+            this%q3(index, conductor, conductor,:) = q3(i)
+            ! do i = 1, connector_number_of_poles
+            !     this%q1(index, conductor, conductor,i) = this%q1(index, conductor, conductor,i) + q1(i)
+            !     this%q2(index, conductor, conductor,i) = this%q2(index, conductor, conductor,i) + q2(i)
+            !     this%q3(index, conductor, conductor,i) = this%q3(index, conductor, conductor,i) + q3(i)
+            ! end do
+        end if
+
+        this%d(index, conductor, conductor) = this%readResistiveTerm(model)
+        this%e(index, conductor, conductor) = this%readInductiveTerm(model)
         
         this%q1_sum = sumQComponents(this%q1)
         this%q2_sum = sumQComponents(this%q2)
     end subroutine
-
 
 
     function transferImpendaceCtor(number_of_conductors, number_of_poles, u, dt) result(res)
@@ -279,17 +305,56 @@ contains
         integer, intent(in) :: out_level, in_level
         integer, dimension(:), intent(in) :: out_level_conductors, in_level_conductors
         type(fhash_tbl_t), intent(in) :: impedance_model, levels
+        type(transfer_impedance_t) :: new_transfer
+        complex, allocatable, dimension(:) :: poles, residues, q1,q2,q3
+        character(len=:), allocatable :: direction
+        integer :: index, connector_number_of_poles, i, j
+        integer, dimension(:), allocatable :: range_in, range_out
 
-        ! this%q1_sum = componentSum(this%q1)
-        ! this%q2_sum = componentSum(this%q2)
+        poles = this%readPoles(model)
+        residues = this%readResidues(model)
+        direction = this%readDirection(model)
+        connector_number_of_poles = size(residues)
+        q1 =   (residues/poles) * (1.0-(exp(poles*this%dt)-1.0)/(poles*this%dt))
+        q2 = - (residues/poles) * (1.0/(poles*this%dt) + exp(poles*this%dt)*(1.0-1.0/(poles*this%dt)))
+        q3 = - exp(poles*this%dt)
+
+        !todo compute ranges
+
+        ! do i = 1
+
+        this%d(index, conductor, conductor) = this%d(index, conductor, conductor) - this%readResistiveTerm(model)
+        this%e(index, conductor, conductor) = this%e(index, conductor, conductor) - this%readInductiveTerm(model)
+
+        if (connector_number_of_poles > this%number_of_poles) then
+            new_transfer = connector_t(this%number_of_conductors, connector_number_of_poles, this%u, this%dt)
+            new_transfer%q1(:,:,:,1:this%number_of_poles) = this%q1
+            new_transfer%q2(:,:,:,1:this%number_of_poles) = this%q2
+            new_transfer%q3(:,:,:,1:this%number_of_poles) = this%q3
+
+            new_transfer%q1(index, conductor,conductor,:) = new_transfer%q1(index, conductor,conductor,:) + q1(:)
+            new_transfer%q2(index, conductor,conductor,:) = new_transfer%q2(index, conductor,conductor,:) + q2(:)
+            new_transfer%q3(index, conductor,conductor,:) = new_transfer%q3(index, conductor,conductor,:) + q3(:)
+
+            call move_alloc(from=new_transfer%q1, to= this%q1)
+            call move_alloc(from=new_transfer%q2, to= this%q2)
+            call move_alloc(from=new_transfer%q3, to= this%q3)
+
+        else 
+            this%q1(index, conductor, conductor,:) = this%q1(index, conductor, conductor,:) + q1(:)
+            this%q2(index, conductor, conductor,:) = this%q2(index, conductor, conductor,:) + q2(:)
+            this%q3(index, conductor, conductor,:) = this%q3(index, conductor, conductor,:) + q3(:)
+        end if
+
+        
+        this%q1_sum = sumQComponents(this%q1)
+        this%q2_sum = sumQComponents(this%q2)
 
     end subroutine
 
     subroutine setTransferImpedance(this)
         class(transfer_impedance_t) :: this
 
-        ! this%q1_sum = componentSum(this%q1)
-        ! this%q2_sum = componentSum(this%q2)
 
     end subroutine
 

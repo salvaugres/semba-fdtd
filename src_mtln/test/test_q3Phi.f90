@@ -4,18 +4,15 @@ integer function test_q3Phi() result(error_cnt)
     implicit none
 
     
-    real, dimension(:,:,:,:), allocatable :: A
-    real, dimension(:,:,:), allocatable :: Asum
 
     real, dimension(:,:,:,:), allocatable :: q3
     real, dimension(:,:,:), allocatable :: phi
     real, dimension(:,:), allocatable :: q3phi
     integer :: nr, ndiv, nc, i_div
-    integer :: i,j,k
+
     nr = 2
     ndiv = 3
     nc = 2
-
 
     allocate(q3(ndiv,nc,nc,nr))
     allocate(phi(ndiv,nc,nr))

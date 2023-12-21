@@ -7,93 +7,33 @@ module utils_mod
       real, dimension(:), allocatable :: x
    end type entry
 
-   interface operator(+)
-      module procedure add_entries
-   end interface
-
-
 contains
 
-
-   elemental function add_entries(a,b) result(res)
-      type(entry), intent(in) :: a,b
-      type(entry) :: res
-      res%x = a%x + b%x
-   end function
-
-   elemental function componentSum(a) result(res)
-      type(entry), intent(in) :: a
-      real :: res
-      res = sum(a%x)
-   end function
-
    function sumQComponents(a) result(res)
-      real, dimension(:,:,:,:), intent(in) :: a
-      integer :: i
-      real, allocatable, dimension(:,:,:) :: res
-      allocate(res(size(a,1), size(a,2), size(a,3)))
-      res = 0.0
-      do i = 1, size(a,4)
-          res(:,:,:) = res(:,:,:) + a(:,:,:,i)
-      end do  
+         complex, dimension(:,:,:,:), intent(in) :: a
+         integer :: i
+         complex, allocatable, dimension(:,:,:) :: res
+         allocate(res(size(a,1), size(a,2), size(a,3)))
+         res = 0.0
+         do i = 1, size(a,4)
+            res(:,:,:) = res(:,:,:) + a(:,:,:,i)
+         end do  
+   end function
+
+   function dotmatrixmul(a,b) result(res)
+      complex, dimension(:,:,:), intent(in) :: a
+      complex, dimension(:,:), intent(in) :: b
+      complex, dimension(:), allocatable :: res
+      integer :: i,j
+
+      allocate(res(size(a,1)))
+      do i = 1, size(a,1)
+          res(i) = 0.0
+          do j = 1, size(a,2)
+              res(i) = res(i) + dot_product(a(i,j,:),b(j,:))
+          end do
+      end do
   end function
-
-
-   function entryMatmul(a,b) result(res)
-      type(entry), dimension(:,:,:), intent(in) :: a
-      real, dimension(:,:), intent(in) :: b
-      real, dimension(:,:,:),allocatable :: b_reshaped
-
-      type(entry), dimension(size(a,1), size(a,2), 1) :: res_temp
-      type(entry), dimension(size(a,1), size(a,2)) :: res
-      integer :: i,j,k,nz
-      type(entry) :: tmp
-      
-      b_reshaped = reshape(b, [size(b,1),size(b,2),1])
-      do nz = 1, size(a,1)
-         do j=1,size(b_reshaped,3)
-            do i=1,size(A,2)
-                  allocate(tmp%x(size(a(nz,i,1)%x)))
-                  do k=1,size(A,3)
-                     tmp%x = tmp%x + a(nz,i,k)%x * b_reshaped(k,nz,j)
-                  enddo
-                  res_temp(nz,i,j) = tmp
-            enddo
-         enddo
-      enddo
-      
-      res = reshape(res_temp, [size(b,1),size(b,2)])
-
-   end function
-
-
-
-   function dotMatmul(a,b) result(res)
-      type(entry), dimension(:,:,:), intent(in) :: a
-      type(entry), dimension(:,:), intent(in) :: b
-      type(entry), dimension(:,:,:),allocatable :: b_reshaped
-
-      real, dimension(size(A,1), size(A,2), 1) :: res_temp
-      real, dimension(size(A,1), size(A,2)) :: res
-      integer :: i,j,k,nz
-      real :: tmp
-      
-      b_reshaped = reshape(b, [size(b,1),size(b,2),1])
-      do nz = 1, size(a,1)
-         do j=1,size(b_reshaped,3)
-            do i=1,size(A,2)
-                  tmp = 0.0 
-                  do k=1,size(A,3)
-                     tmp = tmp + dot_product(a(nz,i,k)%x, b_reshaped(nz,k,j)%x)
-                  enddo
-                  res_temp(nz,i,j) = tmp
-            enddo
-         enddo
-      enddo
-      
-      res = reshape(res_temp, [size(b,1),size(b,2)])
-
-   end function
 
    function eye(dim) result(res)
       real, dimension(dim, dim) :: res
