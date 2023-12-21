@@ -41,11 +41,12 @@ PROGRAM SEMBA_FDTD_launcher
    USE Solver
    USE Resuming
    !nfde parser stuff
+   USE NFDETypes
 #ifdef CompilePrivateVersion      
-   USE NFDETypes
    USE ParseadorClass
-#else
-   USE NFDETypes
+#endif
+#ifdef CompileWithJSON
+   USE smbjson, only: fdtdjson_parser_t => parser_t
 #endif   
    USE Preprocess
    USE storeData
@@ -347,10 +348,7 @@ PROGRAM SEMBA_FDTD_launcher
 #ifdef CompilePrivateVersion   
    call cargaNFDE
 #else               
-   print *,'Currently the parser is privative. The user must build by the input type using the info in nfde_types.F90.'    
-   print *,'You can also contact us for CAD solutions to generate this info it in an automatic manner for general geometries,'
-   print *,'and to have also access to advanced models not included here: stochastic analysis, multiwire and conformal cables, LF acceleration, etc.'
-   stop
+   call cargaFDTDJSON(fichin, parser)
 #endif   
 !!!!!!!!!!!!!!!!!!!!!!!
    sgg%extraswitches=parser%switches
@@ -1136,6 +1134,22 @@ subroutine cargaNFDE
    return
 
 end subroutine cargaNFDE
+#endif
+
+#ifdef CompileWithJSON
+   subroutine cargaFDTDJSON(filename, parsed)
+      character(len=1024), intent(in) :: filename
+      type(Parseador), pointer :: parsed
+      
+      character(len=:), allocatable :: usedFilename    
+      type(fdtdjson_parser_t) :: parser
+      
+      usedFilename = adjustl(trim(filename)) // ".json"
+      parser = fdtdjson_parser_t(usedFilename)
+      
+      allocate(parsed)
+      parsed = parser%readProblemDescription()
+   end subroutine cargaFDTDJSON
 #endif
 
 !!!!!!!!!!!!!!!!!

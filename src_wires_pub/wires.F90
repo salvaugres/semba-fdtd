@@ -1763,7 +1763,7 @@ contains
          despT2=dummy%deltaTransv2
          r0=    dummy%TipoWire%Radius     
          if (r0 < 1e-30) then 
-              write (buff,*)  'wir0_ERROR: ire radius cannot be null'
+              write (buff,*)  'wir0_ERROR: wire radius cannot be null'
               if ((k1 >= ZI).and.(k1 <= ZE))  call WarnErrReport(buff,.true.)
          endif   
          !!!!!!!!!!!!correccion bruta 13/07/15
