@@ -348,7 +348,7 @@ PROGRAM SEMBA_FDTD_launcher
 #ifdef CompilePrivateVersion   
    call cargaNFDE
 #else
-   call cargaFDTDJSON(fichin, parser)
+   call cargaFDTDJSON(l%fichin, parser)
 #endif   
 !!!!!!!!!!!!!!!!!!!!!!!
    sgg%extraswitches=parser%switches

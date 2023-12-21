@@ -36,8 +36,8 @@
                 "phi": 0.0
             },
             "polarization": {
-                "theta": 1.5708,
-                "phi": 0.0
+                "alpha": 1.5708,
+                "beta": 0.0
             }
         }
     ],

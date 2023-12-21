@@ -1,5 +1,5 @@
 # The `smbjson` parser module
-This module allows to read the FDTD JSON format and parse it into the semba-fdtd data structures.
+This module allows to read the [FDTD-JSON format](#the-fdtd-json-format) and parse it into the semba-fdtd data structures.
 
 # Compilation and testing
 ## Compilation with GNU Fortran
@@ -43,11 +43,12 @@ This object must always be present and contains general information regarding th
 - `<numberOfSteps>`: An integer for the number of steps which the solver will iterate.
 
 Example:
-
+```json
     "general": {
         "timeStep": 10e-12,
         "numberOfSteps": 2000
     }
+```
     
 ### `[boundary]`
 This specifies the boundaries which will be used to terminate the computational domain. 
@@ -67,6 +68,7 @@ These objects must contain a `<type>` label which can be:
 
 Example: 
 
+```json
     "boundary": {
         "all": {
             "type": "pml",
@@ -75,6 +77,7 @@ Example:
             "reflection": 0.001
         }
     }
+```
 
 ### `<mesh>`
 All the geometrical information of the simulation case is exclusively stored by the `mesh` object. 
@@ -92,29 +95,29 @@ This is an array of objects which represent Cartesian coordinates within the gri
  TODO EXAMPLE IMAGE
 
 #### `[elements]`
-The `elements` entry is an array of objects, each of which represents a geometrical entity. Within this format context the concept of element is broader than usually because they can be relatively complex geometrical entities. An *element objects* must contain a 
+The `elements` entry contains an array of JSON objects, each of which represents a geometrical entity. Within context of this format specification, an *element* can be a relatively simple entity such as `node` or a `polyline`, but it can also be a much more complex geometrical entity such as a `cellRegion`. An *element objects* must contain a 
  * `<id>` formed by an integer which uniquely identifies it within the `elements` array.
  * `<type>` which can be one of the following: 
    - `node`, representing a point in space. Elements with this type include a `<coordinateIds>` entry which is an array of a single integer with the id of a coordinate and which must exist in the within the `mesh` `coordinates` array.
    - `polyline`, representing an oriented collection of segments. It must contain a list `<coordinateIds>` with at least two coordinates.
    - `cellRegion`, containing a list of  one or more `<intervals>` defined following the [interval convention](#####interval-convention). 
 
-##### `interval` convention
+##### The `interval` convention
 An `interval` is formed by a pair of two arrays, each formed by triplets of integer numbers $\mathbf{a} = \{a_x, a_y, a_z\}$ and $\mathbf{b} = \{b_x, b_y, b_z\}$ which define a region formed by three closed-open intervals $[a_x, b_x) \times [a_y, b_y) \times [a_z, b_z)$. 
 Each integer number indicates a Cartesian plane in the `grid` assuming that they are numbered from $0$ to $N$, with $N$ being the number of cells in that direction. 
 The size of the interval is defined as $|a_x - b_x| \times |a_y - b_y| \times |a_z - b_z|$ therefore must be positive or zero.
 An interval allows specifying regions within the grid which can be a point, an oriented line, an oriented surface, or a volume:
 
-+ A **point** is defined when $\mathbf{a} = \mathbf{b}$. In this case, the interval specifies an intersection three grid planes. Points have no orientation.
++ A *point* is defined when $\mathbf{a} = \mathbf{b}$. In this case, the interval specifies an intersection three grid planes. Points have no orientation.
 
-+ An **oriented line** is defined when the interval has the same initial and ending values in all directions except one, for instance $a_x \neq b_x$. In this case there are two possibilities:
++ An *oriented line* is defined when the interval has the same initial and ending values in all directions except one, for instance $a_x \neq b_x$. In this case there are two possibilities:
 
   - when $(b_x - a_x) > 0$, the line is oriented towards $+\hat{x}$.
   - when $(b_x - a_x) < 0$, the line is oriented towards $-\hat{x}$. 
 
   In both cases the line would have a size of $|b_x - a_x|$.  
 
-+ An **oriented surface** is defined when one initial and ending value is the same and the other two are different, e.g. $a_x = b_x$, $a_y \neq b_y$, $a_z \neq b_z$. In this case there are four possibilities:
++ An *oriented surface* is defined when one initial and ending value is the same and the other two are different, e.g. $a_x = b_x$, $a_y \neq b_y$, $a_z \neq b_z$. In this case there are four possibilities:
   
   - when the $(b_y - a_y) > 0$ and $(b_z - a_z) > 0$, the surface normal is assumed to be oriented towards $+\hat{x}$.
   - when the $(b_y - a_y) < 0$ and $(b_z - a_z) < 0$, the surface normal is assumed to be oriented towards $-\hat{x}$.
@@ -122,9 +125,7 @@ An interval allows specifying regions within the grid which can be a point, an o
 
   In all cases the size of the surface is 
 
-+ A **volume** is defined when the initial are strictly smaller than the ending ones for all directions, i.e. $a_x < b_x$, $a_y < b_y$, and $a_z < b_z$. The rest of the cases are left as undefined.
-
-+ If one direction increases and other decreases, is undefined behavior.
++ A *volume* is defined when each number in $\mathbf{a}$ is strictly smaller than the numbers in $\mathbf{b}$ for each direction, i.e. $a_x < b_x$, $a_y < b_y$, and $a_z < b_z$. The rest of the cases in which all numbers are different but not necessarily smaller are left as undefined.
 
 TODO EXAMPLES IMAGE
 
@@ -153,14 +154,39 @@ If type is bulkCurrent:
 ### `[domain]`
 
 # `[sources]`
-All sources require type and at least one elementIds or cellRegions entry.
+This entry is an array which stores all the electromagnetic sources of the simulation case. Each source is a JSON object which must contain the following entries:
+ + `<magnitudeFile>` contains a relative path to the plain text file which will be used as a magnitude for this source. This file must contain two columns, with the first stating the time and the second one the magnitude value; an example magnitude file can be found at [gauss.exc](testData/cases/gauss.exc).
+ + `<type>` must be a label of the ones defined below. Some examples of source `type` are `planewave` or `nodalSource`.
+ + `<elementIds>` is an array of integers which must exist within the `mesh` `elements` list. These indicate the geometrical place where this source is located. The `type` and number of the allowed elements depends on the source `type` and can be check in the descriptions of each source object, below.
 
-## `<type>`
-If type is Planewave
+## `planewave`
+The `planewave` object represents an electromagnetic plane wave front which propagates towards a $\hat{k}$ direction with an electric field pointing towards $\hat{E}$. The `elementIds` in planewaves must define a single `cellRegion` element formed by a single cuboid region.
+Besides the common entries in [sources](#sources), it must also contain the following ones:
 
-If type is nodalSource
-    <field>: electric, magnetic, current
-    \[isInitialField\]: false, true (DEFAULTS TO FIRST)
+ + `<direction>`, is an object containing `<theta>` and `<phi>`, which are the angles of the propagation vector $\hat{k} (\theta, \phi)$.
+ + `<polarization>`, is an object containing `<theta>` and `<phi>` which indicates the direction of the electric field vector $\hat{E}(\theta, \phi)$.
+
+An example of a planewave propagating towards $\hat{z}$ and polarized in the $+\hat{x}$ follows,
+```json
+    {
+        "type": "planewave",
+        "magnitudeFile": "gauss.exc",
+        "elementIds": [2],
+        "direction": {
+            "theta": 0.0,
+            "phi": 0.0
+        },
+        "polarization": {
+            "theta": 1.5708,
+            "phi": 0.0
+        }
+    }
+```
+
+## `nodalSource`
+TODO
+If `type` is nodalSource
+    `[field]`: electric, magnetic, current
 
 
 # `[cables]`
