@@ -1,5 +1,6 @@
 module smbjson
-
+                
+#ifdef CompileWithJSON
    use NFDETypes
 
    use NFDETypes_extension
@@ -1067,5 +1068,5 @@ contains
          end if
       end do
    end function
-
+#endif
 end module

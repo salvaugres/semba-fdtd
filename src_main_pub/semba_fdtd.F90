@@ -348,7 +348,7 @@ PROGRAM SEMBA_FDTD_launcher
 #ifdef CompilePrivateVersion   
    call cargaNFDE
 #else
-   call cargaFDTDJSON(fichin, parser)
+   call cargaFDTDJSON(l%fichin, parser)
 #endif   
 !!!!!!!!!!!!!!!!!!!!!!!
    sgg%extraswitches=parser%switches
@@ -1138,7 +1138,7 @@ end subroutine cargaNFDE
 
 #ifdef CompileWithJSON
    subroutine cargaFDTDJSON(filename, parsed)
-      character(len=1024), intent(in) :: filename
+      character(len=BUFSIZE), intent(in) :: filename
       type(Parseador), pointer :: parsed
       
       character(len=:), allocatable :: usedFilename    
