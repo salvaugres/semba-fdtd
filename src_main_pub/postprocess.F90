@@ -49,7 +49,7 @@ contains
       character (len=*), intent(in) :: nEntradaRoot
 
       type(output_t), pointer, dimension( : )  ::  output
-      character (len=1024) :: cabecera,cabeceraNew,path,path2,path3,path_resampled
+      character (LEN=BUFSIZE) :: cabecera,cabeceraNew,path,path2,path3,path_resampled
       integer (kind=4) :: numComp
       REAL (KIND=RKIND), allocatable, dimension(:,:) :: valores
       complex (kind=CKIND), allocatable, dimension(:,:) :: valoresDF,valoresDF2
@@ -64,9 +64,9 @@ contains
       real (kind=RKIND)   :: fmin,fmax,fstep,value_interp
       complex (kind=CKIND), allocatable, dimension(:) :: fqValues
       character(len=BUFSIZE) :: buff
-      character (len=1024)     ::  dubuf
+      character (LEN=BUFSIZE)     ::  dubuf
       !
-      character (len=14)  ::  whoami,whoamishort
+      character (LEN=BUFSIZE)  ::  whoami,whoamishort
       real (kind=RKIND) :: t_pedido
       integer (kind=4) columna,jjj
       integer :: my_iostat
@@ -502,8 +502,8 @@ contains
 
    subroutine conviertecabecera(c,cNew,columnas,rinstant)
       integer :: columnas
-      character(len=1024) :: c,cNew,chninstant
-      character(len=1024), dimension(1:columnas) :: c2
+      character(LEN=BUFSIZE) :: c,cNew,chninstant
+      character(LEN=BUFSIZE), dimension(1:columnas) :: c2
       integer :: i,j,k,longi,ii
       real (kind=RKIND_tiempo) rinstant
 
@@ -554,7 +554,7 @@ contains
       character (len=*), intent(in) :: nEntradaRoot
 
       type(output_t), pointer, dimension( : )  ::  output
-      character (len=1024) :: path
+      character (LEN=BUFSIZE) :: path
       logical :: existe,escribir,escribirBloque,somethingdone,niapapostprocess,forceresampled
       integer (kind=4) :: ii,i,field
       character(len=BUFSIZE) :: buff

@@ -87,11 +87,11 @@ module  FDETYPES
    integer (kind=8),  parameter  ::  MaxMemoryProbes=2_8**37_8 !128 Gb Maximum bytes of the buffer to store evolution data
    integer (kind=8),  parameter  ::  MaxProbes=150000 !Maximum number of probes (a limit of 200000 is set with ulimit in Linux)
    !
-   integer, parameter  ::  MAX_LINEA = 256          !maximum characters length of a line in a nfde file
    !
    INTEGER, parameter :: topCPUtime=10000000 !maximum cpu time in minutes !set to 690 in UGRGRID
-   !size of character strings for file writing
+   !size of character strings 
    INTEGER, parameter :: BUFSIZE=1024
+   INTEGER, parameter :: BUFSIZE_LONG=16384
    !!!INTEGER :: maxmessages=20000 !numero maximo mensajes para alocatear en MPI overrideable con -maxmessages y quitado como parameter fijo !deprecated 07/03/15
    !dxf output stuff
    !!!integer, parameter :: maxdxf= 20000,dxflinesize=14
@@ -232,7 +232,7 @@ module  FDETYPES
    !solo tipos
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     type tagtype_t
-        CHARACTER (LEN=MAX_LINEA), allocatable, dimension (:) :: tag
+        CHARACTER (LEN=BUFSIZE), allocatable, dimension (:) :: tag
         integer (Kind=4) :: numertags
     end type
 
@@ -313,7 +313,7 @@ module  FDETYPES
    !
 
    type  ::  fichevol_t
-      character (len=128)  ::  Name
+      character (LEN=BUFSIZE)  ::  Name
       integer (kind=4)      ::  NumSamples
       REAL (KIND=RKIND)  ::  DeltaSamples
       REAL (KIND=RKIND), dimension( : ), pointer  ::  Samples
@@ -322,7 +322,7 @@ module  FDETYPES
 
    !wires
    type  ::  fichevol_t_wires
-      character (len=128)  ::  Name
+      character (LEN=BUFSIZE)  ::  Name
       integer (kind=4)      ::  NumSamples
       REAL (KIND=RKIND_wires)  ::  DeltaSamples
       REAL (KIND=RKIND_wires), dimension( : ), pointer  ::  Samples
@@ -426,7 +426,7 @@ module  FDETYPES
 !!!
    TYPE  ::  Multiport_t
       integer (kind=4)   ::   Multiportdir = 0 !orientation +iEx, -iEx,+iEy.......
-      character (len=1024)                            ::   multiportFileZ11,multiportFileZ22,multiportFileZ12,multiportFileZ21
+      character (LEN=BUFSIZE)                            ::   multiportFileZ11,multiportFileZ22,multiportFileZ12,multiportFileZ21
       real (kind=rkind), dimension( : ), pointer :: epr,mur,sigma,sigmam,width   
                   !_for_devia 090519
       real (kind=rkind), dimension( : ), pointer :: epr_devia,mur_devia,sigma_devia,sigmam_devia,width_devia
@@ -438,7 +438,7 @@ module  FDETYPES
    !
    TYPE  ::  AnisMultiport_t
       integer (kind=4)   ::   Multiportdir = 0 !orientation +iEx, -iEx,+iEy.......
-      character (len=1024)                            ::   MultiportFileZ11,MultiportFileZ22, &
+      character (LEN=BUFSIZE)                            ::   MultiportFileZ11,MultiportFileZ22, &
       MultiportFileZ12,MultiportFileZ21
       real (kind=rkind), pointer, dimension( : ) :: epr,mur,sigma,sigmam,width
    END TYPE AnisMultiport_t
@@ -499,8 +499,8 @@ module  FDETYPES
       REAL (KIND=RKIND)  ::  thetaStart,thetaStop,thetaStep
       REAL (KIND=RKIND)  ::  phiStart,phiStop,phiStep
 
-      character (len=1024)  ::  outputrequest
-      character (len=1024)  ::   FileNormalize
+      character (LEN=BUFSIZE)  ::  outputrequest
+      character (LEN=BUFSIZE)  ::   FileNormalize
       logical :: FreqDomain ,TimeDomain , Saveall,  &
       TransFer, Volumic,Done,Begun,Flushed
    end type
@@ -584,7 +584,7 @@ module  FDETYPES
    type  ::  SGGFDTDINFO
       REAL (KIND=RKIND_tiempo)     , pointer, dimension ( : )        ::  tiempo !para permit scaling
       REAL (KIND=RKIND_tiempo)  ::  dt
-      character (len=max_linea) :: extraswitches
+      character (len=BUFSIZE) :: extraswitches
       !!
       integer (kind=4)   ::  NumMedia,AllocMed
       integer (kind=4)   ::  IniPMLMedia,EndPMLMedia
@@ -609,7 +609,7 @@ module  FDETYPES
       !
       logical  :: thereAreMagneticMedia
       logical  :: thereArePMLMagneticMedia
-      CHARACTER (LEN=1024) :: nEntradaRoot
+      CHARACTER (LEN=BUFSIZE) :: nEntradaRoot
       type (coorsxyzP)  ::  Punto
    end type
 

@@ -72,7 +72,7 @@ module Observa
 #ifdef CompileWithSlantedWires
       class(Segment)        , pointer  ::  segmento_Slanted !segmento de hilo que se observa si lo hubiere
 #endif
-      character (len=1024)  ::  path
+      character (LEN=BUFSIZE)  ::  path
       integer (kind=4) :: unit,unitmaster !to store the unit of the file y en caso de singlefileginario el unitmaster que escribe
       integer (kind=4) :: columnas !number of columns in the output file
       REAL (KIND=RKIND), pointer, dimension( : )   ::  valor,valor2,valor3,valor4,valor5 !stored values at each time step !not read but calculate !210521 also store -edl+vdrop
@@ -158,7 +158,7 @@ contains
       !!!
       character(len=*), INTENT(in) :: wiresflavor
       logical  ::  saveall,singlefilewrite,NF2FFDecim, INIT,GEOM,ASIGNA,electric,magnetic
-      character (len=1024)  ::  p1,p2
+      character (LEN=BUFSIZE)  ::  p1,p2
       real (kind=RKIND_tiempo) :: lastexecutedtime
       
       character (len=*), intent(in)  ::  nEntradaRoot
@@ -167,16 +167,16 @@ contains
 
       logical, intent(inout)   ::  ThereAreObservation,ThereAreFarFields
       logical, intent(in)      ::  ThereAreWires,resume
-      character (len=7)  ::  chari,charj,chark,chari2,charj2,chark2,charNO
-      character (len=1024)  ::  ext,extpoint,adum,prefix_field
+      character (LEN=BUFSIZE)  ::  chari,charj,chark,chari2,charj2,chark2,charNO
+      character (LEN=BUFSIZE)  ::  ext,extpoint,adum,prefix_field
       logical  ::  incident,errnofile,first
       REAL (KIND=RKIND)    ::  rdum,field1,field2
       REAL (KIND=RKIND_tiempo)    ::  at,dtevol,tiempo1,tiempo2
       integer (kind=4)  ::  unit,ndum,unitmaster,conta,III,JJJ,KKK,pozi,i1t,j1t,k1t
-      character (len=14)  ::  whoami,whoamishort
+      character (LEN=BUFSIZE)  ::  whoami,whoamishort
       logical :: ok,existe,wrotemaster,found
       integer (kind=8)  :: memo,ntini,ntfin
-      character(len=1024) :: buff,path,buff2
+      character(LEN=BUFSIZE) :: buff,path,buff2
 #ifdef CompileWithMPI
       integer(kind=MPI_OFFSET_KIND) disp
       integer (kind=4)  ::  ierr
@@ -2337,8 +2337,8 @@ contains
       logical :: singlefilewrite,resume,incident,existe,wrotemaster
       REAL (KIND=RKIND)    ::  rdum1,rdum2,rdum3,rdum4,rdum5,rdum6,rdum
       REAL (KIND=RKIND_tiempo)    ::  lastexecutedtime
-      character (len=1000) :: chdum
-      character (len=14)  ::  whoamishort
+      character (LEN=BUFSIZE) :: chdum
+      character (LEN=BUFSIZE)  ::  whoamishort
       integer :: my_iostat
       real (kind=RKIND_tiempo) :: at
       !!!
@@ -2469,8 +2469,8 @@ contains
       integer (kind=4)  ::  i,ii,layoutnumber,field,initialtimestep,unidad,size,idum
       logical :: singlefilewrite,resume,incident,existe,wrotemaster
       REAL (KIND=RKIND)    ::  rdum1,rdum2,rdum3,rdum4,rdum5,rdum6,rdum
-      character (len=1000) :: chdum
-      character (len=14)  ::  whoamishort
+      character (LEN=BUFSIZE) :: chdum
+      character (LEN=BUFSIZE)  ::  whoamishort
       integer :: my_iostat
       !!!
       write(whoamishort,'(i5)') layoutnumber+1
@@ -2538,8 +2538,8 @@ contains
 
    subroutine UpdateObservation(sgg,sggMiEx,sggMiEy,sggMiEz,sggMiHx,sggMiHy,sggMiHz,sggMtag, &
       nTime,nInit, b, Ex, Ey, Ez, Hx, Hy, Hz, dxe, dye, dze, dxh, dyh, dzh,wiresflavor,SINPML_fullsize,wirecrank, &
-       Exvac, Eyvac, Ezvac, Hxvac, Hyvac, Hzvac,Excor, Eycor, Ezcor, Hxcor, Hycor, Hzcor,planewavecorr)
-   
+       Exvac, Eyvac, Ezvac, Hxvac, Hyvac, Hzvac,Excor, Eycor, Ezcor, Hxcor, Hycor, Hzcor,planewavecorr,noconformalmapvtk)
+      logical :: noconformalmapvtk
       type (SGGFDTDINFO), intent(IN)         ::  sgg
       INTEGER (KIND=IKINDMTAG), intent(in) :: sggMtag  (sgg%Alloc(iHx)%XI:sgg%Alloc(iHx)%XE, sgg%Alloc(iHy)%YI:sgg%Alloc(iHy)%YE, sgg%Alloc(iHz)%ZI:sgg%Alloc(iHz)%ZE)
       !---------------------------> inputs <----------------------------------------------------------
@@ -3129,7 +3129,8 @@ contains
                                       !    output( ii)%item( i)%Serialized%valor_y(Ntimeforvolumic,conta) = Jy
                                       !    output( ii)%item( i)%Serialized%valor_z(Ntimeforvolumic,conta) = Jz
                                           !la corriente va a lo largo del edge
-                                           output( ii)%item( i)%Serialized%valor(Ntimeforvolumic,conta)   = Jy+Jz !en realidad es toda la circulacion. lo calculado no son jz o jy ojo 041023
+                                           output( ii)%item( i)%Serialized%valor(Ntimeforvolumic,conta)   = abs(Jy+Jz) !en realidad es toda la circulacion. lo calculado no son jz o jy ojo 041023 
+                                           !lo tomo en valor absoluto por coherencia con la corriente en superficies que va en sqrt() 151223
                                            output( ii)%item( i)%Serialized%valor_x(Ntimeforvolumic,conta) = Jy+Jz
                                            output( ii)%item( i)%Serialized%valor_y(Ntimeforvolumic,conta) = 0.0_RKIND
                                            output( ii)%item( i)%Serialized%valor_z(Ntimeforvolumic,conta) = 0.0_RKIND
@@ -3144,7 +3145,8 @@ contains
                                       !    output( ii)%item( i)%Serialized%valor_y(Ntimeforvolumic,conta) = 0.0_RKIND
                                       !    output( ii)%item( i)%Serialized%valor_z(Ntimeforvolumic,conta) = Jz   
                                           !la corriente va a lo largo del edge
-                                           output( ii)%item( i)%Serialized%valor(Ntimeforvolumic,conta) = Jx+Jz !en realidad es toda la circulacion. lo calculado no son jz o jy ojo 041023
+                                           output( ii)%item( i)%Serialized%valor(Ntimeforvolumic,conta) = abs(Jx+Jz) !en realidad es toda la circulacion. lo calculado no son jz o jy ojo 041023   
+                                           !lo tomo en valor absoluto por coherencia con la corriente en superficies que va en sqrt() 151223
                                            output( ii)%item( i)%Serialized%valor_x(Ntimeforvolumic,conta) = 0.0_RKIND  
                                            output( ii)%item( i)%Serialized%valor_y(Ntimeforvolumic,conta) = Jx+Jz 
                                            output( ii)%item( i)%Serialized%valor_z(Ntimeforvolumic,conta) = 0.0_RKIND
@@ -3158,12 +3160,14 @@ contains
                                       !    output( ii)%item( i)%Serialized%valor_x(Ntimeforvolumic,conta) = Jx
                                       !    output( ii)%item( i)%Serialized%valor_y(Ntimeforvolumic,conta) = Jy
                                       !    output( ii)%item( i)%Serialized%valor_z(Ntimeforvolumic,conta) = 0.0_RKIND   
-                                           output( ii)%item( i)%Serialized%valor(Ntimeforvolumic,conta)  = Jx+Jy !en realidad es toda la circulacion. lo calculado no son jz o jy ojo 041023 
+                                           output( ii)%item( i)%Serialized%valor(Ntimeforvolumic,conta)  = abs(Jx+Jy) !en realidad es toda la circulacion. lo calculado no son jz o jy ojo 041023     
+                                           !lo tomo en valor absoluto por coherencia con la corriente en superficies que va en sqrt() 151223
                                           output( ii)%item( i)%Serialized%valor_x(Ntimeforvolumic,conta) = 0.0_RKIND 
                                           output( ii)%item( i)%Serialized%valor_y(Ntimeforvolumic,conta) = 0.0_RKIND
                                           output( ii)%item( i)%Serialized%valor_z(Ntimeforvolumic,conta) = Jx+Jy
                                        endif
-                                       if (((sgg%med(sggMiEx(III - b%Ex%XI, JJJ - b%Ex%YI, KKK - b%Ex%ZI))%Is%Line.AND.sgg%med(sggMiEx(III - b%Ex%XI, JJJ - b%Ex%YI, KKK - b%Ex%ZI))%Is%PEC)).and.(iii <= SINPML_fullsize(iEx)%XE).and.(jjj <= SINPML_fullsize(iEx)%YE).and.(kkk <= SINPML_fullsize(iEx)%ZE)) then
+                                       if (((sgg%med(sggMiEx(III - b%Ex%XI, JJJ - b%Ex%YI, KKK - b%Ex%ZI))%Is%Line.AND.sgg%med(sggMiEx(III - b%Ex%XI, JJJ - b%Ex%YI, KKK - b%Ex%ZI))%Is%PEC)).and.&
+                                           (iii <= SINPML_fullsize(iEx)%XE).and.(jjj <= SINPML_fullsize(iEx)%YE).and.(kkk <= SINPML_fullsize(iEx)%ZE)) then
                                           if ((.not.sgg%med(sggMiHy(III - b%Hy%XI  , JJJ - b%Hy%YI  , KKK - b%Hy%ZI  ))%Is%PEC).and. &
                                           (.not.sgg%med(sggMiHy(III - b%Hy%XI  , JJJ - b%Hy%YI  , KKK - b%Hy%ZI-1))%Is%PEC).and. &
                                           (.not.sgg%med(sggMiHz(III - b%Hz%XI  , JJJ - b%Hz%YI  , KKK - b%Hz%ZI  ))%Is%PEC).and. &
@@ -3176,13 +3180,15 @@ contains
                                       !      output( ii)%item( i)%Serialized%valor_x(Ntimeforvolumic,conta) = 0.0_RKIND
                                       !      output( ii)%item( i)%Serialized%valor_y(Ntimeforvolumic,conta) = Jy
                                       !      output( ii)%item( i)%Serialized%valor_z(Ntimeforvolumic,conta) = Jz         
-                                           output( ii)%item( i)%Serialized%valor(Ntimeforvolumic,conta)   = Jy+Jz !en realidad es toda la circulacion. lo calculado no son jz o jy ojo 041023
+                                           output( ii)%item( i)%Serialized%valor(Ntimeforvolumic,conta)   = abs(Jy+Jz) !en realidad es toda la circulacion. lo calculado no son jz o jy ojo 041023      
+                                           !lo tomo en valor absoluto por coherencia con la corriente en superficies que va en sqrt() 151223
                                            output( ii)%item( i)%Serialized%valor_x(Ntimeforvolumic,conta) = Jy+Jz
                                            output( ii)%item( i)%Serialized%valor_y(Ntimeforvolumic,conta) = 0.0_RKIND
                                            output( ii)%item( i)%Serialized%valor_z(Ntimeforvolumic,conta) = 0.0_RKIND
                                           endif
                                        endif
-                                       if (((sgg%med(sggMiEy(III - b%Ey%XI, JJJ - b%Ey%YI, KKK - b%Ey%ZI))%Is%Line.AND.sgg%med(sggMiEy(III - b%Ey%XI, JJJ - b%Ey%YI, KKK - b%Ey%ZI))%Is%PEC)).and.(iii <= SINPML_fullsize(iEy)%XE).and.(jjj <= SINPML_fullsize(iEy)%YE).and.(kkk <= SINPML_fullsize(iEy)%ZE)) then
+                                       if (((sgg%med(sggMiEy(III - b%Ey%XI, JJJ - b%Ey%YI, KKK - b%Ey%ZI))%Is%Line.AND.sgg%med(sggMiEy(III - b%Ey%XI, JJJ - b%Ey%YI, KKK - b%Ey%ZI))%Is%PEC)).and. &
+                                           (iii <= SINPML_fullsize(iEy)%XE).and.(jjj <= SINPML_fullsize(iEy)%YE).and.(kkk <= SINPML_fullsize(iEy)%ZE)) then
                                           if ((.not.sgg%med(sggMiHz(III - b%Hz%XI  , JJJ - b%Hz%YI  , KKK - b%Hz%ZI  ))%Is%PEC).and. &
                                           (.not.sgg%med(sggMiHz(III - b%Hz%XI-1, JJJ - b%Hz%YI  , KKK - b%Hz%ZI  ))%Is%PEC).and. &
                                           (.not.sgg%med(sggMiHx(III - b%Hx%XI  , JJJ - b%Hx%YI  , KKK - b%Hx%ZI  ))%Is%PEC).and. &
@@ -3195,13 +3201,15 @@ contains
                                       !      output( ii)%item( i)%Serialized%valor_x(Ntimeforvolumic,conta) = Jx
                                       !      output( ii)%item( i)%Serialized%valor_y(Ntimeforvolumic,conta) = 0.0_RKIND
                                       !      output( ii)%item( i)%Serialized%valor_z(Ntimeforvolumic,conta) = Jz      
-                                           output( ii)%item( i)%Serialized%valor(Ntimeforvolumic,conta) = Jx+Jz !en realidad es toda la circulacion. lo calculado no son jz o jy ojo 041023
+                                           output( ii)%item( i)%Serialized%valor(Ntimeforvolumic,conta) = abs(Jx+Jz) !en realidad es toda la circulacion. lo calculado no son jz o jy ojo 041023    
+                                           !lo tomo en valor absoluto por coherencia con la corriente en superficies que va en sqrt() 151223
                                            output( ii)%item( i)%Serialized%valor_x(Ntimeforvolumic,conta) = 0.0_RKIND  
                                            output( ii)%item( i)%Serialized%valor_y(Ntimeforvolumic,conta) = Jx+Jz 
                                            output( ii)%item( i)%Serialized%valor_z(Ntimeforvolumic,conta) = 0.0_RKIND
                                           endif
                                        endif
-                                       if (((sgg%med(sggMiEz(III - b%Ez%XI, JJJ - b%Ez%YI, KKK - b%Ez%ZI))%Is%Line.AND.sgg%med(sggMiEz(III - b%Ez%XI, JJJ - b%Ez%YI, KKK - b%Ez%ZI))%Is%PEC)).and.(iii <= SINPML_fullsize(iEz)%XE).and.(jjj <= SINPML_fullsize(iEz)%YE).and.(kkk <= SINPML_fullsize(iEz)%ZE)) then
+                                       if (((sgg%med(sggMiEz(III - b%Ez%XI, JJJ - b%Ez%YI, KKK - b%Ez%ZI))%Is%Line.AND.sgg%med(sggMiEz(III - b%Ez%XI, JJJ - b%Ez%YI, KKK - b%Ez%ZI))%Is%PEC)).and. &
+                                           (iii <= SINPML_fullsize(iEz)%XE).and.(jjj <= SINPML_fullsize(iEz)%YE).and.(kkk <= SINPML_fullsize(iEz)%ZE)) then
                                           if ((.not.sgg%med(sggMiHx(III - b%Hx%XI  , JJJ - b%Hx%YI  , KKK - b%Hx%ZI  ))%Is%PEC).and. &
                                           (.not.sgg%med(sggMiHx(III - b%Hx%XI  , JJJ - b%Hx%YI-1, KKK - b%Hx%ZI  ))%Is%PEC).and. &
                                           (.not.sgg%med(sggMiHy(III - b%Hy%XI  , JJJ - b%Hy%YI  , KKK - b%Hy%ZI  ))%Is%PEC).and. &
@@ -3214,7 +3222,8 @@ contains
                                       !       output( ii)%item( i)%Serialized%valor_x(Ntimeforvolumic,conta) = Jx
                                       !       output( ii)%item( i)%Serialized%valor_y(Ntimeforvolumic,conta) = Jy
                                       !       output( ii)%item( i)%Serialized%valor_z(Ntimeforvolumic,conta) = 0.0_RKIND    
-                                             output( ii)%item( i)%Serialized%valor(Ntimeforvolumic,conta)  = Jx+Jy !en realidad es toda la circulacion. lo calculado no son jz o jy ojo 041023 
+                                             output( ii)%item( i)%Serialized%valor(Ntimeforvolumic,conta)  = abs(Jx+Jy) !en realidad es toda la circulacion. lo calculado no son jz o jy ojo 041023      
+                                           !lo tomo en valor absoluto por coherencia con la corriente en superficies que va en sqrt() 151223
                                              output( ii)%item( i)%Serialized%valor_x(Ntimeforvolumic,conta) = 0.0_RKIND
                                              output( ii)%item( i)%Serialized%valor_y(Ntimeforvolumic,conta) = 0.0_RKIND
                                              output( ii)%item( i)%Serialized%valor_z(Ntimeforvolumic,conta) = Jx+Jy
@@ -3254,9 +3263,9 @@ contains
                                              jx=2.5
                                           elseif (sgg%Med(jJx)%is%thinslot) then
                                              jx=4.5
-                                          elseif (sgg%Med(jJx)%is%already_YEEadvanced_byconformal) then
+                                          elseif ((sgg%Med(jJx)%is%already_YEEadvanced_byconformal).and.(.not.noconformalmapvtk)) then
                                              jx=5.5
-                                          elseif (sgg%Med(jJx)%is%split_and_useless) then
+                                          elseif ((sgg%Med(jJx)%is%split_and_useless).and.(.not.noconformalmapvtk)) then 
                                              jx=6.5
                                           else
                                              jx=-0.5_RKIND
@@ -3297,9 +3306,9 @@ contains
                                              jy=2.5
                                           elseif (sgg%Med(jJy)%is%thinslot) then
                                              jy=4.5
-                                          elseif (sgg%Med(jJy)%is%already_YEEadvanced_byconformal) then
+                                          elseif ((sgg%Med(jJy)%is%already_YEEadvanced_byconformal).and.(.not.noconformalmapvtk)) then 
                                              jy=5.5
-                                          elseif (sgg%Med(jJy)%is%split_and_useless) then
+                                          elseif ((sgg%Med(jJy)%is%split_and_useless).and.(.not.noconformalmapvtk)) then
                                              jy=6.5
                                           else
                                              jy=-0.5_RKIND
@@ -3340,9 +3349,9 @@ contains
                                              jz=2.5
                                           elseif (sgg%Med(jJz)%is%thinslot) then
                                              jz=4.5
-                                          elseif (sgg%Med(jJz)%is%already_YEEadvanced_byconformal) then
+                                          elseif ((sgg%Med(jJz)%is%already_YEEadvanced_byconformal).and.(.not.noconformalmapvtk)) then
                                              jz=5.5
-                                          elseif (sgg%Med(jJz)%is%split_and_useless) then
+                                          elseif ((sgg%Med(jJz)%is%split_and_useless).and.(.not.noconformalmapvtk)) then 
                                              jz=6.5
                                           else
                                              jz=-0.5_RKIND
@@ -3441,9 +3450,9 @@ contains
                                              jx=200+jJx
                                           elseif (sgg%Med(jJx)%is%thinslot) then
                                              jx=400+jJx
-                                          elseif (sgg%Med(jJx)%is%already_YEEadvanced_byconformal) then
+                                          elseif ((sgg%Med(jJx)%is%already_YEEadvanced_byconformal).and.(.not.noconformalmapvtk)) then
                                              jx=5
-                                          elseif (sgg%Med(jJx)%is%split_and_useless) then
+                                          elseif ((sgg%Med(jJx)%is%split_and_useless).and.(.not.noconformalmapvtk)) then
                                              jx=6
                                           else
                                              jx=-1
@@ -3468,9 +3477,9 @@ contains
                                              jy=200+jJy
                                           elseif (sgg%Med(jJy)%is%thinslot) then
                                              jy=400+jJy
-                                          elseif (sgg%Med(jJy)%is%already_YEEadvanced_byconformal) then
+                                          elseif ((sgg%Med(jJy)%is%already_YEEadvanced_byconformal).and.(.not.noconformalmapvtk)) then
                                              jy=5
-                                          elseif (sgg%Med(jJy)%is%split_and_useless) then
+                                          elseif ((sgg%Med(jJy)%is%split_and_useless) .and.(.not.noconformalmapvtk)) then
                                              jy=6
                                           else
                                              jy=-1
@@ -3495,9 +3504,9 @@ contains
                                              jz=200+jJz
                                           elseif (sgg%Med(jJz)%is%thinslot) then
                                              jz=400+jJz
-                                          elseif (sgg%Med(jJz)%is%already_YEEadvanced_byconformal) then
+                                          elseif ((sgg%Med(jJz)%is%already_YEEadvanced_byconformal).and.(.not.noconformalmapvtk)) then
                                              jz=5
-                                          elseif (sgg%Med(jJz)%is%split_and_useless) then
+                                          elseif ((sgg%Med(jJz)%is%split_and_useless).and.(.not.noconformalmapvtk)) then
                                              jz=6
                                           else
                                              jz=-1
@@ -3885,7 +3894,7 @@ contains
       logical :: called_fromobservation,dummy_logical
       integer :: my_iostat
 
-      character (len=14)  ::  whoami
+      character (LEN=BUFSIZE)  ::  whoami
       !!!
       write(whoami,'(a,i5,a,i5,a)') '(',layoutnumber+1,'/',size,') '
       called_fromobservation=.true.
@@ -4323,7 +4332,7 @@ contains
 
    function prefix(campo) result(ext)
       integer (kind=4)  ::  campo
-      character (len=4)  ::  ext
+      character (len=BUFSIZE)  ::  ext
 
       select case (campo)
        case (iEx)
@@ -4400,7 +4409,7 @@ contains
 
    function suffix(campo,incid) result(ext)
       integer (kind=4)  ::  campo
-      character (len=1024)  ::  ext
+      character (LEN=BUFSIZE)  ::  ext
       logical  ::  incid
 
       ext=' '

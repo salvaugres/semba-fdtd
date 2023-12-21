@@ -235,8 +235,8 @@ contains
       !---------------------------> output <----------------------------------------------------------
       logical, intent( OUT)  ::  everflushed
       !---------------------------> variables locales <-----------------------------------------------
-      character (len=14)  ::  whoami
-      character (len=1024)     ::  dubuf
+      character (LEN=BUFSIZE)  ::  whoami
+      character (LEN=BUFSIZE)     ::  dubuf
       real (kind = RKIND) :: eps00,mu00
       !---------------------------> empieza flush_and_save_resume <-----------------------------------
       integer :: my_iostat
