@@ -48,7 +48,8 @@ Example:
         "timeStep": 10e-12,
         "numberOfSteps": 2000
     }
-    ```
+```
+
 ### `[boundary]`
 This specifies the boundaries which will be used to terminate the computational domain. 
 If `boundary` is not present it defaults to a `mur` absorbing condition in all bounds.
@@ -65,7 +66,8 @@ These objects must contain a `<type>` label which can be:
     - `<order>`: TODO REVIEW
     - `<reflection>`: TODO REVIEW
 
-Example: 
+Example:
+ 
 ```json
     "boundary": {
         "all": {

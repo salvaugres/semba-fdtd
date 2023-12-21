@@ -434,10 +434,10 @@ contains
             res%atributo = ""
          endif
 
-         call this%core%get(pw, J_SRC_PW_DIRECTION//'.'//J_SRC_PW_DIRECTION_THETA, res%theta)
-         call this%core%get(pw, J_SRC_PW_DIRECTION//'.'//J_SRC_PW_DIRECTION_PHI, res%phi)
-         call this%core%get(pw, J_SRC_PW_POLARIZATION//'.'//J_SRC_PW_POLARIZATION_ALPHA, res%alpha)
-         call this%core%get(pw, J_SRC_PW_POLARIZATION//'.'//J_SRC_PW_POLARIZATION_BETA, res%beta)
+         call this%core%get(pw, J_SRC_PW_DIRECTION//'.'//J_SRC_PW_THETA, res%theta)
+         call this%core%get(pw, J_SRC_PW_DIRECTION//'.'//J_SRC_PW_PHI, res%phi)
+         call this%core%get(pw, J_SRC_PW_POLARIZATION//'.'//J_SRC_PW_THETA, res%alpha)
+         call this%core%get(pw, J_SRC_PW_POLARIZATION//'.'//J_SRC_PW_PHI, res%beta)
 
          call this%core%get(pw, J_ELEMENTIDS, elemIds)
          if (size(elemIds) /= 1) write(error_unit, *) "Planewave must contain a single elementId."
