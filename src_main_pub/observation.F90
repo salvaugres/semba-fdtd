@@ -2538,8 +2538,8 @@ contains
 
    subroutine UpdateObservation(sgg,sggMiEx,sggMiEy,sggMiEz,sggMiHx,sggMiHy,sggMiHz,sggMtag, &
       nTime,nInit, b, Ex, Ey, Ez, Hx, Hy, Hz, dxe, dye, dze, dxh, dyh, dzh,wiresflavor,SINPML_fullsize,wirecrank, &
-       Exvac, Eyvac, Ezvac, Hxvac, Hyvac, Hzvac,Excor, Eycor, Ezcor, Hxcor, Hycor, Hzcor,planewavecorr)
-   
+       Exvac, Eyvac, Ezvac, Hxvac, Hyvac, Hzvac,Excor, Eycor, Ezcor, Hxcor, Hycor, Hzcor,planewavecorr,noconformalmapvtk)
+      logical :: noconformalmapvtk
       type (SGGFDTDINFO), intent(IN)         ::  sgg
       INTEGER (KIND=IKINDMTAG), intent(in) :: sggMtag  (sgg%Alloc(iHx)%XI:sgg%Alloc(iHx)%XE, sgg%Alloc(iHy)%YI:sgg%Alloc(iHy)%YE, sgg%Alloc(iHz)%ZI:sgg%Alloc(iHz)%ZE)
       !---------------------------> inputs <----------------------------------------------------------
@@ -3263,9 +3263,9 @@ contains
                                              jx=2.5
                                           elseif (sgg%Med(jJx)%is%thinslot) then
                                              jx=4.5
-                                          elseif (sgg%Med(jJx)%is%already_YEEadvanced_byconformal) then
+                                          elseif ((sgg%Med(jJx)%is%already_YEEadvanced_byconformal).and.(.not.noconformalmapvtk)) then
                                              jx=5.5
-                                          elseif (sgg%Med(jJx)%is%split_and_useless) then
+                                          elseif ((sgg%Med(jJx)%is%split_and_useless).and.(.not.noconformalmapvtk)) then 
                                              jx=6.5
                                           else
                                              jx=-0.5_RKIND
@@ -3306,9 +3306,9 @@ contains
                                              jy=2.5
                                           elseif (sgg%Med(jJy)%is%thinslot) then
                                              jy=4.5
-                                          elseif (sgg%Med(jJy)%is%already_YEEadvanced_byconformal) then
+                                          elseif ((sgg%Med(jJy)%is%already_YEEadvanced_byconformal).and.(.not.noconformalmapvtk)) then 
                                              jy=5.5
-                                          elseif (sgg%Med(jJy)%is%split_and_useless) then
+                                          elseif ((sgg%Med(jJy)%is%split_and_useless).and.(.not.noconformalmapvtk)) then
                                              jy=6.5
                                           else
                                              jy=-0.5_RKIND
@@ -3349,9 +3349,9 @@ contains
                                              jz=2.5
                                           elseif (sgg%Med(jJz)%is%thinslot) then
                                              jz=4.5
-                                          elseif (sgg%Med(jJz)%is%already_YEEadvanced_byconformal) then
+                                          elseif ((sgg%Med(jJz)%is%already_YEEadvanced_byconformal).and.(.not.noconformalmapvtk)) then
                                              jz=5.5
-                                          elseif (sgg%Med(jJz)%is%split_and_useless) then
+                                          elseif ((sgg%Med(jJz)%is%split_and_useless).and.(.not.noconformalmapvtk)) then 
                                              jz=6.5
                                           else
                                              jz=-0.5_RKIND
@@ -3450,9 +3450,9 @@ contains
                                              jx=200+jJx
                                           elseif (sgg%Med(jJx)%is%thinslot) then
                                              jx=400+jJx
-                                          elseif (sgg%Med(jJx)%is%already_YEEadvanced_byconformal) then
+                                          elseif ((sgg%Med(jJx)%is%already_YEEadvanced_byconformal).and.(.not.noconformalmapvtk)) then
                                              jx=5
-                                          elseif (sgg%Med(jJx)%is%split_and_useless) then
+                                          elseif ((sgg%Med(jJx)%is%split_and_useless).and.(.not.noconformalmapvtk)) then
                                              jx=6
                                           else
                                              jx=-1
@@ -3477,9 +3477,9 @@ contains
                                              jy=200+jJy
                                           elseif (sgg%Med(jJy)%is%thinslot) then
                                              jy=400+jJy
-                                          elseif (sgg%Med(jJy)%is%already_YEEadvanced_byconformal) then
+                                          elseif ((sgg%Med(jJy)%is%already_YEEadvanced_byconformal).and.(.not.noconformalmapvtk)) then
                                              jy=5
-                                          elseif (sgg%Med(jJy)%is%split_and_useless) then
+                                          elseif ((sgg%Med(jJy)%is%split_and_useless) .and.(.not.noconformalmapvtk)) then
                                              jy=6
                                           else
                                              jy=-1
@@ -3504,9 +3504,9 @@ contains
                                              jz=200+jJz
                                           elseif (sgg%Med(jJz)%is%thinslot) then
                                              jz=400+jJz
-                                          elseif (sgg%Med(jJz)%is%already_YEEadvanced_byconformal) then
+                                          elseif ((sgg%Med(jJz)%is%already_YEEadvanced_byconformal).and.(.not.noconformalmapvtk)) then
                                              jz=5
-                                          elseif (sgg%Med(jJz)%is%split_and_useless) then
+                                          elseif ((sgg%Med(jJz)%is%split_and_useless).and.(.not.noconformalmapvtk)) then
                                              jz=6
                                           else
                                              jz=-1

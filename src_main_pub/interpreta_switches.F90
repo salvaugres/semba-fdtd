@@ -87,7 +87,8 @@ module interpreta_switches_m
             existecmsh                      , &  
             thereare_stoch                  , &
             experimentalVideal              , &   
-            simu_devia                      , &
+            simu_devia                      , &  
+            noconformalmapvtk               , &
             createh5filefromsinglebin       , &
             creditosyaprinteados            
       
@@ -902,7 +903,9 @@ CONTAINS
                l%cfl=l%cfltemp
                l%forcecfl=.true.
                l%opcionespararesumeo = trim (adjustl(l%opcionespararesumeo)) // ' ' // trim (adjustl(l%chain))// ' ' // trim (adjustl(f))
-            END IF
+            END IF           
+          CASE ('-noconformalmapvtk')
+            l%noconformalmapvtk=.true.
           CASE ('-niapapostprocess')
             l%niapapostprocess=.true.
           CASE ('-planewavecorr')
@@ -2037,6 +2040,7 @@ CONTAINS
    subroutine default_flags(l)   
 !!!!!!!!!!!!!        
    type (entrada_t), intent(INOUT) :: l    
+      l%noconformalmapvtk=.false.
       l%forced=-1
       l%sgbcdepth=-1
       l%statuse=0

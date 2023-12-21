@@ -1621,6 +1621,11 @@ contains
            despT2=wirethickness*despT2
          endif
          r0=HWires%CurrentSegment(i1)%TipoWire%Radius   ! CON SU RADIO
+         
+          if (r0 < 1e-30) then 
+              write (buff,*)  'wir0_ERROR: ire radius cannot be null'
+              if ((k1 >= ZI).and.(k1 <= ZE))  call WarnErrReport(buff,.true.)
+          endif   
          if ((r0 < 1e-9*desp)) then
             write(BUFF,'(a,e12.2e3)') 'wir0_WARNING: WIRE radius too small ',r0
             call WarnErrReport(buff)
@@ -1756,7 +1761,11 @@ contains
          desp=  dummy%delta
          despT1=dummy%deltaTransv1
          despT2=dummy%deltaTransv2
-         r0=    dummy%TipoWire%Radius
+         r0=    dummy%TipoWire%Radius     
+         if (r0 < 1e-30) then 
+              write (buff,*)  'wir0_ERROR: ire radius cannot be null'
+              if ((k1 >= ZI).and.(k1 <= ZE))  call WarnErrReport(buff,.true.)
+         endif   
          !!!!!!!!!!!!correccion bruta 13/07/15
          deltadummy=dummy%inv_Lind_acum * dummy%HEUR_safety/0.9_RKIND_wires  !EL 0.9 ES POR MI TRANQUILIDAD
          if (deltadummy > 1.0_RKIND_wires) then
@@ -2346,6 +2355,11 @@ contains
                dx1 	= HWires%Multilines(iw1)%Segments(is1)%ptr%deltaTransv1
                dx2		= HWires%Multilines(iw1)%Segments(is1)%ptr%deltaTransv2
                r0 		= HWires%Multilines(iw1)%Segments(is1)%ptr%TipoWire%radius
+               
+               if (r0 < 1e-30) then 
+                    write (buff,*)  'wir0_ERROR: Wire radius cannot be null'
+                    if ((k1 >= ZI).and.(k1 <= ZE))  call WarnErrReport(buff,.true.)
+               endif   
                imed 	= HWires%Multilines(iw1)%Segments(is1)%ptr%indexmed
                HWires%Multilines(iw1)%Segments(is1)%ptr%Lintrinsic  = &
                (1.0_RKIND_wires / (4.0_RKIND_wires * pi*InvMu(imed)))*(log((dx1**2.0_RKIND_wires +dx2**2.0_RKIND_wires)/(4.0_RKIND_wires * r0**2.0_RKIND_wires)) + &
