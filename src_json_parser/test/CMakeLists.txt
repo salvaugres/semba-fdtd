@@ -16,7 +16,7 @@ endfunction ()
 function (mangle_fortran_filename_list MANGLED)
     set (TMP)
     foreach (TFILE ${ARGN})
-        string (REGEX REPLACE ".f90$" "" TESTNAME ${TFILE})
+        string (REGEX REPLACE ".F90$" "" TESTNAME ${TFILE})
         mangle_fortran_name (C_TESTNAME ${TESTNAME})
         list (APPEND TMP ${C_TESTNAME})
     endforeach ()
@@ -29,7 +29,7 @@ function (add_fortran_test_executable TARGET)
 
     create_test_sourcelist (_ main.c ${TEST_FILES_MANGLED})
 
-    add_library (${TARGET}_fortran ${TEST_FILES} "testingTools.f90")
+    add_library (${TARGET}_fortran ${TEST_FILES} "testingTools.F90")
     target_link_libraries (${TARGET}_fortran smbjson fhash jsonfortran)
     add_executable (${TARGET} main.c)
     target_link_libraries (${TARGET} ${TARGET}_fortran)
@@ -50,17 +50,17 @@ endfunction ()
 
 # ctest is sensible to extension. ONLY WORKS with ".f90" AND NOT with ".F90"
 add_fortran_test_executable (smbjson_tests
-    "test_fhash.f90"
-    "test_idchildtable.f90"
-    "test_cells.f90"
-    "test_mesh_add_get.f90"
-    "test_polyline_to_linel.f90"
-    "test_node_to_pixel.f90"
-    "test_parser_tools_interval_to_coords.f90"
-    "test_parser_ctor.f90"
-    "test_read_planewave.f90"
-    "test_read_holland1981.f90"
-    "test_read_currentinjection.f90"
+    "test_fhash.F90"
+    "test_idchildtable.F90"
+    "test_cells.F90"
+    "test_mesh_add_get.F90"
+    "test_polyline_to_linel.F90"
+    "test_node_to_pixel.F90"
+    "test_parser_tools_interval_to_coords.F90"
+    "test_parser_ctor.F90"
+    "test_read_planewave.F90"
+    "test_read_holland1981.F90"
+    "test_read_currentinjection.F90"
 )
 
 target_link_libraries  (smbjson_tests smbjson)
