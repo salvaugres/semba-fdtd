@@ -57,6 +57,19 @@
         ]
     },
 
+    "materialAssociations": [
+        { 
+            "type": "cable",
+            "materialId": 1
+            "initialdsd"
+        },
+        {
+            "type": "bulk",
+            "materialId"
+        }
+
+    ]
+
     "cables": [
         {
             "name": "cableInstance",

@@ -759,6 +759,7 @@ contains
       end if
 
       ! Allocates thin wires.
+      TODO Change to single array concatenation style.
       block
          integer :: nTw = 0
          do i = 1, this%core%count(cables)
@@ -907,6 +908,8 @@ contains
          call this%core%get(cable, J_ELEMENTIDS, elementIds, found=found)
          if (.not. found) return
          if (size(elementIds) /= 1) return
+         
+         TODO Check element ids is aligned with grid. 
 
          isThinWire = .true.
       end function

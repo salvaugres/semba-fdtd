@@ -89,9 +89,9 @@ Example:
 All the geometrical information of the simulation case is exclusively stored by the `mesh` object. It is a JSON object which contains three objects: a `<grid>`, a list of `[coordinates]` and a list of `[elements]`
 ```json
     "mesh": {
-        "grid": { ... },        // Described below.
-        "coordinates": [ ... ], // Described below.
-        "elements": [ ... ]     // Described below.
+        "grid": { ... },       
+        "coordinates": [ ... ],
+        "elements": [ ... ]    
     }
 ```
 
@@ -100,9 +100,10 @@ The `grid` object represents a collection of rectangular cuboids or *cells* whic
 - `<numberOfCells>` is an array of three positive integers which indicate the number of cells in each Cartesian direction.
 - `<steps>` is an object which contains three arrays, labeled with `<x>`, `<y>` and `<z>` which represent the cell sizes, expressed in meters, in that direction. Each array may contain a single real to define a [regular grid](https://en.wikipedia.org/wiki/Regular_grid); or, alternatively, a number of reals equal to the number of cells to define a [rectilinear grid](https://en.wikipedia.org/wiki/Regular_grid).
 
+The following example describes a regular grid with $20$, $20$, and $22$ cells in the $x$, $y$, and  $z$ directions respectively.
 ```json
     "mesh": {
-        // A regular grid with 20, 20, and 22 cells in x, y, and directions respectively.
+        
         "grid": {
             "numberOfCells": [20, 20, 22], 
             "steps": { "x": [0.1], "y": [0.1], "z": [0.1] }
@@ -173,28 +174,56 @@ TODO EXAMPLES IMAGE
 
 ## `[materials]`
 This entry is an array formed by all the physical models contained in the simulation. Each object within the array must contain:
-- `<id>`: An integer number that uniquely identifies the material.
+- `<id>`, an integer number that uniquely identifies the material.
+- `<type>`, with one of the allowed labels described below.
+
+### Bulk materials
+
+#### `pec` and `pmc`
+These materials represent a perfectly electrically conducting (`pec`) and perfectly magnetically conducting (`pmc`).
+```json
+    "materials": [ {"id": 1, "type": "pec"} ]
+```
+
+#### `simple`
+A `material` with `type` `simple` represents an isotropic material with constant (not frequency dependent) relative permittivity $\varepsilon_r$, relative permeability $\mu_r$, electric conductivity $\sigma$ and/or magnetic conductivity $\sigma_m$:
+
+ - `[relativePermittivity]` is a real which defaults to $1.0$. Must be greater than $1.0$.
+ - `[relativePermeability]` is a real which defaults to $1.0$. Must be greater than $1.0$.
+ - `[electricConductivity]` is a real which defaults to $0.0$. Must be greater than $0.0$.
+ - `[magneticConductivity]` is a real which defaults to $0.0$. Must be greater than $0.0$.
+
+TODO Add example.
+
+### Surface materials
+#### `composite` ?? TODO
 
 
-
-### cable materials
-
+### Cable materials
 #### `wire`
+A `wire` represents a wire-like structure with a radius much smaller than the surrounding cell sizes. 
+
+#### `wireTerminal`
 
 #### `multiwire`
 
-### bulk materials
-
-#### `simple`
-A `material` with `type` `simple` represents an isotropic material with constant (not frequency dependent) relative permittivity $\varepsilon_r$, relative permeability $\mu_r$, electric conductivity $\sigma$ and/or magnetic conductivity $\sigma_m$.
-
-### surface materials
+TODO
 
 ## `[materialRegions]`
-This entry stores associations between `materials` and `elements`. 
+This entry stores associations between `materials` and `elements` using their respective `id`s as follows:
+  - `<materialId>`: A single integer indicating the `id` of a material which must be present in the `materials` list.
+  - `<elementIds>`: A list of `id`s of elements which must be present in the `elements` list.
+```json
+    "materialRegions": [
+        {"name": "pec_square", "materialId": 1, "elementIds": [2]},
+        {"name": "exit_line",  "materialId": 1, "elementIds": [3]}
+    ]
+```
 
-// TODO
-
+The only combinations of material `type` to element `type` that are allowed are:
+  - Bulk materials such as `pec`, `pmc` or `simple` can be assigned to one or many elements of type `cellRegion`; `intervals` representing points will be ignored.
+  - Surface materials can only be assigned to elements of type `cellRegion`; `intervals` representing entities different to oriented surfaces will be ignored.
+  - Cable materials can not be assigned within `materialRegions`, see the [`cables` section](#cables) for more information.
 
 ## `[probes]`
 
@@ -212,7 +241,7 @@ This entry is an array which stores all the electromagnetic sources of the simul
  + `<elementIds>` is an array of integers which must exist within the `mesh` `elements` list. These indicate the geometrical place where this source is located. The `type` and number of the allowed elements depends on the source `type` and can be check in the descriptions of each source object, below.
  
 ## `planewave`
-The `planewave` object represents an electromagnetic plane wave front which propagates towards a $\hat{k}$ direction with an electric field pointing towards $\hat{E}$. The `elementIds` in planewaves must define a single `cellRegion` element formed by a single cuboid region.
+The `planewave` source object represents an electromagnetic plane wave front which propagates towards a $\hat{k}$ direction with an electric field pointing towards $\hat{E}$. The `elementIds` in planewaves must define a single `cellRegion` element formed by a single cuboid region; the cuboid's inside and outside define a total field and scattered field regions respectively.
 Besides the common entries in [sources](#sources), it must also contain the following ones:
 
  + `<direction>`, is an object containing `<theta>` and `<phi>`, which are the angles of the propagation vector $\hat{k} (\theta, \phi)$.
@@ -236,6 +265,7 @@ An example of a planewave propagating towards $\hat{z}$ and polarized in the $+\
 ```
 
 ## `nodalSource`
+<<<<<<< Updated upstream
 TODO
 If `type` is nodalSource
     `[field]`: electric, magnetic, current
@@ -272,6 +302,24 @@ An example of a planewave propagating towards $\hat{z}$ and polarized in the $+\
 TODO
 If `type` is nodalSource
     `[field]`: electric, magnetic, current
+=======
+This object represents a time-varying vector field applied along an oriented line with the same orientation of the line. Therefore, the `elementIds` within must contain only elements of type `cellRegion` with `intervals` describing a collection of oriented lines. Additionally, it may contain:
+ - `[field]`: with a `electric`, `magnetic`, or `current` label which indicates the vector field which will be applied. If not present, it defaults to `electric`.
+ 
+An example of a `sources` list containing a varying current `nodalSource` is
+```json
+    "sources": [
+        {
+            "name": "entry_line_curent",
+            "type": "nodalSource", 
+            "magnitudeFile": "gauss.exc", 
+            "elementIds": [1],
+            "field": "current"
+        }
+    ]
+```
+>>>>>>> Stashed changes
 
 
 # `[cables]`
+TODO
