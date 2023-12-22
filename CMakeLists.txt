@@ -87,7 +87,7 @@ else()
 endif()
 
 if (CompileWithMPI)
-	message(STATUS "MPI libraries neeeded")
+	message(STATUS "MPI libraries needed")
 	add_definitions(-DCompileWithMPI)
 	add_definitions(-DCompileWithGfortranMPIfix)
 	message(STATUS "MPI: At your own risk open MPI may not currently work or even compile with Gfortran.")
