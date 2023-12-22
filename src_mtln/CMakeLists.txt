@@ -23,6 +23,7 @@ add_library(mtlnsolver
 	"src/probes.f90"
 	"src/types.f90"
 	"src/dispersive.f90"
+	"src/rational_approximation.f90"
 )
 
 set(LAPACK_DIR "/mnt/c/users/alberto/Work/ugr-fdtd/fdtd/src_mtln/external/lapack/build/lib/")
