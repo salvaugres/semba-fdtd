@@ -12,11 +12,7 @@
     "mesh": {
         "grid": {
             "numberOfCells": [20, 20, 20],
-            "steps": {
-                "x": [0.1],
-                "y": [0.1],
-                "z": [0.1]
-            }
+            "steps": { "x": [0.1], "y": [0.1], "z": [0.1] }
         },
         "elements": [
             {"id": 1, "type": "cellRegion", "intervals": [ [[10,  0, 10], [10,  5, 10]] ]},
@@ -38,9 +34,9 @@
         {
             "name": "entry_line_curent",
             "type": "nodalSource", 
-            "field": "current",
             "magnitudeFile": "gauss.exc", 
-            "elementIds": [1]
+            "elementIds": [1],
+            "field": "current"
         }
     ],
 

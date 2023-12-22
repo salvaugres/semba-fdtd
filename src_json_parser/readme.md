@@ -32,9 +32,12 @@ The following are examples of different cases:
  
 ## FDTD-JSON objects description
 All units are assumed to be SI-MKS. 
-
 Angle brackets `<entry>` indicate that that entry is mandatory.
 Square brackets `[entry]` are optional entries.
+The following entries are shared by several FDTD-JSON objects:
+ + `type` followed by a string, indicates the type of JSON object that. Some examples of types are `planewave` for `sources` objects, and `polyline` for `elements`.
+ + `id` is a unique integer identifier for objects that belong to a list and which can be referenced by other objects. For instance, an element in the `elements` list must contain a `id` which can be referenced by a source in `sources` through its list of `elementIds`.
+ + `[name]` is an optional entry which is used to make the FDTD-JSON input human-readable.
 
 ### `<general>`
 This object must always be present and contains general information regarding the solver. It must contain the following entries:
@@ -67,7 +70,7 @@ These objects must contain a `<type>` label which can be:
     - `<reflection>`: TODO REVIEW
 
 Example:
- 
+
 ```json
     "boundary": {
         "all": {
@@ -80,27 +83,65 @@ Example:
 ```
 
 ### `<mesh>`
-All the geometrical information of the simulation case is exclusively stored by the `mesh` object. 
+All the geometrical information of the simulation case is exclusively stored by the `mesh` object. It is a JSON object which contains three objects: a `<grid>`, a list of `[coordinates]` and a list of `[elements]`
+```json
+    "mesh": {
+        "grid": { ... },        // Described below.
+        "coordinates": [ ... ], // Described below.
+        "elements": [ ... ]     // Described below.
+    }
+```
 
 #### `<grid>`
 The `grid` object represents a collection of rectangular cuboids or *cells* which tessellate the space to form a structured mesh. This object is defined with the following entries:
 - `<numberOfCells>` is an array of three positive integers which indicate the number of cells in each Cartesian direction.
-- `<steps>` is an object which contains three arrays, labeled with `<x>`, `<y>` and `<z>` which represent the cell sizes in that direction. Each array may contain a single real to define a [regular grid](https://en.wikipedia.org/wiki/Regular_grid); or, alternatively, a number of reals equal to the number of cells to define a [rectilinear grid](https://en.wikipedia.org/wiki/Regular_grid).
+- `<steps>` is an object which contains three arrays, labeled with `<x>`, `<y>` and `<z>` which represent the cell sizes, expressed in meters, in that direction. Each array may contain a single real to define a [regular grid](https://en.wikipedia.org/wiki/Regular_grid); or, alternatively, a number of reals equal to the number of cells to define a [rectilinear grid](https://en.wikipedia.org/wiki/Regular_grid).
+
+```json
+    "mesh": {
+        // A regular grid with 20, 20, and 22 cells in x, y, and directions respectively.
+        "grid": {
+            "numberOfCells": [20, 20, 22], 
+            "steps": { "x": [0.1], "y": [0.1], "z": [0.1] }
+        }
+    }
+```
 
 #### `[coordinates]`
 This is an array of objects which represent Cartesian coordinates within the grid. Each object of the array must contain the following entries:
  * `<id>`: an integer number that must be unique within this array.
  * `<relativePosition>`: Containing an array of 3 numbers which can be integer or reals. The whole part of the number indicates the cell and the fractional part indicates the fractional position within that cell.
 
- TODO EXAMPLE IMAGE
+TODO EXAMPLE IMAGE
 
 #### `[elements]`
 The `elements` entry contains an array of JSON objects, each of which represents a geometrical entity. Within context of this format specification, an *element* can be a relatively simple entity such as `node` or a `polyline`, but it can also be a much more complex geometrical entity such as a `cellRegion`. An *element objects* must contain a 
  * `<id>` formed by an integer which uniquely identifies it within the `elements` array.
  * `<type>` which can be one of the following: 
-   - `node`, representing a point in space. Elements with this type include a `<coordinateIds>` entry which is an array of a single integer with the id of a coordinate and which must exist in the within the `mesh` `coordinates` array.
+   - `node`, representing a point in space. Elements with this type include a `<coordinateIds>` entry which is an array of a single integer representing the `id` of a coordinate and which must exist in the within the `mesh` `coordinates` list.
    - `polyline`, representing an oriented collection of segments. It must contain a list `<coordinateIds>` with at least two coordinates.
-   - `cellRegion`, containing a list of  one or more `<intervals>` defined following the [interval convention](#####interval-convention). 
+   - `cellRegion`, containing a list of one or more `<intervals>` defined following the [interval convention](#####interval-convention). 
+
+Below there is an example of a mesh object including several types of element.
+```json
+    "mesh": {
+        "grid": {
+            "numberOfCells": [20, 20, 22],
+            "steps": { "x": [0.1], "y": [0.1], "z": [0.1] }
+        },
+        "coordinates": [
+            {"id": 1, "relativePosition": [11, 11,  7]},
+            {"id": 2, "relativePosition": [11, 11, 12]},
+            {"id": 3, "relativePosition": [11, 11, 17]}
+        ],
+        "elements": [
+            {"id": 1, "type": "node", "coordinateIds": [2]},
+            {"id": 2, "type": "polyline", "coordinateIds": [1, 2, 3] },
+            {"id": 3, "type": "cellRegion", "intervals": [ [ [1, 1, 1], [19, 19, 21] ] ] }
+        ]
+    },
+```
+
 
 ##### The `interval` convention
 An `interval` is formed by a pair of two arrays, each formed by triplets of integer numbers $\mathbf{a} = \{a_x, a_y, a_z\}$ and $\mathbf{b} = \{b_x, b_y, b_z\}$ which define a region formed by three closed-open intervals $[a_x, b_x) \times [a_y, b_y) \times [a_z, b_z)$. 
@@ -115,15 +156,11 @@ An interval allows specifying regions within the grid which can be a point, an o
   - when $(b_x - a_x) > 0$, the line is oriented towards $+\hat{x}$.
   - when $(b_x - a_x) < 0$, the line is oriented towards $-\hat{x}$. 
 
-  In both cases the line would have a size of $|b_x - a_x|$.  
-
 + An *oriented surface* is defined when one initial and ending value is the same and the other two are different, e.g. $a_x = b_x$, $a_y \neq b_y$, $a_z \neq b_z$. In this case there are four possibilities:
   
   - when the $(b_y - a_y) > 0$ and $(b_z - a_z) > 0$, the surface normal is assumed to be oriented towards $+\hat{x}$.
   - when the $(b_y - a_y) < 0$ and $(b_z - a_z) < 0$, the surface normal is assumed to be oriented towards $-\hat{x}$.
   - The other two cases in which there is a mix of positive and negative signs are undefined.
-
-  In all cases the size of the surface is 
 
 + A *volume* is defined when each number in $\mathbf{a}$ is strictly smaller than the numbers in $\mathbf{b}$ for each direction, i.e. $a_x < b_x$, $a_y < b_y$, and $a_z < b_z$. The rest of the cases in which all numbers are different but not necessarily smaller are left as undefined.
 
@@ -133,10 +170,20 @@ TODO EXAMPLES IMAGE
 This entry is an array formed by all the physical models contained in the simulation. Each object within the array must contain:
 - `<id>`: An integer number that uniquely identifies the material.
 
-// TODO
 
-### simple
-simple type is an isotropic material with specified relative permittivity, relative permeability, electric conductivity and/or magnetic conductivity.
+
+### cable materials
+
+#### `wire`
+
+#### `multiwire`
+
+### bulk materials
+
+#### `simple`
+A `material` with `type` `simple` represents an isotropic material with constant (not frequency dependent) relative permittivity $\varepsilon_r$, relative permeability $\mu_r$, electric conductivity $\sigma$ and/or magnetic conductivity $\sigma_m$.
+
+### surface materials
 
 ## `[materialRegions]`
 This entry stores associations between `materials` and `elements`. 

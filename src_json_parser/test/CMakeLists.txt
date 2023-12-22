@@ -48,7 +48,6 @@ function (add_fortran_test_executable TARGET)
     endwhile ()
 endfunction ()
 
-# ctest is sensible to extension. ONLY WORKS with ".f90" AND NOT with ".F90"
 add_fortran_test_executable (smbjson_tests
     "test_fhash.F90"
     "test_idchildtable.F90"
