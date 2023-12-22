@@ -66,8 +66,8 @@ These objects must contain a `<type>` label which can be:
     - `<order>`: TODO REVIEW
     - `<reflection>`: TODO REVIEW
 
-Example: 
-
+Example:
+ 
 ```json
     "boundary": {
         "all": {
