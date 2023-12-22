@@ -4102,11 +4102,14 @@ contains
                               end do
                             case(icur,iCurX,iCurY,iCurZ,mapvtk)
                               write(output(ii)%item(i)%unit) at
-                              if (output(ii)%item(i)%columnas /=0) write(output(ii)%item(i)%unit) (output(ii)%item(i)%Serialized%valor(Ntimeforvolumic,i1), &
-                                                                                                   output(ii)%item(i)%Serialized%valor_x(Ntimeforvolumic,i1), &
-                                                                                                   output(ii)%item(i)%Serialized%valor_y(Ntimeforvolumic,i1), &
-                                                                                                   output(ii)%item(i)%Serialized%valor_z(Ntimeforvolumic,i1), &
-                              &                                i1=1,output(ii)%item(i)%columnas)
+                              if (output(ii)%item(i)%columnas /=0) then
+                                  do i1=1,output(ii)%item(i)%columnas
+                                    write(output(ii)%item(i)%unit) output(ii)%item(i)%Serialized%valor(Ntimeforvolumic,i1), &
+                                                                   output(ii)%item(i)%Serialized%valor_x(Ntimeforvolumic,i1), &
+                                                                   output(ii)%item(i)%Serialized%valor_y(Ntimeforvolumic,i1), &
+                                                                   output(ii)%item(i)%Serialized%valor_z(Ntimeforvolumic,i1)
+                                  end do  
+                              endif
                            end select
                         endif
                      endif
