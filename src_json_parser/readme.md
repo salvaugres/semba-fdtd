@@ -1,5 +1,6 @@
 # The `smbjson` parser module
 This module allows to read the [FDTD-JSON format](#the-fdtd-json-format) and parse it into the semba-fdtd data structures.
+This module allows to read the [FDTD-JSON format](#the-fdtd-json-format) and parse it into the semba-fdtd data structures.
 
 # Compilation and testing
 ## Compilation with GNU Fortran
@@ -47,6 +48,7 @@ This object must always be present and contains general information regarding th
 
 Example:
 ```json
+```json
     "general": {
         "timeStep": 10e-12,
         "numberOfSteps": 2000
@@ -80,6 +82,7 @@ Example:
             "reflection": 0.001
         }
     }
+```
 ```
 
 ### `<mesh>`
@@ -115,6 +118,7 @@ This is an array of objects which represent Cartesian coordinates within the gri
 TODO EXAMPLE IMAGE
 
 #### `[elements]`
+The `elements` entry contains an array of JSON objects, each of which represents a geometrical entity. Within context of this format specification, an *element* can be a relatively simple entity such as `node` or a `polyline`, but it can also be a much more complex geometrical entity such as a `cellRegion`. An *element objects* must contain a 
 The `elements` entry contains an array of JSON objects, each of which represents a geometrical entity. Within context of this format specification, an *element* can be a relatively simple entity such as `node` or a `polyline`, but it can also be a much more complex geometrical entity such as a `cellRegion`. An *element objects* must contain a 
  * `<id>` formed by an integer which uniquely identifies it within the `elements` array.
  * `<type>` which can be one of the following: 
@@ -165,6 +169,7 @@ An interval allows specifying regions within the grid which can be a point, an o
 + A *volume* is defined when each number in $\mathbf{a}$ is strictly smaller than the numbers in $\mathbf{b}$ for each direction, i.e. $a_x < b_x$, $a_y < b_y$, and $a_z < b_z$. The rest of the cases in which all numbers are different but not necessarily smaller are left as undefined.
 
 TODO EXAMPLES IMAGE
+TODO EXAMPLES IMAGE
 
 ## `[materials]`
 This entry is an array formed by all the physical models contained in the simulation. Each object within the array must contain:
@@ -201,6 +206,39 @@ If type is bulkCurrent:
 ### `[domain]`
 
 # `[sources]`
+This entry is an array which stores all the electromagnetic sources of the simulation case. Each source is a JSON object which must contain the following entries:
+ + `<magnitudeFile>` contains a relative path to the plain text file which will be used as a magnitude for this source. This file must contain two columns, with the first stating the time and the second one the magnitude value; an example magnitude file can be found at [gauss.exc](testData/cases/gauss.exc).
+ + `<type>` must be a label of the ones defined below. Some examples of source `type` are `planewave` or `nodalSource`.
+ + `<elementIds>` is an array of integers which must exist within the `mesh` `elements` list. These indicate the geometrical place where this source is located. The `type` and number of the allowed elements depends on the source `type` and can be check in the descriptions of each source object, below.
+ 
+## `planewave`
+The `planewave` object represents an electromagnetic plane wave front which propagates towards a $\hat{k}$ direction with an electric field pointing towards $\hat{E}$. The `elementIds` in planewaves must define a single `cellRegion` element formed by a single cuboid region.
+Besides the common entries in [sources](#sources), it must also contain the following ones:
+
+ + `<direction>`, is an object containing `<theta>` and `<phi>`, which are the angles of the propagation vector $\hat{k} (\theta, \phi)$.
+ + `<polarization>`, is an object containing `<theta>` and `<phi>` which indicates the direction of the electric field vector $\hat{E}(\theta, \phi)$.
+
+An example of a planewave propagating towards $\hat{z}$ and polarized in the $+\hat{x}$ follows,
+```json
+    {
+        "type": "planewave",
+        "magnitudeFile": "gauss.exc",
+        "elementIds": [2],
+        "direction": {
+            "theta": 0.0,
+            "phi": 0.0
+        },
+        "polarization": {
+            "theta": 1.5708,
+            "phi": 0.0
+        }
+    }
+```
+
+## `nodalSource`
+TODO
+If `type` is nodalSource
+    `[field]`: electric, magnetic, current
 This entry is an array which stores all the electromagnetic sources of the simulation case. Each source is a JSON object which must contain the following entries:
  + `<magnitudeFile>` contains a relative path to the plain text file which will be used as a magnitude for this source. This file must contain two columns, with the first stating the time and the second one the magnitude value; an example magnitude file can be found at [gauss.exc](testData/cases/gauss.exc).
  + `<type>` must be a label of the ones defined below. Some examples of source `type` are `planewave` or `nodalSource`.
