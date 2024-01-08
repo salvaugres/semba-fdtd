@@ -19,17 +19,14 @@
     "materials": [
         {
             "id": 1,
-            "name": "wire_material",
             "type": "wire",
-            "inductanceModel": "holland",
             "radius": 0.02,
             "resistancePerMeter": 0.0,
             "inductancePerMeter": 0.0
         },
         {
             "id": 2,
-            "name": "openTerminalMaterial",
-            "type": "wireTerminal",
+            "type": "wireConnector",
             "termination": {"type": "open"}
         }
     ],
@@ -60,20 +57,7 @@
     "materialAssociations": [
         { 
             "type": "cable",
-            "materialId": 1
-            "initialdsd"
-        },
-        {
-            "type": "bulk",
-            "materialId"
-        }
-
-    ]
-
-    "cables": [
-        {
-            "name": "cableInstance",
-            "cableMaterialId": 1,
+            "materialId": 1,
             "initialConnectorId": 2,
             "endConnectorId": 2,
             "elementIds": [2]

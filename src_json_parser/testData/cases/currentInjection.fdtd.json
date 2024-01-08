@@ -25,9 +25,9 @@
 
     "materials": [ {"id": 1, "type": "pec"} ],
 
-    "materialRegions": [
-        {"name": "pec_square", "materialId": 1, "elementIds": [2]},
-        {"name": "exit_line",  "materialId": 1, "elementIds": [3]}
+    "materialAssociations": [
+        {"type": "bulk", "materialId": 1, "elementIds": [2]},
+        {"type": "bulk", "materialId": 1, "elementIds": [3]}
     ],
 
     "sources": [

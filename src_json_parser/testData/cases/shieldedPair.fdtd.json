@@ -29,8 +29,8 @@
 			}
 		},
 		{
-			"id": 2,
 			"name": "Shield",
+			"id": 2,
 			"type": "wire",
 			"radius": 0.0001,
 			"__referenceInductancePerMeter": 5.362505362505362e-07,
@@ -38,8 +38,8 @@
 			"resistancePerMeter": 22.9e-3
 		},
 		{
-			"id": 3,
 			"name": "leftTerminal",
+			"id": 3,
 			"type": "multiwireTerminal",
 			"terminations" : [
 				{"type": "series", "resistance": 50 },
@@ -48,7 +48,7 @@
 		},
 		{
 			"id": 4,
-			"name": "ShieldTerminal",
+			"name": "shieldTerminal",
 			"type": "wireTerminal",
 			"termination": {
 				"type": "series",
@@ -91,18 +91,20 @@
 		}
 	],
 
-	"cables": [
+	"materialAssociations": [
 		{
 			"name": "line_1",
-			"cableMaterialId": 1,
+			"type": "cable",
+			"elementIds": [ 2,3 ],
+			"materialId": 1,
 			"initialTerminalId": 3,
 			"endTerminalId": 3,
-			"elementIds": [ 2,3 ],
 			"containedWithinElementId": 1
 		},
 		{
 			"name": "line_0",
-			"cableMaterialId": 2,
+			"type": "cable",
+			"materialId": 2,
 			"initialTerminalId": 4,
 			"endTerminalId": 4,
 			"elementIds": [ 1 ]
