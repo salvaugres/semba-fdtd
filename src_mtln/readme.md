@@ -48,7 +48,22 @@ where $\Delta t$ and $\Delta z$ are the time and space steps of the discretizati
 
 # Networks #
 
+In a general way we call *networks* the connections at the ends of a transmission line. These connections can be to other tranmission lines (_interconnection_ networks, or _junctions_) or to the reference conductor (_termination_ networks). In its simplest form, a network is a short between elements: a short from a transmission line end to the reference conductor, or a short between the ends of tranmission lines. 
+
+_Solving_ a network means computing the voltages on all the external nodes of the network, which are the start or end nodes of the tranmission lines connected to the network.
+
+Using the state variables analysis, the network can be analyzed solving a system with a number of variables equal to the sum of independent inductors and capacitors.
+State equations can in principle solve any network. However, the complexity of the method rises noticeably with increasing number of inductors and capactors. The state equations are very different for different types of connections and the potential for generalization is limited. In the current version of the code, networks composed of either a short, a resistance, a capacitance, or a resistance and a capacitance in parallel, in series with an inductor (RCpLs) can be solved.
+
+An alternative, **not yet implemented**, is to use _Spice_ to solve the networks. A call to _Spice_ would be made from within the MTLN solver, giving as an inpout the initial values of the currents and voltages on the network external nodes, and returning the voltages on said nodes.
+
 # Bundles #
+
+A bundle is either a shielded multiconductor tranmission line, or a 
+
+A bundle is divided in domains and levels
+
+A bundle can contain other bundles
 
 # Features #
 
