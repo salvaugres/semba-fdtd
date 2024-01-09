@@ -152,7 +152,7 @@
 		{
 			"id": 7,
 			"name": "Short",
-			"type": "wireTerminal",
+			"type": "terminal",
 			"termination": {
 				"type": "series",
 				"resistance": 1e-6
@@ -161,7 +161,7 @@
 		{
 			"id": 72,
 			"name": "Short_2x2_",
-			"type": "multiwireTerminal",
+			"type": "terminal",
 			"terminations" : [
 				{"type": "series", "resistance": 1e-6 },
 				{"type": "series", "resistance": 1e-6 }
@@ -170,7 +170,7 @@
 		{
 			"id": 76,
 			"name": "Short6x6",
-			"type": "multiwireTerminal",
+			"type": "terminal",
 			"terminations" : [
 				{"type": "series", "resistance": 1e-6 },
 				{"type": "series", "resistance": 1e-6 },
@@ -183,7 +183,7 @@
 		{
 			"id": 78,
 			"name": "Short8x8",
-			"type": "multiwireTerminal",
+			"type": "terminal",
 			"terminations" : [
 				{"type": "series", "resistance": 1e-6 },
 				{"type": "series", "resistance": 1e-6 },
@@ -198,7 +198,7 @@
 		{
 			"id": 8,
 			"name": "T_2_50_50",
-			"type": "multiwireTerminal",
+			"type": "terminal",
 			"terminations" : [
 				{"type": "series", "resistance": 50 },
 				{"type": "series", "resistance": 50 }
@@ -207,7 +207,7 @@
 		{
 			"id": 86,
 			"name": "T_2_50_50",
-			"type": "multiwireTerminal",
+			"type": "terminal",
 			"terminations" : [
 				{"type": "series", "resistance": 50 },
 				{"type": "series", "resistance": 50 },
@@ -221,7 +221,7 @@
 		{
 			"id": 100,
 			"name": "T_2_n_short",
-			"type": "multiwireTerminal",
+			"type": "terminal",
 			"terminations": [
 				{"type": "LCpRs",  "resistance": 50, "inductance": 30e-12, "capacitance": 60e-9 },
 				{"type": "series", "resistance": 1e10 },
@@ -236,32 +236,32 @@
 		{
 			"id": 20,
 			"name": "T_0_1",
-			"type": "wireTerminal",
+			"type": "terminal",
 			"terminations": [{"type": "series", "resistance": 0.7e-3}]
 		},
 		{
 			"id": 21,
 			"name": "T_0_2",	
-			"type": "wireTerminal",
+			"type": "terminal",
 			"terminations": [{"type": "series", "resistance": 1}]
 		},
 		{
 			"id": 24,
 			"name": "SegmentConnector1",
 			"type": "connector",
-			"resistance": 100e-3
+			"resistances": [ 100e-3 ]
 		},
 		{
 			"id": 25,
 			"name": "SegmentConnector2",
 			"type": "connector",
-			"resistance": 19
+			"resistances": [ 19 ]
 		},
 		{
 			"id": 204,
 			"name": "SegmentConnector1",
 			"type": "connector",
-			"resistance": 100e-3,
+			"resistances": [100e-3],
 			"transferImpedancePerMeter" : {
 				"resistiveTerm" : 3.33,
 				"inductiveTerm" : 2.6e-9,

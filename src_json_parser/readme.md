@@ -63,10 +63,10 @@ This object must always be present and contains general information regarding th
 Example:
 
 ```json
-    "general": {
-        "timeStep": 10e-12,
-        "numberOfSteps": 2000
-    }
+"general": {
+    "timeStep": 10e-12,
+    "numberOfSteps": 2000
+}
 ```
 
 ### `[boundary]`
@@ -90,14 +90,14 @@ These objects must contain a `<type>` label which can be:
 Example:
 
 ```json
-    "boundary": {
-        "all": {
-            "type": "pml",
-            "layers": 6, 
-            "order": 2.0,
-            "reflection": 0.001
-        }
+"boundary": {
+    "all": {
+        "type": "pml",
+        "layers": 6, 
+        "order": 2.0,
+        "reflection": 0.001
     }
+}
 ```
 
 ### `<mesh>`
@@ -105,11 +105,11 @@ Example:
 All the geometrical information of the simulation case is exclusively stored by the `mesh` object. It is a JSON object which contains three objects: a `<grid>`, a list of `[coordinates]` and a list of `[elements]`.
 
 ```json
-    "mesh": {
-        "grid": { ... },       
-        "coordinates": [ ... ],
-        "elements": [ ... ]    
-    }
+"mesh": {
+    "grid": { ... },       
+    "coordinates": [ ... ],
+    "elements": [ ... ]    
+}
 ```
 
 #### `<grid>`
@@ -119,12 +119,12 @@ The `grid` object represents a collection of rectangular cuboids or *cells* whic
 
 The following example describes a regular grid with $20$, $20$, and $22$ cells in the $x$, $y$, and  $z$ directions respectively.
 ```json
-    "mesh": {
-        "grid": {
-            "numberOfCells": [20, 20, 22], 
-            "steps": { "x": [0.1], "y": [0.1], "z": [0.1] }
-        }
+"mesh": {
+    "grid": {
+        "numberOfCells": [20, 20, 22], 
+        "steps": { "x": [0.1], "y": [0.1], "z": [0.1] }
     }
+}
 ```
 
 #### `[coordinates]`
@@ -147,22 +147,22 @@ The `elements` entry contains an array of JSON objects, each of which represents
 Below there is an example of a mesh object which includes several types of elements.
 
 ```json
-    "mesh": {
-        "grid": {
-            "numberOfCells": [20, 20, 22],
-            "steps": { "x": [0.1], "y": [0.1], "z": [0.1] }
-        },
-        "coordinates": [
-            {"id": 1, "relativePosition": [11, 11,  7]},
-            {"id": 2, "relativePosition": [11, 11, 12]},
-            {"id": 3, "relativePosition": [11, 11, 17]}
-        ],
-        "elements": [
-            {"id": 1, "type": "node", "coordinateIds": [2]},
-            {"id": 2, "type": "polyline", "coordinateIds": [1, 2, 3] },
-            {"id": 3, "type": "cellRegion", "intervals": [ [ [1, 1, 1], [19, 19, 21] ] ] }
-        ]
-    }
+"mesh": {
+    "grid": {
+        "numberOfCells": [20, 20, 22],
+        "steps": { "x": [0.1], "y": [0.1], "z": [0.1] }
+    },
+    "coordinates": [
+        {"id": 1, "relativePosition": [11, 11,  7]},
+        {"id": 2, "relativePosition": [11, 11, 12]},
+        {"id": 3, "relativePosition": [11, 11, 17]}
+    ],
+    "elements": [
+        {"id": 1, "type": "node", "coordinateIds": [2]},
+        {"id": 2, "type": "polyline", "coordinateIds": [1, 2, 3] },
+        {"id": 3, "type": "cellRegion", "intervals": [ [ [1, 1, 1], [19, 19, 21] ] ] }
+    ]
+}
 ```
 
 ##### The `interval` convention
@@ -203,7 +203,7 @@ These materials represent a perfectly electrically conducting (`pec`) and perfec
 Example:
 
 ```json
-    "materials": [ {"id": 1, "type": "pec"} ]
+"materials": [ {"id": 1, "type": "pec"} ]
 ```
 
 #### `simple`
@@ -284,7 +284,7 @@ They must contain the following entries:
 
 + `[resistiveTerm]` TODO REVIEW
 + `[inductiveTerm]` TODO REVIEW
-+ `` TODO REVIEW
++ `[pole-residues]` TODO REVIEW
 + `[direction]` which can be `inwards`, `outwards` or `both`. Indicating the type of coupling considered.
 
 Example:
@@ -310,14 +310,14 @@ Example:
 }
 ```
 
-#### `wireTerminal` and `multiwireTerminal`
+#### `terminal`
 
-A `wireTerminal` and `multiwireTerminal` represent the terminations of a `wire` or a `multiwire` understood as a lumped circuit element.
+A `terminal` models lumped circuit element located at one end of a `wire` or `multiwire`.
 
 + If the terminal is associated with a `wire`, the `terminations` array must contain a single `termination`.
-+ In the case it is assocaited with a `multiwire`, `terminations` must contain as many terminations as conductors are present in the `multiwire`.
++ In the case it is associated with a $N+1$ conductors `multiwire`, the `terminations` array must contain $N$ entries.
 
-Each entry in `terminations` must be specified by a `type` of the following types.
+Each entry in `terminations` is specified by a `type`
 
 + `short` if the wire is short-circuited with another wire or with any surface which might be present. TODO REVIEW
 + `open` if the wire does not end in an ohmic contact with any other structure. TODO REVIEW
@@ -327,25 +327,36 @@ Each entry in `terminations` must be specified by a `type` of the following type
 Example:
 
 ```json
-    {
-        "name": "shieldTerminal",
-        "id": 4,
-        "type": "wireTerminal",
-        "termination": {
-            "type": "series",
-            "resistance": 50.0
-        }
-    }
+{
+    "name": "shieldTerminal",
+    "id": 4,
+    "type": "terminal",
+    "termination": [ {"type": "series", "resistance": 50.0} ]
+}
 ```
 
+#### `connector`
 
-#### `multiwireConnector`
+The `connector` assigns properties to the initial or last segment of a `wire` or a $N+1$ conductors `multiwire` as explained in the [material associations](#materialassociations) section. The following entries can be present:
 
-TODO
++ `[resistances]`, an array of $N$ real numbers which will be converted to resistances per unit length and will replace the `resistancePerMeter` of that segment of the `multiwire`.
++ `[transferImpedancePerMeter]`, described in the same way as explained in the [multiwire](#multiwire) section. Only valid in a `connector` associated with `multiwire`.
 
+Example:
 
-
-#### The `transferImpedance` object
+```json
+{
+    "name": "SegmentConnector1",
+    "id": 204,
+    "type": "connector",
+    "resistances": [100e-3],
+    "transferImpedancePerMeter" : {
+        "resistiveTerm" : 3.33,
+        "inductiveTerm" : 2.6e-9,
+        "direction" : "inwards"
+    }
+}
+```
 
 ## `[materialAssociations]`
 
@@ -360,86 +371,149 @@ This entry stores associations between `materials` and `elements` using their re
 Bulk materials such as `pec`, `pmc` or `simple` can be assigned to one or many elements of type `cellRegion`. If the `cellRegion` contains `intervals` representing points, these will be ignored.
 
 ```json
-    "materialAssociations": [
-        {"type": "bulk", "materialId": 1, "elementIds": [2]},
-        {"type": "bulk", "materialId": 1, "elementIds": [3]}
-    ],
+"materialAssociations": [
+    {"type": "bulk", "materialId": 1, "elementIds": [2]},
+    {"type": "bulk", "materialId": 1, "elementIds": [3]}
+]
 ```
 
 ### `surface`
 
 Surface materials can only be assigned to elements of type `cellRegion`. If the `cellRegion` contains `intervals` representing entities different to oriented surfaces these will be ignored.
 
-TODO EXAMPLE
+```json
+"materialAssociations": [
+    {"type": "surface", "materialId": 1, "elementIds": [2]}
+]
+```
 
 ### `cable`
-This objects establish the relationship between the cable physical model described in a `material` and parts of the geometry. Additionally to `type`, `materialId` and `elementIds` they can contain the following inputs depending on the `material` `type` pointed by the `materialId`:
 
-+ If it is of type `wire`, it must contain: `initialTerminalId` and a `endTerminalId` which must be elements within the `materials` list of type `wireTerminal`.
-+ If it is of type `multiwire`, it must contain `initialTerminalId` and `endTerminalId` as in the previous case. Additionally, it must contain an entry named `containedWithinElementId` which indicates the `polyline` in which this `multiwire` is embedded. It can optionally contain `initialConnectorId` and `endConnectorId` entries which must point to materials of type `multiwireConnector`.
+This object establishes the relationship between the physical models described in a `material` and parts of the geometry. Besides a `type`, `materialId` and `elementIds`; a `cable` can contain the following inputs:
 
-TODO EXAMPLE
++ `<initialTerminalId>` and `<endTerminalId>` which must be present within the `materials` list of type. These entries indicate the lumped circuits connected at the ends of the cable.
++ `[initialConnectorId]` and `[endConnectorId]` entries which must point to materials of type `connector` and are assigned to the last segments of the corresponding ends of the cable.
++ If its `materialId` points to a `multiwire`, it must contain an entry named `<containedWithinElementId>` which indicates the `polyline` in which this `multiwire` is embedded.
+
+Example:
+
+```json
+{
+    "name": "line_0_0",
+    "type": "cable",
+    "elementIds": [ 1 ],
+    "materialId": 10,
+    "initialTerminalId": 20,
+    "endTerminalId": 7,
+    "initialConnectorId": 24
+}
+```
 
 ## `[probes]`
+The `probes` array defines the outputs of the simulation. Each probe in the array must contain:
 
-Require type and at least one elementIds or cellRegions entry.
-Require a domain.
++ A `<type>` of the ones described in the following list.
++ `<elementIds>` indicating the place in which the probe is defined. The allowed `elements` depend on the particular probe `type`.
++ A `[domain]` as described in the [domain section](#domain)
 
 TODO 
 
-### `<type>`
+### Probe types
 
+#### `electric` or `magnetic`
+
+Example:
+
+```json
+{
+    "name": "electric_field_point_probe",
+    "type": "electric",
+    "elementIds": [1],
+    "directions": ["x", "y", "z"],
+    "domain": { 
+        "type": "time" 
+    }
+}
+```
+
+#### `bulkCurrent`
 TODO.
-If type is `bulkCurrent`:
-    \[field\]: electric, magnetic (DEFAULTS TO FIRST)
+
++ `[field]`, `electric` or `magnetic`. Defaults to `electric`.
+
+```json
+{
+    "name": "bulk_current_at_entry",
+    "type": "bulkCurrent",
+    "elementIds": [4],
+    "domain": { "type": "time" }
+}
+```
+
+#### `current` and `voltage`
+
+```json
+{
+    "name": "mid_point",
+    "type": "current",
+    "elementIds": [1],
+    "domain": { "type": "time" }
+}
+```
 
 ### `[domain]`
-TODO
+The domain is defined by its `type`:
 
++ `time`
++ `frequency`
 
-# `[sources]`
+## `[sources]`
+
 This entry is an array which stores all the electromagnetic sources of the simulation case. Each source is a JSON object which must contain the following entries:
- + `<magnitudeFile>` contains a relative path to the plain text file which will be used as a magnitude for this source. This file must contain two columns, with the first stating the time and the second one the magnitude value; an example magnitude file can be found at [gauss.exc](testData/cases/gauss.exc).
- + `<type>` must be a label of the ones defined below. Some examples of source `type` are `planewave` or `nodalSource`.
- + `<elementIds>` is an array of integers which must exist within the `mesh` `elements` list. These indicate the geometrical place where this source is located. The `type` and number of the allowed elements depends on the source `type` and can be check in the descriptions of each source object, below.
+
++ `<magnitudeFile>` contains a relative path to the plain text file which will be used as a magnitude for this source. This file must contain two columns, with the first stating the time and the second one the magnitude value; an example magnitude file can be found at [gauss.exc](testData/cases/gauss.exc).
++ `<type>` must be a label of the ones defined below. Some examples of source `type` are `planewave` or `nodalSource`.
++ `<elementIds>` is an array of integers which must exist within the `mesh` `elements` list. These indicate the geometrical place where this source is located. The `type` and number of the allowed elements depends on the source `type` and can be check in the descriptions of each source object, below.
  
-## `planewave`
+### `planewave`
 The `planewave` source object represents an electromagnetic plane wave front which propagates towards a $\hat{k}$ direction with an electric field pointing towards $\hat{E}$. The `elementIds` in planewaves must define a single `cellRegion` element formed by a single cuboid region; the cuboid's inside and outside define a total field and scattered field regions respectively.
 Besides the common entries in [sources](#sources), it must also contain the following ones:
 
- + `<direction>`, is an object containing `<theta>` and `<phi>`, which are the angles of the propagation vector $\hat{k} (\theta, \phi)$.
- + `<polarization>`, is an object containing `<theta>` and `<phi>` which indicates the direction of the electric field vector $\hat{E}(\theta, \phi)$.
++ `<direction>`, is an object containing `<theta>` and `<phi>`, which are the angles of the propagation vector $\hat{k} (\theta, \phi)$.
++ `<polarization>`, is an object containing `<theta>` and `<phi>` which indicates the direction of the electric field vector $\hat{E}(\theta, \phi)$.
 
 An example of a planewave propagating towards $\hat{z}$ and polarized in the $+\hat{x}$ follows,
+
 ```json
-    {
-        "type": "planewave",
-        "magnitudeFile": "gauss.exc",
-        "elementIds": [2],
-        "direction": {
-            "theta": 0.0,
-            "phi": 0.0
-        },
-        "polarization": {
-            "theta": 1.5708,
-            "phi": 0.0
-        }
+{
+    "type": "planewave",
+    "magnitudeFile": "gauss.exc",
+    "elementIds": [2],
+    "direction": {
+        "theta": 0.0,
+        "phi": 0.0
+    },
+    "polarization": {
+        "theta": 1.5708,
+        "phi": 0.0
     }
+}
 ```
 
-## `nodalSource`
+### `nodalSource`
 This object represents a time-varying vector field applied along an oriented line with the same orientation of the line. Therefore, the `elementIds` within must contain only elements of type `cellRegion` with `intervals` describing a collection of oriented lines. Additionally, it may contain:
- - `[field]`: with a `electric`, `magnetic`, or `current` label which indicates the vector field which will be applied. If not present, it defaults to `electric`.
+
++ `[field]`: with a `electric`, `magnetic`, or `current` label which indicates the vector field which will be applied. If not present, it defaults to `electric`.
  
 An example of a `sources` list containing a varying current `nodalSource` is
 ```json
-    "sources": [
-        {
-            "name": "entry_line_curent",
-            "type": "nodalSource", 
-            "magnitudeFile": "gauss.exc", 
-            "elementIds": [1],
-            "field": "current"
-        }
-    ]
+"sources": [
+    {
+        "name": "entry_line_curent",
+        "type": "nodalSource", 
+        "magnitudeFile": "gauss.exc", 
+        "elementIds": [1],
+        "field": "current"
+    }
+]
 ```

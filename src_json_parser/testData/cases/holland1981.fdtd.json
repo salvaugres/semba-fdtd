@@ -26,8 +26,8 @@
         },
         {
             "id": 2,
-            "type": "wireConnector",
-            "termination": {"type": "open"}
+            "type": "terminal",
+            "terminations": [{"type": "open"}]
         }
     ],
 
@@ -44,10 +44,7 @@
         "elements": [
             {"id": 1, "type": "node", "coordinateIds": [2]},
             {"id": 2, "type": "polyline", "coordinateIds": [1, 2, 3] },
-            {
-                "id": 3, 
-                "type": "cellRegion", 
-                "intervals": [ 
+            {"id": 3, "type": "cellRegion", "intervals": [ 
                     [ [1, 1, 1], [19, 19, 21] ]
                 ] 
             }
@@ -58,8 +55,8 @@
         { 
             "type": "cable",
             "materialId": 1,
-            "initialConnectorId": 2,
-            "endConnectorId": 2,
+            "initialTerminalId": 2,
+            "endTerminalId": 2,
             "elementIds": [2]
         }
     ],

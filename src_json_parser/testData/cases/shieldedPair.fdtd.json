@@ -11,8 +11,8 @@
 
 	"materials": [
 		{
-			"id": 1,
 			"name": "InnerCoaxial",
+			"id": 1,
 			"type": "multiwire",
 			"inductancePerMeter": [
 				[3.13182309e-07, 7.45674981e-08],
@@ -40,20 +40,19 @@
 		{
 			"name": "leftTerminal",
 			"id": 3,
-			"type": "multiwireTerminal",
+			"type": "terminal",
 			"terminations" : [
-				{"type": "series", "resistance": 50 },
-				{"type": "series", "resistance": 50 }
+				{"type": "series", "resistance": 50},
+				{"type": "series", "resistance": 50}
 			]
 		},
 		{
-			"id": 4,
 			"name": "shieldTerminal",
-			"type": "wireTerminal",
-			"termination": {
-				"type": "series",
-				"resistance": 50.0
-			}
+			"id": 4,
+			"type": "terminal",
+			"terminations": [
+				{"type": "series","resistance": 50.0}
+			]
 		}
 	],
 
