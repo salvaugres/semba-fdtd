@@ -37,7 +37,7 @@ The following are examples of valid inputs:
  1. An empty space illuminated by a plane wave: [planewave.fdtd.json](testData/cases/planewave.fdtd.json). The field at a point close to the center is recorded.
  2. A thin straight wire illuminated by a plane wave: [holland1981.fdtd.json](testData/cases/holland1981.fdtd.json) which aims to replicate the case described in https://doi.org/10.1109/TEMC.1981.303899. It contains a probe which records the wire at the middle of the wire.
  3. A current injection which mimics a lightning strike on a square metallic surface: [currentinjection.fdtd.json](testData/cases/currentInjection.fdtd.json). It contains two bulk current probes to measure the current at the entry and exit lines.
- 4. A shielded pair of wires feeded by a voltage source in one of its ends: [shieldedPair.fdtd.json](testData/cases/shieldedPair.fdtd.json). The interior of the shield uses a multiconductor transmision line (MTL) algortihm to evolve the common mode currents which are induced in the shield and propagated inside using a transfer impedance.
+ 4. A shielded pair of wires fed by a voltage source in one of its ends: [shieldedPair.fdtd.json](testData/cases/shieldedPair.fdtd.json). The interior of the shield uses a multiconductor transmission line (MTL) algorithm to evolve the common mode currents which are induced in the shield and propagated inside using a transfer impedance.
  5. A multiconductor transmission line network (MTLN) case which includes three cable bundles with a shared junction: [mtln.fdtd.json](testData/cases/mtln.fdtd.json).
 
 ## FDTD-JSON objects description
@@ -135,8 +135,7 @@ This is an array of objects which represent Cartesian coordinates within the gri
 TODO EXAMPLE IMAGE
 
 #### `[elements]`
-The `elements` entry contains an array of JSON objects, each of which represents a geometrical entity. Within context of this format specification, an *element* can be a relatively simple entity such as `node` or a `polyline`, but it can also be a much more complex geometrical entity such as a `cellRegion`. An *element objects* must contain a 
-The `elements` entry contains an array of JSON objects, each of which represents a geometrical entity. Within context of this format specification, an *element* can be a relatively simple entity such as `node` or a `polyline`, but it can also be a much more complex geometrical entity such as a `cellRegion`. An *element objects* must contain a
+The `elements` entry contains an array of JSON objects, each of which represents a geometrical entity. Within the context of this format specification, an *element* can be a relatively simple entity such as `node` or a `polyline`, but it can also be a much more complex geometrical entity such as a `cellRegion`.  An *element objects* must contain the entries
 
 + `<id>` formed by an integer which uniquely identifies it within the `elements` array.
 + `<type>` which can be one of the following: 
@@ -198,20 +197,37 @@ This entry is an array formed by all the physical models contained in the simula
 ### Bulk materials
 
 #### `pec` and `pmc`
+
 These materials represent a perfectly electrically conducting (`pec`) and perfectly magnetically conducting (`pmc`).
+
+Example:
+
 ```json
     "materials": [ {"id": 1, "type": "pec"} ]
 ```
 
 #### `simple`
+
 A `material` with `type` `simple` represents an isotropic material with constant (not frequency dependent) relative permittivity $\varepsilon_r$, relative permeability $\mu_r$, electric conductivity $\sigma$ and/or magnetic conductivity $\sigma_m$:
 
- - `[relativePermittivity]` is a real which defaults to $1.0$. Must be greater than $1.0$.
- - `[relativePermeability]` is a real which defaults to $1.0$. Must be greater than $1.0$.
- - `[electricConductivity]` is a real which defaults to $0.0$. Must be greater than $0.0$.
- - `[magneticConductivity]` is a real which defaults to $0.0$. Must be greater than $0.0$.
++ `[relativePermittivity]` is a real which defaults to $1.0$. Must be greater than $1.0$.
++ `[relativePermeability]` is a real which defaults to $1.0$. Must be greater than $1.0$.
++ `[electricConductivity]` is a real which defaults to $0.0$. Must be greater than $0.0$.
++ `[magneticConductivity]` is a real which defaults to $0.0$. Must be greater than $0.0$.
 
-TODO Add example.
+Example:
+
+```json
+"materials": [
+    {
+        "name": "teflon"
+        "id": 1, 
+        "type": "simple",
+        "relativePermittivity": 2.5,
+        "electricConducitivity": 1e-6
+    } 
+]
+```
 
 ### Surface materials
 
@@ -221,28 +237,99 @@ TODO Add example.
 
 #### `wire`
 
-A `wire`, or *thin wire*, represents a wire-like structure with a radius much smaller than the surrounding cell sizes. They must contain:
+A `wire`, or *thin wire*, represents an electrically conducting wire-like structure with a radius much smaller than the surrounding cell sizes. 
+These structures are solved by an algorithm similar to the one described in:
+
+```
+R. Holland and L. Simpson, 
+"Finite-Difference Analysis of EMP Coupling to Thin Struts and Wires," 
+IEEE Transactions on Electromagnetic Compatibility, vol. EMC-23, no. 2, pp. 88-97, May 1981,
+doi: 10.1109/TEMC.1981.303899.
+```
+
+Materials of this type must contain:
 
 + `<radius>` as a real number.
 + `<resistancePerMeter>` as a real number.
 + `[inductancePerMeter]` as a real number. Defaults to `0.0`.
 
+Example:
+
 ```json
-    {
-        "id": 2,
-        "name": "Shield",
-        "type": "wire",
-        "radius": 0.0001,
-        "resistancePerMeter": 22.9e-3
-    }
+{
+    "name": "Shield",
+    "id": 2,
+    "type": "wire",
+    "radius": 0.0001,
+    "resistancePerMeter": 22.9e-3
+}
 ```
 
-#### `wireTerminal`
+#### `multiwire`
+
+A `multiwire`, models $N+1$ electrical wires inside a bundled. The voltages and currents on these wires are solved by a multiconductor transmission lines (MTLN) solver:
+```
+Paul, C. R. (2007). 
+Analysis of multiconductor transmission lines. 
+John Wiley & Sons.
+```
+`multiwire` materials are assumed to be contained within a `wire` or another `multiwire` (see the [cable](#cable) `materialAssociation`) which is the external domain and is used as voltage reference. 
+They must contain the following entries:
+
++ `<inductancePerMeter>` and `<capacitancePerMeter>` which must be matrices with a size $N \times N$.
++ `[resistancePerMeter]` and `[conductancePerMeter]` which must be arrays of size $N$. Defaults to zero.
++ `[transferImpedancePerMeter]` which represents the coupling with the external domain, described below. If not present, it defaults to zero, i.e. perfect shielding.
+
+`transferImpedancePerMeter` can contain:
+
++ `[resistiveTerm]` TODO REVIEW
++ `[inductiveTerm]` TODO REVIEW
++ `` TODO REVIEW
++ `[direction]` which can be `inwards`, `outwards` or `both`. Indicating the type of coupling considered.
+
+Example:
+
+```json
+{
+    "name": "Bundle_2_level_2",
+    "id": 62,
+    "type": "multiwire",
+    "resistancePerMeter" : [62.0e-3,62.0e-3],
+    "inductancePerMeter": [
+        [2.4382084E-07, 4.7377505E-08],
+        [4.7377508E-08, 2.4382081E-07]
+    ],
+    "capacitancePerMeter": [
+        [105.5e-12, -20.5e-12],
+        [-20.5e-12, 105.5e-12 ]
+    ],
+    "transferImpedancePerMeter" : {
+        "inductiveTerm" : 4.2e-9,
+        "direction" : "inwards"
+    }
+}
+```
+
+#### `wireTerminal` and `multiwireTerminal`
+
+A `wireTerminal` and `multiwireTerminal` represent the terminations of a `wire` or a `multiwire` understood as a lumped circuit element.
+
++ If the terminal is associated with a `wire`, the `terminations` array must contain a single `termination`.
++ In the case it is assocaited with a `multiwire`, `terminations` must contain as many terminations as conductors are present in the `multiwire`.
+
+Each entry in `terminations` must be specified by a `type` of the following types.
+
++ `short` if the wire is short-circuited with another wire or with any surface which might be present. TODO REVIEW
++ `open` if the wire does not end in an ohmic contact with any other structure. TODO REVIEW
++ `series` represents the impedance a single resistor. It must include a `<resistance>` entry followed by a real. TODO REVIEW
++ `LCpRs` represents a parallel of an inductor and a capacitor in series with a resistor. It must contain: `<resistance>`, `<inductance>`, and `<capacitance>`.
+
+Example:
 
 ```json
     {
-        "id": 4,
         "name": "shieldTerminal",
+        "id": 4,
         "type": "wireTerminal",
         "termination": {
             "type": "series",
@@ -251,18 +338,14 @@ A `wire`, or *thin wire*, represents a wire-like structure with a radius much sm
     }
 ```
 
-#### `multiwire`
-
-TODO
-
-#### `multiwireTerminal`
-
-TODO
 
 #### `multiwireConnector`
 
 TODO
 
+
+
+#### The `transferImpedance` object
 
 ## `[materialAssociations]`
 
@@ -315,39 +398,6 @@ TODO
 
 
 # `[sources]`
-This entry is an array which stores all the electromagnetic sources of the simulation case. Each source is a JSON object which must contain the following entries:
- + `<magnitudeFile>` contains a relative path to the plain text file which will be used as a magnitude for this source. This file must contain two columns, with the first stating the time and the second one the magnitude value; an example magnitude file can be found at [gauss.exc](testData/cases/gauss.exc).
- + `<type>` must be a label of the ones defined below. Some examples of source `type` are `planewave` or `nodalSource`.
- + `<elementIds>` is an array of integers which must exist within the `mesh` `elements` list. These indicate the geometrical place where this source is located. The `type` and number of the allowed elements depends on the source `type` and can be check in the descriptions of each source object, below.
- 
-## `planewave`
-The `planewave` object represents an electromagnetic plane wave front which propagates towards a $\hat{k}$ direction with an electric field pointing towards $\hat{E}$. The `elementIds` in planewaves must define a single `cellRegion` element formed by a single cuboid region.
-Besides the common entries in [sources](#sources), it must also contain the following ones:
-
- + `<direction>`, is an object containing `<theta>` and `<phi>`, which are the angles of the propagation vector $\hat{k} (\theta, \phi)$.
- + `<polarization>`, is an object containing `<theta>` and `<phi>` which indicates the direction of the electric field vector $\hat{E}(\theta, \phi)$.
-
-An example of a planewave propagating towards $\hat{z}$ and polarized in the $+\hat{x}$ follows,
-```json
-    {
-        "type": "planewave",
-        "magnitudeFile": "gauss.exc",
-        "elementIds": [2],
-        "direction": {
-            "theta": 0.0,
-            "phi": 0.0
-        },
-        "polarization": {
-            "theta": 1.5708,
-            "phi": 0.0
-        }
-    }
-```
-
-## `nodalSource`
-TODO
-If `type` is nodalSource
-    `[field]`: electric, magnetic, current
 This entry is an array which stores all the electromagnetic sources of the simulation case. Each source is a JSON object which must contain the following entries:
  + `<magnitudeFile>` contains a relative path to the plain text file which will be used as a magnitude for this source. This file must contain two columns, with the first stating the time and the second one the magnitude value; an example magnitude file can be found at [gauss.exc](testData/cases/gauss.exc).
  + `<type>` must be a label of the ones defined below. Some examples of source `type` are `planewave` or `nodalSource`.

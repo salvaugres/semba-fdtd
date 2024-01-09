@@ -63,12 +63,12 @@
 			"steps": {"x": [1.0], "y": [1.0], "z": [0.00540]}
 		},
 		"relativeCoordinates": [
-			{"id": 1, "position": [1, 1,  1] },
-			{"id": 2, "position": [1, 1, 19] },
-			{"id": 3, "position": [1, 1,  1] },
-			{"id": 4, "position": [1, 1,  1] },
-			{"id": 5, "position": [1, 1, 19] },
-			{"id": 6, "position": [1, 1, 19] }
+			{"id": 1, "relativePosition": [1, 1,  1] },
+			{"id": 2, "relativePosition": [1, 1, 19] },
+			{"id": 3, "relativePosition": [1, 1,  1] },
+			{"id": 4, "relativePosition": [1, 1,  1] },
+			{"id": 5, "relativePosition": [1, 1, 19] },
+			{"id": 6, "relativePosition": [1, 1, 19] }
 		],
 		"elements": [
 			{ "id": 1, "type": "polyline", "coordinateIds": [1, 2]},
