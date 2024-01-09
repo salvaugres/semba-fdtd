@@ -50,6 +50,8 @@ where $\Delta t$ and $\Delta z$ are the time and space steps of the discretizati
 
 In a general way we call *networks* the connections at the ends of a transmission line. These connections can be to other tranmission lines (_interconnection_ networks, or _junctions_) or to the reference conductor (_termination_ networks). In its simplest form, a network is a short between elements: a short from a transmission line end to the reference conductor, or a short between the ends of tranmission lines. 
 
+![Left: MTLs connected by interconnection networks (in green) or terminated in termination networks (red). Right: example of possible resistive connections inside a network. ](networks.png)
+
 _Solving_ a network means computing the voltages on all the external nodes of the network, which are the start or end nodes of the tranmission lines connected to the network.
 
 Using the state variables analysis, the network can be analyzed solving a system with a number of variables equal to the sum of independent inductors and capacitors.
