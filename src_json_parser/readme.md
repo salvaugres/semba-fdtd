@@ -493,6 +493,8 @@ Due to Ampere's law, the loop integral of the magnetic field is equal to the tot
 }
 ```
 
+TODO EXAMPLE IMAGE
+
 #### `farField`
 
 Probes of type `farField` perform a near to far field transformation of the electric and magnetic vector fields and are typically located in the scattered field region which is defined by a total/scatterd field excitation, e.g. [a planewave](#planewave). They must be defined with a single `cellRegion` element which must contain a single `interval` defining a cuboid. The direction of  the radiated field $\hat{r}(\theta, \phi)$ is defined with the following entries:
@@ -591,14 +593,30 @@ This object represents a time-varying vector field applied along an oriented lin
 
 An example of a `sources` list containing a varying current `nodalSource` is
 
+Example:
+
 ```json
-"sources": [
-    {
-        "name": "entry_line_curent",
-        "type": "nodalSource", 
-        "magnitudeFile": "gauss.exc", 
-        "elementIds": [1],
-        "field": "current"
-    }
-]
+{
+    "name": "entry_line_curent",
+    "type": "nodalSource", 
+    "magnitudeFile": "gauss.exc", 
+    "elementIds": [1],
+    "field": "current"
+}
+```
+
+### `generator`
+
+A `generator` source must be located on a single `node` whose `coordinateId` is used by a single `polyline`. The entry `[field]` can be `voltage` or `current`; defaults to `voltage`.
+
+Example:
+
+```json
+{
+    "name": "voltage_source",
+    "type": "generator",
+    "field": "current",
+    "magnitudeFile": "gauss.exc", 
+    "elementIds": [1]
+}
 ```
