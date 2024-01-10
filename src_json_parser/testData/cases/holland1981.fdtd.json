@@ -80,7 +80,8 @@
     "probes": [
         {
             "name": "mid_point",
-            "type": "current",
+            "type": "wire",
+            "field": "current",
             "elementIds": [1],
             "domain": { "type": "time" }
         }

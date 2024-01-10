@@ -80,12 +80,14 @@
 	"probes": [
 		{
 			"name": "v",
-			"type": "voltage",
+			"type": "wire",
+			"field": "voltage",
 			"elementIds": [4]
 		},
 		{
 			"name": "i",
-			"type": "current",
+			"type": "wire",
+			"field": "current",
 			"elementIds": [4]
 		}
 	],

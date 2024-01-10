@@ -2,24 +2,24 @@
 
 This module allows to read the [FDTD-JSON format](#the-fdtd-json-format) and parse it into the semba-fdtd data structures.
 
-# Compilation and testing
+## Compilation and testing
 
-## Compilation with GNU Fortran
+### Compilation with GNU Fortran
 
 Assuming `gfortran` and `cmake` are accessible from path, this module can be compiled from the project main directory run
 
     cmake -S . -B <BUILD_DIR> -DCompileWithJSON=YES
     cmake --build <BUILD_DIR> -j
 
-## Compilation with Intel Fortran Classic
+### Compilation with Intel Fortran Classic
 
 Tested to work.
 
-## Compilation with NVIDIA Fortran compiler
+### Compilation with NVIDIA Fortran compiler
 
 Tested to work with `-O0` optimizations. Higher optimizations produce SEGFAULTs.
 
-## Testing
+### Testing
 
 This project uses the ctest tool available within cmake. Once build, you can run
 
@@ -218,20 +218,48 @@ A `material` with `type` `simple` represents an isotropic material with constant
 Example:
 
 ```json
-"materials": [
-    {
-        "name": "teflon"
-        "id": 1, 
-        "type": "simple",
-        "relativePermittivity": 2.5,
-        "electricConducitivity": 1e-6
-    } 
-]
+{
+    "name": "teflon"
+    "id": 1, 
+    "type": "simple",
+    "relativePermittivity": 2.5,
+    "electricConducitivity": 1e-6
+} 
 ```
 
 ### Surface materials
 
-#### `composite` ?? TODO
+In surface materials, `elementIds` must reference `cellRegion` elements. All `intervals` modeling entities different to oriented surfaces are ignored.
+
+#### `multilayeredSurface`
+
+A `multilayeredSurface` must contain the entry `<layers>` which is an array indicating materials which are described in the same way as [simple materials](#simple) and a `<thickness>`.
+
+```json
+{
+    "name": "Composite",
+    "type": "multilayeredSurface",
+    "elementIds": [2],
+    "layers": [
+        {"thickness": 1e-3, "relativePermittivity": 1.3, "electricConductivity": 2e-4},
+        {"thickness": 5e-3, "relativePermittivity": 1.3}
+        {"thickness": 1e-3, "relativePermittivity": 1.3, "electricConductivity": 2e-4}
+    ]
+}
+```
+
+#### `frequencyDependentSurface`
+
+The entry `<file>` is the path to a file containing the poles and residues which are used to model the surface impedance of the material.
+
+```json
+{
+    "name": "carbon_fiber_model",
+    "type": "frequencyDependentSurface",
+    "elementIds": [3],
+    "file": "cfc.dat"
+}
+```
 
 ### Cable materials
 
@@ -410,62 +438,115 @@ Example:
 ```
 
 ## `[probes]`
-The `probes` array defines the outputs of the simulation. Each probe in the array must contain:
 
-+ A `<type>` of the ones described in the following list.
+The objects in the `probes` array define the outputs of the simulation. Each probe must contain:
+
++ A `<type>` of the ones described below.
 + `<elementIds>` indicating the place in which the probe is defined. The allowed `elements` depend on the particular probe `type`.
 + A `[domain]` as described in the [domain section](#domain)
 
-TODO 
-
 ### Probe types
 
-#### `electric` or `magnetic`
+#### `point`
+
+Records a vector field a single position referenced by `elementIds` which must contain a single `id` referencing an element of type `node`. The vector field to be recorded is selected using the following entries:
+
++ `[field]`, `electric` or `magnetic`. Defaults to `electric`.
++ `[directions]` which contains a list of the field components to be recorded. Defaults to `["x", "y", "z"]`.
 
 Example:
 
 ```json
 {
     "name": "electric_field_point_probe",
-    "type": "electric",
+    "type": "point",
+    "field": "electric",
     "elementIds": [1],
     "directions": ["x", "y", "z"],
-    "domain": { 
-        "type": "time" 
-    }
+    "domain": { "type": "time" }
+}
+```
+
+#### `wire`
+
+Records a scalar field at a single position referenced by `elementIds`. `elementIds` must contain a single `id` referencing an element of type `node`. Additionally, this `node` must point to a `coordinateId` belonging to a single `polyline`. The `[field]` can be `voltage` or `current`. Defaults to `voltage`. When `current` is selected, the orientation of the `polyline` on which the probe is located indicates the direction of the current.
+
+```json
+{
+    "name": "mid_point",
+    "type": "wire",
+    "field": "voltage",
+    "elementIds": [1]
 }
 ```
 
 #### `bulkCurrent`
-TODO.
 
-+ `[field]`, `electric` or `magnetic`. Defaults to `electric`.
+Performs a loop integral along on the contour of the surface reference in the `elementIds` entry. This must point to a single `cellRegion` containing a single `interval` describing an oriented surface.
+Due to Ampere's law, the loop integral of the magnetic field is equal to the total current passing through the surface. `[field]`, can be `electric` or `magnetic`. Defaults to `electric`, which gives the total current passing through the surface.
 
 ```json
 {
     "name": "bulk_current_at_entry",
     "type": "bulkCurrent",
-    "elementIds": [4],
-    "domain": { "type": "time" }
+    "elementIds": [4]
 }
 ```
 
-#### `current` and `voltage`
+#### `farField`
+
+Probes of type `farField` perform a near to far field transformation of the electric and magnetic vector fields and are typically located in the scattered field region which is defined by a total/scatterd field excitation, e.g. [a planewave](#planewave). They must be defined with a single `cellRegion` element which must contain a single `interval` defining a cuboid. The direction of  the radiated field $\hat{r}(\theta, \phi)$ is defined with the following entries:
+
++ `<theta>` and `<phi>`, which must contain `<initial>`, `<final>`, and `<step>`, expressed in degrees.
 
 ```json
 {
-    "name": "mid_point",
-    "type": "current",
-    "elementIds": [1],
-    "domain": { "type": "time" }
+    "name": "far_field_example",
+    "type": "farField",
+    "elementIds": [4],
+    "theta": {"initial": 0, "final": 180, "step": 10},
+    "phi": {"initial": 0, "final": 0, "step": 0}
+    "domain": {
+        "type": "frequency",
+        "initialFrequency": 1e6,
+        "finalFrequency": 1e9,
+        "numberOfFrequencies": 30,
+        "frequencySpacing": "logarithmic"
+    }
+}
+```
+
+#### `movie`
+
+Probes of type `movie` record a vector field in a volume region indicated by `elementIds`. `[field]` can be `electric`, `magnetic`, or `currentDensity`; defaults to `electric`.
+
+```json
+{
+    "name": "electric_field_movie",
+    "type": "movie",
+    "field": "electric",
+    "elementIds": [4]
 }
 ```
 
 ### `[domain]`
-The domain is defined by its `type`:
 
-+ `time`
-+ `frequency`
+If `domain` is not specified, it defaults to record from the beginning to the end of the simulation.
+The domain must specify a `<type>` from the following ones:
+
++ `time`, means recording only in time domain. A probe with a `domain` of this `type` can contain the following entries:
+
+  + `[initialTime]`, the probe will be active for times greater than or equal to the selected value. Defaults to 0.0.
+  + `[finalTime]`, the probe will be active for times smaller than the selected value. Defaults to the final time of the simulation.
+  + `[samplingPeriod]`. Defaults to the simulation time step which is the minimum sampling period.
+
++ `frequency`, means that the output will be converted into the frequency domain.
+  + `<initialFrequency>`, `<finalFrequency>` and `<numberOfFrequencies>`.
+  + `[frequencySpacing]` can be `linear` or `logarithmic`. Defaults to `linear`.
+
++ `timeFrequency` will record both time and frequency.
+
+Additionally, a `domain` can contain a `[magnitudeFile]` as specified in [sources](#sources). This file will be used as to compute a *transfer function* between the recorded output and the specified magnitude.
 
 ## `[sources]`
 
@@ -474,10 +555,12 @@ This entry is an array which stores all the electromagnetic sources of the simul
 + `<magnitudeFile>` contains a relative path to the plain text file which will be used as a magnitude for this source. This file must contain two columns, with the first stating the time and the second one the magnitude value; an example magnitude file can be found at [gauss.exc](testData/cases/gauss.exc).
 + `<type>` must be a label of the ones defined below. Some examples of source `type` are `planewave` or `nodalSource`.
 + `<elementIds>` is an array of integers which must exist within the `mesh` `elements` list. These indicate the geometrical place where this source is located. The `type` and number of the allowed elements depends on the source `type` and can be check in the descriptions of each source object, below.
- 
+
 ### `planewave`
-The `planewave` source object represents an electromagnetic plane wave front which propagates towards a $\hat{k}$ direction with an electric field pointing towards $\hat{E}$. The `elementIds` in planewaves must define a single `cellRegion` element formed by a single cuboid region; the cuboid's inside and outside define a total field and scattered field regions respectively.
-Besides the common entries in [sources](#sources), it must also contain the following ones:
+
+The `planewave` type represents an electromagnetic wave with a plane phase-front which propagates towards a $\hat{k}$ direction and with an electric field pointing towards $\hat{E}$.
+`elementIds` must point to a single `cellRegion` element formed by a single cuboid region which defines the total and scattered field regions, respectively.
+Besides the other common entries in [sources](#sources), it must also contain the following ones:
 
 + `<direction>`, is an object containing `<theta>` and `<phi>`, which are the angles of the propagation vector $\hat{k} (\theta, \phi)$.
 + `<polarization>`, is an object containing `<theta>` and `<phi>` which indicates the direction of the electric field vector $\hat{E}(\theta, \phi)$.
@@ -501,11 +584,13 @@ An example of a planewave propagating towards $\hat{z}$ and polarized in the $+\
 ```
 
 ### `nodalSource`
+
 This object represents a time-varying vector field applied along an oriented line with the same orientation of the line. Therefore, the `elementIds` within must contain only elements of type `cellRegion` with `intervals` describing a collection of oriented lines. Additionally, it may contain:
 
 + `[field]`: with a `electric`, `magnetic`, or `current` label which indicates the vector field which will be applied. If not present, it defaults to `electric`.
- 
+
 An example of a `sources` list containing a varying current `nodalSource` is
+
 ```json
 "sources": [
     {
