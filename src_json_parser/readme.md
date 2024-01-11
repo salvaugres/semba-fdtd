@@ -232,8 +232,9 @@ An interval allows specifying regions within the grid which can be a point, an o
 
 ## `[materials]`
 This entry is an array formed by all the physical models contained in the simulation. Each object within the array must contain:
-- `<id>`, an integer number that uniquely identifies the material.
-- `<type>`, with one of the allowed labels described below.
+
++ `<id>`, an integer number that uniquely identifies the material.
++ `<type>`, with one of the allowed labels described below.
 
 ### Bulk materials
 
