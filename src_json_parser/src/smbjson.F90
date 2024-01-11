@@ -759,7 +759,6 @@ contains
       end if
 
       ! Allocates thin wires.
-      TODO Change to single array concatenation style.
       block
          integer :: nTw = 0
          do i = 1, this%core%count(cables)
@@ -837,7 +836,7 @@ contains
                write(error_unit, *) "Thin wires must be defined by a single polyline element."
             end if
             polyline = this%mesh%getPolyline(elementIds(1))
-            linels = convertPolylineToLinels(this%mesh, polyline)
+            linels = this%mesh%convertPolylineToLinels(polyline)
            
             res%n_twc = size(linels)
             res%n_twc_max = size(linels)
@@ -889,7 +888,7 @@ contains
       logical function isThinWire(cable)
          type(json_value), pointer :: cable
          type(json_value_ptr) :: mat
-         integer, dimension(:), allocatable :: elementIds
+         integer, dimension(:), allocatable :: eIds
          logical :: found
          isThinWire = .false.
 
@@ -905,11 +904,15 @@ contains
          if (.not. found) return
          if (this%getStrAt(mat%p, J_TYPE) /= J_MAT_TYPE_WIRE_TERMINAL) return
 
-         call this%core%get(cable, J_ELEMENTIDS, elementIds, found=found)
+         eIds = this%getIntsAt(cable, J_ELEMENTIDS, found=found)
          if (.not. found) return
-         if (size(elementIds) /= 1) return
+         if (size(eIds) /= 1) return
          
-         TODO Check element ids is aligned with grid. 
+         block 
+            type(polyline_t) :: pl
+            pl = this%mesh%getPolyline(eIds(1))
+            if (.not. this%mesh%arePolylineSegmentsStraight(pl)) return
+         end block
 
          isThinWire = .true.
       end function
@@ -1048,7 +1051,7 @@ contains
       integer :: i, j
       integer :: numCellRegions
 
-      call this%core%get(this%root, J_MATERIAL_REGIONS, jmrs, found)
+      call this%core%get(this%root, J_MATERIAL_ASSOCIATIONS, jmrs, found)
       allocate(res(0))
       if (.not. found) then
          return

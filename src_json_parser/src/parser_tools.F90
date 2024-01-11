@@ -144,7 +144,7 @@ contains
       do i = 1, size(ids)
          node = mesh%getNode(ids(i), nodeFound)
          if (nodeFound) then
-            pixels = convertNodeToPixels(mesh, node)
+            pixels = mesh%convertNodeToPixels(node)
          else
             stop "Error converting pixels."
          end if

@@ -10,6 +10,13 @@ module labels_mod
    character (len=*), parameter :: J_DIR_Y = "y"
    character (len=*), parameter :: J_DIR_Z = "z"
 
+   character (len=*), parameter :: J_FIELD = "field"
+   character (len=*), parameter :: J_FIELD_ELECTRIC = "electric"
+   character (len=*), parameter :: J_FIELD_MAGNETIC = "magnetic"
+   character (len=*), parameter :: J_FIELD_VOLTAGE = "voltage"
+   character (len=*), parameter :: J_FIELD_CURRENT = "current"
+   character (len=*), parameter :: J_FIELD_CURRENT_DENSITY = "currentDensity"
+
    ! -- materials
    character (len=*), parameter :: J_MATERIALS = "materials"
 
@@ -17,61 +24,68 @@ module labels_mod
    character (len=*), parameter :: J_MAT_TYPE_PMC = "pmc"
    character (len=*), parameter :: J_MAT_TYPE_SIMPLE = "simple"
    character (len=*), parameter :: J_MAT_TYPE_WIRE = "wire"
-   character (len=*), parameter :: J_MAT_TYPE_WIRE_TERMINAL = "wireTerminal"
-
+   character (len=*), parameter :: J_MAT_TYPE_MULTIWIRE = "multiwire"
+   character (len=*), parameter :: J_MAT_TYPE_TERMINAL = "terminal"
+   character (len=*), parameter :: J_MAT_TYPE_CONNECTOR = "connector"
+   
    character (len=*), parameter :: J_MAT_WIRE_RADIUS = "radius"
    character (len=*), parameter :: J_MAT_WIRE_RESISTANCE = "resistancePerMeter"
    character (len=*), parameter :: J_MAT_WIRE_INDUCTANCE = "inductancePermeter"
    
-   character (len=*), parameter :: J_MAT_WIRETERM_TERMINATION = "termination"
-   character (len=*), parameter :: J_MAT_WIRETERM_TYPE_OPEN = "open"
-   character (len=*), parameter :: J_MAT_WIRETERM_TYPE_SHORT = "short"
-   character (len=*), parameter :: J_MAT_WIRETERM_TYPE_SERIES = "series"
-   character (len=*), parameter :: J_MAT_WIRETERM_RESISTANCE = "resistance"
-   character (len=*), parameter :: J_MAT_WIRETERM_INDUCTANCE = "inductance"
-   character (len=*), parameter :: J_MAT_WIRETERM_CAPACITANCE = "capacitance"
+   character (len=*), parameter :: J_MAT_TERM_TERMINATIONS = "terminations"
+   character (len=*), parameter :: J_MAT_TERM_TYPE_OPEN = "open"
+   character (len=*), parameter :: J_MAT_TERM_TYPE_SHORT = "short"
+   character (len=*), parameter :: J_MAT_TERM_TYPE_SERIES = "series"
+   character (len=*), parameter :: J_MAT_TERM_RESISTANCE = "resistance"
+   character (len=*), parameter :: J_MAT_TERM_INDUCTANCE = "inductance"
+   character (len=*), parameter :: J_MAT_TERM_CAPACITANCE = "capacitance"
 
-   ! -- materialRegions
-   character (len=*), parameter :: J_MATERIAL_REGIONS = "materialRegions"
-   character (len=*), parameter :: J_MATERIAL_ID = "materialId"
+   ! -- materialAssociations
+   character (len=*), parameter :: J_MATERIAL_ASSOCIATIONS = "materialAssociations"
+   
+   character (len=*), parameter :: J_MAT_ASS_TYPE_BULK = "bulk"
+   character (len=*), parameter :: J_MAT_ASS_TYPE_SURFACE = "surface"
+   character (len=*), parameter :: J_MAT_ASS_TYPE_CABLE = "cable"
 
-   ! -- cables -- thin wires, slanted wires
-   character (len=*), parameter :: J_CABLES = "cables"
-   character (len=*), parameter :: J_CAB_MAT_ID = "cableMaterialId"
-   character (len=*), parameter :: J_CAB_INI_CONN_ID = "initialConnectorId"
-   character (len=*), parameter :: J_CAB_END_CONN_ID = "endConnectorId"
+   character (len=*), parameter :: J_MAT_ASS_CAB_INI_TERM_ID = "initialTerminalId"
+   character (len=*), parameter :: J_MAT_ASS_CAB_END_TERM_ID = "endTerminalId"
+   character (len=*), parameter :: J_MAT_ASS_CAB_INI_CONN_ID = "initialConnectorId"
+   character (len=*), parameter :: J_MAT_ASS_CAB_END_CONN_ID = "endConnectorId"
+   character (len=*), parameter :: J_MAT_ASS_CAB_CONTAINED_WITHIN_ID = "containedWithinElementId"
 
    ! -- Mesh and geometry.
    character (len=*), parameter :: J_MESH = "mesh"
-
+   
+   character (len=*), parameter :: J_GRID = "grid"
    character (len=*), parameter :: J_COORDINATES = "coordinates"
-   character (len=*), parameter :: J_COORDINATE_POS = "relativePosition"
    character (len=*), parameter :: J_ELEMENTS = "elements"
+   
+   character (len=*), parameter :: J_GRID_NUMBER_OF_CELLS = "numberOfCells"
+   character (len=*), parameter :: J_GRID_STEPS = "steps"
+   
    character (len=*), parameter :: J_COORDINATE_IDS = "coordinateIds"
+   character (len=*), parameter :: J_COORDINATE_POS = "relativePosition"
+   
    character (len=*), parameter :: J_ELEM_TYPE_NODE = "node"
    character (len=*), parameter :: J_ELEM_TYPE_POLYLINE = "polyline"
    character (len=*), parameter :: J_ELEM_TYPE_CELL_REGION = "cellRegion"
-   character (len=*), parameter :: J_CELL_INTERVALS = "intervals"
+   character (len=*), parameter :: J_CELL_REGION_INTERVALS = "intervals"
 
    ! type(NFDEGeneral)
    character (len=*), parameter :: J_GENERAL = "general"
-   character (len=*), parameter :: J_TIME_STEP = "timeStep"
-   character (len=*), parameter :: J_NUMBER_OF_STEPS = "numberOfSteps"
+   character (len=*), parameter :: J_GEN_TIME_STEP = "timeStep"
+   character (len=*), parameter :: J_GEN_NUMBER_OF_STEPS = "numberOfSteps"
 
-   ! type(Desplazamiento)
-   character (len=*), parameter :: J_GRID = "grid"
-   character (len=*), parameter :: J_NUMBER_OF_CELLS = "numberOfCells"
-   character (len=*), parameter :: J_STEPS = "steps"
 
    ! type(Frontera)
    character (len=*), parameter :: J_BOUNDARY = "boundary"
-   character (len=*), parameter :: J_BOUNDARY_TYPE = "type"
    character (len=*), parameter :: J_BND_ALL = "all"
-   character (len=*), parameter :: J_BND_PEC = "pec"
-   character (len=*), parameter :: J_BND_PMC = "pmc"
-   character (len=*), parameter :: J_BND_PERIODIC = "periodic"
-   character (len=*), parameter :: J_BND_MUR = "mur"
-   character (len=*), parameter :: J_BND_PML = "pml"
+
+   character (len=*), parameter :: J_BND_TYPE_PEC = "pec"
+   character (len=*), parameter :: J_BND_TYPE_PMC = "pmc"
+   character (len=*), parameter :: J_BND_TYPE_PERIODIC = "periodic"
+   character (len=*), parameter :: J_BND_TYPE_MUR = "mur"
+   character (len=*), parameter :: J_BND_TYPE_PML = "pml"
    character (len=*), parameter :: J_BND_PML_LAYERS = "layers"
    character (len=*), parameter :: J_BND_PML_ORDER = "order"
    character (len=*), parameter :: J_BND_PML_REFLECTION = "reflection"
@@ -80,51 +94,53 @@ module labels_mod
    character (len=*), parameter :: J_SOURCES = "sources"
    character (len=*), parameter :: J_SRC_MAGNITUDE_FILE = "magnitudeFile"
    
+   character (len=*), parameter :: J_SRC_TYPE_PW = "planewave"
+   character (len=*), parameter :: J_SRC_TYPE_NS = "nodalSource"
+   character (len=*), parameter :: J_SRC_TYPE_GEN = "generator"
+
    ! type(Planewave)
-   character (len=*), parameter :: J_SRC_PW_TYPE = "planewave"
    character (len=*), parameter :: J_SRC_PW_ATTRIBUTE = "attribute"
    character (len=*), parameter :: J_SRC_PW_DIRECTION = "direction"
    character (len=*), parameter :: J_SRC_PW_POLARIZATION = "polarization"
    character (len=*), parameter :: J_SRC_PW_THETA = "theta"
    character (len=*), parameter :: J_SRC_PW_PHI = "phi"
-   
-   ! type(SourceOnLine)
-   character (len=*), parameter :: J_SRC_NS_TYPE = "nodalSource"
-   character (len=*), parameter :: J_SRC_NS_FIELD = "field"
-   character (len=*), parameter :: J_SRC_NS_FIELD_CURRENT = "current"
 
    ! --- probe types
    character (len=*), parameter :: J_PROBES = "probes"
-   character (len=*), parameter :: J_PR_OUTPUT_NAME = "name"
-   character (len=*), parameter :: J_PR_DIRECTIONS = "directions"
-   character (len=*), parameter :: J_PR_TYPE_FARFIELD = "farField"
-   character (len=*), parameter :: J_PR_TYPE_ELECTRIC = "electric"
-   character (len=*), parameter :: J_PR_TYPE_MAGNETIC = "magnetic"
-   character (len=*), parameter :: J_PR_TYPE_CURRENT = "current"
-   character (len=*), parameter :: J_PR_TYPE_VOLTAGE = "voltage"
+   
+   character (len=*), parameter :: J_PR_TYPE_POINT = "point"
+   character (len=*), parameter :: J_PR_TYPE_WIRE = "wire"
    character (len=*), parameter :: J_PR_TYPE_BULK_CURRENT = "bulkCurrent"
+   character (len=*), parameter :: J_PR_TYPE_FARFIELD = "farField"
+   character (len=*), parameter :: J_PR_TYPE_MOVIE = "movie"
+   
+   character (len=*), parameter :: J_PR_POINT_DIRECTIONS = "directions"
+
+   character (len=*), parameter :: J_PR_FAR_FIELD_THETA = "theta"
+   character (len=*), parameter :: J_PR_FAR_FIELD_PHI = "phi"
+   character (len=*), parameter :: J_PR_FAR_FIELD_DIR_INITIAL = "initial"
+   character (len=*), parameter :: J_PR_FAR_FIELD_DIR_FINAL = "final"
+   character (len=*), parameter :: J_PR_FAR_FIELD_DIR_STEP = "step"
 
    ! domain stuff
    character (len=*), parameter :: J_PR_DOMAIN = "domain"
-   character (len=*), parameter :: J_PR_DOMAIN_FILENAME = "filename"
    character (len=*), parameter :: J_PR_DOMAIN_TYPE = "type"
-   character (len=*), parameter :: J_PR_DOMAIN_TIME = "time"
-   character (len=*), parameter :: J_PR_DOMAIN_FREQ = "frequency"
-   character (len=*), parameter :: J_PR_DOMAIN_TRANSFER = "transfer"
-   character (len=*), parameter :: J_PR_DOMAIN_TIMEFREQ = "timeFrequency"
-   character (len=*), parameter :: J_PR_DOMAIN_TIMETRANSF = "timeTransfer"
-   character (len=*), parameter :: J_PR_DOMAIN_FREQTRANSF = "frequencyTransfer"
-   character (len=*), parameter :: J_PR_DOMAIN_TIMEFREQTRANSF = "all"
-   character (len=*), parameter :: J_PR_DOMAIN_TIME_START = "timeStart"
-   character (len=*), parameter :: J_PR_DOMAIN_TIME_STOP   = "timeEnd"
-   character (len=*), parameter :: J_PR_DOMAIN_TIME_STEP  = "timeStep"
-   character (len=*), parameter :: J_PR_DOMAIN_FREQ_START = "frequencyStart"
-   character (len=*), parameter :: J_PR_DOMAIN_FREQ_STOP   = "frequencyEnd"
-   character (len=*), parameter :: J_PR_DOMAIN_FREQ_STEP  = "frequencyStep"
-
-   ! type(Sonda)
    
-   ! type(MasSonda)
+   character (len=*), parameter :: J_PR_DOMAIN_TYPE_TIME = "time"
+   character (len=*), parameter :: J_PR_DOMAIN_TYPE_FREQ = "frequency"
+   character (len=*), parameter :: J_PR_DOMAIN_TYPE_TIMEFREQ = "timeFrequency"
 
+   character (len=*), parameter :: J_PR_DOMAIN_MAGNITUDE_FILE = "magnitudeFile"
+
+   character (len=*), parameter :: J_PR_DOMAIN_TIME_START = "initialTime"
+   character (len=*), parameter :: J_PR_DOMAIN_TIME_STOP   = "finalTime"
+   character (len=*), parameter :: J_PR_DOMAIN_TIME_STEP  = "samplingPeriod"
+   
+   character (len=*), parameter :: J_PR_DOMAIN_FREQ_START = "initialFrequency"
+   character (len=*), parameter :: J_PR_DOMAIN_FREQ_STOP   = "finalFrequency"
+   character (len=*), parameter :: J_PR_DOMAIN_FREQ_STEP  = "numberOfFrequencies"
+   character (len=*), parameter :: J_PR_DOMAIN_FREQ_SPACING  = "frequencySpacing"
+   character (len=*), parameter :: J_PR_DOMAIN_FREQ_SPACING_LINEAR  = "linear"
+   character (len=*), parameter :: J_PR_DOMAIN_FREQ_SPACING_LOGARITHMIC  = "logarithmic"
 
 end module
