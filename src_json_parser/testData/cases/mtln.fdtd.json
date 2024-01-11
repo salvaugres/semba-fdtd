@@ -346,7 +346,7 @@
 			{"id": 30, "type": "polyline", "coordinateIds": [44, 62]},
 			{"id": 31, "type": "polyline", "coordinateIds": [45, 63]},
 			{"id": 32, "type": "polyline", "coordinateIds": [46, 64]},
-			{"id": 33, "type": "cellRegion", "intervals": [[2, 9, 1], [4, 9, 1]]},
+			{"id": 33, "type": "cell", "intervals": [[2, 9, 1], [4, 9, 1]]},
 			{"id": 34, "type": "node", "coordinateIds": [11]},
 			{"id": 35, "type": "node", "coordinateIds": [15]},
 			{"id": 36, "type": "node", "coordinateIds": [15]},

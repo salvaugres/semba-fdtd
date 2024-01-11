@@ -51,7 +51,7 @@ The following entries are shared by several FDTD-JSON objects and have a common 
 
 + `type` followed by a string, indicates the type of JSON object that. Some examples of types are `planewave` for `sources` objects, and `polyline` for `elements`.
 + `id` is a unique integer identifier for objects that belong to a list and which can be referenced by other objects. For instance, an element in the `elements` list must contain a `id` which can be referenced by a source in `sources` through its list of `elementIds`.
-+ `[name]` is an optional entry which is used to make the FDTD-JSON input human-readable.
++ `[name]` is an optional entry which is used to make the FDTD-JSON input human-readable, helping to identify inputs and outputs.
 
 ### `<general>`
 
@@ -155,14 +155,14 @@ This is an array of objects which represent Cartesian coordinates within the gri
 
 #### `[elements]`
 
-The `elements` entry contains an array of JSON objects, each of which represents a geometrical entity. Within the context of this format specification, an *element* can be a relatively simple entity such as `node` or a `polyline`, but it can also be a much more complex geometrical entity such as a `cellRegion`.  An *element objects* must contain the entries
+The `elements` entry contains an array of JSON objects, each of which represents a geometrical entity. Within the context of this format specification, an *element* can be a relatively simple entity such as `node` or a `polyline`, but it can also be a much more complex geometrical entity such as a `cell`.  An *element objects* must contain the entries
 
 + `<id>` formed by an integer which uniquely identifies it within the `elements` array.
 + `<type>` which can be one of the following: 
 
   + `node`, representing a point in space. Elements with this type include a `<coordinateIds>` entry which is an array of a single integer representing the `id` of a coordinate and which must exist in the within the `mesh` `coordinates` list.
   + `polyline`, representing an oriented collection of segments. It must contain a list `<coordinateIds>` with at least two coordinates.
-  + `cellRegion`, containing a list of one or more `<intervals>` defined following the [interval convention](#the-interval-convention).
+  + `cell`, containing a list of one or more `<intervals>` defined following the [interval convention](#the-interval-convention).
 
 Below there is an example of a mesh object which includes several types of elements.
 
@@ -180,7 +180,7 @@ Below there is an example of a mesh object which includes several types of eleme
     "elements": [
         {"id": 1, "type": "node", "coordinateIds": [2]},
         {"id": 2, "type": "polyline", "coordinateIds": [1, 2, 3] },
-        {"id": 3, "type": "cellRegion", "intervals": [ [ [1, 1, 1], [19, 19, 21] ] ] }
+        {"id": 3, "type": "cell", "intervals": [ [ [1, 1, 1], [19, 19, 21] ] ] }
     ]
 }
 ```
@@ -206,12 +206,12 @@ An interval allows specifying regions within the grid which can be a point, an o
 
 + A *volume* is defined when each component of $\mathbf{a}$ is strictly smaller than the corresponding component in $\mathbf{b}$ for each direction, i.e. $a_x < b_x$, $a_y < b_y$, and $a_z < b_z$. The rest of the cases in which all numbers are different but not necessarily smaller are undefined.
 
-**Example:** The following figure represents a grid with the numbers of the cells marked in light gray. The third dimension is ignored for clarity. There are four `cellRegion` elements. 
+**Example:** The following figure represents a grid with the numbers of the cells marked in light gray. The third dimension is ignored for clarity. There are four `cell` elements. 
 
 + The first one represents a single rectangular surface with its normal oriented towards the $+\hat{z}$ direction (light green).
 + The second one is formed by an square surface oriented towards the $-\hat{z}$ direction (light red) and a line oriented towards $-\hat{x}$.
 + The third is formed by two oriented lines towards $+\hat{x}$ and $+\hat{y}$, respectively.
-+ Finally, the fourth `cellRegion` is formed by a single line, oriented towards $-\hat{y}$. Note that the integer in the ending segment is $-1$ as it falls out from the lower bound of the grid.
++ Finally, the fourth `cell` is formed by a single line, oriented towards $-\hat{y}$. Note that the integer in the ending segment is $-1$ as it falls out from the lower bound of the grid.
 
 ![Intervals example](doc/fig/grid-intervals.png)
 
@@ -222,12 +222,12 @@ An interval allows specifying regions within the grid which can be a point, an o
         "steps": { "x": [0.1], "y": [0.1], "z": [0.1] }
     }
     "elements": [
-        {"id": 1, "type": "cellRegion", "intervals": [ [[1,1,0], [2,3,0]] ]},
-        {"id": 2, "type": "cellRegion", "intervals": [ [[3,5,0], [2,4,0]],
+        {"id": 1, "type": "cell", "intervals": [ [[1,1,0], [2,3,0]] ]},
+        {"id": 2, "type": "cell", "intervals": [ [[3,5,0], [2,4,0]],
                                                        [[5,4,0], [3,4,0]] ]},
-        {"id": 3, "type": "cellRegion", "intervals": [ [[3,2,0], [5,2,0]],
+        {"id": 3, "type": "cell", "intervals": [ [[3,2,0], [5,2,0]],
                                                        [[5,2,0], [5,3,0]] ]},
-        {"id": 4, "type": "cellRegion", "intervals": [ [[7,3,0], [7,-1,0]] ]},
+        {"id": 4, "type": "cell", "intervals": [ [[7,3,0], [7,-1,0]] ]},
     ]
 }
 ```
@@ -273,7 +273,7 @@ A `material` with `type` `simple` represents an isotropic material with constant
 
 ### Surface materials
 
-In surface materials, `elementIds` must reference `cellRegion` elements. All `intervals` modeling entities different to oriented surfaces are ignored.
+In surface materials, `elementIds` must reference `cell` elements. All `intervals` modeling entities different to oriented surfaces are ignored.
 
 #### `multilayeredSurface`
 
@@ -440,7 +440,7 @@ This entry stores associations between `materials` and `elements` using their re
 
 ### `bulk`
 
-Bulk materials such as `pec`, `pmc` or `simple` can be assigned to one or many elements of type `cellRegion`. If the `cellRegion` contains `intervals` representing points, these will be ignored.
+Bulk materials such as `pec`, `pmc` or `simple` can be assigned to one or many elements of type `cell`. If the `cell` contains `intervals` representing points, these will be ignored.
 
 ```json
 "materialAssociations": [
@@ -451,7 +451,7 @@ Bulk materials such as `pec`, `pmc` or `simple` can be assigned to one or many e
 
 ### `surface`
 
-Surface materials can only be assigned to elements of type `cellRegion`. If the `cellRegion` contains `intervals` representing entities different to oriented surfaces these will be ignored.
+Surface materials can only be assigned to elements of type `cell`. If the `cell` contains `intervals` representing entities different to oriented surfaces these will be ignored.
 
 ```json
 "materialAssociations": [
@@ -526,7 +526,7 @@ Records a scalar field at a single position referenced by `elementIds`. `element
 
 #### `bulkCurrent`
 
-Performs a loop integral along on the contour of the surface reference in the `elementIds` entry. This must point to a single `cellRegion` containing a single `interval` describing an oriented surface.
+Performs a loop integral along on the contour of the surface reference in the `elementIds` entry. This must point to a single `cell` containing a single `interval` describing an oriented surface.
 Due to Ampere's law, the loop integral of the magnetic field is equal to the total current passing through the surface. `[field]`, can be `electric` or `magnetic`. Defaults to `electric`, which gives the total current passing through the surface.
 
 ```json
@@ -541,7 +541,7 @@ TODO EXAMPLE IMAGE
 
 #### `farField`
 
-Probes of type `farField` perform a near to far field transformation of the electric and magnetic vector fields and are typically located in the scattered field region which is defined by a total/scatterd field excitation, e.g. [a planewave](#planewave). They must be defined with a single `cellRegion` element which must contain a single `interval` defining a cuboid. The direction of  the radiated field $\hat{r}(\theta, \phi)$ is defined with the following entries:
+Probes of type `farField` perform a near to far field transformation of the electric and magnetic vector fields and are typically located in the scattered field region which is defined by a total/scatterd field excitation, e.g. [a planewave](#planewave). They must be defined with a single `cell` element which must contain a single `interval` defining a cuboid. The direction of  the radiated field $\hat{r}(\theta, \phi)$ is defined with the following entries:
 
 + `<theta>` and `<phi>`, which must contain `<initial>`, `<final>`, and `<step>`, expressed in degrees.
 
@@ -605,7 +605,7 @@ This entry is an array which stores all the electromagnetic sources of the simul
 ### `planewave`
 
 The `planewave` type represents an electromagnetic wave with a plane phase-front which propagates towards a $\hat{k}$ direction and with an electric field pointing towards $\hat{E}$.
-`elementIds` must point to a single `cellRegion` element formed by a single cuboid region which defines the total and scattered field regions, respectively.
+`elementIds` must point to a single `cell` element formed by a single cuboid region which defines the total and scattered field regions, respectively.
 Besides the other common entries in [sources](#sources), it must also contain the following ones:
 
 + `<direction>`, is an object containing `<theta>` and `<phi>`, which are the angles of the propagation vector $\hat{k} (\theta, \phi)$.
@@ -631,7 +631,7 @@ An example of a planewave propagating towards $\hat{z}$ and polarized in the $+\
 
 ### `nodalSource`
 
-This object represents a time-varying vector field applied along an oriented line with the same orientation of the line. Therefore, the `elementIds` within must contain only elements of type `cellRegion` with `intervals` describing a collection of oriented lines. Additionally, it may contain:
+This object represents a time-varying vector field applied along an oriented line with the same orientation of the line. Therefore, the `elementIds` within must contain only elements of type `cell` with `intervals` describing a collection of oriented lines. Additionally, it may contain:
 
 + `[field]`: with a `electric`, `magnetic`, or `current` label which indicates the vector field which will be applied. If not present, it defaults to `electric`.
 

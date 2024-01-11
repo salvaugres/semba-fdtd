@@ -19,7 +19,7 @@ module labels_mod
 
    ! -- materials
    character (len=*), parameter :: J_MATERIALS = "materials"
-
+   
    character (len=*), parameter :: J_MAT_TYPE_PEC = "pec"
    character (len=*), parameter :: J_MAT_TYPE_PMC = "pmc"
    character (len=*), parameter :: J_MAT_TYPE_SIMPLE = "simple"
@@ -42,7 +42,8 @@ module labels_mod
 
    ! -- materialAssociations
    character (len=*), parameter :: J_MATERIAL_ASSOCIATIONS = "materialAssociations"
-   
+   character (len=*), parameter :: J_MATERIAL_ID = "materialId"
+
    character (len=*), parameter :: J_MAT_ASS_TYPE_BULK = "bulk"
    character (len=*), parameter :: J_MAT_ASS_TYPE_SURFACE = "surface"
    character (len=*), parameter :: J_MAT_ASS_TYPE_CABLE = "cable"
@@ -68,8 +69,8 @@ module labels_mod
    
    character (len=*), parameter :: J_ELEM_TYPE_NODE = "node"
    character (len=*), parameter :: J_ELEM_TYPE_POLYLINE = "polyline"
-   character (len=*), parameter :: J_ELEM_TYPE_CELL_REGION = "cellRegion"
-   character (len=*), parameter :: J_CELL_REGION_INTERVALS = "intervals"
+   character (len=*), parameter :: J_ELEM_TYPE_CELL = "cell"
+   character (len=*), parameter :: J_CELL_INTERVALS = "intervals"
 
    ! type(NFDEGeneral)
    character (len=*), parameter :: J_GENERAL = "general"

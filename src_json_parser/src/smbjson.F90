@@ -55,13 +55,15 @@ module smbjson
       procedure :: existsAt
       procedure :: getCellRegionsWithMaterialType
       procedure :: getDomain
+      procedure :: jsonValueFilterByKeyValue
+      procedure :: jsonValueFilterByKeyValues
    end type
    interface parser_t
       module procedure parser_ctor
    end interface
 
    type, private :: termination_t
-      integer :: connectorType
+      integer :: terminationType
       real :: r, l, c
    end type
 
@@ -183,7 +185,7 @@ contains
                 case (J_ELEM_TYPE_POLYLINE)
                   call this%core%get(je, J_COORDINATE_IDS, coordIds)
                   call mesh%addElement(id, polyline_t(coordIds))
-                CASE (J_ELEM_TYPE_CELL_REGION)
+                CASE (J_ELEM_TYPE_CELL)
                   block
                      type(cell_region_t) :: cR
                      type(cell_interval_t), dimension(:), allocatable :: intervals
@@ -227,14 +229,14 @@ contains
    function readGeneral(this) result (res)
       class(parser_t) :: this
       type(NFDEGeneral) :: res
-      res%dt = this%getRealAt(this%root, J_GENERAL//'.'//J_TIME_STEP)
-      res%nmax = this%getRealAt(this%root, J_GENERAL//'.'//J_NUMBER_OF_STEPS)
+      res%dt = this%getRealAt(this%root, J_GENERAL//'.'//J_GEN_TIME_STEP)
+      res%nmax = this%getRealAt(this%root, J_GENERAL//'.'//J_GEN_NUMBER_OF_STEPS)
    end function
 
    function readMediaMatrix(this) result(res)
       class(parser_t) :: this
       type(MatrizMedios) :: res
-      character (len=*), parameter :: P = J_MESH//'.'//J_GRID//'.'//J_NUMBER_OF_CELLS
+      character (len=*), parameter :: P = J_MESH//'.'//J_GRID//'.'//J_GRID_NUMBER_OF_CELLS
       res%totalX = this%getIntAt(this%root, P//'(1)')
       res%totalY = this%getIntAt(this%root, P//'(2)')
       res%totalZ = this%getIntAt(this%root, P//'(3)')
@@ -246,13 +248,13 @@ contains
       real, dimension(:), allocatable :: vec
       character (len=*), parameter :: P = J_MESH//'.'//J_GRID
 
-      res%nX = this%getIntAt(this%root, P//'.'//J_NUMBER_OF_CELLS//'(1)')
-      res%nY = this%getIntAt(this%root, P//'.'//J_NUMBER_OF_CELLS//'(2)')
-      res%nZ = this%getIntAt(this%root, P//'.'//J_NUMBER_OF_CELLS//'(3)')
+      res%nX = this%getIntAt(this%root, P//'.'//J_GRID_NUMBER_OF_CELLS//'(1)')
+      res%nY = this%getIntAt(this%root, P//'.'//J_GRID_NUMBER_OF_CELLS//'(2)')
+      res%nZ = this%getIntAt(this%root, P//'.'//J_GRID_NUMBER_OF_CELLS//'(3)')
 
-      call assignDes(P//'.'//J_STEPS//'.x', res%desX, res%nX)
-      call assignDes(P//'.'//J_STEPS//'.y', res%desY, res%nY)
-      call assignDes(P//'.'//J_STEPS//'.z', res%desZ, res%nZ)
+      call assignDes(P//'.'//J_GRID_STEPS//'.x', res%desX, res%nX)
+      call assignDes(P//'.'//J_GRID_STEPS//'.y', res%desY, res%nY)
+      call assignDes(P//'.'//J_GRID_STEPS//'.z', res%desZ, res%nZ)
 
       res%mx1 = 0
       res%my1 = 0
@@ -293,7 +295,7 @@ contains
       character(kind=json_CK,len=:), allocatable :: boundaryTypeLabel
       logical(LK) :: allLabelFound = .false.
 
-      call this%core%get(this%root, J_BOUNDARY//'.'//J_BND_ALL//'.'//J_BOUNDARY_TYPE,  boundaryTypeLabel, allLabelFound)
+      call this%core%get(this%root, J_BOUNDARY//'.'//J_BND_ALL//'.'//J_TYPE,  boundaryTypeLabel, allLabelFound)
       if (allLabelFound) then
          res%tipoFrontera(:) = labelToBoundaryType(boundaryTypeLabel)
          if (all(res%tipoFrontera == F_PML)) then
@@ -316,15 +318,15 @@ contains
          character(len=:), allocatable :: str
          integer :: type
          select case (str)
-          case (J_BND_PEC)
+          case (J_BND_TYPE_PEC)
             type = F_PEC
-          case (J_BND_PMC)
+          case (J_BND_TYPE_PMC)
             type = F_PMC
-          case (J_BND_PERIODIC)
+          case (J_BND_TYPE_PERIODIC)
             type = F_PER
-          case (J_BND_MUR)
+          case (J_BND_TYPE_MUR)
             type = F_MUR
-          case (J_BND_PML)
+          case (J_BND_TYPE_PML)
             type = F_PML
          end select
       end function
@@ -398,13 +400,17 @@ contains
       type(json_value_ptr), allocatable :: pws(:)
       integer :: i
       logical :: found
-
-      call this%core%get(this%root, J_SOURCES, sources, found)
-      if (found) then
-         pws = jsonValueFilterByKeyValue(this%core, sources, J_TYPE, J_SRC_PW_TYPE)
-      else
-         allocate(pws(0))
+            
+      sources = this%getJSONValuePtrAt(this%root, J_SOURCES, found)
+      if (.not. found) then
+         allocate(res%collection(0))
+         res%nc = size(res%collection)
+         res%nc_max = size(res%collection)
+         return 
       end if
+
+      pws = this%jsonValueFilterByKeyValue(sources, J_TYPE, J_SRC_TYPE_PW)
+      
       allocate(res%collection(size(pws)))
       do i=1, size(pws)
          res%collection(i) = readPlanewave(pws(i)%p)
@@ -470,7 +476,7 @@ contains
          return
       end if
 
-      nodSrcs = jsonValueFilterByKeyValues(this%core, sources, J_TYPE, [J_SRC_NS_TYPE])
+      nodSrcs = this%jsonValueFilterByKeyValues(sources, J_TYPE, [J_SRC_TYPE_NS])
       if (size(nodSrcs) == 0) then
          allocate(res%NodalSource(0))
          return
@@ -491,8 +497,8 @@ contains
          type(Curr_Field_Src) :: res
          type(json_value), pointer :: jns, entry
 
-         select case (this%getStrAt(jns, J_SRC_NS_FIELD))
-          case (J_SRC_NS_FIELD_CURRENT)
+         select case (this%getStrAt(jns, J_FIELD))
+          case (J_FIELD_CURRENT)
             res%isField = .false.
             res%isElec = .false.
             res%isMagnet = .false.
@@ -518,14 +524,23 @@ contains
    function readProbes(this) result (res)
       class(parser_t) :: this
       type(Sondas) :: res
-      type(json_value), pointer :: probes
+      type(json_value), pointer :: allProbes
       type(json_value_ptr), dimension(:), allocatable :: ps
       integer :: i
       character (len=*), dimension(1), parameter :: validTypes = &
          (/J_PR_TYPE_FARFIELD/)
+      logical :: found
 
-      call this%core%get(this%root, J_PROBES, probes)
-      ps = jsonValueFilterByKeyValues(this%core, probes, J_TYPE, validTypes)
+      allProbes = this%getjsonValuePtrAt(this%root, J_PROBES, found)
+      if (.not. found) then
+         allocate(res%probes(0))
+         res%n_probes = size(res%probes)
+         res%n_probes_max = size(res%probes)
+         return
+      end if
+      
+      ps = this%jsonValueFilterByKeyValues(allProbes, J_TYPE, validTypes)
+
       allocate(res%probes(size(ps)))
       do i=1, size(ps)
          res%probes(i) = readProbe(ps(i)%p)
@@ -546,14 +561,23 @@ contains
    function readMoreProbes(this) result (res)
       class(parser_t) :: this
       type(MasSondas) :: res
-      type(json_value), pointer :: probes
-      type(json_value_ptr), allocatable :: ps(:)
+      type(json_value), pointer :: allProbes
+      type(json_value_ptr), dimension(:), allocatable :: ps
       integer :: i
-      character (len=*), dimension(4), parameter :: validTypes = &
-         [J_PR_TYPE_ELECTRIC, J_PR_TYPE_MAGNETIC, J_PR_TYPE_CURRENT, J_PR_TYPE_VOLTAGE]
+      character (len=*), dimension(2), parameter :: validTypes = &
+         [J_PR_TYPE_POINT, J_PR_TYPE_WIRE]
+      logical :: found
 
-      call this%core%get(this%root, J_PROBES, probes)
-      ps = jsonValueFilterByKeyValues(this%core, probes, J_TYPE, validTypes)
+      allProbes = this%getJSONValuePtrAt(this%root, J_PROBES, found)
+      if (.not. found) then
+         allocate(res%collection(0))
+         res%length = size(res%collection)
+         res%length_max = size(res%collection)
+         res%len_cor_max = 0
+         return
+      end if
+
+      ps = this%jsonValueFilterByKeyValues(allProbes, J_TYPE, validTypes)
       allocate(res%collection(size(ps)))
       do i=1, size(ps)
          res%collection(i) = readProbe(ps(i)%p)
@@ -574,7 +598,7 @@ contains
          integer, dimension(:), allocatable :: elemIds
          logical :: elementIdsFound
 
-         call this%core%get(p, J_PR_OUTPUT_NAME, outputName)
+         call this%core%get(p, J_NAME, outputName)
          res%outputrequest = trim(adjustl(outputName))
 
          call this%core%get(p, J_TYPE, typeLabel)
@@ -584,7 +608,8 @@ contains
          call this%core%get(p, J_ELEMENTIDS, elemIds, found=elementIdsFound)
          pixels = getPixelsFromElementIds(this%mesh, elemIds)
 
-         if (typeLabel == J_PR_TYPE_CURRENT .or. typeLabel == J_PR_TYPE_VOLTAGE) then
+         select case (typeLabel)
+         case (J_PR_TYPE_WIRE)
             allocate(res%cordinates(size(pixels)))
             do i = 1, size(pixels)
                res%cordinates(i)%tag = pixels(i)%tag
@@ -593,8 +618,8 @@ contains
                res%cordinates(i)%Zi = 0
                res%cordinates(i)%Or = strToProbeType(typeLabel)
             end do
-         else
-            call this%core%get(p, J_PR_DIRECTIONS, dirLabels)
+         case (J_PR_TYPE_POINT)
+            call this%core%get(p, J_PR_POINT_DIRECTIONS, dirLabels)
             allocate(res%cordinates(size(pixels) * size(dirLabels)))
             do i = 1, size(pixels)
                k = (i-1) * size(dirLabels)
@@ -606,7 +631,7 @@ contains
                   res%cordinates(k+j)%Or = strToProbeType(typeLabel, dirLabels(j))
                end do
             end do
-         end if
+         end select
 
          res%len_cor = size(res%cordinates)
       end function
@@ -631,7 +656,7 @@ contains
          character (len=:), allocatable :: typeLabel
          character (len=1), optional :: dirLabel
          select case (typeLabel)
-          case (J_PR_TYPE_ELECTRIC)
+          case (J_FIELD_ELECTRIC)
             if (.not. present(dirLabel)) then
                write(error_unit, *) "Dir label must be present"
             end if
@@ -643,7 +668,7 @@ contains
              case (J_DIR_Z)
                res = NP_COR_EZ
             end select
-          case (J_PR_TYPE_MAGNETIC)
+          case (J_FIELD_MAGNETIC)
             if (.not. present(dirLabel)) then
                write(error_unit, *) "Dir label must be present"
             end if
@@ -655,9 +680,9 @@ contains
              case (J_DIR_Z)
                res = NP_COR_HZ
             end select
-          case (J_PR_TYPE_CURRENT)
+          case (J_FIELD_CURRENT)
             res = NP_COR_WIRECURRENT
-          case (J_PR_TYPE_VOLTAGE)
+          case (J_FIELD_VOLTAGE)
             res = NP_COR_DDP
          end select
       end function
@@ -677,7 +702,7 @@ contains
          return
       end if
 
-      bps = jsonValueFilterByKeyValues(this%core, probes, J_TYPE, [J_PR_TYPE_BULK_CURRENT])
+      bps = this%jsonValueFilterByKeyValues(probes, J_TYPE, [J_PR_TYPE_BULK_CURRENT])
       if (size(bps) == 0) then
          allocate(res%bp(0))
          return
@@ -715,8 +740,8 @@ contains
             res%nml = cs(1)%Or
          end block
 
-         res%outputrequest = trim(adjustl( &
-            this%getStrAt(bp, J_PR_OUTPUT_NAME)))
+         res%outputrequest = trim(adjustl(this%getStrAt(bp, J_NAME)))
+
          res%skip = 1
          res%tag = ''
          res%t = BcELECT
@@ -746,24 +771,28 @@ contains
    function readThinWires(this) result (res)
       class(parser_t) :: this
       type(ThinWires) :: res
-      type(json_value), pointer :: cables, cable
+      type(json_value), pointer :: cable, matAss
+      type(json_value_ptr), dimension(:), allocatable :: cables
       integer :: i, j
-      logical :: cablesFound
+      logical :: found
 
-      call this%core%get(this%root, J_CABLES, cables, found=cablesFound)
-      if (.not. cablesFound) then
+      matAss = this%getjsonValuePtrAt(this%root, J_MATERIAL_ASSOCIATIONS, found)
+      if (.not. found) return
+      
+      cables = this%jsonValueFilterByKeyValue(matAss, J_TYPE, J_MAT_ASS_TYPE_CABLE)
+      
+      if (size(cables) == 0) then
          allocate(res%tw(0))
          res%n_tw = 0
          res%n_tw_max = 0
          return
       end if
 
-      ! Allocates thin wires.
+      ! Pre-allocates thin wires.
       block
          integer :: nTw = 0
-         do i = 1, this%core%count(cables)
-            call this%core%get_child(cables, i, cable)
-            if (isThinWire(cable)) nTw = nTw+1
+         do i = 1, size(cables)
+            if (isThinWire(cables(i)%p)) nTw = nTw+1
          end do
 
          allocate(res%tw(nTw))
@@ -772,10 +801,9 @@ contains
       end block
 
       j = 1
-      do i = 1, this%core%count(cables)
-         call this%core%get_child(cables, i, cable)
-         if (isThinWire(cable)) then
-            res%tw(j) = readThinWire(cable)
+      do i = 1, size(cables)
+         if (isThinWire(cables(i)%p)) then
+            res%tw(j) = readThinWire(cables(i)%p)
             j = j+1
          end if
       end do
@@ -788,40 +816,38 @@ contains
          character (len=:), allocatable :: entry
          type(json_value), pointer :: je, je2
          integer :: i
+
          block
-            type(json_value_ptr) :: mat
-            mat = this%matTable%getId(this%getIntAt(cable, J_CAB_MAT_ID))
-            select case (this%getStrAt(mat%p, J_TYPE))
-             case (J_MAT_TYPE_WIRE)
-               call this%core%get(mat%p,J_MAT_WIRE_RADIUS, res%rad, default = 0.0)
-               call this%core%get(mat%p,J_MAT_WIRE_RESISTANCE, res%res, default = 0.0)
-               call this%core%get(mat%p,J_MAT_WIRE_INDUCTANCE, res%ind, default = 0.0)
-               res%dispfile = trim(adjustl(" "))
-            end select
+            type(json_value_ptr) :: m
+            m = this%matTable%getId(this%getIntAt(cable, J_MATERIAL_ID))
+            call this%core%get(m%p, J_MAT_WIRE_RADIUS,     res%rad, default = 0.0)
+            call this%core%get(m%p, J_MAT_WIRE_RESISTANCE, res%res, default = 0.0)
+            call this%core%get(m%p, J_MAT_WIRE_INDUCTANCE, res%ind, default = 0.0)
+            res%dispfile = trim(adjustl(" "))
          end block
 
          block
             type(json_value_ptr) :: mat
-            type(termination_t) :: conn
+            type(termination_t) :: term
             character (len=:), allocatable :: label
-            mat = this%matTable%getId(this%getIntAt(cable, J_CAB_INI_CONN_ID))
-            conn = readWireTerminalMaterial(mat%p)
-            res%tl = conn%connectorType
-            res%R_LeftEnd = conn%r
-            res%L_LeftEnd = conn%l
-            res%C_LeftEnd = conn%c
+            mat = this%matTable%getId(this%getIntAt(cable, J_MAT_ASS_CAB_INI_TERM_ID))
+            term = readTermination(mat%p)
+            res%tl = term%terminationType
+            res%R_LeftEnd = term%r
+            res%L_LeftEnd = term%l
+            res%C_LeftEnd = term%c
             res%dispfile_LeftEnd = trim(adjustl(" "))
          end block
 
          block
-            type(json_value_ptr) :: mat
-            type(termination_t) :: conn
-            mat = this%matTable%getId(this%getIntAt(cable, J_CAB_END_CONN_ID))
-            conn = readWireTerminalMaterial(mat%p)
-            res%tr = conn%connectorType
-            res%R_RightEnd = conn%r
-            res%L_RightEnd = conn%l
-            res%C_RightEnd = conn%c
+            type(json_value_ptr) :: terminal
+            type(termination_t) :: term
+            terminal = this%matTable%getId(this%getIntAt(cable, J_MAT_ASS_CAB_END_TERM_ID))
+            term = readTermination(terminal%p)
+            res%tr = term%terminationType
+            res%R_RightEnd = term%r
+            res%L_RightEnd = term%l
+            res%C_RightEnd = term%c
             res%dispfile_RightEnd = trim(adjustl(" "))
          end block
 
@@ -856,31 +882,41 @@ contains
          end block
       end function
 
-      function readWireTerminalMaterial(mat) result(res)
+      function readTermination(terminal) result(res)
          type(termination_t) :: res
-         type(json_value), pointer :: mat
+         type(json_value), pointer :: terminal, tms, tm
          character (len=:), allocatable :: label
          logical :: found
-         label = this%getStrAt(&
-            mat, J_MAT_WIRETERM_TERMINATION//'.'//J_TYPE, found)
+         
+         tms = this%getjsonValuePtrAt(terminal, J_MAT_TERM_TERMINATIONS, found)
          if (.not. found) then
-            write(error_unit, *) "Error reading wire terminal. Termination type not found."
+            write(error_unit, *) "Error reading wire terminal. terminations not found."
          end if
-         res%connectorType = strToTermination(label)
-         call this%core%get(mat, J_MAT_WIRETERM_RESISTANCE, res%r, default=0.0)
-         call this%core%get(mat, J_MAT_WIRETERM_INDUCTANCE, res%l, default=0.0)
-         call this%core%get(mat, J_MAT_WIRETERM_CAPACITANCE, res%c, default=0.0)
+         if (this%core%count(tms) /= 1) then
+            write(error_unit, *) "Only terminals with a single termination are allowed for a wire."
+         end if
+
+         call this%core%get_child(tms, 1, tm)
+
+         res%terminationType = strToTerminationType(this%getStrAt(tm, J_TYPE, found))
+         if (.not. found) then
+            write(error_unit, *) "Error reading wire terminal. termination must specify a type."
+         end if
+
+         call this%core%get(tm, J_MAT_TERM_RESISTANCE, res%r, default=0.0)
+         call this%core%get(tm, J_MAT_TERM_INDUCTANCE, res%l, default=0.0)
+         call this%core%get(tm, J_MAT_TERM_CAPACITANCE, res%c, default=0.0)
       end function
 
-      function strToTermination(label) result(res)
+      function strToTerminationType(label) result(res)
          character (len=:), allocatable, intent(in) :: label
          integer :: res
          select case (label)
-          case (J_MAT_WIRETERM_TYPE_OPEN)
+          case (J_MAT_TERM_TYPE_OPEN)
             res = MATERIAL_CONS
-          case (J_MAT_WIRETERM_TYPE_SERIES)
+          case (J_MAT_TERM_TYPE_SERIES)
             res = SERIES_CONS
-          case (J_MAT_WIRETERM_TYPE_SHORT)
+          case (J_MAT_TERM_TYPE_SHORT)
             res = MATERIAL_CONS
          end select
       end function
@@ -892,17 +928,17 @@ contains
          logical :: found
          isThinWire = .false.
 
-         mat = this%matTable%getId(this%getIntAt(cable, J_CAB_MAT_ID, found=found))
+         mat = this%matTable%getId(this%getIntAt(cable, J_MATERIAL_ID, found=found))
          if (.not. found) return
          if (this%getStrAt(mat%p, J_TYPE) /= J_MAT_TYPE_WIRE) return
 
-         mat = this%matTable%getId(this%getIntAt(cable, J_CAB_INI_CONN_ID, found=found))
+         mat = this%matTable%getId(this%getIntAt(cable, J_MAT_ASS_CAB_INI_TERM_ID, found=found))
          if (.not. found) return
-         if (this%getStrAt(mat%p, J_TYPE) /= J_MAT_TYPE_WIRE_TERMINAL) return
+         if (this%getStrAt(mat%p, J_TYPE) /= J_MAT_TYPE_TERMINAL) return
 
-         mat = this%matTable%getId(this%getIntAt(cable, J_CAB_END_CONN_ID, found=found))
+         mat = this%matTable%getId(this%getIntAt(cable, J_MAT_ASS_CAB_INI_TERM_ID, found=found))
          if (.not. found) return
-         if (this%getStrAt(mat%p, J_TYPE) /= J_MAT_TYPE_WIRE_TERMINAL) return
+         if (this%getStrAt(mat%p, J_TYPE) /= J_MAT_TYPE_TERMINAL) return
 
          eIds = this%getIntsAt(cable, J_ELEMENTIDS, found=found)
          if (.not. found) return
@@ -932,7 +968,7 @@ contains
 
       type(json_value), pointer :: domain
       character (len=:),allocatable :: fn, domainType
-      logical :: found
+      logical :: found, transferFunctionFound
       real :: val
 
       call this%core%get(place, path, domain, found)
@@ -940,42 +976,57 @@ contains
 
       res%type1 = NP_T1_PLAIN
 
+      call this%core%get(domain, J_PR_DOMAIN_MAGNITUDE_FILE, fn, transferFunctionFound)
+      if (found) then
+         res%filename = trim(adjustl(fn))
+      else
+         res%filename = " "
+      endif
+
       call this%core%get(domain, J_TYPE, domainType)
-      res%type2 = strToDomainType(domainType)
+      res%type2 = getNPDomainType(domainType, transferFunctionFound)
 
       call this%core%get(domain, J_PR_DOMAIN_TIME_START, res%tstart, default=0.0)
       call this%core%get(domain, J_PR_DOMAIN_TIME_STOP,  res%tstop,  default=0.0)
       call this%core%get(domain, J_PR_DOMAIN_TIME_STEP,  res%tstep,  default=0.0)
       call this%core%get(domain, J_PR_DOMAIN_FREQ_START, res%fstart, default=0.0)
       call this%core%get(domain, J_PR_DOMAIN_FREQ_STOP,  res%fstop,  default=0.0)
-      call this%core%get(domain, J_PR_DOMAIN_FREQ_STEP,  res%fstep,  default=0.0)
-
-      call this%core%get(domain, J_PR_DOMAIN_FILENAME, fn, found)
-      if (found) then
-         res%filename = trim(adjustl(fn))
-      else
-         res%filename = " "
-      endif
+      call this%core%get(domain, J_PR_DOMAIN_FREQ_STEP,  res%fstep,  default=0.0)     
    contains
-      function strToDomainType(typeLabel) result(res)
+      function getNPDomainType(typeLabel, hasTransferFunction) result(res)
          integer (kind=4) :: res
-         character (len=:), allocatable :: typeLabel
-         select case (typeLabel)
-          case (J_PR_DOMAIN_TIME)
-            res = NP_T2_TIME
-          case (J_PR_DOMAIN_FREQ)
-            res = NP_T2_FREQ
-          case (J_PR_DOMAIN_TRANSFER)
-            res = NP_T2_TRANSFER
-          case (J_PR_DOMAIN_TIMEFREQ)
-            res = NP_T2_TIMEFREQ
-          case (J_PR_DOMAIN_TIMETRANSF)
-            res = NP_T2_TIMETRANSF
-          case (J_PR_DOMAIN_FREQTRANSF)
-            res = NP_T2_FREQTRANSF
-          case (J_PR_DOMAIN_TIMEFREQTRANSF)
-            res = NP_T2_TIMEFRECTRANSF
+         character (len=:), intent(in), allocatable :: typeLabel
+         logical, intent(in) :: hasTransferFunction
+         logical :: isTime, isFrequency
+         select case(typeLabel)
+         case (J_PR_DOMAIN_TYPE_TIME)
+            isTime = .true.
+            isFrequency = .false.
+         case (J_PR_DOMAIN_TYPE_FREQ)
+            isTime = .false.
+            isFrequency = .true.
+         case (J_PR_DOMAIN_TYPE_TIMEFREQ)
+            isTime = .true.
+            isFrequency = .true.
          end select
+
+         if (           isTime .and. .not. isFrequency .and. .not. hasTransferFunction) then
+            res = NP_T2_TIME
+         else if (.not. isTime .and.       isFrequency .and. .not. hasTransferFunction) then
+            res = NP_T2_FREQ
+         else if (.not. isTime .and. .not. isFrequency .and.       hasTransferFunction) then
+            res = NP_T2_TRANSFER
+         else if (      isTime .and.       isFrequency .and. .not. hasTransferFunction) then
+            res = NP_T2_TIMEFREQ
+         else if (      isTime .and. .not. isFrequency .and.       hasTransferFunction) then
+            res = NP_T2_TIMETRANSF
+         else if (.not. isTime .and.       isFrequency .and.       hasTransferFunction) then
+            res = NP_T2_FREQTRANSF
+         else if (      isTime .and.       isFrequency .and.       hasTransferFunction) then
+            res = NP_T2_TIMEFRECTRANSF
+         end if
+
+         write(error_unit, *) "Error parsing domain."
       end function
    end function
 
@@ -1074,5 +1125,58 @@ contains
          end if
       end do
    end function
-#endif
+
+   function jsonValueFilterByKeyValues(this, srcs, key, values) result (res)
+      class(parser_t) :: this
+      type(json_value_ptr), dimension(:), allocatable :: res
+      type(json_value), pointer :: srcs
+
+      character (kind=JSON_CK, len=*) :: key
+      character (kind=JSON_CK, len=*), dimension(:) :: values
+
+      type(json_value_ptr), dimension (:), allocatable :: foundEntries
+      integer :: i, lastEntry, nEntries
+
+      allocate(res(0))
+      do i = 1, size(values)
+         foundEntries = this%jsonValueFilterByKeyValue(srcs, key, values(i))
+         if (size(foundEntries) /= 0) then
+            res = [res, foundEntries]
+         end if
+      end do
+   end function
+
+   function jsonValueFilterByKeyValue(this, place, key, value) result (res)
+      class(parser_t) :: this
+      type(json_value_ptr), allocatable :: res(:)
+      character (kind=JSON_CK, len=*) :: key, value
+      type(json_value), pointer :: place, src
+      character (kind=JSON_CK, len=:), allocatable :: type
+      integer :: i, j, n
+      logical :: found
+
+      n = 0
+      do i = 1, this%core%count(place)
+         call this%core%get_child(place, i, src)
+         call this%core%get(src, key, type, found)
+         if(found .and. type == value) then
+            n = n + 1
+         end if
+      end do
+
+      allocate(res(n))
+      j = 1
+      do i = 1, this%core%count(place)
+         call this%core%get_child(place, i, src)
+         call this%core%get(src, key, type, found)
+         if(found .and. type == value) then
+            res(j)%p => src
+            j = j + 1
+         end if
+      end do
+   end function
+
+!! endif CompileWithJSON
+#endif  
+
 end module

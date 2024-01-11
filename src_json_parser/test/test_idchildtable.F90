@@ -45,7 +45,7 @@ integer function test_idchildtable() result(err)
       mat = tbl%getId(2)
       call core%get(mat%p, J_TYPE, matType, found)
       if (.not. found) err = err + 1
-      if (matType /= J_MAT_TYPE_WIRE_TERMINAL) err = err + 1
+      if (matType /= J_MAT_TYPE_TERMINAL) err = err + 1
    end block
 end function
 
