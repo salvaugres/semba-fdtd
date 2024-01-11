@@ -134,6 +134,7 @@ contains
       do i = DIR_X, DIR_Z
          if (diff(i) /= 0) res = res * diff(i)
       end do
+      if (all(diff == 0)) res = 0
    end function
 
    elemental function cell_interval_varyingDirections(this) result(res)

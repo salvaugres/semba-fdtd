@@ -947,7 +947,7 @@ contains
          block 
             type(polyline_t) :: pl
             pl = this%mesh%getPolyline(eIds(1))
-            if (.not. this%mesh%arePolylineSegmentsStraight(pl)) return
+            if (.not. this%mesh%arePolylineSegmentsStructured(pl)) return
          end block
 
          isThinWire = .true.
