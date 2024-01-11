@@ -60,7 +60,7 @@ This object must always be present and contains general information regarding th
 + `<timeStep>`: A real number indicating the time step used by the solver, in seconds. 
 + `<numberOfSteps>`: An integer for the number of steps which the solver will iterate.
 
-Example:
+**Example:**
 
 ```json
 "general": {
@@ -87,7 +87,7 @@ These objects must contain a `<type>` label which can be:
   + `<order>`: TODO REVIEW
   + `<reflection>`: TODO REVIEW
 
-Example:
+**Example:**
 
 ```json
 "boundary": {
@@ -128,13 +128,31 @@ The following example describes a regular grid with $20$, $20$, and $22$ cells i
 ```
 
 #### `[coordinates]`
-This is an array of objects which represent Cartesian coordinates within the grid. Each object of the array must contain the following entries:
- * `<id>`: an integer number that must be unique within this array.
- * `<relativePosition>`: Containing an array of 3 numbers which can be integers or reals. The whole part of the number indicates the cell and the fractional part indicates the fractional position within that cell.
 
-TODO EXAMPLE IMAGE
+This is an array of objects which represent Cartesian coordinates within the grid. Each object of the array must contain the following entries:
+
++ `<id>`: an integer number that must be unique within this array.
++ `<relativePosition>`: Containing an array of 3 numbers which can be integers or reals. The whole part of the number indicates the cell and the fractional part indicates the fractional position within that cell.
+
+**Example:** The following figure represents a grid with the numbers of the cells marked in light gray. The third dimension is ignored for clarity. The two coordinates (blue) represent positions in the grid. Note that coordinate 2 has a fractional position in the $x$ direction.
+
+![Coordinates in grid](doc/fig/grid-coordinates.png)
+
+```json
+"mesh": {
+    "grid": {
+        "numberOfCells": [8, 5, 1], 
+        "steps": { "x": [0.1], "y": [0.1], "z": [0.1] }
+    }
+    "coordinates": [
+        {"id": 1, "relativePosition": [2, 2, 0]},
+        {"id": 2, "relativePosition": [3.4, 1, 0]}
+    ]
+}
+```
 
 #### `[elements]`
+
 The `elements` entry contains an array of JSON objects, each of which represents a geometrical entity. Within the context of this format specification, an *element* can be a relatively simple entity such as `node` or a `polyline`, but it can also be a much more complex geometrical entity such as a `cellRegion`.  An *element objects* must contain the entries
 
 + `<id>` formed by an integer which uniquely identifies it within the `elements` array.
@@ -167,8 +185,7 @@ Below there is an example of a mesh object which includes several types of eleme
 
 ##### The `interval` convention
 
-A `interval` is defined by a pair of two triplets of integer numbers $\mathbf{a} = \{a_x, a_y, a_z\}$ and $\mathbf{b} = \{b_x, b_y, b_z\}$ which represent a region formed by the closed-open intervals $[a_x, b_x) \times [a_y, b_y) \times [a_z, b_z)$. 
-Each integer number indicates a Cartesian plane in the `grid` assuming that they are numbered from $0$ to $N$, with $N$ being the number of cells in that direction.
+A `interval` is defined by a pair of two triplets of integer numbers $\mathbf{a} = \{a_x, a_y, a_z\}$ and $\mathbf{b} = \{b_x, b_y, b_z\}$. Each of these triplets refers to a cell and the combination of the two represents a region formed by the closed-open intervals $[a_x, b_x) \times [a_y, b_y) \times [a_z, b_z)$.
 The size of the interval is defined as $|a_x - b_x| \times |a_y - b_y| \times |a_z - b_z|$ and therefore must be positive or zero.
 An interval allows specifying regions within the grid which can be a point, an oriented line, an oriented surface, or a volume:
 
@@ -187,7 +204,31 @@ An interval allows specifying regions within the grid which can be a point, an o
 
 + A *volume* is defined when each component of $\mathbf{a}$ is strictly smaller than the corresponding component in $\mathbf{b}$ for each direction, i.e. $a_x < b_x$, $a_y < b_y$, and $a_z < b_z$. The rest of the cases in which all numbers are different but not necessarily smaller are undefined.
 
-TODO EXAMPLES IMAGE
+**Example:** The following figure represents a grid with the numbers of the cells marked in light gray. The third dimension is ignored for clarity. There are four `cellRegion` elements. 
+
++ The first one represents a single rectangular surface with its normal oriented towards the $+\hat{z}$ direction (light green).
++ The second one is formed by an square surface oriented towards the $-\hat{z}$ direction (light red) and a line oriented towards $-\hat{x}$.
++ The third is formed by two oriented lines towards $+\hat{x}$ and $+\hat{y}$, respectively.
++ Finally, the fourth `cellRegion` is formed by a single line, oriented towards $-\hat{y}$. Note that the integer in the ending segment is $-1$ as it falls out from the lower bound of the grid.
+
+![Intervals example](doc/fig/grid-intervals.png)
+
+```json
+"mesh": {
+    "grid": {
+        "numberOfCells": [8, 5, 1], 
+        "steps": { "x": [0.1], "y": [0.1], "z": [0.1] }
+    }
+    "elements": [
+        {"id": 1, "type": "cellRegion", "intervals": [ [[1,1,0], [2,3,0]] ]},
+        {"id": 2, "type": "cellRegion", "intervals": [ [[3,5,0], [2,4,0]],
+                                                       [[5,4,0], [3,4,0]] ]},
+        {"id": 3, "type": "cellRegion", "intervals": [ [[3,2,0], [5,2,0]],
+                                                       [[5,2,0], [5,3,0]] ]},
+        {"id": 4, "type": "cellRegion", "intervals": [ [[7,3,0], [7,-1,0]] ]},
+    ]
+}
+```
 
 ## `[materials]`
 This entry is an array formed by all the physical models contained in the simulation. Each object within the array must contain:
@@ -200,7 +241,7 @@ This entry is an array formed by all the physical models contained in the simula
 
 These materials represent a perfectly electrically conducting (`pec`) and perfectly magnetically conducting (`pmc`).
 
-Example:
+**Example:**
 
 ```json
 "materials": [ {"id": 1, "type": "pec"} ]
@@ -215,7 +256,7 @@ A `material` with `type` `simple` represents an isotropic material with constant
 + `[electricConductivity]` is a real which defaults to $0.0$. Must be greater than $0.0$.
 + `[magneticConductivity]` is a real which defaults to $0.0$. Must be greater than $0.0$.
 
-Example:
+**Example:**
 
 ```json
 {
@@ -281,7 +322,7 @@ Materials of this type must contain:
 + `<resistancePerMeter>` as a real number.
 + `[inductancePerMeter]` as a real number. Defaults to `0.0`.
 
-Example:
+**Example:**
 
 ```json
 {
@@ -315,7 +356,7 @@ They must contain the following entries:
 + `[pole-residues]` TODO REVIEW
 + `[direction]` which can be `inwards`, `outwards` or `both`. Indicating the type of coupling considered.
 
-Example:
+**Example:**
 
 ```json
 {
@@ -352,7 +393,7 @@ Each entry in `terminations` is specified by a `type`
 + `series` represents the impedance a single resistor. It must include a `<resistance>` entry followed by a real. TODO REVIEW
 + `LCpRs` represents a parallel of an inductor and a capacitor in series with a resistor. It must contain: `<resistance>`, `<inductance>`, and `<capacitance>`.
 
-Example:
+**Example:**
 
 ```json
 {
@@ -370,7 +411,7 @@ The `connector` assigns properties to the initial or last segment of a `wire` or
 + `[resistances]`, an array of $N$ real numbers which will be converted to resistances per unit length and will replace the `resistancePerMeter` of that segment of the `multiwire`.
 + `[transferImpedancePerMeter]`, described in the same way as explained in the [multiwire](#multiwire) section. Only valid in a `connector` associated with `multiwire`.
 
-Example:
+**Example:**
 
 ```json
 {
@@ -423,7 +464,7 @@ This object establishes the relationship between the physical models described i
 + `[initialConnectorId]` and `[endConnectorId]` entries which must point to materials of type `connector` and are assigned to the last segments of the corresponding ends of the cable.
 + If its `materialId` points to a `multiwire`, it must contain an entry named `<containedWithinElementId>` which indicates the `polyline` in which this `multiwire` is embedded.
 
-Example:
+**Example:**
 
 ```json
 {
@@ -454,7 +495,7 @@ Records a vector field a single position referenced by `elementIds` which must c
 + `[field]`, `electric` or `magnetic`. Defaults to `electric`.
 + `[directions]` which contains a list of the field components to be recorded. Defaults to `["x", "y", "z"]`.
 
-Example:
+**Example:**
 
 ```json
 {
@@ -593,7 +634,7 @@ This object represents a time-varying vector field applied along an oriented lin
 
 An example of a `sources` list containing a varying current `nodalSource` is
 
-Example:
+**Example:**
 
 ```json
 {
@@ -609,7 +650,7 @@ Example:
 
 A `generator` source must be located on a single `node` whose `coordinateId` is used by a single `polyline`. The entry `[field]` can be `voltage` or `current`; defaults to `voltage`.
 
-Example:
+**Example:**
 
 ```json
 {
