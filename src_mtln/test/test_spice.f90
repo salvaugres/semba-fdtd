@@ -7,8 +7,12 @@ integer function test_spice() result(error_cnt)
     
     
     error_cnt = 0
-    netlist = '../testData/netlist.cir'
+    ! netlist = "../testData/netlist.cir"
+    ! netlist = "../netlist.cir"
+    netlist = '../../src_mtln/testData/netlist.cir'
     call circuit%init(netlist)
+    call circuit%command('.netlist')
     call circuit%run()
+    call circuit%print()
 
 end function
