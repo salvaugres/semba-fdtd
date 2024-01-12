@@ -12,13 +12,12 @@ message(STATUS ${CMAKE_Fortran_COMPILER_ID})
 
 option(CompileWithHDF "Use HDF" OFF)
 option(CompileWithMPI "Use MPI" OFF)
-option(CompileWithJSON "Compile JSON format parser" OFF)
+option(CompileWithJSON "Compile JSON format parser" ON)
 option(CompileExecutable "Compiles semba-fdtd executble" ON)
 
 add_library(semba-types 
 	"src_main_pub/nfde_types.F90"
 	"src_main_pub/fdetypes.F90"
-	"src_main_pub/errorreport.F90"
 )
 
 if (CompileWithJSON)
@@ -32,6 +31,7 @@ if (CompileExecutable)
 		message(FATAL_ERROR "Executable must be compiled with .fdtd.json parser or alternative.")
 	endif()
 	add_executable(semba-fdtd 
+		"src_main_pub/errorreport.F90"
 		"src_main_pub/anisotropic.F90"
 		"src_main_pub/borderscpml.F90"
 		"src_main_pub/bordersmur.F90"
@@ -88,7 +88,7 @@ else()
 endif()
 
 if (CompileWithMPI)
-	message(STATUS "MPI libraries neeeded")
+	message(STATUS "MPI libraries needed")
 	add_definitions(-DCompileWithMPI)
 	add_definitions(-DCompileWithGfortranMPIfix)
 	message(STATUS "MPI: At your own risk open MPI may not currently work or even compile with Gfortran.")
