@@ -48,3 +48,4 @@ Testing/
 .vscode/tasks.json
 */*.bak
 ./*.bak
+.vscode/ltex.dictionary.en-US.txt

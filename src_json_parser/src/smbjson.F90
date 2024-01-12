@@ -17,6 +17,7 @@ module smbjson
    implicit none
 
    character (len=*), parameter :: SMBJSON_NO_TAG = "X"
+   character (len=*), parameter :: SMBJSON_LOG_SUFFIX = "_log_"
 
    type, public :: parser_t
       private
@@ -51,7 +52,6 @@ module smbjson
       procedure :: getIntsAt
       procedure :: getRealAt
       procedure :: getStrAt
-      procedure :: getJSONValuePtrAt
       procedure :: existsAt
       procedure :: getCellRegionsWithMaterialType
       procedure :: getDomain
@@ -72,6 +72,7 @@ module smbjson
       real :: fstart, fstop, fstep
       character(len=:), allocatable :: filename
       integer :: type1, type2
+      logical :: isLogarithmicFrequencySpacing
    end type
 contains
    function parser_ctor(filename) result(res)
@@ -400,8 +401,9 @@ contains
       type(json_value_ptr), allocatable :: pws(:)
       integer :: i
       logical :: found
-            
-      sources = this%getJSONValuePtrAt(this%root, J_SOURCES, found)
+      
+      call this%core%get(this%root, J_SOURCES, sources, found)       
+
       if (.not. found) then
          allocate(res%collection(0))
          res%nc = size(res%collection)
@@ -531,7 +533,7 @@ contains
          (/J_PR_TYPE_FARFIELD/)
       logical :: found
 
-      allProbes = this%getjsonValuePtrAt(this%root, J_PROBES, found)
+      call this%core%get(this%root, J_PROBES, allProbes, found)
       if (.not. found) then
          allocate(res%probes(0))
          res%n_probes = size(res%probes)
@@ -568,7 +570,7 @@ contains
          [J_PR_TYPE_POINT, J_PR_TYPE_WIRE]
       logical :: found
 
-      allProbes = this%getJSONValuePtrAt(this%root, J_PROBES, found)
+      call this%core%get(this%root, J_PROBES, allProbes, found)
       if (.not. found) then
          allocate(res%collection(0))
          res%length = size(res%collection)
@@ -591,7 +593,7 @@ contains
          type(MasSonda) :: res
          type(json_value), pointer :: p
          integer :: i, j, k
-         character (len=:), allocatable :: typeLabel, outputName
+         character (len=:), allocatable :: typeLabel, fieldLabel, outputName
          character(kind=CK,len=1), dimension(:), allocatable :: dirLabels
          type(pixel_t), dimension(:), allocatable :: pixels
 
@@ -600,26 +602,26 @@ contains
 
          call this%core%get(p, J_NAME, outputName)
          res%outputrequest = trim(adjustl(outputName))
-
-         call this%core%get(p, J_TYPE, typeLabel)
-
          call setDomain(res, this%getDomain(p, J_PR_DOMAIN))
 
          call this%core%get(p, J_ELEMENTIDS, elemIds, found=elementIdsFound)
          pixels = getPixelsFromElementIds(this%mesh, elemIds)
 
+         call this%core%get(p, J_TYPE, typeLabel)
          select case (typeLabel)
          case (J_PR_TYPE_WIRE)
             allocate(res%cordinates(size(pixels)))
+            call this%core%get(p, J_FIELD, fieldLabel, default=J_FIELD_VOLTAGE)
             do i = 1, size(pixels)
                res%cordinates(i)%tag = pixels(i)%tag
                read(pixels(i)%tag,*) res%cordinates(i)%Xi
                res%cordinates(i)%Yi = 0
                res%cordinates(i)%Zi = 0
-               res%cordinates(i)%Or = strToProbeType(typeLabel)
+               res%cordinates(i)%Or = strToFieldType(fieldLabel)
             end do
          case (J_PR_TYPE_POINT)
             call this%core%get(p, J_PR_POINT_DIRECTIONS, dirLabels)
+            call this%core%get(p, J_FIELD, fieldLabel, default=J_FIELD_ELECTRIC)
             allocate(res%cordinates(size(pixels) * size(dirLabels)))
             do i = 1, size(pixels)
                k = (i-1) * size(dirLabels)
@@ -628,7 +630,7 @@ contains
                   res%cordinates(k+j)%Xi = int (pixels(i)%cell(1))
                   res%cordinates(k+j)%Yi = int (pixels(i)%cell(2))
                   res%cordinates(k+j)%Zi = int (pixels(i)%cell(3))
-                  res%cordinates(k+j)%Or = strToProbeType(typeLabel, dirLabels(j))
+                  res%cordinates(k+j)%Or = strToFieldType(fieldLabel, dirLabels(j))
                end do
             end do
          end select
@@ -649,9 +651,13 @@ contains
          res%filename = domain%filename
          res%type1 = domain%type1
          res%type2 = domain%type2
+
+         if (domain%isLogarithmicFrequencySpacing) then
+            res%outputrequest = res%outputrequest // SMBJSON_LOG_SUFFIX
+         end if
       end subroutine
 
-      function strToProbeType(typeLabel, dirLabel) result(res)
+      function strToFieldType(typeLabel, dirLabel) result(res)
          integer (kind=4) :: res
          character (len=:), allocatable :: typeLabel
          character (len=1), optional :: dirLabel
@@ -719,28 +725,24 @@ contains
          type(BloqueProbe) :: res
          type(json_value), pointer :: bp
          type(coords), dimension(:), allocatable :: cs
+         type(cell_region_t), dimension(:), allocatable :: cRs
 
-         call setDomain(res, this%getDomain(bp, J_PR_DOMAIN))
+         cRs = this%mesh%getCellRegions(this%getIntsAt(bp, J_ELEMENTIDS))
+         if (size(cRs) /= 1) write(error_unit, *) "Block probe must be defined by a single cell region."
 
-         block
-            type(cell_region_t), dimension(:), allocatable :: cRs
+         if (size(cRs(1)%intervals) /= 1) write(error_unit, *) "Block probe must be defined by a single cell interval."
+         cs = cellIntervalsToCoords(cRs(1)%intervals)
 
-            cRs = this%mesh%getCellRegions(this%getIntsAt(bp, J_ELEMENTIDS))
-            if (size(cRs) /= 1) write(error_unit, *) "Block probe must be defined by a single cell region."
-
-            if (size(cRs(1)%intervals) /= 1) write(error_unit, *) "Block probe must be defined by a single cell interval."
-            cs = cellIntervalsToCoords(cRs(1)%intervals)
-
-            res%i1  = cs(1)%xi
-            res%i2  = cs(1)%xe
-            res%j1  = cs(1)%yi
-            res%j2  = cs(1)%ye
-            res%k1  = cs(1)%zi
-            res%k2  = cs(1)%ze
-            res%nml = cs(1)%Or
-         end block
+         res%i1  = cs(1)%xi
+         res%i2  = cs(1)%xe
+         res%j1  = cs(1)%yi
+         res%j2  = cs(1)%ye
+         res%k1  = cs(1)%zi
+         res%k2  = cs(1)%ze
+         res%nml = cs(1)%Or
 
          res%outputrequest = trim(adjustl(this%getStrAt(bp, J_NAME)))
+         call setDomain(res, this%getDomain(bp, J_PR_DOMAIN))
 
          res%skip = 1
          res%tag = ''
@@ -760,6 +762,10 @@ contains
          res%fstop = domain%fstop
          res%FileNormalize = domain%filename
          res%type2 = domain%type2
+
+         if (domain%isLogarithmicFrequencySpacing) then
+            res%outputrequest = res%outputrequest // SMBJSON_LOG_SUFFIX
+         end if
       end subroutine
    end function
 
@@ -775,18 +781,18 @@ contains
       type(json_value_ptr), dimension(:), allocatable :: cables
       integer :: i, j
       logical :: found
-
-      matAss = this%getjsonValuePtrAt(this%root, J_MATERIAL_ASSOCIATIONS, found)
-      if (.not. found) return
+      
+      call this%core%get(this%root, J_MATERIAL_ASSOCIATIONS, matAss, found)
+      if (.not. found) then
+         if (size(cables) == 0) then
+            allocate(res%tw(0))
+            res%n_tw = 0
+            res%n_tw_max = 0
+            return
+         end if   
+      end if
       
       cables = this%jsonValueFilterByKeyValue(matAss, J_TYPE, J_MAT_ASS_TYPE_CABLE)
-      
-      if (size(cables) == 0) then
-         allocate(res%tw(0))
-         res%n_tw = 0
-         res%n_tw_max = 0
-         return
-      end if
 
       ! Pre-allocates thin wires.
       block
@@ -888,7 +894,8 @@ contains
          character (len=:), allocatable :: label
          logical :: found
          
-         tms = this%getjsonValuePtrAt(terminal, J_MAT_TERM_TERMINATIONS, found)
+         call this%core%get(terminal, J_MAT_TERM_TERMINATIONS, tms, found)
+
          if (.not. found) then
             write(error_unit, *) "Error reading wire terminal. terminations not found."
          end if
@@ -967,10 +974,10 @@ contains
       character(len=*), intent(in) :: path
 
       type(json_value), pointer :: domain
-      character (len=:),allocatable :: fn, domainType
+      character (len=:), allocatable :: fn, domainType, freqSpacing
       logical :: found, transferFunctionFound
       real :: val
-
+      
       call this%core%get(place, path, domain, found)
       if (.not. found) return
 
@@ -991,7 +998,17 @@ contains
       call this%core%get(domain, J_PR_DOMAIN_TIME_STEP,  res%tstep,  default=0.0)
       call this%core%get(domain, J_PR_DOMAIN_FREQ_START, res%fstart, default=0.0)
       call this%core%get(domain, J_PR_DOMAIN_FREQ_STOP,  res%fstop,  default=0.0)
-      call this%core%get(domain, J_PR_DOMAIN_FREQ_STEP,  res%fstep,  default=0.0)     
+      call this%core%get(domain, J_PR_DOMAIN_FREQ_STEP,  res%fstep,  default=0.0)
+
+      call this%core%get(domain, J_PR_DOMAIN_FREQ_SPACING, &
+         freqSpacing, default=J_PR_DOMAIN_FREQ_SPACING_LINEAR)
+      select case (freqSpacing)
+      case (J_PR_DOMAIN_FREQ_SPACING_LINEAR)
+         res%isLogarithmicFrequencySpacing = .false.
+      case (J_PR_DOMAIN_FREQ_SPACING_LOGARITHMIC)
+         res%isLogarithmicFrequencySpacing = .true.
+      end select
+
    contains
       function getNPDomainType(typeLabel, hasTransferFunction) result(res)
          integer (kind=4) :: res
@@ -1047,15 +1064,6 @@ contains
 
    function getIntsAt(this, place, path, found) result(res)
       integer, dimension(:), allocatable :: res
-      class(parser_t) :: this
-      type(json_value), pointer :: place
-      character(len=*) :: path
-      logical, intent(out), optional :: found
-      call this%core%get(place, path, res, found)
-   end function
-
-   function getjsonValuePtrAt(this, place, path, found) result(res)
-      type(json_value), pointer :: res
       class(parser_t) :: this
       type(json_value), pointer :: place
       character(len=*) :: path
