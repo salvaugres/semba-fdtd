@@ -35,6 +35,7 @@ module mtl_bundle_mod
         procedure :: addTransferImpedance => bundle_addTransferImpedance
         ! procedure :: setConnectorTransferImpedance
         procedure :: isProbeInLine        
+        procedure :: setExternalCurrent
 
     end type mtl_bundle_t
 
@@ -197,14 +198,14 @@ contains
         class(mtl_bundle_t) ::this
         integer :: i
 
-        do i = 2, this%number_of_divisions
-            this%v(:, i) = matmul(this%v_term(i,:,:), this%v(:,i)) - &
-                           matmul(this%i_diff(i,:,:), this%i(:,i) - this%i(:,i-1)  )
-                           ! + eT?
-        end do
+        ! do i = 2, this%number_of_divisions
+        !     this%v(:, i) = matmul(this%v_term(i,:,:), this%v(:,i)) - &
+        !                    matmul(this%i_diff(i,:,:), this%i(:,i) - this%i(:,i-1)  )
+        !                    ! + eT?
+        ! end do
 
 
-        ! this%v = reshape(source=[(matmul(this%v_term(i,:,:), this%v(:,i)), i = 2, this%number_of_divisions - 1)], &
+        !? this%v = reshape(source=[(matmul(this%v_term(i,:,:), this%v(:,i)), i = 2, this%number_of_divisions - 1)], &
         !                  shape = [this%number_of_divisions + 1,this%number_of_conductors, this%number_of_conductors], &
         !                  order = [2,3,1])
     end subroutine
@@ -213,17 +214,25 @@ contains
         class(mtl_bundle_t) ::this
         real, dimension(:,:), allocatable :: i_prev, i_now
         integer :: i
-        call this%transfer_impedance%updateQ3Phi()
-        i_prev = this%i
-        do i = 1, this%number_of_divisions 
-            this%i(:,i) = matmul(this%i_term(i,:,:), this%i(:,i)) - &
-                          matmul(this%v_diff(i,:,:), (this%v(:,i+1) - this%v(:,i))) - &
-                                !  matmul(0.5*this%du_length(i,:,:), this%el))
-                          matmul(this%v_diff(i,:,:), matmul(this%du_length(i,:,:), this%transfer_impedance%q3_phi(i,:)))
-        enddo
-        !TODO - revisar
-        i_now = this%i
-        call this%transfer_impedance%updatePhi(i_prev, i_now)
+        ! call this%transfer_impedance%updateQ3Phi()
+        ! i_prev = this%i
+        ! do i = 1, this%number_of_divisions 
+        !     this%i(:,i) = matmul(this%i_term(i,:,:), this%i(:,i)) - &
+        !                   matmul(this%v_diff(i,:,:), (this%v(:,i+1) - this%v(:,i))) - &
+        !                         !  matmul(0.5*this%du_length(i,:,:), this%el))
+        !                   matmul(this%v_diff(i,:,:), matmul(this%du_length(i,:,:), this%transfer_impedance%q3_phi(i,:)))
+        ! enddo
+        ! !TODO - revisar
+        ! i_now = this%i
+        ! call this%transfer_impedance%updatePhi(i_prev, i_now)
+    end subroutine
+
+    subroutine setExternalCurrent(this, current)
+        class(mtl_bundle_t) :: this
+        real, dimension(:), intent(in) :: current
+        !something like this. The current on the level 0 conductor as an initial condiition
+        this%i(1,:) = current
+
     end subroutine
 
 end module mtl_bundle_mod

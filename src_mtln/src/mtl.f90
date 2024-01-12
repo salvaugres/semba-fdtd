@@ -20,30 +20,63 @@ module mtl_mod
         
     contains
         procedure :: setTimeStep
-        procedure :: initLC
-        procedure :: initRG
+        procedure :: initLCHomogeneous
+        procedure :: initLCInhomogeneous
+        procedure :: initRGHomogeneous
+        procedure :: initRGInhomogeneous
         procedure :: initDirections
         procedure :: getMaxTimeStep
         ! procedure :: get_time_range
         procedure :: getPhaseVelocities
-        procedure :: checkPulDimensions
+        procedure :: checkPulDimensionsHomogeneous
+        procedure :: checkPulDimensionsInhomogeneous
         !TODO
         ! procedure :: setResistanceInRegion
         ! procedure :: setResistanceAtPoint
         ! procedure :: setConductanceInRegion
         ! procedure :: setConductanceAtPoint
         ! procedure :: addDispersiveConnector
-
+        
     end type mtl_t
     
     interface mtl_t
-        module procedure mtlCtor
+        module procedure mtlHomogeneous
+        module procedure mtlInHomogeneous
     end interface
-            
+
+    
 
 contains
 
-    function mtlCtor(lpul, cpul, rpul, gpul, node_positions, divisions, name) result(res)
+    
+    subroutine initLCHomogeneous(this, lpul, cpul)
+        class(mtl_t) :: this
+        real, intent(in), dimension(:,:) :: lpul, cpul
+        integer :: i
+        allocate(this%lpul(size(this%u, 1) - 1, size(lpul, 1), size(lpul, 1)))
+        allocate(this%cpul(size(this%u, 1), size(cpul,1), size(cpul, 1)))
+
+        do i = 1, size(this%lpul, 1) 
+            this%lpul(i,:,:) = lpul(:,:) 
+        enddo
+        do i = 1, size(this%cpul, 1)
+            this%cpul(i,:,:) = cpul(:,:)
+        enddo
+    end subroutine
+
+    subroutine initLCInhomogeneous(this, lpul, cpul)
+        class(mtl_t) :: this
+        real, intent(in), dimension(:, :, :) :: lpul, cpul
+        integer :: i
+        allocate(this%lpul(size(this%u, 1) - 1, size(lpul, 2), size(lpul, 2)))
+        allocate(this%cpul(size(this%u, 1), size(cpul,2), size(cpul, 2)))
+
+        this%lpul(:,:,:) = lpul(:,:,:) 
+        this%cpul(:,:,:) = cpul(:,:,:)
+    end subroutine
+
+
+    function mtlHomogeneous(lpul, cpul, rpul, gpul, node_positions, divisions, name) result(res)
         type(mtl_t) :: res
         real, intent(in), dimension(:,:) :: lpul, cpul, rpul, gpul
         real, intent(in), dimension(:,:) :: node_positions
@@ -52,19 +85,41 @@ contains
         ! real, allocatable, dimension(:,:) :: v, i
         res%name = name
         
-        call res%checkPULDimensions(lpul, cpul, rpul, gpul)
+        call res%checkPULDimensionsHomogeneous(lpul, cpul, rpul, gpul)
         res%number_of_conductors = size(lpul, 1)
 
         call res%initDirections(divisions, node_positions)
-        call res%initLC(lpul, cpul)
-        call res%initRG(rpul, gpul)
+        call res%initLCHomogeneous(lpul, cpul)
+        call res%initRGHomogeneous(rpul, gpul)
         
         res%dt = res%getMaxTimeStep()
         
         res%connectors = connector_t(res%number_of_conductors, 0, res%u, res%dt)
 
     end function
-      
+
+    function mtlInhomogeneous(lpul, cpul, rpul, gpul, node_positions, divisions, name) result(res)
+        type(mtl_t) :: res
+        real, intent(in), dimension(:,:,:) :: lpul, cpul, rpul, gpul
+        real, intent(in), dimension(:,:) :: node_positions
+        integer, intent(in), dimension(:) :: divisions
+        character(len=*), intent(in) :: name
+        ! real, allocatable, dimension(:,:) :: v, i
+        res%name = name
+        
+        call res%checkPULDimensionsInhomogeneous(lpul, cpul, rpul, gpul)
+        res%number_of_conductors = size(lpul, 2)
+
+        call res%initDirections(divisions, node_positions)
+        call res%initLCInhomogeneous(lpul, cpul)
+        call res%initRGInhomogeneous(rpul, gpul)
+        
+        res%dt = res%getMaxTimeStep()
+        
+        res%connectors = connector_t(res%number_of_conductors, 0, res%u, res%dt)
+
+    end function
+
     subroutine initDirections(this, divisions, node_positions)
         class(mtl_t) :: this
         integer, intent(in), dimension(:) :: divisions
@@ -95,7 +150,7 @@ contains
     
     end subroutine
 
-    subroutine checkPULDimensions(this, lpul, cpul, rpul, gpul)
+    subroutine checkPULDimensionsHomogeneous(this, lpul, cpul, rpul, gpul)
         class(mtl_t) :: this
         real, intent(in), dimension(:,:) :: lpul, cpul, rpul, gpul
 
@@ -109,6 +164,25 @@ contains
         if ((size(lpul, 1) /= size(cpul, 1)).or.&
             (size(lpul, 1) /= size(rpul, 1)).or.&
             (size(lpul, 1) /= size(gpul, 1))) then
+            error stop 'PUL matrices do not have the same dimensions'
+        endif   
+        
+    end subroutine
+
+    subroutine checkPULDimensionsInhomogeneous(this, lpul, cpul, rpul, gpul)
+        class(mtl_t) :: this
+        real, intent(in), dimension(:, :,:) :: lpul, cpul, rpul, gpul
+
+        if ((size(lpul, 2) /= size(lpul, dim = 3)).or.& 
+            (size(cpul, 2) /= size(cpul, dim = 3)).or.&
+            (size(rpul, 2) /= size(rpul, dim = 3)).or.&
+            (size(gpul, 2) /= size(gpul, dim = 3))) then
+            error stop 'PUL matrices are not square'
+        endif
+
+        if ((size(lpul, 2) /= size(cpul, 2)).or.&
+            (size(lpul, 2) /= size(rpul, 2)).or.&
+            (size(lpul, 2) /= size(gpul, 2))) then
             error stop 'PUL matrices do not have the same dimensions'
         endif   
         
@@ -137,22 +211,9 @@ contains
 
     end function
 
-    subroutine initLC(this, lpul, cpul)
-        class(mtl_t) :: this
-        real, intent(in), dimension(:,:) :: lpul, cpul
-        integer :: i
-        allocate(this%lpul(size(this%u, 1) - 1, size(lpul, 1), size(lpul, 1)))
-        allocate(this%cpul(size(this%u, 1), size(cpul, 1), size(cpul, 1)))
 
-        do i = 1, size(this%lpul, 1) 
-            this%lpul(i,:,:) = lpul(:,:) 
-        enddo
-        do i = 1, size(this%cpul, 1)
-            this%cpul(i,:,:) = cpul(:,:)
-        enddo
-    end subroutine
 
-    subroutine initRG(this, rpul, gpul)
+    subroutine initRGHomogeneous(this, rpul, gpul)
         class(mtl_t) :: this
         real, intent(in), dimension(:,:) :: rpul, gpul
         integer :: i
@@ -165,6 +226,17 @@ contains
         do i = 1, size(this%gpul, 1)
             this%gpul(i,:,:) = gpul(:,:)
         enddo
+    end subroutine
+
+    subroutine initRGInhomogeneous(this, rpul, gpul)
+        class(mtl_t) :: this
+        real, intent(in), dimension(:, :,:) :: rpul, gpul
+        integer :: i
+        allocate(this%rpul(size(this%u, 1) - 1, size(rpul, 2), size(rpul, 2)))
+        allocate(this%gpul(size(this%u, 1), size(gpul, 2), size(gpul, 2)))
+
+        this%rpul(:,:,:) = rpul(:,:,:) 
+        this%gpul(:,:,:) = gpul(:,:,:)
     end subroutine
 
 

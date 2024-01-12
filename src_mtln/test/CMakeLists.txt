@@ -52,7 +52,8 @@ endfunction ()
 
 # ctest is sensible to extension. ONLY WORKS with ".f90" AND NOT with ".F90"
 add_fortran_test_executable (mtlnsolver_tests
-    "test_init.f90"
+    "test_init_homogeneous.f90"
+    "test_init_inhomogeneous.f90"
     "test_eigvals.f90"
     "test_time_step.f90"
     "test_fhash.f90"
@@ -63,6 +64,7 @@ add_fortran_test_executable (mtlnsolver_tests
     "test_matmul_broadcast.f90"
     "test_sum_derived_types.f90"
     "test_q3Phi.f90"
+    "test_spice.f90"
 )
 
 get_target_property(mtlnsolver_INCLUDES mtlnsolver INCLUDE_DIRECTORIES)

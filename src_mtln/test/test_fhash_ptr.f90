@@ -16,9 +16,9 @@ integer function test_fhash_ptr() result(error_cnt)
     integer :: stat, n_cond
     error_cnt = 0
 
-    bundle1%name = 'bundle1'
+    bundle1%name = "bundle1"
     bundle1%number_of_conductors = 5
-    bundle2%name = 'bundle2'
+    bundle2%name = "bundle2"
     bundle2%number_of_conductors = 10
 
 

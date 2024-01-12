@@ -133,6 +133,28 @@ module testingTools_mod
         
     end subroutine 
 
+    subroutine comparePULMatricesIH(error_cnt, m_line, m_input)
+        integer, intent(inout) :: error_cnt
+        real, intent(in), dimension(:,:,:) :: m_line
+        real, intent(in), dimension(:,:,:) :: m_input
+        integer :: i
+
+        if (size(m_input, dim = 2) .ne. size(m_input, dim = 2)) then
+            error_cnt = error_cnt + 1
+            return
+        end if   
+
+        if (size(m_input, dim = 1) .ne. size(m_input, dim = 1)) then
+            error_cnt = error_cnt + 1
+            return
+        end if   
+
+        if (.not.ALL(m_line(:,:,:) == m_input(:,:,:))) then
+            error_cnt = error_cnt + 1
+        end if
+        
+    end subroutine 
+
     function checkNear_dp(target, number, rel_tol) result(is_near)
         double precision, intent(in) :: target, number
         real :: rel_tol

@@ -13,7 +13,7 @@ integer function test_fhash() result(error_cnt)
     integer :: stat, n_cond
     error_cnt = 0
 
-    bundle%name = 'bundle1'
+    bundle%name = "bundle1"
     bundle%number_of_conductors = 5
 
     call tbl%set(key(bundle%name), value = bundle)
