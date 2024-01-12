@@ -18,6 +18,7 @@ module smbjson
 
    character (len=*), parameter :: SMBJSON_NO_TAG = "X"
    character (len=*), parameter :: SMBJSON_LOG_SUFFIX = "_log_"
+   integer, private, parameter  ::  MAX_LINE = 256
 
    type, public :: parser_t
       private
@@ -27,6 +28,8 @@ module smbjson
       type(json_value), pointer :: root => null()
       type(mesh_t) :: mesh
       type(IdChildTable_t) :: matTable
+
+      integer, private :: notag_counter = 0
    contains
       procedure :: readProblemDescription
 
@@ -401,18 +404,18 @@ contains
       type(json_value_ptr), allocatable :: pws(:)
       integer :: i
       logical :: found
-      
-      call this%core%get(this%root, J_SOURCES, sources, found)       
+
+      call this%core%get(this%root, J_SOURCES, sources, found)
 
       if (.not. found) then
          allocate(res%collection(0))
          res%nc = size(res%collection)
          res%nc_max = size(res%collection)
-         return 
+         return
       end if
 
       pws = this%jsonValueFilterByKeyValue(sources, J_TYPE, J_SRC_TYPE_PW)
-      
+
       allocate(res%collection(size(pws)))
       do i=1, size(pws)
          res%collection(i) = readPlanewave(pws(i)%p)
@@ -540,7 +543,7 @@ contains
          res%n_probes_max = size(res%probes)
          return
       end if
-      
+
       ps = this%jsonValueFilterByKeyValues(allProbes, J_TYPE, validTypes)
 
       allocate(res%probes(size(ps)))
@@ -609,7 +612,7 @@ contains
 
          call this%core%get(p, J_TYPE, typeLabel)
          select case (typeLabel)
-         case (J_PR_TYPE_WIRE)
+          case (J_PR_TYPE_WIRE)
             allocate(res%cordinates(size(pixels)))
             call this%core%get(p, J_FIELD, fieldLabel, default=J_FIELD_VOLTAGE)
             do i = 1, size(pixels)
@@ -619,7 +622,7 @@ contains
                res%cordinates(i)%Zi = 0
                res%cordinates(i)%Or = strToFieldType(fieldLabel)
             end do
-         case (J_PR_TYPE_POINT)
+          case (J_PR_TYPE_POINT)
             call this%core%get(p, J_PR_POINT_DIRECTIONS, dirLabels)
             call this%core%get(p, J_FIELD, fieldLabel, default=J_FIELD_ELECTRIC)
             allocate(res%cordinates(size(pixels) * size(dirLabels)))
@@ -781,7 +784,7 @@ contains
       type(json_value_ptr), dimension(:), allocatable :: cables
       integer :: i, j
       logical :: found
-      
+
       call this%core%get(this%root, J_MATERIAL_ASSOCIATIONS, matAss, found)
       if (.not. found) then
          if (size(cables) == 0) then
@@ -789,9 +792,9 @@ contains
             res%n_tw = 0
             res%n_tw_max = 0
             return
-         end if   
+         end if
       end if
-      
+
       cables = this%jsonValueFilterByKeyValue(matAss, J_TYPE, J_MAT_ASS_TYPE_CABLE)
 
       ! Pre-allocates thin wires.
@@ -813,6 +816,9 @@ contains
             j = j+1
          end if
       end do
+
+      ! FDTD preprocessor need to have non-repeated tags on each wire.
+      call setFakeTagsInUntaggedWires(res)
 
    contains
       function readThinWire(cable) result(res)
@@ -860,16 +866,17 @@ contains
          block
             type(linel_t), dimension(:), allocatable :: linels
             integer :: i
-
             integer, dimension(:), allocatable :: elementIds
             type(polyline_t) :: polyline
+            character (len=MAX_LINE) :: noTagLabel
+
             call this%core%get(cable, J_ELEMENTIDS, elementIds)
             if (size(elementIds) /= 1) then
                write(error_unit, *) "Thin wires must be defined by a single polyline element."
             end if
             polyline = this%mesh%getPolyline(elementIds(1))
             linels = this%mesh%convertPolylineToLinels(polyline)
-           
+
             res%n_twc = size(linels)
             res%n_twc_max = size(linels)
             allocate(res%twc(size(linels)))
@@ -879,13 +886,13 @@ contains
                res%twc(i)%i = linels(i)%cell(1)
                res%twc(i)%j = linels(i)%cell(2)
                res%twc(i)%k = linels(i)%cell(3)
-               if (len_trim( adjustl( linels(i)%tag ) ) == 0) then
-                  res%twc(i)%tag = SMBJSON_NO_TAG
-               else 
+
+               if (len_trim( adjustl( linels(i)%tag ) ) /= 0) then
                   res%twc(i)%tag = linels(i)%tag
                end if
             end do
          end block
+
       end function
 
       function readTermination(terminal) result(res)
@@ -893,7 +900,7 @@ contains
          type(json_value), pointer :: terminal, tms, tm
          character (len=:), allocatable :: label
          logical :: found
-         
+
          call this%core%get(terminal, J_MAT_TERM_TERMINATIONS, tms, found)
 
          if (.not. found) then
@@ -950,8 +957,8 @@ contains
          eIds = this%getIntsAt(cable, J_ELEMENTIDS, found=found)
          if (.not. found) return
          if (size(eIds) /= 1) return
-         
-         block 
+
+         block
             type(polyline_t) :: pl
             pl = this%mesh%getPolyline(eIds(1))
             if (.not. this%mesh%arePolylineSegmentsStructured(pl)) return
@@ -959,6 +966,35 @@ contains
 
          isThinWire = .true.
       end function
+
+      subroutine setFakeTagsInUntaggedWires(tws)
+         type(ThinWires), intent(inout) :: tws
+         integer :: maxTagNumber, tagNumber
+         character (len=MAX_LINE) :: newTag
+         integer :: i, j, stat
+
+         maxTagNumber = 0
+         do i = 1, size(tws%tw)
+            do j = 1, size(tws%tw(i)%twc)
+               if (len_trim( adjustl( tws%tw(i)%twc(j)%tag ) ) /= 0) then
+                  read(tws%tw(i)%twc(j)%tag, *, iostat=stat) tagNumber
+                  if (stat == 0 .and. tagNumber > maxTagNumber) maxTagNumber = tagNumber
+               end if
+            end do
+         end do
+
+         do i = 1, size(tws%tw)
+            do j = 1, size(tws%tw(i)%twc)
+               read(tws%tw(i)%twc(j)%tag, *, iostat=stat) tagNumber
+               if (stat /= 0) then
+                  maxTagNumber = maxTagNumber + 1
+                  write(newTag, '(I10)') maxTagNumber
+                  tws%tw(i)%twc(j)%tag = adjustl(trim(newTag))
+               end if
+            end do
+         end do
+
+      end subroutine
    end function
 
    function readSlantedWires(this) result (res)
@@ -977,7 +1013,7 @@ contains
       character (len=:), allocatable :: fn, domainType, freqSpacing
       logical :: found, transferFunctionFound
       real :: val
-      
+
       call this%core%get(place, path, domain, found)
       if (.not. found) return
 
@@ -1003,9 +1039,9 @@ contains
       call this%core%get(domain, J_PR_DOMAIN_FREQ_SPACING, &
          freqSpacing, default=J_PR_DOMAIN_FREQ_SPACING_LINEAR)
       select case (freqSpacing)
-      case (J_PR_DOMAIN_FREQ_SPACING_LINEAR)
+       case (J_PR_DOMAIN_FREQ_SPACING_LINEAR)
          res%isLogarithmicFrequencySpacing = .false.
-      case (J_PR_DOMAIN_FREQ_SPACING_LOGARITHMIC)
+       case (J_PR_DOMAIN_FREQ_SPACING_LOGARITHMIC)
          res%isLogarithmicFrequencySpacing = .true.
       end select
 
@@ -1016,13 +1052,13 @@ contains
          logical, intent(in) :: hasTransferFunction
          logical :: isTime, isFrequency
          select case(typeLabel)
-         case (J_PR_DOMAIN_TYPE_TIME)
+          case (J_PR_DOMAIN_TYPE_TIME)
             isTime = .true.
             isFrequency = .false.
-         case (J_PR_DOMAIN_TYPE_FREQ)
+          case (J_PR_DOMAIN_TYPE_FREQ)
             isTime = .false.
             isFrequency = .true.
-         case (J_PR_DOMAIN_TYPE_TIMEFREQ)
+          case (J_PR_DOMAIN_TYPE_TIMEFREQ)
             isTime = .true.
             isFrequency = .true.
          end select
@@ -1185,6 +1221,6 @@ contains
    end function
 
 !! endif CompileWithJSON
-#endif  
+#endif
 
 end module
