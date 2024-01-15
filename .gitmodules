@@ -1,8 +1,17 @@
-[submodule "src_json_parser/json-fortran"]
-	path = src_json_parser/external/json-fortran
+[submodule "external/json-fortran"]
+	path = external/json-fortran
 	url = git@github.com:lmdiazangulo/json-fortran.git
 	ignore = dirty
-[submodule "src_json_parser/external/fhash"]
-	path = src_json_parser/external/fhash
+	
+[submodule "external/fhash"]
+	path = external/fhash
 	url = git@github.com:opensemba/fhash.git
 	ignore = dirty
+
+[submodule "external/lapack"]
+	path = external/lapack
+	url = git@github.com:Reference-LAPACK/lapack.git
+
+[submodule "external/ngspice"]
+	path = src_mtln/external/ngspice
+	url = git://git.code.sf.net/p/ngspice/ngspice
