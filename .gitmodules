@@ -2,7 +2,7 @@
 	path = external/json-fortran
 	url = git@github.com:lmdiazangulo/json-fortran.git
 	ignore = dirty
-	
+
 [submodule "external/fhash"]
 	path = external/fhash
 	url = git@github.com:opensemba/fhash.git
@@ -13,5 +13,5 @@
 	url = git@github.com:Reference-LAPACK/lapack.git
 
 [submodule "external/ngspice"]
-	path = src_mtln/external/ngspice
+	path = external/ngspice
 	url = git://git.code.sf.net/p/ngspice/ngspice
