@@ -25,6 +25,7 @@ add_library(mtlnsolver
 	"src/dispersive.f90"
 	"src/rational_approximation.f90"
 	"src/ngspice_interface.f90"
+	"src/circuit.f90"
 )
 
 set(LAPACK_DIR "/mnt/c/users/alberto/Work/ugr-fdtd/fdtd/src_mtln/external/lapack/build/lib/")

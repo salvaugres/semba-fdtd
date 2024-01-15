@@ -2,18 +2,6 @@ module ngspice_interface_mod
 
     use iso_c_binding
     implicit none
-
-    type, public :: circuit_t
-        character (len=:), allocatable :: name
-        real :: time, dt
-
-    contains
-        procedure :: init
-        procedure :: run
-        procedure :: print
-        procedure :: command
-    end type circuit_t
-
     ! type, bind(c) :: ngcomplex
     !     real(c_double) :: real
     !     real(c_double) :: imag
@@ -29,7 +17,7 @@ module ngspice_interface_mod
     end type
 
     type, bind(c) :: pVectorInfo
-        type(c_ptr):: pVectorInfo_ptr ! type vectorInfo
+        type(c_ptr) :: pVectorInfo_ptr ! type vectorInfo
         ! type(vectorInfo), pointer :: pVectorInfo_ptr
     end type
 
@@ -81,6 +69,11 @@ module ngspice_interface_mod
         ! type(pVecValues), pointer, dimension(:) :: vecsa
     end type
 
+    type, bind(C) :: pVecValuesAll
+        type(c_ptr) :: pVecValuesAll_ptr ! vecValuesAll
+        ! type(vecValuesAll), pointer :: pVecValuesAll_ptr
+    end type
+
 
     interface
 
@@ -104,101 +97,92 @@ module ngspice_interface_mod
             import :: c_bool
         end function
 
+        type(c_ptr) function ngSpice_CurPlot() bind(C, name="ngSpice_CurPlot")
+            import :: c_ptr
+        end function
+
+        type(pVectorInfo) function ngGet_Vec_Info(name) bind(C, name="ngGet_Vec_Info")
+            import :: pVectorInfo, c_char
+            character(kind=c_char), dimension(*), intent(in) :: name
+        end function
+
+        ! type() function ngSpice_AllVecs()
+
     end interface
 
 
 contains
-    subroutine init(this, netlist)
-        class(circuit_t) :: this
-        character(len=*), intent(in) :: netlist
-        type(c_funptr) ::cSendChar
-        type(c_funptr) ::cSendStat
-        type(c_funptr) ::cControlledExit
-        type(c_funptr) ::cSendData
-        type(c_funptr) ::cSendInitData
-        type(c_funptr) ::cBGThreadRunning
-        type(c_ptr) :: returnPtr
 
-        integer :: res
-        
-        ! cSendChar = c_null_funptr
-        cSendChar = c_funloc(SendChar)
-        cSendStat = c_funloc(SendStat)
-        cControlledExit = c_funloc(ControlledExit)
-        cSendData = c_funloc(SendData)
-        cSendInitData = c_funloc(SendInitData)
-        cBGThreadRunning = c_funloc(BGThreadRunning)
-
-        res = ngSpice_Init(cSendChar, cSendStat, cControlledExit, cSendData, cSendInitData, cBGThreadRunning, returnPtr)
-        res = ngSpice_Command('source ' // netlist)
-
-    end subroutine
-    
-    subroutine run(this)
-        class(circuit_t) :: this
-        integer :: out
-        out = ngSpice_Command("bg_run")
-        ! do while (ngSpice_running() .eqv. .true.)
-        !     write(*,*) 'running'
-
-        ! end do
-        write(*,*) 'run result ',out
-    end subroutine
-
-    subroutine print(this)
-        class(circuit_t) :: this
-        integer :: out
-        out = ngSpice_Command("print all")
-    end subroutine
-
-    subroutine command(this, line)
-        class(circuit_t) :: this
-        character(len=*), intent(in) :: line
-        integer :: out
-        out = ngSpice_Command(line)
-    end subroutine
-
-
-    function SendChar(char, id, returnPtr) bind(C, name="SendChar") result(res)
-        character(kind=c_char), dimension(*), intent(in) :: char
+    integer(c_int) function SendChar(output, id, returnPtr) bind(C, name="SendChar")
+        type(c_ptr), value, intent(in) :: output
         integer(c_int), intent(in), value :: id
         type(c_ptr), value, intent(in) :: returnPtr
-        integer(c_int) :: res
-        res = 0
-        write(*,*) 'SendChar'
-        ! write(*,*) 'output message:  Id: ', id    
+        character(len=:), pointer :: f_output
+        character(len=:), allocatable :: string
+
+        call c_f_pointer(output, f_output)
+        string = f_output(1:index(f_output, c_null_char)-1)
+        write(*,*) 'SendChar: ', trim(string)
+        if (index('stderror Error:', string) /= 0) then
+            ! errorFlag = .true.
+        end if
     end function
 
     integer(c_int) function SendStat(status, id, returnPtr) bind(C, name="SendStat")
-        character(kind=c_char), dimension(*), intent(in) :: status
+        type(c_ptr), value, intent(in) :: status
         integer(c_int), intent(in), value :: id
         type(c_ptr), value, intent(in) :: returnPtr
-        write(*,*) 'SendStat'
+        character(len=:), pointer :: f_output
+        character(len=:), allocatable :: string
+
+        call c_f_pointer(status, f_output)
+        string = f_output(1:index(f_output, c_null_char)-1)
+        write(*,*) 'SendStat: ', trim(string)
     end function
 
     integer(c_int) function ControlledExit(status, unloadDll, exitOnQuit, id, returnPtr) bind(C, name="ControlledExit")
         logical(c_bool), intent(in) :: unloadDll, exitOnQuit
         integer(c_int), intent(in), value :: status, id
         type(c_ptr), value, intent(in) :: returnPtr
-        write(*,*) 'ControlledExit'
+        integer :: res
+        if (exitOnQuit .eqv. .true.) then
+            write(*,*) 'ControlledExit: Returned form quit with exit status ', status
+            call exit(status)
+        else if (unloadDll .eqv. .true.) then 
+            write(*,*) "ControlledExit: Unloading ngspice inmmediately is not possible"
+            write(*,*) "ControlledExit: Can we recover?"
+        else
+            write(*,*) "ControlledExit: Unloading ngspice is not possible"
+            write(*,*) "ControlledExit: Can we recover? Send 'quit' command to ngspice"
+            res = ngSpice_Command("quit 5")
+        end if
+
     end function
 
-    integer(c_int) function SendData(structsPtr, numberOfStructs, id, returnPtr) bind(C, name="SendData")
+    integer(c_int) function SendData(data, numberOfStructs, id, returnPtr) bind(C, name="SendData")
         integer(c_int), value :: numberOfStructs, id
-        type(c_ptr), value, intent(in) :: structsPtr, returnPtr
+        ! type(pVecValuesAll), value, intent(in) :: data
+        type(vecValuesAll), pointer, intent(in) :: data
+        ! type(c_ptr), value, intent(in) :: data
+        type(c_ptr), value, intent(in) :: returnPtr
+        ! type(vecValuesAll), pointer :: values
+
+        ! need to do this?
+        ! call c_f_pointer(data, values) 
 
         write(*,*) 'SendData'
 
     end function
 
-    integer(c_int) function SendInitData(structsPtr, id, returnPtr) bind(C, name="SendInitData")
+    integer(c_int) function SendInitData(initData, id, returnPtr) bind(C, name="SendInitData")
         integer(c_int), value :: id
-        type(pVecInOfAll), dimension(:), pointer :: structsPtr
+        type(vecInOfAll), pointer, intent(in) :: initData
+        ! type(pVecInOfAll), value, intent(in) :: initData
+        ! type(c_ptr), value, intent(in) :: initData
         type(c_ptr), value, intent(in) :: returnPtr
-
-
-
+        ! type(vecInOfAll), pointer :: values
         ! structsPtr%vecCount
+        ! call c_f_pointer(initData, values) 
         write(*,*) 'SendInitData'
 
 
@@ -208,7 +192,7 @@ contains
         logical(c_bool) :: isBGThreadNotRunning
         integer(c_int), value :: id
         type(c_ptr), value, intent(in) :: returnPtr
-        write(*,*) 'isBGThreadNotRunning: ', isBGThreadNotRunning, '. id: ', id
+        ! write(*,*) 'isBGThreadNotRunning: ', isBGThreadNotRunning, '. id: ', id
     end function
 
 
