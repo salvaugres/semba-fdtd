@@ -616,8 +616,8 @@ contains
             allocate(res%cordinates(size(pixels)))
             call this%core%get(p, J_FIELD, fieldLabel, default=J_FIELD_VOLTAGE)
             do i = 1, size(pixels)
-               res%cordinates(i)%tag = pixels(i)%tag
-               read(pixels(i)%tag,*) res%cordinates(i)%Xi
+               res%cordinates(i)%tag = outputName
+               res%cordinates(i)%Xi = pixels(i)%tag
                res%cordinates(i)%Yi = 0
                res%cordinates(i)%Zi = 0
                res%cordinates(i)%Or = strToFieldType(fieldLabel)
@@ -629,7 +629,7 @@ contains
             do i = 1, size(pixels)
                k = (i-1) * size(dirLabels)
                do j = 1, size(dirLabels)
-                  res%cordinates(k+j)%tag = pixels(i)%tag
+                  res%cordinates(k+j)%tag = outputName
                   res%cordinates(k+j)%Xi = int (pixels(i)%cell(1))
                   res%cordinates(k+j)%Yi = int (pixels(i)%cell(2))
                   res%cordinates(k+j)%Zi = int (pixels(i)%cell(3))
@@ -748,7 +748,7 @@ contains
          call setDomain(res, this%getDomain(bp, J_PR_DOMAIN))
 
          res%skip = 1
-         res%tag = ''
+         res%tag = trim(adjustl(this%getStrAt(bp, J_NAME)))
          res%t = BcELECT
 
       end function
@@ -817,9 +817,6 @@ contains
          end if
       end do
 
-      ! FDTD preprocessor need to have non-repeated tags on each wire.
-      call setFakeTagsInUntaggedWires(res)
-
    contains
       function readThinWire(cable) result(res)
          type(ThinWire) :: res
@@ -866,9 +863,10 @@ contains
          block
             type(linel_t), dimension(:), allocatable :: linels
             integer :: i
+            integer :: coordId
             integer, dimension(:), allocatable :: elementIds
             type(polyline_t) :: polyline
-            character (len=MAX_LINE) :: noTagLabel
+            character (len=MAX_LINE) :: tagLabel
 
             call this%core%get(cable, J_ELEMENTIDS, elementIds)
             if (size(elementIds) /= 1) then
@@ -876,6 +874,8 @@ contains
             end if
             polyline = this%mesh%getPolyline(elementIds(1))
             linels = this%mesh%convertPolylineToLinels(polyline)
+
+            write(tagLabel, '(i10)') elementIds(1)
 
             res%n_twc = size(linels)
             res%n_twc_max = size(linels)
@@ -886,10 +886,8 @@ contains
                res%twc(i)%i = linels(i)%cell(1)
                res%twc(i)%j = linels(i)%cell(2)
                res%twc(i)%k = linels(i)%cell(3)
-
-               if (len_trim( adjustl( linels(i)%tag ) ) /= 0) then
-                  res%twc(i)%tag = linels(i)%tag
-               end if
+               res%twc(i)%nd = linels(i)%tag
+               res%twc(i)%tag = trim(adjustl(tagLabel))
             end do
          end block
 
@@ -966,35 +964,6 @@ contains
 
          isThinWire = .true.
       end function
-
-      subroutine setFakeTagsInUntaggedWires(tws)
-         type(ThinWires), intent(inout) :: tws
-         integer :: maxTagNumber, tagNumber
-         character (len=MAX_LINE) :: newTag
-         integer :: i, j, stat
-
-         maxTagNumber = 0
-         do i = 1, size(tws%tw)
-            do j = 1, size(tws%tw(i)%twc)
-               if (len_trim( adjustl( tws%tw(i)%twc(j)%tag ) ) /= 0) then
-                  read(tws%tw(i)%twc(j)%tag, *, iostat=stat) tagNumber
-                  if (stat == 0 .and. tagNumber > maxTagNumber) maxTagNumber = tagNumber
-               end if
-            end do
-         end do
-
-         do i = 1, size(tws%tw)
-            do j = 1, size(tws%tw(i)%twc)
-               read(tws%tw(i)%twc(j)%tag, *, iostat=stat) tagNumber
-               if (stat /= 0) then
-                  maxTagNumber = maxTagNumber + 1
-                  write(newTag, '(I10)') maxTagNumber
-                  tws%tw(i)%twc(j)%tag = adjustl(trim(newTag))
-               end if
-            end do
-         end do
-
-      end subroutine
    end function
 
    function readSlantedWires(this) result (res)

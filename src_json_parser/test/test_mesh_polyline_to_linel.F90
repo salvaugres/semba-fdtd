@@ -30,10 +30,10 @@ integer function test_mesh_polyline_to_linel() result(err)
       if (.not. allocated(ls)) err = err + 1
       if (size(ls) /= 4) err = err + 1
 
-      if (.not. linel_t(cell=[1, 1, 1], orientation=DIR_X, tag="1") == ls(1)) err = err + 1
+      if (.not. linel_t(cell=[1, 1, 1], orientation=DIR_X, tag=1) == ls(1)) err = err + 1
       if (.not. linel_t(cell=[2, 1, 1], orientation=DIR_X         ) == ls(2)) err = err + 1
       if (.not. linel_t(cell=[3, 1, 1], orientation=DIR_X         ) == ls(3)) err = err + 1
-      if (.not. linel_t(cell=[4, 1, 1], orientation=DIR_Y, tag="3") == ls(4)) err = err + 1
+      if (.not. linel_t(cell=[4, 1, 1], orientation=DIR_Y, tag=3) == ls(4)) err = err + 1
 
       if (mesh%arePolylineSegmentsStructured(pl) .neqv. .true.) err = err + 1
    end block
@@ -53,10 +53,10 @@ integer function test_mesh_polyline_to_linel() result(err)
       if (.not. allocated(ls)) err = err + 1
       if (size(ls) /= 4) err = err + 1
 
-      if (.not. linel_t(cell=[4, 1, 1], orientation=-DIR_Y, tag="3") == ls(1)) err = err + 1
-      if (.not. linel_t(cell=[3, 1, 1], orientation=-DIR_X, tag="2") == ls(2)) err = err + 1
+      if (.not. linel_t(cell=[4, 1, 1], orientation=-DIR_Y, tag=3) == ls(1)) err = err + 1
+      if (.not. linel_t(cell=[3, 1, 1], orientation=-DIR_X, tag=2) == ls(2)) err = err + 1
       if (.not. linel_t(cell=[2, 1, 1], orientation=-DIR_X         ) == ls(3)) err = err + 1
-      if (.not. linel_t(cell=[1, 1, 1], orientation=-DIR_X, tag="1") == ls(4)) err = err + 1
+      if (.not. linel_t(cell=[1, 1, 1], orientation=-DIR_X, tag=1) == ls(4)) err = err + 1
 
       if (mesh%arePolylineSegmentsStructured(pl) .neqv. .true.) err = err + 1
    end block
@@ -85,9 +85,9 @@ integer function test_mesh_polyline_to_linel() result(err)
 
       if (.not. allocated(ls)) err = err + 1
       if (size(ls) /= 3) err = err + 1
-      if (.not. linel_t(cell=[1, 1, 1], orientation=DIR_X, tag="1") == ls(1)) err = err + 1
+      if (.not. linel_t(cell=[1, 1, 1], orientation=DIR_X, tag=1) == ls(1)) err = err + 1
       if (.not. linel_t(cell=[2, 1, 1], orientation=DIR_X         ) == ls(2)) err = err + 1
-      if (.not. linel_t(cell=[3, 1, 1], orientation=DIR_X, tag="4") == ls(3)) err = err + 1
+      if (.not. linel_t(cell=[3, 1, 1], orientation=DIR_X, tag=4) == ls(3)) err = err + 1
 
       if (mesh%arePolylineSegmentsStructured(pl) .neqv. .true.) err = err + 1
    end block
@@ -102,9 +102,9 @@ integer function test_mesh_polyline_to_linel() result(err)
 
       if (.not. allocated(ls)) err = err + 1
       if (size(ls) /= 3) err = err + 1
-      if (.not. linel_t(cell=[3, 1, 1], orientation=-DIR_X, tag="4") == ls(1)) err = err + 1
+      if (.not. linel_t(cell=[3, 1, 1], orientation=-DIR_X, tag=4) == ls(1)) err = err + 1
       if (.not. linel_t(cell=[2, 1, 1], orientation=-DIR_X         ) == ls(2)) err = err + 1
-      if (.not. linel_t(cell=[1, 1, 1], orientation=-DIR_X, tag="1") == ls(3)) err = err + 1
+      if (.not. linel_t(cell=[1, 1, 1], orientation=-DIR_X, tag=1) == ls(3)) err = err + 1
 
       if (mesh%arePolylineSegmentsStructured(pl) .neqv. .true.) err = err + 1
    end block

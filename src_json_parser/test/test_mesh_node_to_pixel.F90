@@ -16,7 +16,7 @@ integer function test_mesh_node_to_pixel() result(err)
       type(pixel_t), dimension(:), allocatable :: pix
       pix = mesh%convertNodeToPixels(node_t([1]))
       if (.not. size(pix) == 1) err = err + 1
-      if (.not. pixel_t(cell=[1, 1, 1], tag="1") == pix(1)) err = err + 1
+      if (.not. pixel_t(cell=[1, 1, 1], tag=1) == pix(1)) err = err + 1
    end block
 
    block

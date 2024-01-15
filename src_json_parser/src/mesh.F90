@@ -221,7 +221,7 @@ contains
          if (any(iC%position /= eC%position)) then
             segment = (interval%end%cell - interval%ini%cell) / interval%getSize()
             
-            res(lastSegment)%tag = trim(intToString(pl%coordIds(i)))
+            res(lastSegment)%tag = pl%coordIds(i)
             do j = 1, interval%getSize()
                mC%position = iC%position + segment * (real(j-1) + 0.5)
                res(lastSegment)%cell = floor(mc%position) + FIRST_CELL_START
@@ -231,8 +231,8 @@ contains
          end if
       end do
 
-      res(1)%tag             = trim(intToString(pl%coordIds( 1 ) ))
-      res(lastSegment-1)%tag = trim(intToString(pl%coordIds( size(pl%coordIds) ) ))
+      res(1)%tag             = pl%coordIds( 1 )
+      res(lastSegment-1)%tag = pl%coordIds( size(pl%coordIds) )
       
    contains
       integer function countSegments(pl)
@@ -267,7 +267,7 @@ contains
       end if
       allocate(res(1))
       res(1)%cell = c%position + FIRST_CELL_START
-      res(1)%tag = trim(intToString(node%coordIds(1)))
+      res(1)%tag = node%coordIds(1)
    end function
 
    function intToString(i) result(res)

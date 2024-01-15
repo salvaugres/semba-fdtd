@@ -144,7 +144,7 @@ contains
       expected%BloquePrb%bp(1)%skip = 1
       expected%BloquePrb%bp(1)%nml = iEy
       expected%BloquePrb%bp(1)%t = BcELECT
-      expected%BloquePrb%bp(1)%tag = ""
+      expected%BloquePrb%bp(1)%tag = "bulk_current_at_entry"
 
       expected%BloquePrb%bp(2)%outputrequest = "bulk_current_at_exit"
       expected%BloquePrb%bp(2)%FileNormalize = ' '
@@ -164,7 +164,7 @@ contains
       expected%BloquePrb%bp(2)%skip = 1
       expected%BloquePrb%bp(2)%nml = iEy
       expected%BloquePrb%bp(2)%t = BcELECT
-      expected%BloquePrb%bp(2)%tag = ""
+      expected%BloquePrb%bp(2)%tag = "bulk_current_at_exit"
    end function
 end function
 

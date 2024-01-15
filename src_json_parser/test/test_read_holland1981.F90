@@ -93,7 +93,7 @@ contains
       expected%Sonda%collection(1)%fstep = 0.0
       allocate(expected%Sonda%collection(1)%cordinates(1))
       expected%Sonda%collection(1)%len_cor = 1
-      expected%Sonda%collection(1)%cordinates(1)%tag = '2'
+      expected%Sonda%collection(1)%cordinates(1)%tag = "mid_point"
       expected%Sonda%collection(1)%cordinates(1)%Xi = 2 ! Coord id as tag.
       expected%Sonda%collection(1)%cordinates(1)%Yi = 0
       expected%Sonda%collection(1)%cordinates(1)%Zi = 0
@@ -106,18 +106,20 @@ contains
       expected%tWires%tw(1)%dispfile = trim(adjustl(" "))
       expected%tWires%tw(1)%dispfile_LeftEnd = trim(adjustl(" "))
       expected%tWires%tw(1)%dispfile_RightEnd = trim(adjustl(" "))
-      
       expected%tWires%tw(1)%n_twc=10
       expected%tWires%tw(1)%n_twc_max=10
       allocate(expected%tWires%tw(1)%twc(10))
+      expected%tWires%tw(1)%twc(1:10)%srcfile = 'None'
+      expected%tWires%tw(1)%twc(1:10)%srctype = 'None'
       expected%tWires%tw(1)%twc(1:10)%i = 12
       expected%tWires%tw(1)%twc(1:10)%j = 12
       expected%tWires%tw(1)%twc(1:10)%k = [(i, i=8, 17)]
+      expected%tWires%tw(1)%twc(1:10)%nd = -1
+      expected%tWires%tw(1)%twc(1)%nd  = 1
+      expected%tWires%tw(1)%twc(6)%nd  = 2
+      expected%tWires%tw(1)%twc(10)%nd = 3
       
-      expected%tWires%tw(1)%twc(1:10)%tag = SMBJSON_NO_TAG
-      expected%tWires%tw(1)%twc(1)%tag = "1" 
-      expected%tWires%tw(1)%twc(6)%tag = "2"
-      expected%tWires%tw(1)%twc(10)%tag = "3"
+      expected%tWires%tw(1)%twc(1:10)%tag = trim(adjustl("2"))   ! The polyline id is used as tag.
       
       expected%tWires%tw(1)%tl = MATERIAL_CONS
       expected%tWires%tw(1)%tr = MATERIAL_CONS

@@ -5,6 +5,8 @@ module cells_mod
    integer, parameter :: DIR_Y = 2
    integer, parameter :: DIR_Z = 3
 
+   integer, parameter :: NO_TAG = -1
+
    integer, parameter :: CELL_TYPE_PIXEL = 0
    integer, parameter :: CELL_TYPE_LINEL = 1
    integer, parameter :: CELL_TYPE_SURFEL = 2
@@ -16,17 +18,17 @@ module cells_mod
    end type
 
    type, extends(cell_t) :: pixel_t
-      character (len=:), allocatable :: tag
+      integer :: tag = NO_TAG
    end type
 
    type, extends(cell_t) :: linel_t
-      integer :: orientation                ! DIR_X, DIR_Y, DIR_Z
-      character (len=:), allocatable :: tag
+      integer :: orientation = DIR_NULL                ! DIR_X, DIR_Y, DIR_Z
+      integer :: tag = NO_TAG
    end type
 
    type, extends(cell_t) :: surfel_t
-      integer :: orientation                ! DIR_X, DIR_Y, DIR_Z
-      character (len=:), allocatable :: tag
+      integer :: orientation = DIR_NULL                ! DIR_X, DIR_Y, DIR_Z
+      integer :: tag = NO_TAG
    end type
 
    type, extends(cell_t) :: voxel_t
