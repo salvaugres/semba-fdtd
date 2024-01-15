@@ -35,7 +35,7 @@ endif()
 if (CompileWithMTLN)
 	message(STATUS "Compiling MTLN solver")
 	add_subdirectory(external/lapack)
-	add_subdirectory(external/ngspice)
+	# add_subdirectory(external/ngspice)
 	add_subdirectory(src_mtln)
 endif()
 

@@ -13,17 +13,17 @@ set(CMAKE_Fortran_MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/mod)
 include_directories(src/)
 
 add_library(mtlnsolver
-	"src/mtl.f90"
-	"src/mtl_bundle.f90"
-	"src/mtln_solver.f90"
-	"src/network.f90"
-	"src/network_bundle.f90"
-	"src/utils.f90"
-	"src/probes.f90"
-	"src/types.f90"
-	"src/dispersive.f90"
-	"src/rational_approximation.f90"
-	"src/ngspice_interface.f90"
+	"src/mtl.F90"
+	"src/mtl_bundle.F90"
+	"src/mtln_solver.F90"
+	"src/network.F90"
+	"src/network_bundle.F90"
+	"src/utils.F90"
+	"src/probes.F90"
+	"src/types.F90"
+	"src/dispersive.F90"
+	"src/rational_approximation.F90"
+	"src/ngspice_interface.F90"
 )
 
 set(LAPACK_DIR "${CMAKE_SOURCE_DIR}/external/lapack/build/lib/")
