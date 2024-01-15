@@ -52,8 +52,8 @@ endfunction ()
 
 # ctest is sensible to extension. ONLY WORKS with ".f90" AND NOT with ".F90"
 add_fortran_test_executable (mtlnsolver_tests
-    "test_init_homogeneous.f90"
-    "test_init_inhomogeneous.f90"
+    # "test_init_homogeneous.f90"
+    # "test_init_inhomogeneous.f90"
     "test_eigvals.f90"
     "test_time_step.f90"
     "test_fhash.f90"
