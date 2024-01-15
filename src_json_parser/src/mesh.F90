@@ -269,14 +269,5 @@ contains
       res(1)%cell = c%position + FIRST_CELL_START
       res(1)%tag = node%coordIds(1)
    end function
-
-   function intToString(i) result(res)
-      character (len=MAX_LINE) :: res
-      integer, intent(in) :: i
-      write(res, '(i10)') i
-      res = trim(adjustl(res))
-   end function
-
-
-
+   
 end module

@@ -114,6 +114,7 @@ contains
       expected%tWires%tw(1)%twc(1:10)%i = 12
       expected%tWires%tw(1)%twc(1:10)%j = 12
       expected%tWires%tw(1)%twc(1:10)%k = [(i, i=8, 17)]
+      expected%tWires%tw(1)%twc(1:10)%d = DIR_Z
       expected%tWires%tw(1)%twc(1:10)%nd = -1
       expected%tWires%tw(1)%twc(1)%nd  = 1
       expected%tWires%tw(1)%twc(6)%nd  = 2

@@ -886,6 +886,7 @@ contains
                res%twc(i)%i = linels(i)%cell(1)
                res%twc(i)%j = linels(i)%cell(2)
                res%twc(i)%k = linels(i)%cell(3)
+               res%twc(i)%d = abs(linels(i)%orientation)
                res%twc(i)%nd = linels(i)%tag
                res%twc(i)%tag = trim(adjustl(tagLabel))
             end do
