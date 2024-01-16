@@ -1,7 +1,7 @@
 integer function test_fhash_ptr() result(error_cnt)
 
     use mtl_bundle_mod
-    use fhash, only: fhash_tbl_t, key=>fhash_key, fhash_iter_t, fhash_key_t
+    use fhash, only: fhash_tbl_t, key=>fhash_key, fhash_key_t
     use types_mod, only: bundle_iter_t
 
     implicit none
