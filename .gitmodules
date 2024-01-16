@@ -11,7 +11,9 @@
 [submodule "external/lapack"]
 	path = external/lapack
 	url = git@github.com:Reference-LAPACK/lapack.git
+	ignore = dirty
 
 [submodule "external/ngspice"]
 	path = external/ngspice
-	url = git://git.code.sf.net/p/ngspice/ngspice
+	url = git@github.com:opensemba/ngspice
+	ignore = dirty

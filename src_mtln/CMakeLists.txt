@@ -26,12 +26,20 @@ add_library(mtlnsolver
 	"src/ngspice_interface.F90"
 )
 
-set(LAPACK_DIR "${CMAKE_SOURCE_DIR}/precompiled_libraries/linux-gcc-rls/lapack/")
-set(LAPACK_LIB ${LAPACK_DIR}liblapack.a)
-set(BLAS_LIB ${LAPACK_DIR}libblas.a)
+#set(LAPACK_DIR "${CMAKE_SOURCE_DIR}/precompiled_libraries/linux-gcc-rls/lapack/")
+#set(LAPACK_LIB ${LAPACK_DIR}liblapack.a)
+#set(BLAS_LIB ${LAPACK_DIR}libblas.a)
+#
+#set(NGSPICE_DIR "${CMAKE_SOURCE_DIR}/precompiled_libraries/linux-gcc-rls/ngspice/")
+#set(NGSPICE_LIB ${NGSPICE_DIR}libngspice.so)
 
-set(NGSPICE_DIR "${CMAKE_SOURCE_DIR}/precompiled_libraries/linux-gcc-rls/ngspice/")
-set(NGSPICE_LIB ${NGSPICE_DIR}libngspice.so)
+set(LAPACK_DIR "${CMAKE_SOURCE_DIR}/precompiled_libraries/windows-intel-rls/lapack/")
+set(LAPACK_LIB ${LAPACK_DIR}liblapack.lib)
+set(BLAS_LIB ${LAPACK_DIR}libblas.lib)
+
+set(NGSPICE_DIR "${CMAKE_SOURCE_DIR}/precompiled_libraries/windows-intel-rls/ngspice/")
+set(NGSPICE_LIB ${NGSPICE_DIR}ngspice.lib)
+
 
 target_link_libraries(mtlnsolver 
 	${LAPACK_LIB} 
