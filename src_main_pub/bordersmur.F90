@@ -90,7 +90,7 @@ contains
       logical  ::  ThereAreMURBorders,resume
       integer (kind=4)  ::  i,j,k,region,field,i1
 
-      !character (len=4) :: donde
+      !character (len=BUFSIZE) :: donde
       !integer (KIND=4) :: layoutnumber
 !
       eps0=eps00; mu0=mu00; !chapuz para convertir la variables de paso en globales

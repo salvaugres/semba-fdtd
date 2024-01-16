@@ -131,8 +131,8 @@ contains
       REAL (kind=RKIND) :: carga,guess,ZE(1:3),cargaZE(1:3)
       REAL (kind=RKIND) :: deltatrancos
       character (len=*), intent(in)  ::  slicesoriginales
-      character (len=65536)  ::  slices=' '
-      character (len=1024)     ::  dubuf
+      character (len=BUFSIZE_LONG)  ::  slices=' '
+      character (LEN=BUFSIZE)     ::  dubuf
       logical :: resume,fatalerror
       character(len=BUFSIZE) :: buff
       cZE => null(); cZI=> null(); trancos=> null(); mpizcom=> null(); mpizfin=> null();
@@ -651,7 +651,7 @@ contains
 
       integer (kind=4)  ::  ni,nj,nk,norigindex,idum
       type (CurrentSegments), pointer  :: segmento
-      character (len=14)  ::  whoami
+      character (LEN=BUFSIZE)  ::  whoami
       write(whoami,'(a,i5,a,i5,a)') '(',layoutnumber+1,'/',size,') '
 
 
@@ -865,7 +865,7 @@ contains
       integer (kind=4)  ::  status1(MPI_STATUS_SIZE,1 : 2),status2(MPI_STATUS_SIZE,1 : 2)
 #endif
       integer (kind=4)  ::  req1,req2,req11,req21
-      character (len=14)  ::  whoami
+      character (LEN=BUFSIZE)  ::  whoami
       character(len=BUFSIZE) :: buff
       write(whoami,'(a,i5,a,i5,a)') '(',layoutnumber+1,'/',size,') '
 
@@ -926,7 +926,7 @@ contains
       integer (kind=4)  ::  status1(MPI_STATUS_SIZE,1 : 2),status2(MPI_STATUS_SIZE,1 : 2)
 #endif
       integer (kind=4)  ::  req1,req2,req11,req21
-      character (len=14)  ::  whoami
+      character (LEN=BUFSIZE)  ::  whoami
       character(len=BUFSIZE) :: buff
       write(whoami,'(a,i5,a,i5,a)') '(',layoutnumber+1,'/',size,') '
 
@@ -1002,7 +1002,7 @@ contains
       integer (kind=4)  ::  status1(MPI_STATUS_SIZE,1 : 2),status2(MPI_STATUS_SIZE,1 : 2)
 #endif
       integer (kind=4)  ::  req1,req2,req11,req21
-      character (len=14)  ::  whoami
+      character (LEN=BUFSIZE)  ::  whoami
       character(len=BUFSIZE) :: buff
       write(whoami,'(a,i5,a,i5,a)') '(',layoutnumber+1,'/',size,') '
 
@@ -1074,7 +1074,7 @@ contains
    !!!integer (kind=4)  ::  ierr1=0,ierr2=0,ierr3=0,ierr4=0,ierr5=0,ierr6=0,ierr7=0,ierr8=0,ierr9=0,ierr10=0,ierr11=0,ierr12=0
    !!!integer (kind=4)  ::  status1(MPI_STATUS_SIZE,1 : 2),status2(MPI_STATUS_SIZE,1 : 2),i
    !!!integer (kind=4)  ::  req1,req2,req11,req21
-   !!!character (len=14)  ::  whoami
+   !!!character (LEN=BUFSIZE)  ::  whoami
    !!!write(whoami,'(a,i5,a,i5,a)') '(',layoutnumber+1,'/',size,') '
    !!!
    !!!
@@ -1155,7 +1155,7 @@ contains
    !!!   integer (kind=4)  ::  status1(MPI_STATUS_SIZE,1 : 2),status2(MPI_STATUS_SIZE,1 : 2)
    !!!   integer (kind=4), intent(in) :: layoutnumber,size
    !!!   integer (kind=4)  ::  req1,req2,req11,req21
-   !!!   character (len=14)  ::  whoami
+   !!!   character (LEN=BUFSIZE)  ::  whoami
    !!!   character(len=BUFSIZE) :: buff
    !!!   write(whoami,'(a,i5,a,i5,a)') '(',layoutnumber+1,'/',size,') '
    !!!
@@ -1273,7 +1273,7 @@ contains
                   if ((sggMiHz(i1,j1, 1+finZ)) == jmed) then
                        FlushExtraInfoUp    = .true.
                   endif
-                  !creo que esto no es necesario para multiports de Sabrina pero no creo que cargue mucho y no se si Ian lo necesita
+                  !creo que esto no es necesario para multiports de ss pero no creo que cargue mucho y no se si Ian lo necesita
                   !lo dejo por precaucion
                   if ((sggMiHz(i1,j1, 1+comZ)) == jmed) then
                        FlushExtraInfoDown  = .true.
@@ -1740,7 +1740,7 @@ contains
                   if ((sggMiHz(i1,j1, 1+finZ)) == jmed) then
                        FlushExtraInfoUp    = .true.
                   endif
-                  !creo que esto no es necesario para multiports de Sabrina pero no creo que cargue mucho y no se si Ian lo necesita
+                  !creo que esto no es necesario para multiports de ss pero no creo que cargue mucho y no se si Ian lo necesita
                   !lo dejo por precaucion
                   if ((sggMiHz(i1,j1, 1+comZ)) == jmed) then
                        FlushExtraInfoDown  = .true.
@@ -1838,7 +1838,7 @@ contains
     displacements(1) = 0
     !EL SEGUNDO ES CHARACTER
     typelist(2) =  MPI_CHARACTER
-    block_lengths(2) = MAX_LINEA
+    block_lengths(2) = BUFSIZE
     displacements(2) = 4 !el segundo se desplaza 4 porque el primero tiene 4 bytes
 
     ! build the derived data type

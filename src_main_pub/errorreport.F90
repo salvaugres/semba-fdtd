@@ -35,8 +35,8 @@ Module Report
    integer (kind=4), parameter  ::  reportingseconds=60
    type :: tiempo_t
       REAL ( kind = 8)  ::  segundos
-      character ( len = 10)  ::  hora
-      character ( len = 8)  ::  fecha
+      character ( LEN=BUFSIZE)  ::  hora
+      character ( LEN=BUFSIZE)  ::  fecha
    end type
 
 
@@ -46,18 +46,18 @@ Module Report
    REAL (KIND=RKIND), SAVE  ::  energy,energyTotal,oldenergyTotal,snapLevel
    type (tiempo_t), SAVE  ::  time_out2
    !
-   character (len=14), SAVE :: charmeg
+   character (LEN=BUFSIZE), SAVE :: charmeg
    integer (kind=4), SAVE   ::  reportedinstant,snapStep,snapHowMany,countersnap
    logical, SAVE :: printea,calledStoponerrroonlyprint=.false.,warningfileIsOpen=.false.,verbose,file10isopen,file11isopen
-   CHARACTER (LEN=1024), SAVE :: warningFile = ' '
-   character (len=14), save  ::  whoami
+   CHARACTER (LEN=BUFSIZE), SAVE :: warningFile = ' '
+   character (LEN=BUFSIZE), save  ::  whoami
 
    integer, save ::  thefile !for mpi file management
    logical, save :: ignoreerrors
    !
    type (coorsxyzP) , save  ::  Punto
 
-   CHARACTER (LEN=1024), SAVE :: mynEntradaRoot
+   CHARACTER (LEN=BUFSIZE), SAVE :: mynEntradaRoot
 
    !!!logical, SAVE :: dxfFileIsOpen=.false.
    logical, SAVE :: fatalerror=.false.
@@ -96,21 +96,22 @@ contains
    end subroutine
    !!!!!!!!!!!!!!!!!
    subroutine StopOnError(layoutnumber,size,message,calledfrommain)
-      character (len=1024) :: ficherito
+      character (LEN=BUFSIZE) :: ficherito
       logical , optional  ::  calledfrommain
       character (len=*), intent( IN) :: message
       integer (kind=4), optional  ::  layoutnumber,size
 #ifdef CompileWithMPI
       integer (kind=4)  ::  ierr
 #endif
-      character (len=14)  ::  whoami
+      character (LEN=BUFSIZE)  ::  whoami
 
       write(whoami,'(a,i5,a,i5,a)') '(',layoutnumber+1,'/',size,') '
 
 
       call print11(layoutnumber,trim(adjustl(whoami))//' ERROR: '//trim(adjustl(message)),.true.)
 
-      !19/12/14 bug OLD1812. Un stoponerror creado por un nodal source embebido llega aqu� en MPI. El closewarn... hace un barrier e impide morir al proceso.
+      !19/12/14 bug OLD1812. Un stoponerror creado por un nodal source embebido llega aqui en MPI. El closewarn... hace un barrier e impide morir al proceso.
+
       !hay que revisar los stoponerror y hacerlos mas elegantes. De momento aborto a lo bestia comentanod sin cerrar ni warning ni dxf (To do)
 
       !CALL CLOSEWARNINGFILE(layoutnumber,size)
@@ -192,7 +193,7 @@ contains
    subroutine InitReporting(sgg,nEntradaRoot,resume,layoutnumber,size,nresumeable2,resume_fromold)
       !!!!!!!PML params!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       integer (kind=4), intent(in) :: layoutnumber,size
-      type (SGGFDTDINFO), intent(IN)         ::  sgg
+      type (SGGFDTDINFO), intent(INout)         ::  sgg
       !!!!!!!
       character (len=*), INTENT(IN)  ::  nEntradaRoot
       logical  ::  resume,resume_fromold
@@ -203,7 +204,7 @@ contains
       Logical  ::  errnofile
       character(len=BUFSIZE) :: buff
 
-      character (len=14)  ::  whoami
+      character (LEN=BUFSIZE)  ::  whoami
 
       write(whoami,'(a,i5,a,i5,a)') '(',layoutnumber+1,'/',size,') '
 #ifdef CompileWithMPI
@@ -286,7 +287,7 @@ contains
 #ifdef CompileWithMPI
       integer (kind=4)  ::  ierr
 #endif
-      character (len=14)  ::  whoami
+      character (LEN=BUFSIZE)  ::  whoami
       character(len=BUFSIZE) :: buff
 
       write(whoami,'(a,i5,a,i5,a)') '(',layoutnumber+1,'/',size,') '
@@ -302,7 +303,7 @@ contains
 #ifdef CompileWithNodalSources
          continue
 #else
-         buff=trim(adjustl(whoami))// 'Nodal sources unsupported. Recompile'
+         buff=trim(adjustl(whoami))//' Nodal sources unsupported. Recompile'
          call stoponerror(layoutnumber,size,buff)
 #endif
       endif
@@ -311,7 +312,7 @@ contains
 #ifdef  CompileWithNF2FF
          continue
 #else
-         buff=trim(adjustl(whoami))// 'NF2FF unsupported. Recompile'
+         buff=trim(adjustl(whoami))//' NF2FF unsupported. Recompile'
          call stoponerror(layoutnumber,size,buff)
 #endif
       endif
@@ -320,7 +321,7 @@ contains
 #ifdef CompileWithSGBC
          continue
 #else
-         buff=trim(adjustl(whoami))// 'SGBC unsupported. Recompile'
+         buff=trim(adjustl(whoami))//' SGBC unsupported. Recompile'
          call stoponerror(layoutnumber,size,buff)
 #endif
       endif
@@ -328,7 +329,7 @@ contains
 #ifdef CompileWithNIBC
          continue
 #else
-         buff=trim(adjustl(whoami))// 'MIBC unsupported. Recompile'
+         buff=trim(adjustl(whoami))//' MIBC unsupported. Recompile'
          call stoponerror(layoutnumber,size,buff)
 #endif
       endif
@@ -338,7 +339,7 @@ contains
 #ifdef CompileWithAnisotropic
          continue
 #else
-         buff=trim(adjustl(whoami))// 'Anisotropic unsupported. Recompile'
+         buff=trim(adjustl(whoami))//' Anisotropic unsupported. Recompile'
          call stoponerror(layoutnumber,size,buff)
 #endif
       endif
@@ -347,7 +348,7 @@ contains
 #ifdef CompileWithDMMA
          continue
 #else
-         buff=trim(adjustl(whoami))// 'Thin slots unsupported. Recompile'
+         buff=trim(adjustl(whoami))//' Thin slots unsupported. Recompile'
          call stoponerror(layoutnumber,size,buff)
 #endif
       endif
@@ -356,7 +357,7 @@ contains
 #ifdef CompileWithEDispersives
          continue
 #else
-         buff=trim(adjustl(whoami))// 'Dispersive materials unsupported. Recompile'
+         buff=trim(adjustl(whoami))//' Dispersive materials unsupported. Recompile'
          call stoponerror(layoutnumber,size,buff)
 #endif
       endif
@@ -371,7 +372,7 @@ contains
 #ifdef CompileWithSlantedWires
          continue
 #else
-         buff=trim(adjustl(whoami))// ' WIREs unsupported. Recompile'
+         buff=trim(adjustl(whoami))//'  WIREs unsupported. Recompile'
          call stoponerror(layoutnumber,size,buff)
 #endif
 #endif
@@ -515,8 +516,8 @@ contains
       REAL (KIND=RKIND)   ::  MaxSourceValue
       REAL (KIND=8)   :: timedummy_desdelanzamiento
 
-      character (len=14)  ::  whoami
-      character (len=1024)     ::  dubuf
+      character (LEN=BUFSIZE)  ::  whoami
+      character (LEN=BUFSIZE)     ::  dubuf
       write(whoami,'(a,i5,a,i5,a)') '(',layoutnumber+1,'/',size,') '
       
       time_desdelanzamiento=timedummy_desdelanzamiento
@@ -612,8 +613,8 @@ contains
       !--->
 
       !--->
-      character ( len = 10)  ::  caux
-      character ( len = 8)  ::  caux2
+      character ( LEN=BUFSIZE)  ::  caux
+      character ( LEN=BUFSIZE)  ::  caux2
       character(5)  :: zone
       integer (kind=4) ,dimension(8) :: values
       !------------------------------------------------->
@@ -670,7 +671,7 @@ contains
       !---------------------------> inputs <----------------------------------------------------------
       type (SGGFDTDINFO), intent(IN)              :: sgg              ! Simulation data.
       type( bounds_t), intent( IN)  ::  b
-      CHARACTER (LEN=1024), intent(in) :: opcionestotales
+      CHARACTER (LEN=BUFSIZE), intent(in) :: opcionestotales
       integer( kind = 4), intent( IN)  ::  layoutnumber, size, n,maxCPUtime
       integer( kind = 4), intent( IN)  ::  flushsecondsFields, flushsecondsData, initialtimestep, finaltimestep
       !--->
@@ -683,7 +684,7 @@ contains
       !--->
       logical, intent( IN)  ::  forcetiming, everflushed,permitscaling
       !
-      character (len=1024) :: fichsnap,minmax,quien_es
+      character (LEN=BUFSIZE) :: fichsnap,minmax,quien_es
       character( len = *), intent( IN)  ::  nEntradaRoot
       !---------------------------> input/output <----------------------------------------------------
       integer (kind=4), intent( INOUT)  ::  n_info
@@ -698,9 +699,9 @@ contains
       pararflushing, pararNOflushing, stoponNaN , stoponNaN_aux,mustSnap,stop_only,stopflushing_only,flush_only,flushdata_only
       logical :: stopflushingonlydontwritevtk,flushonlydontwritevtk,flushdataonlydontwritevtk,flushdatadontwritevtk
       integer( kind = 4)  ::  in_aux, ini_i, fin_i, ini_j, fin_j, ini_k, fin_k, i, j, k
-      character( len = 14)  ::  whoamishort,whoami,chinstant
-      character (len=1024)     ::  dubuf
-      character (len=15)     ::  dondex,dondey,dondez
+      character( LEN=BUFSIZE)  ::  whoamishort,whoami,chinstant
+      character (LEN=BUFSIZE)     ::  dubuf
+      character (LEN=BUFSIZE)     ::  dondex,dondey,dondez
       real (kind=rKIND), dimension (1:size) :: NEWlmaxval,NEWlmaxval_x,NEWlmaxval_y,NEWlmaxval_z
       integer( kind = 4), dimension (1:size) :: NEWlmaxval_i,NEWlmaxval_j,NEWlmaxval_k
       real (kind=rKIND), dimension (1:size) :: lmaxval,lmaxval_x,lmaxval_y,lmaxval_z
@@ -716,7 +717,7 @@ contains
       integer( kind = 4)  :: ini_ibox,fin_ibox,ini_jbox,fin_jbox,ini_kbox,fin_kbox
       integer( kind = 4)  :: ini_iboxsin,fin_iboxsin,ini_jboxsin,fin_jboxsin,ini_kboxsin,fin_kboxsin
 
-      character (len=1024) :: ficherito
+      character (LEN=BUFSIZE) :: ficherito
 
       real (kind=4), dimension(:,:,:,:), allocatable  ::  snap
 
@@ -1263,7 +1264,7 @@ contains
             !#endif
             !             close (35)
 
-            write(dubuf,*)     whoami//' Written Snap file at n= ',n,' max field over ',maxval(snap),'>',snapLevel
+            write(dubuf,*)     trim(adjustl(whoami))//' Written Snap file at n= ',n,' max field over ',maxval(snap),'>',snapLevel
             deallocate (snap)
             call print11(layoutnumber,dubuf,.true.)
             if (countersnap >= snapHowMany) then
@@ -1336,7 +1337,7 @@ contains
             endif
 
             write(dubuf,'(a,e13.4e3,a,3i5,a)')     'Max field: ',qmaxval,' at (',qmaxval_i,qmaxval_j,qmaxval_k,')=('// &
-            dondex//','//dondey//','//dondez//')'
+            ' '//trim(adjustl(dondex))//','//' '//trim(adjustl(dondey))//','//' '//trim(adjustl(dondez))//')'
 
             if (simu_devia) dubuf=trim(adjustl(dubuf))//' (Stoch)'
             call print11(layoutnumber,dubuf)
@@ -1359,7 +1360,7 @@ contains
 
                write(dubuf,'(a,i5,e15.4e3,a,e15.4e3,a,3i5,a)')  'Max field slice: ',i,NEWlmaxval(i),'/',maxSourceValue, &
                ' at (',newlmaxval_i(i),newlmaxval_j(i),newlmaxval_k(i),')=('// &
-               dondex//','//dondey//','//dondez//')'
+            ' '//trim(adjustl(dondex))//','//' '//trim(adjustl(dondey))//','//' '//trim(adjustl(dondez))//')'
                ! call print11(layoutnumber,dubuf) !comentado para que la salida sea menos verbose
             end do
             !
@@ -1444,12 +1445,12 @@ contains
 !!      if (IsNaNd(energy)) then
 !!#endif
 !!!#else
-      if (IsNaN (energy)) then
+     !! if (IsNaN (energy)) then !quitado a mano para que PGI no se queje a 150623 !fm
 !!!#endif
 !!!#endif
          !
-         stoponNaN_aux=.true.
-      endif
+     !!    stoponNaN_aux=.true.
+     !! endif
 #ifdef CompileWithMPI
       call MPI_AllReduce( stoponNaN_aux, stoponNaN, 1_4, MPI_LOGICAL, MPI_LOR, MPI_COMM_WORLD, ierr)
 #else
@@ -1565,14 +1566,14 @@ contains
       character(len=*) :: nEntradaRoot
       integer (kind=4), intent(in) :: layoutnumber,size
       !file management
-      character (len=14) ::  whoamishort
+      character (LEN=BUFSIZE) ::  whoamishort
 #ifdef CompileWithMPI
       integer(kind=MPI_OFFSET_KIND) disp
       integer (kind=4) :: ierr
 #endif
       logical verbosete,ignoreerrors1       , itsopen2
       integer :: my_iostat
-      character (len=1024) :: ficherito
+      character (LEN=BUFSIZE) :: ficherito
       verbose=verbosete
 
       ignoreerrors=ignoreerrors1
@@ -1634,7 +1635,7 @@ contains
 
       !
 
-      buff3=whoami//trim(adjustl(bufff))
+      buff3=trim(adjustl(whoami))//' '//trim(adjustl(bufff))
       call trimnullchar(buff3)
 
       !buff2=CHAR(13)//CHAR(10)//trim(adjustl(bufff(1:bufsize-24)))//CHAR(13)//CHAR(10)
@@ -1663,11 +1664,11 @@ contains
       integer (kind=4), intent(in) :: layoutnumber,size
       integer (kind=4) :: ierr,posic,i
       character (len=BUFSIZE) :: buf2
-      character (len=1024)     ::  dubuf
+      character (LEN=BUFSIZE)     ::  dubuf
       logical :: fatalerror_final , lexis,stoch_undivided,simu_devia        , itsopen2
-      character( len = 14)  ::  whoamishort,whoami,chinstant
+      character( LEN=BUFSIZE)  ::  whoamishort,whoami,chinstant
       integer :: my_iostat,file87
-      character (len=1024) :: ficherito
+      character (LEN=BUFSIZE) :: ficherito
 
       if (.not.WarningFileIsOpen) return
 
@@ -1823,7 +1824,7 @@ contains
    !!!character(len=*) :: nEntradaRoot
    !!!integer (kind=4) :: layoutnumber,size
    !!!!file management
-   !!!character (len=14) whoamishort
+   !!!character (LEN=BUFSIZE) whoamishort
    !!!#ifdef CompileWithMPI
    !!!integer(kind=MPI_OFFSET_KIND) disp
    !!!integer (kind=4) :: ierr
@@ -1927,8 +1928,8 @@ contains
    !!!integer (kind=4) :: ierr,i
    !!!integer (kind=8) :: posic
    !!!character (len=dxflinesize) :: buf2
-   !!!character (len=1024)     ::  dubuf
-   !!!character (len=14) ::  whoamishort
+   !!!character (LEN=BUFSIZE)     ::  dubuf
+   !!!character (LEN=BUFSIZE) ::  whoamishort
    !!!logical lexis
    !!!
    !!!if (.not.dxfFileIsOpen) return
@@ -2245,14 +2246,14 @@ contains
       integer (kind=4)  ::  ierr !for mpi file management
 #endif
       integer (kind=4), intent(in) :: layoutnumber
-      character (len=1024), intent(in) :: nombrefich
-      character (len=14) whoamishort
+      character (LEN=BUFSIZE), intent(in) :: nombrefich
+      character (LEN=BUFSIZE) whoamishort
       write(whoamishort,'(i5)') layoutnumber+1
 
 !      IF (layoutnumber == 0) THEN
 669      open (newunit=thefile8,file=trim(adjustl(nombrefich))//trim(adjustl(whoamishort))//'_tmp',err=667 )
          goto 668
-667      print *,whoamishort,'--> no hay cojones con open para borrar unidad ',thefile8
+667      print *,' '//trim(adjustl(whoamishort))//' ','--> no hay cojones con open para borrar unidad ',thefile8
          call sleep(2)
          goto 669
 668     continue        
@@ -2275,24 +2276,25 @@ contains
       !!!                           MPI_CHARACTER, 'native', &
       !!!                           MPI_INFO_NULL, ierr)
       !!!#else
-666     inquire (unit=thefile8,exist=borratedeunaputavez1)
+!pgi    666     inquire (unit=thefile8,exist=borratedeunaputavez1)
         inquire (file=trim(adjustl(nombrefich))//trim(adjustl(whoamishort))//'_tmp' ,exist=borratedeunaputavez2)
-    if (borratedeunaputavez1) then
-        print *,whoamishort,'--> no hay cojones con inquire unidad ',thefile8
-        call sleep(2)
-        goto 666
-    endif
+!pgi    if (borratedeunaputavez1) then
+!pgi         print *,' '//trim(adjustl(whoamishort))//' ','--> no hay cojones con inquire unidad ',thefile8
+!pgi         call sleep(2)
+!pgi         goto 666
+!pgi    endif
         if (borratedeunaputavez2) then
-        print *,whoamishort,'--> no hay cojones con inquire file fichero ',& 
+        print *,' '//trim(adjustl(whoamishort))//' ','--> no hay cojones con inquire file fichero ',& 
                       trim(adjustl(nombrefich))//trim(adjustl(whoamishort))//'_tmp'
         call sleep(2)
-        goto 666
-    endif
+        goto 669
+      endif
       open (newunit=thefile8,file=trim(adjustl(nombrefich))//trim(adjustl(whoamishort))//'_tmp',err=767 )
-         goto 768
-767      print *,whoamishort,'--> no hay cojones con open definitivo unidad ',thefile8
-         call sleep(2)
-768     continue         
+      goto 768
+767   print *,' '//trim(adjustl(whoamishort))//' ','--> no hay cojones con open definitivo unidad ',thefile8
+      call sleep(2)
+      goto 669
+768   continue         
       !!!#endif
       return
    end function openfile_mpi
@@ -2306,7 +2308,7 @@ contains
       integer (kind=4)  ::  ierr
 #endif
       integer (kind=4), intent(in) :: layoutnumber
-      character (len=1024) :: buff2,buff3
+      character (LEN=BUFSIZE) :: buff2,buff3
 
       buff3=CHAR(13)//CHAR(10)//trim(adjustl(buff2))
       !!!#ifdef CompileWithMPI
@@ -2327,12 +2329,12 @@ contains
       integer (kind=4)  ::  ierr
 #endif
       integer (kind=4), intent(in) :: layoutnumber,size
-      character (len=1024) :: buff2
-      character (len=1024) :: nombrefich
+      character (LEN=BUFSIZE) :: buff2
+      character (LEN=BUFSIZE) :: nombrefich
       integer (kind=4) :: conta,i
-      character (len=14) ::  whoamishort
+      character (LEN=BUFSIZE) ::  whoamishort
       logical lexis
-      character (len=1024) :: ficherito
+      character (LEN=BUFSIZE) :: ficherito
 
 
       !!!!#ifdef CompileWithMPI
@@ -2384,7 +2386,7 @@ contains
 
    function creaPuntos(sgg)  result(punto) !crea coordenadas fisicas
       !
-      type (SGGFDTDINFO), intent(IN)         ::  sgg
+      type (SGGFDTDINFO), intent(INout)         ::  sgg
       type (coorsxyzP)  ::  Punto
       integer (Kind=4) :: i,j,k,field
 
@@ -2462,6 +2464,7 @@ contains
          Punto%PhysCoor(field)%z(k)=sgg%LineZ(k)
       end do
       !
+      sgg%Punto = Punto
       return
    end function
 
@@ -2539,7 +2542,7 @@ contains
 
    subroutine erasesignalingfiles(simu_devia)
       logical :: simu_devia
-      CHARACTER (LEN=1024) :: ficherito
+      CHARACTER (LEN=BUFSIZE) :: ficherito
       if (.not.simu_devia) then
           !!force erasing the signaling files
           ficherito='stop'

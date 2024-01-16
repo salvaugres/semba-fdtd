@@ -1,66 +1,93 @@
-cmake_minimum_required(VERSION 3.0)
-
+cmake_minimum_required (VERSION 3.18)
 
 ENABLE_LANGUAGE(Fortran)
 project(semba-fdtd Fortran)
 
-
-function(add_sources dir srcs)
-    set(curdir ${CMAKE_CURRENT_LIST_DIR}/${dir})
-    file(GLOB children RELATIVE ${curdir} ${curdir}/*)
-    foreach(child ${children})
-        if(IS_DIRECTORY ${curdir}/${child})
-            if (dir STREQUAL ".")
-                add_sources(${child} ${srcs})
-            else()
-                add_sources(${dir}/${child} ${srcs})
-            endif()
-        endif()
-    endforeach()
-    file(GLOB SRCS_LOCAL RELATIVE ${CMAKE_CURRENT_LIST_DIR} ${curdir}/*.F90)
-    set(SRCS_LOCAL_ALL ${HDRS_LOCAL} ${TMPL_LOCAL} ${SRCS_LOCAL})
-    set(${srcs} ${${srcs}} ${SRCS_LOCAL_ALL} PARENT_SCOPE)
-    if (NOT dir STREQUAL ".")
-        string(REPLACE "/" "\\\\" src_grp ${dir})
-        source_group(${src_grp} FILES ${SRCS_LOCAL_ALL})
-    endif()
-endfunction()
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+# set(CMAKE_Fortran_MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/mod)
 
 message(STATUS ${CMAKE_Fortran_COMPILER_ID})
 
-# message(STATUS "Adding source files...")
-# add_sources(. SRCS)
-# message(STATUS ${SRCS})
+option(CompileWithHDF "Use HDF" OFF)
+option(CompileWithMPI "Use MPI" OFF)
+option(CompileWithJSON "Compile JSON format parser" ON)
+option(CompileExecutable "Compiles semba-fdtd executble" ON)
+option(CompileWithMTLN "Use MTLN modules" OFF)
 
-# add_executable(semba-fdtd ${SRCS})
+add_library(semba-types 
+	"src_main_pub/nfde_types.F90"
+	"src_main_pub/fdetypes.F90"
+)
+add_subdirectory(external/fhash/)
 
-# Set a default build type if none was specified
-if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
-  message(STATUS "Setting build type to 'Release' as none was specified.")
-  set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build." FORCE)
-  # Set the possible values of build type for cmake-gui
-  set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release"
-    "MinSizeRel" "RelWithDebInfo")
+if (CompileWithJSON)
+	message(STATUS "Compiling JSON format parser")
+	add_definitions(-DCompileWithJSON)
+	add_subdirectory(external/json-fortran)
+	add_subdirectory(src_json_parser)
+endif()
+
+if (CompileWithMTLN)
+	message(STATUS "Compiling MTLN solver")
+	add_subdirectory(src_mtln)
+endif()
+
+if (CompileExecutable)
+	if (NOT CompilePrivateVersion AND NOT CompileWithJSON)
+		message(FATAL_ERROR "Executable must be compiled with .fdtd.json parser or alternative.")
+	endif()
+	add_executable(semba-fdtd 
+		"src_main_pub/errorreport.F90"
+		"src_main_pub/anisotropic.F90"
+		"src_main_pub/borderscpml.F90"
+		"src_main_pub/bordersmur.F90"
+		"src_main_pub/bordersother.F90"
+		"src_main_pub/calc_constants.F90"
+		"src_main_pub/dmma_thin_slot.F90"
+		"src_main_pub/electricdispersive.F90"
+		"src_main_pub/EpsMuTimeScale.F90"
+		"src_main_pub/farfield.F90"
+		"src_main_pub/getargs.F90"
+		"src_main_pub/healer.F90"
+		"src_main_pub/lumped_types.F90"
+		"src_main_pub/lumped.F90"
+		"src_main_pub/magneticdispersive.F90"
+		"src_main_pub/maloney_nostoch.F90"
+		"src_main_pub/mpicomm.F90"
+		"src_main_pub/nodalsources.F90"
+		"src_main_pub/observation.F90"
+		"src_main_pub/planewaves.F90"
+		"src_main_pub/pml_bodies.F90"
+		"src_main_pub/postprocess.F90"
+		"src_main_pub/preprocess.F90"
+		"src_main_pub/resuming.F90"
+		"src_main_pub/interpreta_switches.F90"
+		"src_main_pub/semba_fdtd.F90"
+		"src_main_pub/storegeom.F90"
+		"src_main_pub/timestepping.F90"
+		"src_main_pub/version.F90"
+		"src_wires_pub/wires_types.F90"
+		"src_wires_pub/wires.F90"
+	)
+	target_link_libraries(semba-fdtd semba-types smbjson)
+	include_directories(${CMAKE_BINARY_DIR}/mod)
 endif()
 
 if(CMAKE_Fortran_COMPILER_ID MATCHES "GNU")
 	message(STATUS "Gfortran found...")
-	set(CMAKE_Fortran_FLAGS "-ffree-form -ffree-line-length-0 -fdec -fcheck=bounds")
+	set(CMAKE_Fortran_FLAGS "-ffree-form -ffree-line-length-none -fdec -fcheck=bounds")
 	add_definitions(-DCompileWithIncludeMpifh)
-else()
-	if(CMAKE_Fortran_COMPILER_ID MATCHES "^Intel")
-		message(STATUS "INTEL FORTRAN found...")
-		set(CMAKE_Fortran_FLAGS "-fpp -check all -debug full -traceback ")
-	else()
-		message(STATUS "Neither Intel nor Gfortran not found. Stopping.")
-	endif()
+endif()
+if(CMAKE_Fortran_COMPILER_ID MATCHES "^Intel")
+	message(STATUS "INTEL FORTRAN found...")
+	set(CMAKE_Fortran_FLAGS "-fpp -check all -debug full -traceback ")
 endif()
 
-# option (CompileWithHDF "Use HDF" OFF)
 if (CompileWithHDF)
 	message(STATUS "HDF libraries needed")
 	add_definitions(-DCompileWithHDF)
-	#HDF no funciona
 	find_package(HDF5 REQUIRED COMPONENTS Fortran HL)
 	include_directories(${HDF5_INCLUDE_DIRS})
 	target_link_libraries(semba-fdtd ${HDF5_LIBRARIES} ${HDF5_HL_LIBRARIES})
@@ -68,9 +95,8 @@ else()
 	message(STATUS "HDF libraries NOT needed.")
 endif()
 
-# option(CompileWithMPI "Use MPI" OFF)
 if (CompileWithMPI)
-	message(STATUS "MPI libraries neeeded")
+	message(STATUS "MPI libraries needed")
 	add_definitions(-DCompileWithMPI)
 	add_definitions(-DCompileWithGfortranMPIfix)
 	message(STATUS "MPI: At your own risk open MPI may not currently work or even compile with Gfortran.")
@@ -84,11 +110,6 @@ else()
 	message(STATUS "MPI libraries NOT needed.")
 endif()
 
-# option (CompileWithMTLN "Use MTLN modules" ON)
-if (CompileWithMTLN)
-	message(STATUS "Compiling MTLN solver")
-	add_subdirectory(src_mtln)
-endif()
 
 add_definitions(		
 -DCompileWithInt2 
@@ -101,4 +122,6 @@ add_definitions(
 -DCompileWithDMMA
 -DCompileWithSGBC
 -DCompileWithWires
-)
+ )
+
+

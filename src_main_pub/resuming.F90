@@ -220,7 +220,7 @@ contains
       type( bounds_t), intent( IN)  ::  b
       integer( kind = 4), intent( IN)  ::  layoutnumber, size
       !--->
-      character( len = *), intent( IN)  ::  nresumeable2, nEntradaRoot
+      character( LEN=*), intent( IN)  ::  nresumeable2, nEntradaRoot
       type( logic_control), intent( IN)  ::  thereare
       integer( kind=4), intent( IN)  ::  fin
       logical :: existe
@@ -235,8 +235,8 @@ contains
       !---------------------------> output <----------------------------------------------------------
       logical, intent( OUT)  ::  everflushed
       !---------------------------> variables locales <-----------------------------------------------
-      character (len=14)  ::  whoami
-      character (len=1024)     ::  dubuf
+      character (LEN=BUFSIZE)  ::  whoami
+      character (LEN=BUFSIZE)     ::  dubuf
       real (kind = RKIND) :: eps00,mu00
       !---------------------------> empieza flush_and_save_resume <-----------------------------------
       integer :: my_iostat

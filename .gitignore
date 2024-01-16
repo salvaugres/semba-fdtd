@@ -33,5 +33,19 @@
 
 .bak
 .vs
-build
+build/
+build-rls/
+build-dbg/
+build-nv/
 CMakeSettings.json
+/CppProperties.json
+
+out/
+Testing/
+/SEMBA_FDTD_temp.log
+.vscode/launch.json
+.vscode/settings.json
+.vscode/tasks.json
+*/*.bak
+./*.bak
+.vscode/ltex.dictionary.en-US.txt

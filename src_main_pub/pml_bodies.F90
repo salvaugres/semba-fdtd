@@ -103,7 +103,7 @@ contains
       integer (kind=4)  ::  jmed,j1,conta,k1,i1,orient
       integer (kind=4), dimension(0:sgg%nummedia) ::maxx,minx,maxy,miny,maxz,minz
       character(len=BUFSIZE) :: buff
-      character (len=14)  ::  whoami
+      character (LEN=BUFSIZE)  ::  whoami
       type (BerPML__t), pointer :: PML_
       logical :: unstable
 

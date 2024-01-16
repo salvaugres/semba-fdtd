@@ -40,7 +40,7 @@ module SGBC_nostoch
 
 
 #ifdef CompileWithSGBC
-
+#ifndef CompileWithStochastic
    use Report
 
    use fdetypes
@@ -166,11 +166,11 @@ contains
       logical, INTENT(OUT)  ::  ThereAreSGBCs
       integer (kind=4)  ::  jmed,j1,conta,k1,i1,SGBCdir,i,filo_placas,idummy,numpolres,ient,incert,maxnumcapas,ii
       character(len=BUFSIZE) :: buff
-      character (len=14)  ::  whoami
+      character (LEN=BUFSIZE)  ::  whoami
       type (SGBCSurface_t), pointer :: compo,compo_temp
       logical :: unstable, errnofile,es_unfilo_placa
       COMPLEX (kind=ckind) :: value1, value2
-      character (len=1024)                            ::   ficheropolos
+      character (LEN=BUFSIZE)                            ::   ficheropolos
 !
       eps0=eps00; mu0=mu00; !chapuz para convertir la variables de paso en globales
       SGBCcrank        = temp_SGBCcrank     
@@ -693,6 +693,11 @@ subroutine calc_SGBCconstants(sgg,G1,G2,Gm1,Gm2,eps00,mu00,stochastic)
 !!!allocateo todas las matrices de constantes
     do conta=1,malon%numnodes
         compo => malon%Nodes(conta)  
+        !!!rellamo a depth para que recalcule bien el deltaentreEinterno !110523 necesario para stochastic
+        !not really needed for the non-stoch version. just added for traceability !110523
+        jmed=compo%jmed
+        call depth(compo,sgg,jmed,SGBCFreq,SGBCresol,SGBCdepth)
+        
         if (.not.allocated(compo%GM1_interno)) then !!!sobran extremos de g y gm pero lo dejo asi para no toquetear mas 0121
             allocate(compo%GM1_interno (-compo%depth  :compo%depth-1) ,&   !se ajustan bien los extremos        
                      compo%GM2_interno (-compo%depth  :compo%depth-1) ,&
@@ -903,6 +908,12 @@ end subroutine calc_SGBCconstants
       REAL (KIND=RKIND), intent(IN)     :: dt
       logical :: SGBCDispersive
       integer (kind=4)  ::  conta
+      
+      if (stochastic.or.simu_devia) then
+          print *,'Buggy Error: no support for stochastic analysis'
+          stop
+      endif
+      
 !       call AdvanceSGBCE_single_node(dt,SGBCDispersive)
 #ifdef CompileWithOpenMP
 !$OMP  PARALLEL DO DEFAULT(SHARED) private (conta) schedule(guided) 
@@ -1172,21 +1183,22 @@ subroutine calc_g1g2gm1gm2_compo(sgg,compo,eps00,mu00,SGBCDispersive)
             sigmatemp=sgg%Med(compo%jmed)%multiport(1)%sigma(1)
             eprtemp= sgg%Med(compo%jmed)%multiport(1)%epr(1)   
           !prescindo de los filo_placa 0121 poque en las pec de boundaries las detecta incorrectamente !de todos modos esto nunca me ha gustado 0121
-            !!!if (compo%es_unfilo_placa) then
-            !!!    epsilon = ((epr_adyacente(0)+epr_adyacente(1))/2.0_rkind  * eps0 *(compo%transversaldeltah - width/2.0_rkind)   + &
-            !!!                eprtemp                                       * eps0 * width /2.0_rkind) / &
-            !!!               (compo%transversaldeltah)
-            !!!    sigma =   ((sig_adyacente(0)+sig_adyacente(1))/2.0_rkind         *(compo%transversaldeltah - width/2.0_rkind)   + &
-            !!!                sigmatemp                                            *width  /2.0_rkind) / &
-            !!!               (compo%transversaldeltah)
-            !!!else
-            epsilon = ((epr_adyacente(0)+epr_adyacente(1))/2.0_rkind  * eps0 *(compo%transversaldeltah-width)   + &
-                        eprtemp                                       * eps0 *width             ) / &
+                        !no puedo prescindir de los filo_placas a 040523 SinSTOCH_antiguou_th0.0001
+            if (compo%es_unfilo_placa) then
+                epsilon = ((epr_adyacente(0)+epr_adyacente(1))/2.0_rkind  * eps0 *(compo%transversaldeltah - width/2.0_rkind)   + &
+                            eprtemp                                       * eps0 * width /2.0_rkind) / &
                            (compo%transversaldeltah)
-            sigma =   ((sig_adyacente(0)+sig_adyacente(1))/2.0_rkind         *(compo%transversaldeltah-width)   + &
-                        sigmatemp                                            *width             ) / &
+                sigma =   ((sig_adyacente(0)+sig_adyacente(1))/2.0_rkind         *(compo%transversaldeltah - width/2.0_rkind)   + &
+                            sigmatemp                                            *width  /2.0_rkind) / &
                            (compo%transversaldeltah)
-            !!!endif
+            else
+                epsilon = ((epr_adyacente(0)+epr_adyacente(1))/2.0_rkind  * eps0 *(compo%transversaldeltah-width)   + &
+                            eprtemp                                       * eps0 *width             ) / &
+                               (compo%transversaldeltah)
+                sigma =   ((sig_adyacente(0)+sig_adyacente(1))/2.0_rkind         *(compo%transversaldeltah-width)   + &
+                            sigmatemp                                            *width             ) / &
+                               (compo%transversaldeltah)
+            endif
 !!!!!ajusta primero los g1 y g2 de los bordes del espesor de la capa !ojo en sgbcdispersive no se utilizan las constantes kappa, beta, g3 en lo putos filo_placas. solo en el interior
             call g1g2(sgg%dt,epsilon,sigma,g1,g2)
             compo%g1   (0)=g1 
@@ -1241,18 +1253,20 @@ subroutine calc_g1g2gm1gm2_compo(sgg,compo,eps00,mu00,SGBCDispersive)
             else
                 ib=sgg%Med(compo%jmed)%multiport(1)%numcapas !ultima capa
                 delta_entreEinterno_temp=compo%delta_entreEinterno(compo%depth-1)     
-            endif
+            endif   
+            width     =sgg%med(compo%jmed)%Multiport(1)%width(ib)
             sigmatemp= sgg%Med(compo%jmed)%multiport(1)%sigma(ib)
             eprtemp=   sgg%Med(compo%jmed)%multiport(1)%epr(ib)  
           !prescindo de los filo_placa 0121 poque en las pec de boundaries las detecta incorrectamente !de todos modos esto nunca me ha gustado 0121
-            !!!!if (compo%es_unfilo_placa) then
-            !!!!    epsilon = (epr_adyacente(i)* eps0 *(compo%transversalDeltaH + delta_entreEinterno_temp /2.0_RKIND)   + &
-            !!!!                       eprtemp         * eps0 *               (delta_entreEinterno_temp /2.0_RKIND)) / &
-            !!!!                      (compo%transversalDeltaH +               delta_entreEinterno_temp)
-            !!!!    Sigma =   (sig_adyacente(i)       *(compo%transversalDeltaH + delta_entreEinterno_temp /2.0_RKIND)   + &
-            !!!!                       sigmatemp               *(delta_entreEinterno_temp  /2.0_RKIND)) / &
-            !!!!                      (compo%transversalDeltaH + delta_entreEinterno_temp)
-            !!!!else
+                        !no puedo prescindir de los filo_placas a 040523 SinSTOCH_antiguou_th0.0001
+            if (compo%es_unfilo_placa) then
+                epsilon = (epr_adyacente(i)* eps0 *(compo%transversalDeltaH + delta_entreEinterno_temp /2.0_RKIND)   + &
+                                   eprtemp         * eps0 *               (delta_entreEinterno_temp /2.0_RKIND)) / &
+                                  (compo%transversalDeltaH +               delta_entreEinterno_temp)
+                Sigma =   (sig_adyacente(i)       *(compo%transversalDeltaH + delta_entreEinterno_temp /2.0_RKIND)   + &
+                                   sigmatemp               *(delta_entreEinterno_temp  /2.0_RKIND)) / &
+                                  (compo%transversalDeltaH + delta_entreEinterno_temp)
+            else
                 epsilon = (epr_adyacente(i)* eps0 *compo%transversalDeltaH   + &
                            eprtemp         * eps0 *delta_entreEinterno_temp    ) / &
                           (compo%transversalDeltaH + delta_entreEinterno_temp)                
@@ -1260,7 +1274,7 @@ subroutine calc_g1g2gm1gm2_compo(sgg,compo,eps00,mu00,SGBCDispersive)
                            sigmatemp              *delta_entreEinterno_temp    ) / &
                           (compo%transversalDeltaH + delta_entreEinterno_temp)
                 
-            !!!!endif
+            endif
     !ajusta primero los g1 Y G2      !no preciso gm1 ni gm2 en los filo_placas
             call g1g2(sgg%dt,epsilon,sigma,g1,g2)
             compo%g1(i)=g1 
@@ -1567,16 +1581,25 @@ subroutine depth(compo,sgg,jmed,SGBCFreq,SGBCresol,SGBCdepth)
                     compo%depth=compo%depth+anchocapa
                 endif
             elseif (precuenta==1) then
-                celdainicial=celdafinal+1
-                celdafinal=celdainicial+anchocapa-1
-                if ((i==numcapas).and.ultimacapamas1) then
-!rellena el sobrante con la ultima capa si no es una division cabal
-                        anchocapa=anchocapa+1
-                        celdafinal=celdafinal+1
-                endif
-                compo%capa(celdainicial:celdafinal) = i
-                compo%delta_entreEinterno(celdainicial:celdafinal)=width/anchocapa
-                continue
+               if (SGBCDepth==0) then      !!!bug corregido a 040523
+                    celdainicial=0
+                    celdafinal=0
+                    anchocapa=1
+                    compo%capa(celdainicial:celdafinal) = i
+                    compo%delta_entreEinterno(celdainicial:celdafinal)=width/anchocapa
+                    continue
+                else  
+	                celdainicial=celdafinal+1
+	                celdafinal=celdainicial+anchocapa-1
+	                if ((i==numcapas).and.ultimacapamas1) then
+	!rellena el sobrante con la ultima capa si no es una division cabal
+	                        anchocapa=anchocapa+1
+	                        celdafinal=celdafinal+1
+	                endif
+	                compo%capa(celdainicial:celdafinal) = i
+	                compo%delta_entreEinterno(celdainicial:celdafinal)=width/anchocapa
+	                continue
+	            endif
             endif
         end do
         if (precuenta==1) then
@@ -1693,6 +1716,7 @@ end subroutine solve_tridiag_distintos
       return
       end subroutine solve_tridiag_iguales
             
+#endif   
 #endif
 
 end module SGBC_nostoch

@@ -768,7 +768,7 @@ contains
       integer, intent (in) :: NumNodalSources
       type (NodalSource_t), dimension(1:NumNodalSources),intent(in)           ::  sggNodalSource
       type (XYZlimit_t), dimension (1:6)    ::  sggSweep
-      character (len=100) :: ficherohopf
+      character (LEN=BUFSIZE) :: ficherohopf
       return
    end subroutine InitHopf
 

@@ -61,18 +61,19 @@ CONTAINS
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
    SUBROUTINE read_geomData (sgg,sggMtag,sggMiNo,sggMiEx,sggMiEy,sggMiEz,sggMiHx,sggMiHy,sggMiHz, fichin, layoutnumber, size, SINPML_fullsize, fullsize, this, &
    groundwires,attfactor,mibc,SGBC,SGBCDispersive,MEDIOEXTRA,maxSourceValue,skindepthpre,createmapvtk,input_conformal_flag,CLIPREGION,boundwireradius,maxwireradius,updateshared,run_with_dmma, &
-   eps00,mu00,simu_devia,hay_slanted_wires,verbose,ignoresamplingerrors,tagtype)
+   eps00,mu00,simu_devia,hay_slanted_wires,verbose,ignoresamplingerrors,tagtype,wiresflavor)
       logical :: simu_devia,verbose,hay_slanted_wires
       REAL (KIND=RKIND)           ::  eps00,mu00
 
       TYPE (MedioExtra_t), INTENT (INout) :: MEDIOEXTRA
       !
+      CHARACTER (LEN=BUFSIZE), intent(in) :: wiresflavor
       logical, intent (in) :: updateshared,run_with_dmma,ignoresamplingerrors
       LOGICAL, INTENT (INout) :: mibc,SGBC,CLIPREGION,boundwireradius,SGBCDispersive,skindepthpre
       LOGICAL, INTENT (INout) :: createmapvtk
       TYPE (limit_t), DIMENSION (1:6) :: SINPML_fullsize, fullsize
       type (SGGFDTDINFO), intent(INOUT)    :: sgg
-      character(len=max_linea) :: extraswitches
+      character(len=BUFSIZE) :: extraswitches
 
       integer (KIND=INTEGERSIZEOFMEDIAMATRICES) , allocatable , dimension(:,:,:) ::  sggMiNo,sggMiEx,sggMiEy,sggMiEz,sggMiHx,sggMiHy,sggMiHz
       integer (KIND=IKINDMTAG) , allocatable , dimension(:,:,:) ::  sggMtag
@@ -82,10 +83,10 @@ CONTAINS
       &      tamaoldSONDA, tamaBloquePrb, tamaScrPrb,pozi,tama2bis,numeroasignaciones
       CHARACTER (LEN=*), INTENT (IN) :: fichin
       !
-      CHARACTER (LEN=7) :: probenumber
+      CHARACTER (LEN=BUFSIZE) :: probenumber
       REAL (KIND=RKIND) :: ex, ey, ez, px, py, pz, amplitud,attfactor,maxSourceValue,minSpaceStep,maxwireradius
 
-      CHARACTER (LEN=MAX_LINEA) :: tag
+      CHARACTER (LEN=BUFSIZE) :: tag
 
       TYPE (XYZlimit_t) :: punto, BoundingBox
       TYPE (XYZlimit_t_scaled) :: punto_s
@@ -102,14 +103,14 @@ CONTAINS
       bboxwirXI,dummy_bboxwirXI,bboxwirYI,dummy_bboxwirYI,bboxwirzI,dummy_bboxwirzI, &
       bboxwirXE,dummy_bboxwirXE,bboxwirYE,dummy_bboxwirYE,bboxwirZE,dummy_bboxwirZE,IERR
       INTEGER (KIND=8) :: memo
-      CHARACTER (LEN=1024) :: MultiportFile,MultiportFile2
+      CHARACTER (LEN=BUFSIZE) :: MultiportFile,MultiportFile2
       CHARACTER (LEN=BUFSIZE) :: buff
       REAL (KIND=RKIND), allocatable, dimension (:) :: dummy_px,dummy_py,dummy_pz,dummy_ex,dummy_ey,dummy_ez,dummy_INCERT
       !
-      CHARACTER (LEN=14) :: whoami
-      character (len=14)  ::  whoamishort
-      character (len=1024)  ::  ext,extpoint
-      character (len=7)  ::  chari,charj,chark,chari2,charj2,chark2
+      CHARACTER (LEN=BUFSIZE) :: whoami
+      character (LEN=BUFSIZE)  ::  whoamishort
+      character (LEN=BUFSIZE)  ::  ext,extpoint
+      character (LEN=BUFSIZE)  ::  chari,charj,chark,chari2,charj2,chark2
       !
       logical :: paraerrhilo,groundwires,islossy,DENTRO
 #ifdef CompileWithDMMA
@@ -1727,8 +1728,9 @@ CONTAINS
          sgg%Med(contamedia)%wire(1)%C = this%twires%TW(j)%CAP
          sgg%Med(contamedia)%wire(1)%P_R = this%twires%TW(j)%P_RES
          sgg%Med(contamedia)%wire(1)%P_l = this%twires%TW(j)%P_IND
+
          sgg%Med(contamedia)%wire(1)%P_C = this%twires%TW(j)%P_CAP
-         if (this%twires%TW(j)%disp) then
+         if (this%twires%TW(j)%disp) then   
             allocate (sgg%Med(contamedia)%wire(1)%disp(1))
             call asignawiredisper(sgg%Med(contamedia)%wire(1)%disp(1), &
                                   this%twires%TW(j)%dispfile)
@@ -2405,7 +2407,7 @@ endif
          sgg%Med(contamedia)%SlantedWire(1)%P_L = this%swires%SW(j)%P_ind
          sgg%Med(contamedia)%SlantedWire(1)%P_C = this%swires%SW(j)%P_cap
          
-         if (this%swires%SW(j)%disp) then
+         if (this%swires%SW(j)%disp) then               
             allocate (sgg%Med(contamedia)%SlantedWire(1)%disp(1))
             call asignawiredisper(sgg%Med(contamedia)%SlantedWire(1)%disp(1), &
                                   this%swires%SW(j)%dispfile)
@@ -5023,7 +5025,7 @@ endif
 
       subroutine asignawiredisper(disp, file)
          type (WireDispersiveParams_t), intent(inout) :: disp
-         CHARACTER (LEN=MAX_LINEA), intent(in)        :: file
+         CHARACTER (LEN=BUFSIZE), intent(in)        :: file
 
          integer (kind=4)  :: i, numPoles
          real (kind=RKIND) :: valreal, valimag
@@ -5736,10 +5738,10 @@ endif
    !!!!!!!!!!!!!!!!PREPROCESADOR PARA SKIN-DEPTH 09/07/13
    subroutine prepro_skindepth(this,fichin)
       integer pozi,tama,j,k
-      character (len=1024)       ::   multiportFile
+      character (LEN=BUFSIZE)       ::   multiportFile
       TYPE (Parseador), INTENT (IN) :: this
       CHARACTER (LEN=*), INTENT (IN) :: fichin
-      character (len=1024)  ::  restocadena
+      character (LEN=BUFSIZE)  ::  restocadena
       integer :: my_iostat
 
       open (unit=7533,file='UGRskindepthmatlab.layers')
@@ -6670,7 +6672,7 @@ end subroutine cuentatags
 function searchtag(tagtype,tag) result(numertag)
 
 
-CHARACTER (LEN=MAX_LINEA) :: tag
+CHARACTER (LEN=BUFSIZE) :: tag
 integer (Kind=4) :: i,numertag
 type (tagtype_t) :: tagtype
 

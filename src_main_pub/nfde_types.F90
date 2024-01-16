@@ -25,7 +25,7 @@
 MODULE NFDETypes
    !
    USE FDETYPES
-   USE REPORT
+
    !
    IMPLICIT NONE
    INTEGER (KIND=4), PARAMETER :: RK = RKIND
@@ -102,7 +102,7 @@ MODULE NFDETypes
       INTEGER (KIND=4) :: Ytrancos = 1
       INTEGER (KIND=4) :: Ztrancos = 1
       INTEGER (KIND=4) :: Or = 0 !f1eld orientation
-      CHARACTER (LEN=MAX_LINEA) :: tag
+      CHARACTER (LEN=BUFSIZE) :: tag
    END TYPE coords
    TYPE, PUBLIC :: coords_scaled
       INTEGER (KIND=4) :: Xi = - 1
@@ -115,7 +115,7 @@ MODULE NFDETypes
       REAL (KIND=RK) :: yc = 0.0_RKIND
       REAL (KIND=RK) :: zc = 0.0_RKIND
           INTEGER (KIND=4) :: Or = 0 !field orientation nuevo 2015
-      CHARACTER (LEN=MAX_LINEA) :: tag
+      CHARACTER (LEN=BUFSIZE) :: tag
    END TYPE coords_scaled
    !-----------------> Material Types
    !------------------------------------------------------------------------------
@@ -253,7 +253,7 @@ MODULE NFDETypes
       INTEGER (KIND=4) :: L = 0
       INTEGER (KIND=4) :: Lm = 0
       INTEGER (KIND=4) :: n_c = 0
-      CHARACTER (LEN=MAX_LINEA) :: files = ' ' !2015 si esta presente lee los polos/residuos desde fichero
+      CHARACTER (LEN=BUFSIZE) :: files = ' ' !2015 si esta presente lee los polos/residuos desde fichero
    END TYPE FreqDepenMaterial
    !------------------------------------------------------------------------------
    ! TYPE that defines the list of frequency depedent materials
@@ -316,7 +316,7 @@ MODULE NFDETypes
       REAL (KIND=RK), DIMENSION (:), POINTER :: thk_devia
       !
       INTEGER (KIND=4) :: nc = 0
-      CHARACTER (LEN=MAX_LINEA) :: files = ' ' !2011 tag nombre fichero
+      CHARACTER (LEN=BUFSIZE) :: files = ' ' !2011 tag nombre fichero
       INTEGER (KIND=4)  :: numcapas  !2014 multicapas
    END TYPE LossyThinSurface
    !------------------------------------------------------------------------------
@@ -333,14 +333,14 @@ MODULE NFDETypes
    ! that defines the whole Thin Wire Reference
    !------------------------------------------------------------------------------
    TYPE, PUBLIC :: ThinWireComp
-      CHARACTER (LEN=MAX_LINEA) :: srctype, srcfile
+      CHARACTER (LEN=BUFSIZE) :: srctype, srcfile
       INTEGER (KIND=4) :: i = - 1
       INTEGER (KIND=4) :: j = - 1
       INTEGER (KIND=4) :: K = - 1
       INTEGER (KIND=4) :: nd = - 1
       INTEGER (KIND=4) :: d = - 1
       REAL (KIND=RK) :: m = 0.0_RKIND
-      CHARACTER (LEN=MAX_LINEA) :: tag
+      CHARACTER (LEN=BUFSIZE) :: tag
    END TYPE ThinWireComp
    !------------------------------------------------------------------------------
    ! ThinWire component that defines the overall properties of the definition
@@ -350,18 +350,18 @@ MODULE NFDETypes
       TYPE (ThinWireComp), DIMENSION (:), POINTER :: twc => NULL ()
       REAL (KIND=RK) :: rad = 0 , rad_devia = 0
       LOGICAL :: disp = .false.
-      CHARACTER (LEN=MAX_LINEA) :: dispfile
+      CHARACTER (LEN=BUFSIZE) :: dispfile
       REAL (KIND=RK) :: res = 0 , res_devia = 0
       REAL (KIND=RK) :: ind = 0 , ind_devia = 0
       REAL (KIND=RK) :: cap = 0 , cap_devia = 0
       REAL (KIND=RK) :: P_res = 0
       REAL (KIND=RK) :: P_ind = 0
       REAL (KIND=RK) :: P_cap = 0
-      CHARACTER (LEN=MAX_LINEA) :: dispfile_LeftEnd
+      CHARACTER (LEN=BUFSIZE) :: dispfile_LeftEnd
       REAL (KIND=RK) :: R_LeftEnd = 0 , R_LeftEnd_devia = 0
       REAL (KIND=RK) :: L_LeftEnd = 0 , L_LeftEnd_devia = 0
       REAL (KIND=RK) :: C_LeftEnd = 0 , C_LeftEnd_devia = 0
-      CHARACTER (LEN=MAX_LINEA) :: dispfile_RightEnd
+      CHARACTER (LEN=BUFSIZE) :: dispfile_RightEnd
       REAL (KIND=RK) :: R_RightEnd = 0 , R_RightEnd_devia = 0
       REAL (KIND=RK) :: L_RightEnd = 0 , L_RightEnd_devia = 0
       REAL (KIND=RK) :: C_RightEnd = 0 , C_RightEnd_devia = 0
@@ -386,13 +386,13 @@ MODULE NFDETypes
    ! that defines the whole Slanted Wire Reference
    !------------------------------------------------------------------------------
    TYPE, PUBLIC :: SlantedWireComp
-      CHARACTER (LEN=MAX_LINEA) :: srctype, srcfile
+      CHARACTER (LEN=BUFSIZE) :: srctype, srcfile
       REAL (KIND=RK) :: x = - 1.0_RKIND
       REAL (KIND=RK) :: y = - 1.0_RKIND
       REAL (KIND=RK) :: z = - 1.0_RKIND
       INTEGER (KIND=4) :: nd = - 1
       REAL (KIND=RK) :: m = 0.0_RKIND
-      CHARACTER (LEN=MAX_LINEA) :: tag
+      CHARACTER (LEN=BUFSIZE) :: tag
    END TYPE SlantedWireComp
    !------------------------------------------------------------------------------
    ! ThinWire component that defines the overall properties of the definition
@@ -402,18 +402,18 @@ MODULE NFDETypes
       TYPE (SlantedWireComp), DIMENSION (:), POINTER :: swc => NULL ()
       REAL (KIND=RK) :: rad = 0
       LOGICAL :: disp = .false.
-      CHARACTER (LEN=MAX_LINEA) :: dispfile
+      CHARACTER (LEN=BUFSIZE) :: dispfile
       REAL (KIND=RK) :: res = 0
       REAL (KIND=RK) :: ind = 0
       REAL (KIND=RK) :: cap = 0
       REAL (KIND=RK) :: P_res = 0
       REAL (KIND=RK) :: P_ind = 0
       REAL (KIND=RK) :: P_cap = 0
-      CHARACTER (LEN=MAX_LINEA) :: dispfile_LeftEnd
+      CHARACTER (LEN=BUFSIZE) :: dispfile_LeftEnd
       REAL (KIND=RK) :: R_LeftEnd = 0
       REAL (KIND=RK) :: L_LeftEnd = 0
       REAL (KIND=RK) :: C_LeftEnd = 0
-      CHARACTER (LEN=MAX_LINEA) :: dispfile_RightEnd
+      CHARACTER (LEN=BUFSIZE) :: dispfile_RightEnd
       REAL (KIND=RK) :: R_RightEnd = 0
       REAL (KIND=RK) :: L_RightEnd = 0
       REAL (KIND=RK) :: C_RightEnd = 0
@@ -445,7 +445,7 @@ MODULE NFDETypes
       INTEGER (KIND=4) :: dir = - 1
       INTEGER (KIND=4) :: Or = - 1 !added by 2011 and filled in inside PREPROCESS
       !since the orientation of the plane info is not on .nfde, but foud afterwards
-      CHARACTER (LEN=MAX_LINEA) :: tag
+      CHARACTER (LEN=BUFSIZE) :: tag
    END TYPE ThinSlotComp
    !--------------------------------------------------------------------------
    ! ThinSlot component that defines the overall properties of the definition
@@ -488,13 +488,13 @@ MODULE NFDETypes
    ! it should be saved
    !------------------------------------------------------------------------------
    TYPE, PUBLIC :: MasSonda
-      CHARACTER (LEN=MAX_LINEA) :: filename
+      CHARACTER (LEN=BUFSIZE) :: filename
       TYPE (coords), DIMENSION (:), POINTER :: cordinates => NULL ()
       REAL (KIND=RK) :: tstart, tstop, tstep
       REAL (KIND=RK) :: fstart, fstop, fstep
       INTEGER (KIND=4) :: type1, type2
       INTEGER (KIND=4) :: len_cor = 0
-      CHARACTER (LEN=MAX_LINEA) :: outputrequest
+      CHARACTER (LEN=BUFSIZE) :: outputrequest
    END TYPE MasSonda
    !------------------------------------------------------------------------------
    ! TYPE that defines a list of probes to be appended and accesed
@@ -509,7 +509,7 @@ MODULE NFDETypes
    ! This TYPE contains the basic information in nearly all the different PROBES
    !------------------------------------------------------------------------------
    TYPE, PUBLIC :: Sonda
-      CHARACTER (LEN=MAX_LINEA) :: grname
+      CHARACTER (LEN=BUFSIZE) :: grname
       INTEGER (KIND=4), DIMENSION (:), POINTER :: i => NULL ()
       INTEGER (KIND=4), DIMENSION (:), POINTER :: j => NULL ()
       INTEGER (KIND=4), DIMENSION (:), POINTER :: K => NULL ()
@@ -517,12 +517,12 @@ MODULE NFDETypes
       INTEGER (KIND=4) :: n_cord = 0
       INTEGER (KIND=4) :: n_cord_max = 0
       REAL (KIND=RK) :: tstart, tstop, tstep
-      CHARACTER (LEN=MAX_LINEA) :: outputrequest
+      CHARACTER (LEN=BUFSIZE) :: outputrequest
       !por si se precisa para el Far Field
       REAL (KIND=RK) :: fstart, fstop, fstep
       REAL (KIND=RK) :: phistart, phistop, phistep
       REAL (KIND=RK) :: thetastart, thetastop, thetastep
-      CHARACTER (LEN=MAX_LINEA) :: FileNormalize
+      CHARACTER (LEN=BUFSIZE) :: FileNormalize
    END TYPE Sonda
    !------------------------------------------------------------------------------
    ! TYPE for the electric far field
@@ -620,13 +620,13 @@ MODULE NFDETypes
    TYPE, PUBLIC :: BloqueProbe
       REAL (KIND=RK) :: tstart, tstop, tstep
       REAL (KIND=RK) :: fstart, fstop, fstep
-      CHARACTER (LEN=MAX_LINEA) :: FileNormalize
+      CHARACTER (LEN=BUFSIZE) :: FileNormalize
       INTEGER (KIND=4) :: type2
       INTEGER (KIND=4) :: i1, i2, j1, j2, k1, k2, skip
       INTEGER (KIND=4) :: nml
       LOGICAL :: t
-      CHARACTER (LEN=MAX_LINEA) :: outputrequest
-      CHARACTER (LEN=MAX_LINEA) :: tag
+      CHARACTER (LEN=BUFSIZE) :: outputrequest
+      CHARACTER (LEN=BUFSIZE) :: tag
    END TYPE BloqueProbe
    ! Object made for the collection of defined Bloque probes
    TYPE, PUBLIC :: BloqueProbes
@@ -641,12 +641,12 @@ MODULE NFDETypes
    TYPE, PUBLIC :: VolProbe
       TYPE (coords), DIMENSION (:), POINTER :: cordinates => NULL ()
       REAL (KIND=RK) :: tstart, tstop, tstep
-      CHARACTER (LEN=MAX_LINEA) :: outputrequest
+      CHARACTER (LEN=BUFSIZE) :: outputrequest
       INTEGER (KIND=4) :: len_cor = 0
       !para freq domain
       REAL (KIND=RK) :: fstart, fstop, fstep
       INTEGER (KIND=4) ::  type2
-      CHARACTER (LEN=MAX_LINEA) :: filename
+      CHARACTER (LEN=BUFSIZE) :: filename
    END TYPE VolProbe
    ! Object made for the collection of defined Volumic probes
    TYPE, PUBLIC :: VolProbes
@@ -660,7 +660,7 @@ MODULE NFDETypes
    !------------------------------------------------------------------------------
    !------------------------------------------------------------------------------
    TYPE, PUBLIC :: Box
-      CHARACTER (LEN=MAX_LINEA) :: nombre_fichero
+      CHARACTER (LEN=BUFSIZE) :: nombre_fichero
       INTEGER (KIND=4), DIMENSION (3) :: coor1, coor2
    END TYPE Box
    !------------------------------------------------------------------------------
@@ -673,8 +673,8 @@ MODULE NFDETypes
    !------------------------------------------------------------------------------
    !------------------------------------------------------------------------------
    TYPE, PUBLIC :: PlaneWave
-      CHARACTER (LEN=MAX_LINEA) :: nombre_fichero
-      CHARACTER (LEN=MAX_LINEA) :: atributo
+      CHARACTER (LEN=BUFSIZE) :: nombre_fichero
+      CHARACTER (LEN=BUFSIZE) :: atributo
       INTEGER (KIND=4), DIMENSION (3) :: coor1, coor2
       REAL (KIND=RK) :: theta, phi, alpha, beta
       logical :: isRC !for reververation chambers
@@ -695,7 +695,7 @@ MODULE NFDETypes
    TYPE, PUBLIC :: Curr_Field_Src
       TYPE (coords_scaled), DIMENSION (:), POINTER :: c1P => NULL ()
       TYPE (coords_scaled), DIMENSION (:), POINTER :: c2P => NULL ()
-      CHARACTER (LEN=MAX_LINEA) :: nombre
+      CHARACTER (LEN=BUFSIZE) :: nombre
       INTEGER (KIND=4) :: n_C1P = 0
       INTEGER (KIND=4) :: n_C2P = 0
       LOGICAL :: isElec, isMagnet
@@ -753,7 +753,7 @@ MODULE NFDETypes
    ! Parameters needed for the parser
    !------------------------------------------------------------------------------
    TYPE, PUBLIC :: Parseador
-      character (len=max_linea) :: switches=' '  
+      character (len=BUFSIZE) :: switches=' '  
       ! Basics
       TYPE (NFDEGeneral), POINTER ::           general => NULL ()
       TYPE (MatrizMedios), POINTER ::          matriz => NULL ()
@@ -785,7 +785,7 @@ MODULE NFDETypes
    !---> definicion de tipos
    TYPE, PUBLIC :: t_linea
       INTEGER (KIND=4) :: LEN
-      CHARACTER (LEN=MAX_LINEA) :: dato
+      CHARACTER (LEN=BUFSIZE) :: dato
    END TYPE t_linea
    !--->
    TYPE, PUBLIC :: t_NFDE_FILE
@@ -796,7 +796,7 @@ MODULE NFDETypes
       TYPE (t_linea), DIMENSION (:), POINTER :: lineas
       logical :: thereare_stoch
    END TYPE t_NFDE_FILE
-   !--->
+!--->
 
 END MODULE NFDETypes
 
@@ -1054,7 +1054,7 @@ CONTAINS
       !sgg'10
       INTEGER (KIND=4) :: comi,type2
       CHARACTER (LEN=*), INTENT (INOUT) :: outputrequest
-      CHARACTER (LEN=MAX_LINEA) :: filename
+      CHARACTER (LEN=BUFSIZE) :: filename
       comi = index (outputrequest, '*') + 1
       this%outputrequest = trim (adjustl(outputrequest(comi:)))
       !! fin sgg'10

@@ -133,7 +133,7 @@ contains
       dzh = temp_dzh
 !
       !!!
-      !character (len=4) :: donde
+      !character (len=BUFSIZE) :: donde
       !integer (KIND=4) :: layoutnumber
 
       !
