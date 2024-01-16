@@ -14,16 +14,13 @@ option(CompileWithHDF "Use HDF" OFF)
 option(CompileWithMPI "Use MPI" OFF)
 option(CompileWithJSON "Compile JSON format parser" ON)
 option(CompileExecutable "Compiles semba-fdtd executble" ON)
-option (CompileWithMTLN "Use MTLN modules" OFF)
+option(CompileWithMTLN "Use MTLN modules" OFF)
 
 add_library(semba-types 
 	"src_main_pub/nfde_types.F90"
 	"src_main_pub/fdetypes.F90"
 )
-
-if (CompileWithJSON OR CompileWithMTLN)
-	add_subdirectory(external/fhash/)
-endif()
+add_subdirectory(external/fhash/)
 
 if (CompileWithJSON)
 	message(STATUS "Compiling JSON format parser")
@@ -34,8 +31,6 @@ endif()
 
 if (CompileWithMTLN)
 	message(STATUS "Compiling MTLN solver")
-	add_subdirectory(external/lapack)
-	# add_subdirectory(external/ngspice)
 	add_subdirectory(src_mtln)
 endif()
 

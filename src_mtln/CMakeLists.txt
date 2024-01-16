@@ -21,22 +21,21 @@ add_library(mtlnsolver
 	"src/utils.F90"
 	"src/probes.F90"
 	"src/types.F90"
-	#"src/dispersive.F90"
+	"src/dispersive.F90"
 	"src/rational_approximation.F90"
-	# "src/ngspice_interface.F90"
+	"src/ngspice_interface.F90"
 )
 
-# set(LAPACK_DIR "${CMAKE_SOURCE_DIR}/external/lapack/build/lib/")
-# set(LAPACK_LIB ${LAPACK_DIR}liblapack.a)
-# set(BLAS_LIB ${LAPACK_DIR}libblas.a)
-set(NGSPICE_DIR "${CMAKE_SOURCE_DIR}/external/ngspice/src/.libs/")
+set(LAPACK_DIR "${CMAKE_SOURCE_DIR}/precompiled_libraries/linux-gcc-rls/lapack/")
+set(NGSPICE_DIR "${CMAKE_SOURCE_DIR}/precompiled_libraries/linux-gcc-rls/ngspice/")
+set(LAPACK_LIB ${LAPACK_DIR}liblapack.a)
+set(BLAS_LIB ${LAPACK_DIR}libblas.a)
 set(NGSPICE_LIB ${NGSPICE_DIR}libngspice.so)
 
 target_link_libraries(mtlnsolver 
-	# ${LAPACK_LIB} 
-	${LAPACK_LIBRARIES}
-	# ${BLAS_LIB} 
-	# ${NGSPICE_LIB} 
+	${LAPACK_LIB} 
+	${BLAS_LIB} 
+	${NGSPICE_LIB} 
 	fhash
 )
 

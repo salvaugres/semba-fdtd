@@ -10,11 +10,14 @@ integer function test_time_step() result(error_cnt)
 
     real, dimension(5,2) :: phase_velocities
     real :: time_step, max_vel
-    real,dimension(2,2) :: lpul = reshape( source = [ 4.4712610E-07, 1.4863653E-07, 1.4863653E-07, 4.4712610E-07 ], shape = [ 2,2 ] )
-    real,dimension(2,2) :: cpul = reshape( source = [ 2.242e-10, -7.453e-11,-7.453e-11, 2.242e-10 ], shape = [ 2,2 ] )
+    real,dimension(2,2) :: lpul = &
+        reshape( source = [ 4.4712610E-07, 1.4863653E-07, 1.4863653E-07, 4.4712610E-07 ], shape = [ 2,2 ] )
+    real,dimension(2,2) :: &
+        cpul = reshape( source = [ 2.242e-10, -7.453e-11,-7.453e-11, 2.242e-10 ], shape = [ 2,2 ] )
     real,dimension(2,2) :: rpul = reshape( source = [ 0.0, 0.0, 0.0,0.0 ], shape = [ 2,2 ] )
     real,dimension(2,2) :: gpul = reshape( source = [ 0.0, 0.0, 0.0,0.0 ], shape = [ 2,2 ] )
-    real, dimension(2,3) :: node_positions = reshape( source = [ 0.0, 0.0, 0.0, 100.0, 0.0, 0.0], shape = [2,3], order=(/2,1/) )
+    real, dimension(2,3) :: node_positions = &
+        reshape( source = [ 0.0, 0.0, 0.0, 100.0, 0.0, 0.0], shape = [2,3], order=(/2,1/) )
     integer, dimension(1) :: ndiv = (/5/)
     type(mtl_t) :: line 
 

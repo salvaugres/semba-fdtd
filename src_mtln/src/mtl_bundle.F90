@@ -137,23 +137,34 @@ contains
         !     this%v_diff(i,:,:) = IF1(i,:,:)
         ! enddo
 
-        F1 = reshape(source=[(matmul(this%du_length(i,:,:), &
-                                     this%lpul(i,:,:)/this%dt + 0.5*this%transfer_impedance%d(i,:,:) + this%transfer_impedance%e(i,:,:)/this%dt + 0.5*this%rpul(i,:,:) + this%transfer_impedance%q1_sum(i,:,:)), &
-                                     i = 1,this%number_of_divisions)], & 
-                                     shape=[this%number_of_divisions,this%number_of_conductors, this%number_of_conductors], &
-                                     order=[2,3,1])
-        F2 = reshape(source=[(matmul(this%du_length(i,:,:), &
-                                     this%lpul(i,:,:)/this%dt - 0.5*this%transfer_impedance%d(i,:,:) + this%transfer_impedance%e(i,:,:)/this%dt - 0.5*this%rpul(i,:,:) - this%transfer_impedance%q1_sum(i,:,:)), &
-                                     i = 1,this%number_of_divisions)], & 
-                                     shape=[this%number_of_divisions,this%number_of_conductors, this%number_of_conductors], &
-                                     order=[2,3,1])
+        F1 = reshape(source=[(matmul( &
+            this%du_length(i,:,:), &
+            this%lpul(i,:,:)/this%dt + &
+                0.5*this%transfer_impedance%d(i,:,:) + &
+                this%transfer_impedance%e(i,:,:)/this%dt + &
+                0.5*this%rpul(i,:,:) + &
+                this%transfer_impedance%q1_sum(i,:,:)), &
+            i = 1,this%number_of_divisions)], & 
+            shape=[this%number_of_divisions,this%number_of_conductors, this%number_of_conductors], &
+            order=[2,3,1])
+        F2 = reshape(source=[(matmul( &
+            this%du_length(i,:,:), &
+            this%lpul(i,:,:)/this%dt - &
+            0.5*this%transfer_impedance%d(i,:,:) + &
+            this%transfer_impedance%e(i,:,:)/this%dt - &
+            0.5*this%rpul(i,:,:) - &
+            this%transfer_impedance%q1_sum(i,:,:)), &
+            i = 1,this%number_of_divisions)], & 
+            shape=[this%number_of_divisions,this%number_of_conductors, this%number_of_conductors], &
+            order=[2,3,1])
 
         IF1 = reshape(source=[(inv(F1(i,:,:)), i = 1, this%number_of_divisions)], &
                       shape=[this%number_of_divisions,this%number_of_conductors, this%number_of_conductors], &
                       order=[2,3,1])
-        this%i_term = reshape(source=[(matmul(IF1(i,:,:), F2(i,:,:)), i = 1, this%number_of_divisions)], &
-                              shape=[this%number_of_divisions,this%number_of_conductors, this%number_of_conductors], &
-                              order=[2,3,1])
+        this%i_term = reshape(&
+            source=[(matmul(IF1(i,:,:), F2(i,:,:)), i = 1, this%number_of_divisions)], &
+            shape=[this%number_of_divisions,this%number_of_conductors, this%number_of_conductors], &
+            order=[2,3,1])
         this%v_diff = IF1
 
     end subroutine
@@ -170,20 +181,26 @@ contains
         end do
         extended_du_length(this%number_of_divisions + 1,:,:) = this%du_length(this%number_of_divisions,:,:)
 
-        F1 = reshape(source=[(matmul(extended_du_length(i,:,:), this%cpul(i,:,:)/this%dt) + 0.5*this%gpul(i,:,:), i = 1, this%number_of_divisions + 1)], &
-                     shape=[this%number_of_divisions + 1,this%number_of_conductors, this%number_of_conductors], &
-                     order=[2,3,1])
-        F2 = reshape(source=[(matmul(extended_du_length(i,:,:), this%cpul(i,:,:)/this%dt) - 0.5*this%gpul(i,:,:), i = 1, this%number_of_divisions + 1)], &
-                     shape=[this%number_of_divisions + 1,this%number_of_conductors, this%number_of_conductors], &
-                     order=[2,3,1])
+        F1 = reshape(&
+            source=[(matmul(extended_du_length(i,:,:), &
+            this%cpul(i,:,:)/this%dt) + 0.5*this%gpul(i,:,:), i = 1, this%number_of_divisions + 1)], &
+            shape=[this%number_of_divisions + 1,this%number_of_conductors, this%number_of_conductors], &
+            order=[2,3,1])
+        F2 = reshape(&
+            source=[(matmul(extended_du_length(i,:,:), &
+            this%cpul(i,:,:)/this%dt) - 0.5*this%gpul(i,:,:), i = 1, this%number_of_divisions + 1)], &
+            shape=[this%number_of_divisions + 1,this%number_of_conductors, this%number_of_conductors], &
+            order=[2,3,1])
 
-        IF1 = reshape(source=[(inv(F1(i,:,:)), i = 1, this%number_of_divisions + 1)], &
-                      shape=[this%number_of_divisions + 1,this%number_of_conductors, this%number_of_conductors], &
-                      order=[2,3,1])
+        IF1 = reshape(&
+            source=[(inv(F1(i,:,:)), i = 1, this%number_of_divisions + 1)], &
+            shape=[this%number_of_divisions + 1,this%number_of_conductors, this%number_of_conductors], &
+            order=[2,3,1])
 
-        this%v_term = reshape(source=[(matmul(IF1(i,:,:), F2(i,:,:)), i = 1, this%number_of_divisions + 1)], &
-                              shape=[this%number_of_divisions + 1,this%number_of_conductors, this%number_of_conductors], &
-                              order=[2,3,1])
+        this%v_term = reshape(&
+            source=[(matmul(IF1(i,:,:), F2(i,:,:)), i = 1, this%number_of_divisions + 1)], &
+            shape=[this%number_of_divisions + 1,this%number_of_conductors, this%number_of_conductors], &
+            order=[2,3,1])
         this%i_diff = IF1
 
     end subroutine
