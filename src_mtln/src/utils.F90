@@ -36,15 +36,14 @@ contains
   end function
 
    function eye(dim) result(res)
-      real, dimension(dim, dim) :: res
       integer, intent(in) :: dim
+      real, dimension(dim, dim) :: res
       integer :: i
 
       res = 0
       do i = 1, dim
          res(i,i) = 1.0
       end do
-
    end function eye
 
    function getEigenValues(matrix) result(eigvals)

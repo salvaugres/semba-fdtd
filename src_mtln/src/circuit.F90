@@ -16,7 +16,9 @@ module circuit_mod
         procedure :: command
         procedure :: getCurrentPlotName
         procedure :: getVectorInfo
-
+        procedure :: getVectorInfo2
+        procedure :: getAllPlots
+        procedure :: getAllVecs
     end type circuit_t
 
 contains
@@ -70,7 +72,7 @@ contains
         class(circuit_t) :: this
         character(len=*), intent(in) :: line
         integer :: out
-        out = ngSpice_Command(line)
+        out = ngSpice_Command(line // c_null_char)
     end subroutine
 
     function getCurrentPlotName(this) result(res)
@@ -94,9 +96,61 @@ contains
         name = ptrName(1:index(ptrName, c_null_char)-1)
 
         res = ngGet_Vec_Info(name//'.'//vectorName//c_null_char)
-        res = ngGet_Vec_Info(vectorName//c_null_char)
+        ! res = ngGet_Vec_Info(vectorName//c_null_char)
 
     end function
 
+    function getVectorInfo2(this, vectorName) result(res)
+        class(circuit_t) :: this
+        ! type(c_ptr) :: pv
+        type(c_ptr) :: res
+        ! character(len=:), pointer :: ptrName
+        ! character(len=:), allocatable :: name
+        character(len=*), intent(in) :: vectorName
+
+        ! call c_f_pointer(ngSpice_CurPlot(), ptrName)
+        ! name = ptrName(1:index(ptrName, c_null_char)-1)
+        ! call this%command("setplot "//name);
+
+        res = ngGet_Vec_Info2(vectorName//c_null_char)
+        ! call c_f_pointer(pv, res)
+
+    end function
+
+    ! function getVectorInfo2(this, vectorName) result(res)
+    !     class(circuit_t) :: this
+    !     type(c_ptr) :: pv
+    !     type(vectorInfo), pointer :: res
+    !     character(len=:), pointer :: ptrName
+    !     character(len=:), allocatable :: name
+    !     character(len=*), intent(in) :: vectorName
+
+    !     call c_f_pointer(ngSpice_CurPlot(), ptrName)
+    !     name = ptrName(1:index(ptrName, c_null_char)-1)
+    !     ! call this%command("setplot "//name);
+
+    !     pv = ngGet_Vec_Info2(vectorName//c_null_char)
+    !     call c_f_pointer(pv, res)
+
+    ! end function
+
+    function getAllPlots(this) result(res)
+        class(circuit_t) :: this
+        integer :: length
+        character(len=:), pointer :: res(:)
+        call c_f_pointer(ngSpice_AllPlots(), res, [1])
+    end function
+
+    function getAllVecs(this, plotName) result(res)
+        class(circuit_t) :: this
+        character(len=*), intent(in) :: plotName
+        character(len=:), pointer :: res(:)
+        character(len=:), pointer :: allPlots(:)
+
+        ! allPlots => this%getAllPlots()
+        ! call this%command('setplot '// plotName)
+        call c_f_pointer(ngSpice_AllVecs(plotName//c_null_char), res, [4])
+
+    end function
 
 end module 

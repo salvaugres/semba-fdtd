@@ -49,6 +49,10 @@ module ngspice_interface_mod
         ! type(vecInOfAll), pointer :: pVecInOfAll_ptr
     end type
 
+    type :: vecValuesArray
+        type(vecValues), pointer :: vecValuesPtr
+    end type
+
     type, bind(C) :: vecValues
         character(kind=c_char), dimension(50) :: name
         real(c_double) :: cReal
@@ -77,7 +81,9 @@ module ngspice_interface_mod
 
     interface
 
-        integer(c_int) function ngSpice_Init(cbSendChar, cbSendStat, cbControlledExit, cbSendData, cbSendInitData, cbBGThreadRunning, returnPtr) bind(C, name="ngSpice_Init")
+        integer(c_int) function ngSpice_Init(&
+            cbSendChar, cbSendStat, cbControlledExit, cbSendData, &
+            cbSendInitData, cbBGThreadRunning, returnPtr) bind(C, name="ngSpice_Init")
             import :: c_int, c_ptr, c_funptr
             type(c_funptr), intent(in), value :: cbSendChar
             type(c_funptr), intent(in), value :: cbSendStat
@@ -106,7 +112,19 @@ module ngspice_interface_mod
             character(kind=c_char), dimension(*), intent(in) :: name
         end function
 
-        ! type() function ngSpice_AllVecs()
+        type(c_ptr) function ngGet_Vec_Info2(name) bind(C, name="ngGet_Vec_Info")
+            import :: c_ptr, c_char
+            character(kind=c_char), dimension(*), intent(in) :: name
+        end function
+
+        type(c_ptr) function ngSpice_AllPlots() bind(C, name="ngSpice_AllPlots")
+            import :: c_ptr
+        end function
+
+        type(c_ptr) function ngSpice_AllVecs(name) bind(C, name="ngSpice_AllVecs")
+            import :: c_ptr, c_char
+            character(kind=c_char), dimension(*), intent(in) :: name
+        end function
 
     end interface
 
@@ -122,6 +140,7 @@ contains
 
         call c_f_pointer(output, f_output)
         string = f_output(1:index(f_output, c_null_char)-1)
+        ! string = string(index(string,'stdout'):len(string)) ! remove 'stdout'?
         write(*,*) 'SendChar: ', trim(string)
         if (index('stderror Error:', string) /= 0) then
             ! errorFlag = .true.
@@ -160,15 +179,29 @@ contains
     end function
 
     integer(c_int) function SendData(data, numberOfStructs, id, returnPtr) bind(C, name="SendData")
+        type(c_ptr), value, intent(in) :: data, returnPtr
         integer(c_int), value :: numberOfStructs, id
-        ! type(pVecValuesAll), value, intent(in) :: data
-        type(vecValuesAll), pointer, intent(in) :: data
-        ! type(c_ptr), value, intent(in) :: data
-        type(c_ptr), value, intent(in) :: returnPtr
-        ! type(vecValuesAll), pointer :: values
 
-        ! need to do this?
-        ! call c_f_pointer(data, values) 
+        type(vecValuesAll), pointer :: values
+
+        ! type(c_ptr), dimension(:), allocatable :: vecsaPtr
+        type(vecValuesArray), allocatable :: vecsaPtr(:)
+        type(c_ptr), pointer :: p(:)
+        character, dimension(50) :: f_output
+        integer :: i
+
+        call c_f_pointer(data, values) 
+        call c_f_pointer(values%vecsa, p, [values%vecCount])
+
+        allocate(vecsaPtr(values%vecCount))
+        do i = 1, values%vecCount
+            call c_f_pointer(p(i), vecsaPtr(i)%vecValuesPtr)
+            f_output = vecsaPtr(i)%vecValuesPtr%name
+            write(*,*) f_output
+            ! write(*,*) f_output(1:index(f_output, c_null_char)-1)
+        end do
+        ! how to make this information available to circuit_t?
+        ! how to make it be accesible through the calls to get_vec_info?
 
         write(*,*) 'SendData'
 
