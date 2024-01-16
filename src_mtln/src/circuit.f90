@@ -15,7 +15,7 @@ module circuit_mod
         procedure :: print
         procedure :: command
         procedure :: getCurrentPlotName
-        procedure :: getCurrentVectorInfo
+        procedure :: getVectorInfo
 
     end type circuit_t
 
@@ -83,15 +83,18 @@ contains
 
     end function
 
-    function getCurrentVectorInfo(this) result(res)
+    function getVectorInfo(this, vectorName) result(res)
         class(circuit_t) :: this
         type(pVectorInfo) :: res
-        ! character(kind=c_char), dimension(:), pointer :: f_output
         character(len=:), pointer :: ptrName
+        character(len=:), allocatable :: name
+        character(len=*), intent(in) :: vectorName
 
         call c_f_pointer(ngSpice_CurPlot(), ptrName)
-        res = ngGet_Vec_Info(ptrName//'.v(1)'//c_null_char)
-        res = ngGet_Vec_Info('v(1)'//c_null_char)
+        name = ptrName(1:index(ptrName, c_null_char)-1)
+
+        res = ngGet_Vec_Info(name//'.'//vectorName//c_null_char)
+        res = ngGet_Vec_Info(vectorName//c_null_char)
 
     end function
 

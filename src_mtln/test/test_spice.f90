@@ -18,9 +18,9 @@ integer function test_spice() result(error_cnt)
 
     call circuit%command('print all' // c_null_char)
 
-    plotName = circuit%getCurrentPlotName()
-    write(*,*) plotName
-    info = circuit%getCurrentVectorInfo()
+    ! plotName = circuit%getCurrentPlotName()
+    ! write(*,*) plotName
+    info = circuit%getVectorInfo('v(1)')
 
     call circuit%command('write ../../src_mtln/testData/test3.txt v(1) v(2) v(3)')
     ! call circuit%command('status')
