@@ -13,7 +13,7 @@ message(STATUS ${CMAKE_Fortran_COMPILER_ID})
 option(CompileWithHDF "Use HDF" OFF)
 option(CompileWithMPI "Use MPI" OFF)
 option(CompileWithJSON "Compile JSON format parser" ON)
-option(CompileExecutable "Compiles semba-fdtd executble" ON)
+option(CompileExecutable "Compiles semba-fdtd executable" ON)
 option(CompileWithMTLN "Use MTLN modules" OFF)
 
 add_library(semba-types 

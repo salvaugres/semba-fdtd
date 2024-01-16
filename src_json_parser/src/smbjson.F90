@@ -911,7 +911,8 @@ contains
 
          call this%core%get_child(tms, 1, tm)
 
-         res%terminationType = strToTerminationType(this%getStrAt(tm, J_TYPE, found))
+         label = this%getStrAt(tm, J_TYPE, found)
+         res%terminationType = strToTerminationType(label)
          if (.not. found) then
             write(error_unit, *) "Error reading wire terminal. termination must specify a type."
          end if

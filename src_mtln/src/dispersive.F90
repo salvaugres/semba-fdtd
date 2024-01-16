@@ -1,7 +1,7 @@
 module dispersive_mod
     use utils_mod
     ! use utils_mod, only: dotMatmul, entryMatmul, entry, componentSum, add_entries
-    use fhash, only: fhash_tbl_t, key=>fhash_key, fhash_iter_t, fhash_key_t
+    use fhash, only: fhash_tbl_t, key=>fhash_key, fhash_key_t
     use rational_approximation_mod
     implicit none
     

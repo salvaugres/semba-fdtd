@@ -27,9 +27,10 @@ add_library(mtlnsolver
 )
 
 set(LAPACK_DIR "${CMAKE_SOURCE_DIR}/precompiled_libraries/linux-gcc-rls/lapack/")
-set(NGSPICE_DIR "${CMAKE_SOURCE_DIR}/precompiled_libraries/linux-gcc-rls/ngspice/")
 set(LAPACK_LIB ${LAPACK_DIR}liblapack.a)
 set(BLAS_LIB ${LAPACK_DIR}libblas.a)
+
+set(NGSPICE_DIR "${CMAKE_SOURCE_DIR}/precompiled_libraries/linux-gcc-rls/ngspice/")
 set(NGSPICE_LIB ${NGSPICE_DIR}libngspice.so)
 
 target_link_libraries(mtlnsolver 
