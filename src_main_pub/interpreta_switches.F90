@@ -1318,15 +1318,15 @@ CONTAINS
       CALL get_secnds (l%time_out2)
       call print_credits(l)
 #ifdef CompileWithReal8
-      WRITE (dubuf,*) 'Compiled with Double l%precision (real*8)'
+      WRITE (dubuf,*) 'Compiled with Double precision (real*8)'
       CALL print11 (l%layoutnumber, dubuf)
 #endif      
 #ifdef CompileWithReal4
-      WRITE (dubuf,*) 'Compiled with Single l%precision (real*4)'
+      WRITE (dubuf,*) 'Compiled with Single precision (real*4)'
       CALL print11 (l%layoutnumber, dubuf)
 #endif      
 #ifdef CompileWithReal16
-      WRITE (dubuf,*) 'Compiled with Quadruple l%precision (real*16)'
+      WRITE (dubuf,*) 'Compiled with Quadruple precision (real*16)'
       CALL print11 (l%layoutnumber, dubuf)
 #endif      
       WRITE (dubuf,*) SEPARADOR // SEPARADOR // SEPARADOR
