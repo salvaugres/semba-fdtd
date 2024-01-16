@@ -440,6 +440,7 @@ contains
          (a%RightEnd == b%RightEnd) .and. &
          (a%tl == b%tl) .and. &
          (a%tr == b%tr) .and. &
+         (all(a%twc == b%twc)) .and. &
          (a%n_twc == b%n_twc) .and. &
          (a%n_twc_max == b%n_twc_max)
    end function ThinWire_eq

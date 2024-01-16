@@ -19,18 +19,15 @@
     "materials": [
         {
             "id": 1,
-            "name": "wire_material",
             "type": "wire",
-            "inductanceModel": "holland",
             "radius": 0.02,
             "resistancePerMeter": 0.0,
             "inductancePerMeter": 0.0
         },
         {
             "id": 2,
-            "name": "openTerminalMaterial",
-            "type": "wireTerminal",
-            "termination": {"type": "open"}
+            "type": "terminal",
+            "terminations": [{"type": "open"}]
         }
     ],
 
@@ -47,22 +44,19 @@
         "elements": [
             {"id": 1, "type": "node", "coordinateIds": [2]},
             {"id": 2, "type": "polyline", "coordinateIds": [1, 2, 3] },
-            {
-                "id": 3, 
-                "type": "cellRegion", 
-                "intervals": [ 
+            {"id": 3, "type": "cell", "intervals": [ 
                     [ [1, 1, 1], [19, 19, 21] ]
                 ] 
             }
         ]
     },
 
-    "cables": [
-        {
-            "name": "cableInstance",
-            "cableMaterialId": 1,
-            "initialConnectorId": 2,
-            "endConnectorId": 2,
+    "materialAssociations": [
+        { 
+            "type": "cable",
+            "materialId": 1,
+            "initialTerminalId": 2,
+            "endTerminalId": 2,
             "elementIds": [2]
         }
     ],
@@ -86,7 +80,8 @@
     "probes": [
         {
             "name": "mid_point",
-            "type": "current",
+            "type": "wire",
+            "field": "current",
             "elementIds": [1],
             "domain": { "type": "time" }
         }

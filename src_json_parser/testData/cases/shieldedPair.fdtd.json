@@ -11,8 +11,8 @@
 
 	"materials": [
 		{
-			"id": 1,
 			"name": "InnerCoaxial",
+			"id": 1,
 			"type": "multiwire",
 			"inductancePerMeter": [
 				[3.13182309e-07, 7.45674981e-08],
@@ -29,8 +29,8 @@
 			}
 		},
 		{
-			"id": 2,
 			"name": "Shield",
+			"id": 2,
 			"type": "wire",
 			"radius": 0.0001,
 			"__referenceInductancePerMeter": 5.362505362505362e-07,
@@ -38,22 +38,21 @@
 			"resistancePerMeter": 22.9e-3
 		},
 		{
-			"id": 3,
 			"name": "leftTerminal",
-			"type": "multiwireTerminal",
+			"id": 3,
+			"type": "terminal",
 			"terminations" : [
-				{"type": "series", "resistance": 50 },
-				{"type": "series", "resistance": 50 }
+				{"type": "series", "resistance": 50},
+				{"type": "series", "resistance": 50}
 			]
 		},
 		{
+			"name": "shieldTerminal",
 			"id": 4,
-			"name": "ShieldTerminal",
-			"type": "wireTerminal",
-			"termination": {
-				"type": "series",
-				"resistance": 50.0
-			}
+			"type": "terminal",
+			"terminations": [
+				{"type": "series","resistance": 50.0}
+			]
 		}
 	],
 
@@ -63,12 +62,12 @@
 			"steps": {"x": [1.0], "y": [1.0], "z": [0.00540]}
 		},
 		"relativeCoordinates": [
-			{"id": 1, "position": [1, 1,  1] },
-			{"id": 2, "position": [1, 1, 19] },
-			{"id": 3, "position": [1, 1,  1] },
-			{"id": 4, "position": [1, 1,  1] },
-			{"id": 5, "position": [1, 1, 19] },
-			{"id": 6, "position": [1, 1, 19] }
+			{"id": 1, "relativePosition": [1, 1,  1] },
+			{"id": 2, "relativePosition": [1, 1, 19] },
+			{"id": 3, "relativePosition": [1, 1,  1] },
+			{"id": 4, "relativePosition": [1, 1,  1] },
+			{"id": 5, "relativePosition": [1, 1, 19] },
+			{"id": 6, "relativePosition": [1, 1, 19] }
 		],
 		"elements": [
 			{ "id": 1, "type": "polyline", "coordinateIds": [1, 2]},
@@ -81,28 +80,32 @@
 	"probes": [
 		{
 			"name": "v",
-			"type": "voltage",
+			"type": "wire",
+			"field": "voltage",
 			"elementIds": [4]
 		},
 		{
 			"name": "i",
-			"type": "current",
+			"type": "wire",
+			"field": "current",
 			"elementIds": [4]
 		}
 	],
 
-	"cables": [
+	"materialAssociations": [
 		{
 			"name": "line_1",
-			"cableMaterialId": 1,
+			"type": "cable",
+			"elementIds": [ 2,3 ],
+			"materialId": 1,
 			"initialTerminalId": 3,
 			"endTerminalId": 3,
-			"elementIds": [ 2,3 ],
 			"containedWithinElementId": 1
 		},
 		{
 			"name": "line_0",
-			"cableMaterialId": 2,
+			"type": "cable",
+			"materialId": 2,
 			"initialTerminalId": 4,
 			"endTerminalId": 4,
 			"elementIds": [ 1 ]
