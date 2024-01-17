@@ -41,8 +41,9 @@ PROGRAM SEMBA_FDTD_launcher
    USE Solver
    USE Resuming
    !nfde parser stuff
-   USE NFDETypes
-#ifdef CompilePrivateVersion      
+   USE NFDETypes                
+!   use nfde_rotate_m
+#ifdef CompilePrivateVersion  
    USE ParseadorClass
 #endif
 #ifdef CompileWithJSON
@@ -1127,6 +1128,7 @@ subroutine cargaNFDE
    CALL print11 (l%layoutnumber, dubuf)
 !!!!!!!!!!
    parser => newparser (NFDE_FILE)
+!   parser => rotate (NFDE_FILE)
    l%thereare_stoch=NFDE_FILE%thereare_stoch
    l%mpidir=NFDE_FILE%mpidir !bug 100419
 !!!!!!!!!!!
