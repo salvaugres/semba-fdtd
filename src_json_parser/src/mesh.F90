@@ -145,7 +145,7 @@ contains
          res = d
          if (present(found)) found = .true.
       end select
-   
+
    end function
 
    function mesh_getCellRegions(this, ids) result (res)
@@ -161,7 +161,7 @@ contains
          cR = this%getCellRegion(ids(i), found)
          if (found) res = [res, cR]
       end do
-   
+
    end function
 
    function mesh_arePolylineSegmentsStructured(this, pl) result(res)
@@ -233,7 +233,7 @@ contains
 
       res(1)%tag             = pl%coordIds( 1 )
       res(lastSegment-1)%tag = pl%coordIds( size(pl%coordIds) )
-
+      
    contains
       integer function countSegments(pl)
          class(polyline_t) :: pl
@@ -269,5 +269,5 @@ contains
       res(1)%cell = c%position + FIRST_CELL_START
       res(1)%tag = node%coordIds(1)
    end function
-
+   
 end module

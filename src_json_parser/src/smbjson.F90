@@ -605,7 +605,6 @@ contains
 
          call this%core%get(p, J_NAME, outputName)
          res%outputrequest = trim(adjustl(outputName))
-
          call setDomain(res, this%getDomain(p, J_PR_DOMAIN))
 
          call this%core%get(p, J_ELEMENTIDS, elemIds, found=elementIdsFound)
@@ -729,22 +728,21 @@ contains
          type(BloqueProbe) :: res
          type(json_value), pointer :: bp
          type(coords), dimension(:), allocatable :: cs
+         type(cell_region_t), dimension(:), allocatable :: cRs
 
-            type(cell_region_t), dimension(:), allocatable :: cRs
+         cRs = this%mesh%getCellRegions(this%getIntsAt(bp, J_ELEMENTIDS))
+         if (size(cRs) /= 1) write(error_unit, *) "Block probe must be defined by a single cell region."
 
-            cRs = this%mesh%getCellRegions(this%getIntsAt(bp, J_ELEMENTIDS))
-            if (size(cRs) /= 1) write(error_unit, *) "Block probe must be defined by a single cell region."
+         if (size(cRs(1)%intervals) /= 1) write(error_unit, *) "Block probe must be defined by a single cell interval."
+         cs = cellIntervalsToCoords(cRs(1)%intervals)
 
-            if (size(cRs(1)%intervals) /= 1) write(error_unit, *) "Block probe must be defined by a single cell interval."
-            cs = cellIntervalsToCoords(cRs(1)%intervals)
-
-            res%i1  = cs(1)%xi
-            res%i2  = cs(1)%xe
-            res%j1  = cs(1)%yi
-            res%j2  = cs(1)%ye
-            res%k1  = cs(1)%zi
-            res%k2  = cs(1)%ze
-            res%nml = cs(1)%Or
+         res%i1  = cs(1)%xi
+         res%i2  = cs(1)%xe
+         res%j1  = cs(1)%yi
+         res%j2  = cs(1)%ye
+         res%k1  = cs(1)%zi
+         res%k2  = cs(1)%ze
+         res%nml = cs(1)%Or
 
          res%outputrequest = trim(adjustl(this%getStrAt(bp, J_NAME)))
          call setDomain(res, this%getDomain(bp, J_PR_DOMAIN))
@@ -790,11 +788,11 @@ contains
       call this%core%get(this%root, J_MATERIAL_ASSOCIATIONS, matAss, found)
       if (.not. found) then
          if (size(cables) == 0) then
-         allocate(res%tw(0))
-         res%n_tw = 0
-         res%n_tw_max = 0
-         return
-      end if
+            allocate(res%tw(0))
+            res%n_tw = 0
+            res%n_tw_max = 0
+            return
+         end if
       end if
 
       cables = this%jsonValueFilterByKeyValue(matAss, J_TYPE, J_MAT_ASS_TYPE_CABLE)
@@ -827,6 +825,7 @@ contains
          character (len=:), allocatable :: entry
          type(json_value), pointer :: je, je2
          integer :: i
+
          block
             type(json_value_ptr) :: m
             m = this%matTable%getId(this%getIntAt(cable, J_MATERIAL_ID))
@@ -877,7 +876,7 @@ contains
             linels = this%mesh%convertPolylineToLinels(polyline)
 
             write(tagLabel, '(i10)') elementIds(1)
-           
+
             res%n_twc = size(linels)
             res%n_twc_max = size(linels)
             allocate(res%twc(size(linels)))
@@ -892,6 +891,7 @@ contains
                res%twc(i)%tag = trim(adjustl(tagLabel))
             end do
          end block
+
       end function
 
       function readTermination(terminal) result(res)
@@ -996,6 +996,7 @@ contains
       else
          res%filename = " "
       endif
+
       call this%core%get(domain, J_TYPE, domainType)
       res%type2 = getNPDomainType(domainType, transferFunctionFound)
 
@@ -1021,7 +1022,7 @@ contains
          character (len=:), intent(in), allocatable :: typeLabel
          logical, intent(in) :: hasTransferFunction
          logical :: isTime, isFrequency
-         select case (typeLabel)
+         select case(typeLabel)
           case (J_PR_DOMAIN_TYPE_TIME)
             isTime = .true.
             isFrequency = .false.
@@ -1192,4 +1193,5 @@ contains
 
 !! endif CompileWithJSON
 #endif
+
 end module

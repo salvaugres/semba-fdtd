@@ -19,7 +19,7 @@ module labels_mod
 
    ! -- materials
    character (len=*), parameter :: J_MATERIALS = "materials"
-
+   
    character (len=*), parameter :: J_MAT_TYPE_PEC = "pec"
    character (len=*), parameter :: J_MAT_TYPE_PMC = "pmc"
    character (len=*), parameter :: J_MAT_TYPE_SIMPLE = "simple"
@@ -56,7 +56,7 @@ module labels_mod
 
    ! -- Mesh and geometry.
    character (len=*), parameter :: J_MESH = "mesh"
-
+   
    character (len=*), parameter :: J_GRID = "grid"
    character (len=*), parameter :: J_COORDINATES = "coordinates"
    character (len=*), parameter :: J_ELEMENTS = "elements"
@@ -126,7 +126,7 @@ module labels_mod
    ! domain stuff
    character (len=*), parameter :: J_PR_DOMAIN = "domain"
    character (len=*), parameter :: J_PR_DOMAIN_TYPE = "type"
-
+   
    character (len=*), parameter :: J_PR_DOMAIN_TYPE_TIME = "time"
    character (len=*), parameter :: J_PR_DOMAIN_TYPE_FREQ = "frequency"
    character (len=*), parameter :: J_PR_DOMAIN_TYPE_TIMEFREQ = "timeFrequency"

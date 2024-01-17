@@ -42,8 +42,8 @@
 			"id": 3,
 			"type": "terminal",
 			"terminations" : [
-				{"type": "series", "resistance": 50 },
-				{"type": "series", "resistance": 50 }
+				{"type": "series", "resistance": 50},
+				{"type": "series", "resistance": 50}
 			]
 		},
 		{

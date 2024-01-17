@@ -1,4 +1,5 @@
 # The `smbjson` parser module
+
 This module allows to read the [FDTD-JSON format](#the-fdtd-json-format) and parse it into the semba-fdtd data structures.
 
 ## Compilation and testing
@@ -38,9 +39,10 @@ The following are examples of valid inputs:
  3. A current injection which mimics a lightning strike on a square metallic surface: [currentinjection.fdtd.json](testData/cases/currentInjection.fdtd.json). It contains two bulk current probes to measure the current at the entry and exit lines.
  4. A shielded pair of wires fed by a voltage source in one of its ends: [shieldedPair.fdtd.json](testData/cases/shieldedPair.fdtd.json). The interior of the shield uses a multiconductor transmission line (MTL) algorithm to evolve the common mode currents which are induced in the shield and propagated inside using a transfer impedance.
  5. A multiconductor transmission line network (MTLN) case which includes three cable bundles with a shared junction: [mtln.fdtd.json](testData/cases/mtln.fdtd.json).
- 
+
 ## FDTD-JSON objects description
-All units are assumed to be SI-MKS. 
+
+All units are assumed to be SI-MKS.
 
 Angle brackets surrounding an entry, as in `<entry>`, indicate that that entry is mandatory.
 Square brackets, as in `[entry]`, are optional entries.
@@ -52,6 +54,7 @@ The following entries are shared by several FDTD-JSON objects and have a common 
 + `[name]` is an optional entry which is used to make the FDTD-JSON input human-readable, helping to identify inputs and outputs.
 
 ### `<general>`
+
 This object must always be present and contains general information regarding the solver. It must contain the following entries:
 
 + `<timeStep>`: A real number indicating the time step used by the solver, in seconds. 
@@ -60,16 +63,16 @@ This object must always be present and contains general information regarding th
 **Example:**
 
 ```json
-    "general": {
-        "timeStep": 10e-12,
-        "numberOfSteps": 2000
-    }
+"general": {
+    "timeStep": 10e-12,
+    "numberOfSteps": 2000
+}
 ```
-    
+
 ### `[boundary]`
 This specifies the boundaries which will be used to terminate the computational domain. 
 If `boundary` is not present it defaults to a `mur` absorbing condition in all bounds.
-The entries within `boundary` are objects labelled with the place where they will be applied: 
+The entries within `boundary` are objects labelled with the place where they will be applied:
 
 + `all`, or
 + `xLower`, `xUpper`, `yLower`, `yUpper`, `zLower` `zUpper`.
@@ -89,14 +92,14 @@ These objects must contain a `<type>` label which can be:
 **Example:**
  
 ```json
-    "boundary": {
-        "all": {
-            "type": "pml",
-            "layers": 6, 
-            "order": 2.0,
-            "reflection": 0.001
-        }
+"boundary": {
+    "all": {
+        "type": "pml",
+        "layers": 6, 
+        "order": 2.0,
+        "reflection": 0.001
     }
+}
 ```
 
 ### `<mesh>`
@@ -127,6 +130,7 @@ The following example describes a regular grid with $20$, $20$, and $22$ cells i
 ```
 
 #### `[coordinates]`
+
 This is an array of objects which represent Cartesian coordinates within the grid. Each object of the array must contain the following entries:
 
 + `<id>`: an integer number that must be unique within this array.
@@ -201,7 +205,7 @@ An interval allows specifying regions within the grid which can be a point, an o
   + The other two cases, in which there is a mix of positive and negative signs, are undefined.
 
 + A *volume* is defined when each component of $\mathbf{a}$ is strictly smaller than the corresponding component in $\mathbf{b}$ for each direction, i.e. $a_x < b_x$, $a_y < b_y$, and $a_z < b_z$. The rest of the cases in which all numbers are different but not necessarily smaller are undefined.
-  
+
 **Example:** The following figure represents a grid with the numbers of the cells marked in light gray. The third dimension is ignored for clarity. There are four `cell` elements. 
 
 + The first one represents a single rectangular surface with its normal oriented towards the $+\hat{z}$ direction (light green).
@@ -593,34 +597,36 @@ Additionally, a `domain` can contain a `[magnitudeFile]` as specified in [source
 ## `[sources]`
 
 This entry is an array which stores all the electromagnetic sources of the simulation case. Each source is a JSON object which must contain the following entries:
- + `<magnitudeFile>` contains a relative path to the plain text file which will be used as a magnitude for this source. This file must contain two columns, with the first stating the time and the second one the magnitude value; an example magnitude file can be found at [gauss.exc](testData/cases/gauss.exc).
- + `<type>` must be a label of the ones defined below. Some examples of source `type` are `planewave` or `nodalSource`.
- + `<elementIds>` is an array of integers which must exist within the `mesh` `elements` list. These indicate the geometrical place where this source is located. The `type` and number of the allowed elements depends on the source `type` and can be check in the descriptions of each source object, below.
- 
+
++ `<magnitudeFile>` contains a relative path to the plain text file which will be used as a magnitude for this source. This file must contain two columns, with the first stating the time and the second one the magnitude value; an example magnitude file can be found at [gauss.exc](testData/cases/gauss.exc).
++ `<type>` must be a label of the ones defined below. Some examples of source `type` are `planewave` or `nodalSource`.
++ `<elementIds>` is an array of integers which must exist within the `mesh` `elements` list. These indicate the geometrical place where this source is located. The `type` and number of the allowed elements depends on the source `type` and can be check in the descriptions of each source object, below.
+
 ### `planewave`
 
 The `planewave` type represents an electromagnetic wave with a plane phase-front which propagates towards a $\hat{k}$ direction and with an electric field pointing towards $\hat{E}$.
 `elementIds` must point to a single `cell` element formed by a single cuboid region which defines the total and scattered field regions, respectively.
 Besides the other common entries in [sources](#sources), it must also contain the following ones:
 
- + `<direction>`, is an object containing `<theta>` and `<phi>`, which are the angles of the propagation vector $\hat{k} (\theta, \phi)$.
- + `<polarization>`, is an object containing `<theta>` and `<phi>` which indicates the direction of the electric field vector $\hat{E}(\theta, \phi)$.
++ `<direction>`, is an object containing `<theta>` and `<phi>`, which are the angles of the propagation vector $\hat{k} (\theta, \phi)$.
++ `<polarization>`, is an object containing `<theta>` and `<phi>` which indicates the direction of the electric field vector $\hat{E}(\theta, \phi)$.
 
 An example of a planewave propagating towards $\hat{z}$ and polarized in the $+\hat{x}$ follows,
+
 ```json
-    {
-        "type": "planewave",
-        "magnitudeFile": "gauss.exc",
-        "elementIds": [2],
-        "direction": {
-            "theta": 0.0,
-            "phi": 0.0
-        },
-        "polarization": {
-            "theta": 1.5708,
-            "phi": 0.0
-        }
+{
+    "type": "planewave",
+    "magnitudeFile": "gauss.exc",
+    "elementIds": [2],
+    "direction": {
+        "theta": 0.0,
+        "phi": 0.0
+    },
+    "polarization": {
+        "theta": 1.5708,
+        "phi": 0.0
     }
+}
 ```
 
 ### `nodalSource`
