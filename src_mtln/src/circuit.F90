@@ -7,6 +7,8 @@ module circuit_mod
     character (len=:), allocatable :: name
     real :: time, dt
     logical :: errorFlag = .false.
+    real :: v
+    
 
     contains
         procedure :: init
@@ -19,9 +21,34 @@ module circuit_mod
         procedure :: getVectorInfo2
         procedure :: getAllPlots
         procedure :: getAllVecs
+        ! procedure :: circSendChar => SendChar
+        ! procedure, private :: SendStat
+        ! procedure, private :: SendChar
+        ! procedure, private :: SendChar
+        ! procedure, private :: SendChar
+        ! procedure, private :: SendChar
+
     end type circuit_t
 
 contains
+
+    ! integer(c_int) function SendChar(this, output, id, returnPtr)
+    !     class(circuit_t) :: this
+    !     type(c_ptr), value, intent(in) :: output
+    !     integer(c_int), intent(in), value :: id
+    !     type(c_ptr), value, intent(in) :: returnPtr
+    !     character(len=:), pointer :: f_output
+    !     character(len=:), allocatable :: string
+        
+    !     SendChar = 0
+    !     call c_f_pointer(output, f_output)
+    !     string = f_output(1:index(f_output, c_null_char)-1)
+    !     ! string = string(index(string,'stdout'):len(string)) ! remove 'stdout'?
+    !     write(*,*) 'SendChar: ', trim(string)
+    !     if (index('stderror Error:', string) /= 0) then
+    !         SendChar = 1
+    !     end if
+    ! end function
 
     subroutine init(this)
         class(circuit_t) :: this
@@ -60,6 +87,7 @@ contains
         integer :: out
         character(len=:), allocatable :: string
         out = ngSpice_Command('run ' // c_null_char)
+        
     end subroutine
 
     subroutine print(this)

@@ -2,13 +2,9 @@ module ngspice_interface_mod
 
     use iso_c_binding
     implicit none
-    ! type, bind(c) :: ngcomplex
-    !     real(c_double) :: real
-    !     real(c_double) :: imag
-    ! end type
 
     type, bind(c) :: vectorInfo
-        character(kind=c_char), dimension(50) :: vName
+        type(c_ptr) :: vName
         integer(c_int) :: vType
         integer(c_short) :: vFlags
         type(c_ptr) :: vRealData !real
@@ -18,12 +14,11 @@ module ngspice_interface_mod
 
     type, bind(c) :: pVectorInfo
         type(c_ptr) :: pVectorInfo_ptr ! type vectorInfo
-        ! type(vectorInfo), pointer :: pVectorInfo_ptr
     end type
 
     type, bind(c) :: vecInfo
         integer(c_int) :: number
-        character(kind=c_char), dimension(50) :: vecName
+        type(c_ptr) :: vecName
         logical(c_bool) :: is_real
         type(c_ptr) :: pdVec
         type(c_ptr) :: pdVecScale
@@ -31,22 +26,19 @@ module ngspice_interface_mod
 
     type, bind(c) :: pVecInfo
         type(c_ptr) :: pVecInfo_ptr ! vecInfo
-        ! type(vecInfo), pointer :: pVecInfo_ptr
     end type
     
     type, bind(C) :: vecInOfAll
-        character(kind=c_char), dimension(50) :: name
-        character(kind=c_char), dimension(50) :: title
-        character(kind=c_char), dimension(50) :: date
-        character(kind=c_char), dimension(50) :: type
+        type(c_ptr) :: name
+        type(c_ptr) :: title
+        type(c_ptr) :: date
+        type(c_ptr) :: type
         integer(c_int) :: vecCount
         type(c_ptr) :: vecs !type pVecInfo(:)
-        ! type(pVecInfo), pointer, dimension(:) :: vecs
     end type
 
     type, bind(C) :: pVecInOfAll
         type(c_ptr):: pVecInOfAll_ptr !type vecInOfAll
-        ! type(vecInOfAll), pointer :: pVecInOfAll_ptr
     end type
 
     type :: vecValuesArray
@@ -54,7 +46,7 @@ module ngspice_interface_mod
     end type
 
     type, bind(C) :: vecValues
-        character(kind=c_char), dimension(50) :: name
+        type(c_ptr) :: name
         real(c_double) :: cReal
         real(c_double) :: cImag
         logical(c_bool) :: isScale
@@ -63,19 +55,16 @@ module ngspice_interface_mod
 
     type, bind(C) :: pVecValues
         type(c_ptr) :: pVecValues_ptr ! vecValues
-        ! type(vecValues), pointer :: pVecValues_ptr
     end type
 
     type, bind(C) :: vecValuesAll
         integer(c_int) :: vecCount
         integer(c_int) :: vecIndex
         type(c_ptr) :: vecsa ! type pVecValues(:)
-        ! type(pVecValues), pointer, dimension(:) :: vecsa
     end type
 
     type, bind(C) :: pVecValuesAll
         type(c_ptr) :: pVecValuesAll_ptr ! vecValuesAll
-        ! type(vecValuesAll), pointer :: pVecValuesAll_ptr
     end type
 
 
@@ -131,19 +120,22 @@ module ngspice_interface_mod
 
 contains
 
-    integer(c_int) function SendChar(output, id, returnPtr) bind(C, name="SendChar")
-        type(c_ptr), value, intent(in) :: output
+    integer(c_int) function SendChar(output, id, returnPtr) !bind(C, name="SendChar")
+        character(len=*), intent(in) :: output
+        ! type(c_ptr), value, intent(in) :: output
         integer(c_int), intent(in), value :: id
-        type(c_ptr), value, intent(in) :: returnPtr
+        real :: returnPtr
+        ! type(c_ptr), value, intent(in) :: returnPtr
         character(len=:), pointer :: f_output
         character(len=:), allocatable :: string
-
-        call c_f_pointer(output, f_output)
-        string = f_output(1:index(f_output, c_null_char)-1)
-        ! string = string(index(string,'stdout'):len(string)) ! remove 'stdout'?
-        write(*,*) 'SendChar: ', trim(string)
+        
+        SendChar = 0
+        ! call c_f_pointer(output, f_output)
+        ! string = f_output(1:index(f_output, c_null_char)-1)
+        write(*,*) 'SendChar: ', trim(output)
+        ! write(*,*) 'SendChar: ', trim(string)
         if (index('stderror Error:', string) /= 0) then
-            ! errorFlag = .true.
+            SendChar = 1
         end if
     end function
 
@@ -178,32 +170,40 @@ contains
 
     end function
 
+    function getName(cName) result(res)
+        type(c_ptr) :: cName
+        character(len=100) :: res
+        character, pointer :: f_output(:) => null()
+        integer :: i
+        call c_f_pointer(cName, f_output,[100])
+        do i = 1,100
+            res(i:i) = f_output(i)
+        enddo
+        res = res(1:index(res, c_null_char)-1)
+    end function
+
     integer(c_int) function SendData(data, numberOfStructs, id, returnPtr) bind(C, name="SendData")
         type(c_ptr), value, intent(in) :: data, returnPtr
         integer(c_int), value :: numberOfStructs, id
 
-        type(vecValuesAll), pointer :: values
+        type(vecValuesAll), pointer :: valuesAll
+        type(c_ptr), pointer :: values(:)
+        type(vecValuesArray), allocatable :: vecsaPtr(:) ! array of pointers to type(c_ptr)
 
-        ! type(c_ptr), dimension(:), allocatable :: vecsaPtr
-        type(vecValuesArray), allocatable :: vecsaPtr(:)
-        type(c_ptr), pointer :: p(:)
-        character, dimension(50) :: f_output
         integer :: i
 
-        call c_f_pointer(data, values) 
-        call c_f_pointer(values%vecsa, p, [values%vecCount])
+        write(*,*) 'SendData begin'
 
-        allocate(vecsaPtr(values%vecCount))
-        do i = 1, values%vecCount
-            call c_f_pointer(p(i), vecsaPtr(i)%vecValuesPtr)
-            f_output = vecsaPtr(i)%vecValuesPtr%name
-            write(*,*) f_output
-            ! write(*,*) f_output(1:index(f_output, c_null_char)-1)
+        call c_f_pointer(data, valuesAll) 
+        call c_f_pointer(valuesAll%vecsa, values, [valuesAll%vecCount])
+        allocate(vecsaPtr(valuesAll%vecCount))
+        do i = 1, valuesAll%vecCount
+            call c_f_pointer(values(i), vecsaPtr(i)%vecValuesPtr)
+            write(*,*) trim(getName(vecsaPtr(i)%vecValuesPtr%name)), vecsaPtr(i)%vecValuesPtr%cReal
         end do
         ! how to make this information available to circuit_t?
         ! how to make it be accesible through the calls to get_vec_info?
-
-        write(*,*) 'SendData'
+        write(*,*) 'SendData end'
 
     end function
 

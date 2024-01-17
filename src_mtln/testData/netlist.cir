@@ -4,6 +4,6 @@ v2 3 0 dc 15
 r1 1 2 10k 
 r2 2 3 8.1k 
 r3 2 0 4.7k 
-.dc v1 24 24 1 
-.save v(1) v(2) v(3)
+.dc v1 22 24 1 
+.save v(3) v(2) v(1)
 .end 

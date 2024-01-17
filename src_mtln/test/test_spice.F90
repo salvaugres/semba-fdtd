@@ -8,9 +8,11 @@ integer function test_spice() result(error_cnt)
     character(len=50) :: netlist
     character(len=:), allocatable :: plotName
     type(pVectorInfo) :: info
-    type(vectorInfo), pointer :: info2
+    type(vectorInfo), pointer :: info1, info2, info3
     character(len=:), pointer :: allPlots(:)
     character(len=:), pointer :: allVecs(:)
+
+    real, dimension(:), pointer :: realData1, realData2, realData3
 
     error_cnt = 0
     netlist = '../../src_mtln/testData/netlist.cir'
@@ -18,22 +20,33 @@ integer function test_spice() result(error_cnt)
     call circuit%loadNetlist(netlist)
     call circuit%run()
 
-    call circuit%command('print all')
-    call circuit%command("display");
-    call circuit%command("listing");
+    ! allPlots => circuit%getAllPlots()
+    ! call circuit%command("setplot dc1")
+    ! call c_f_pointer(circuit%getVectorInfo2('V(1)'), info1)
+    ! call c_f_pointer(circuit%getVectorInfo2('V(2)'), info2)
+    ! call c_f_pointer(circuit%getVectorInfo2('V(3)'), info3)
+    ! call c_f_pointer(info1%vRealData, realData1, [info1%vLength])
+    ! call c_f_pointer(info2%vRealData, realData2, [info2%vLength])
+    ! call c_f_pointer(info3%vRealData, realData3, [info3%vLength])
+    ! write(*,*) realData1
+    ! write(*,*) realData2
+    ! write(*,*) realData3
+
+    ! call circuit%command('print all')
+    ! call circuit%command("display");
+    ! call circuit%command("listing");
 
     ! plotName = circuit%getCurrentPlotName()
     ! write(*,*) plotName
     ! allPlots = circuit%getAllPlots()
     ! write(*,*) '1'
-    allPlots => circuit%getAllPlots()
-    call circuit%command("setplot dc1")
-    call c_f_pointer(circuit%getVectorInfo2('v(1)'), info2)
 
+
+    ! call circuit%ddd
     ! allVecs => circuit%getAllVecs(circuit%getCurrentPlotName())
     ! write(*,*) len(allVecs)
     ! write(*,*) size(allVecs)
-    write(*,*) '2'
+    
 
     ! info = circuit%getVectorInfo('v(1)')
     ! call c_f_pointer(info%pVectorInfo_ptr, info2)
@@ -44,7 +57,7 @@ integer function test_spice() result(error_cnt)
     ! write(*,*) allVecs(2)
     ! info2 = circuit%getVectorInfo2(allVecs(0))
     ! write(*,*) info2%vName
-    ! write(*,*) info2%vLength
+    ! allocate(realData(info2%vLength))
 
     ! call circuit%command('write ../../src_mtln/testData/test3.txt v(1) v(2) v(3)')
     ! call circuit%command('status')
