@@ -37,6 +37,7 @@ build/
 build-rls/
 build-dbg/
 build-nv/
+bld-intel-win/
 CMakeSettings.json
 /CppProperties.json
 
