@@ -9,5 +9,5 @@ add_library(smbjson
 	"parser_tools.F90"
 	"nfdetypes_extension.F90" 
 )
-
+include_directories(${jsonfortran_BINARY_DIR})
 target_link_libraries  (smbjson PRIVATE jsonfortran semba-types fhash)

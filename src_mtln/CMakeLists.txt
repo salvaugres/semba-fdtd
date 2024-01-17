@@ -26,20 +26,21 @@ add_library(mtlnsolver
 	"src/ngspice_interface.F90"
 )
 
-#set(LAPACK_DIR "${CMAKE_SOURCE_DIR}/precompiled_libraries/linux-gcc-rls/lapack/")
-#set(LAPACK_LIB ${LAPACK_DIR}liblapack.a)
-#set(BLAS_LIB ${LAPACK_DIR}libblas.a)
-#
-#set(NGSPICE_DIR "${CMAKE_SOURCE_DIR}/precompiled_libraries/linux-gcc-rls/ngspice/")
-#set(NGSPICE_LIB ${NGSPICE_DIR}libngspice.so)
+if (${CMAKE_Fortran_COMPILER_ID} STREQUAL "GNU" AND ${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+	set(LAPACK_DIR "${CMAKE_SOURCE_DIR}/precompiled_libraries/linux-gcc-rls/lapack/")
+	set(LAPACK_LIB ${LAPACK_DIR}liblapack.a)
+	set(BLAS_LIB ${LAPACK_DIR}libblas.a)
 
-set(LAPACK_DIR "${CMAKE_SOURCE_DIR}/precompiled_libraries/windows-intel-rls/lapack/")
-set(LAPACK_LIB ${LAPACK_DIR}liblapack.lib)
-set(BLAS_LIB ${LAPACK_DIR}libblas.lib)
+	set(NGSPICE_DIR "${CMAKE_SOURCE_DIR}/precompiled_libraries/linux-gcc-rls/ngspice/")
+	set(NGSPICE_LIB ${NGSPICE_DIR}libngspice.so)
+elseif(${CMAKE_Fortran_COMPILER_ID} STREQUAL "Intel" AND ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+	set(LAPACK_DIR "${CMAKE_SOURCE_DIR}/precompiled_libraries/windows-intel-rls/lapack/")
+	set(LAPACK_LIB ${LAPACK_DIR}liblapack.lib)
+	set(BLAS_LIB ${LAPACK_DIR}libblas.lib)
 
-set(NGSPICE_DIR "${CMAKE_SOURCE_DIR}/precompiled_libraries/windows-intel-rls/ngspice/")
-set(NGSPICE_LIB ${NGSPICE_DIR}ngspice.lib)
-
+	set(NGSPICE_DIR "${CMAKE_SOURCE_DIR}/precompiled_libraries/windows-intel-rls/ngspice/")
+	set(NGSPICE_LIB ${NGSPICE_DIR}ngspice.lib)
+endif()
 
 target_link_libraries(mtlnsolver 
 	${LAPACK_LIB} 
