@@ -21,7 +21,7 @@
         ],
         "elements": [
             {"id": 1, "type": "node", "coordinateIds": [1]},
-            {"id": 2, "type": "cellRegion", "intervals": [ [ [1, 1, 1], [9, 9, 9] ] ]}
+            {"id": 2, "type": "cell", "intervals": [ [ [1, 1, 1], [9, 9, 9] ] ]}
         ]
 
     },
@@ -45,7 +45,8 @@
     "probes": [
         {
             "name": "electric_field_point_probe",
-            "type": "electric",
+            "type": "point",
+            "field": "electric",
             "elementIds": [1],
             "directions": ["x", "y", "z"],
             "domain": { 

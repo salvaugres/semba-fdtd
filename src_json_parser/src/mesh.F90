@@ -35,13 +35,13 @@ module mesh_mod
       procedure :: addCellRegion  => mesh_addCellRegion
       procedure :: getCellRegion  => mesh_getCellRegion
       procedure :: getCellRegions => mesh_getCellRegions
+
+      procedure :: arePolylineSegmentsStructured => mesh_arePolylineSegmentsStructured
+      procedure :: convertPolylineToLinels => mesh_convertPolylineToLinels
+      procedure :: convertNodeToPixels => mesh_convertNodeToPixels
    end type
 
-   public :: convertPolylineToLinels
-   public :: convertNodeToPixels
-   
    integer, public, parameter :: FIRST_CELL_START = 1
-   private
 
 contains
    ! __________________________________________________________________
@@ -164,116 +164,110 @@ contains
    
    end function
 
-   ! __________________________________________________________________
-   ! Aux functions
-   function convertPolylineToLinels(mesh, polyline) result(res)
+   function mesh_arePolylineSegmentsStructured(this, pl) result(res)
+      logical :: res
+      class(mesh_t) :: this
+      type(polyline_t) :: pl
+      type(coordinate_t) :: iC, eC
+      integer :: i, d
+      integer :: numberOfVaryingDirections
+
+      do i = 1, size(pl%coordIds)-1
+         iC = this%getCoordinate(pl%coordIds(i))
+         eC = this%getCoordinate(pl%coordIds(i+1))
+         if (any(floor(iC%position) /= iC%position) .or. any(floor(eC%position) /= eC%position)) then
+            res = .false.
+            return
+         end if 
+
+         numberOfVaryingDirections = 0
+         do d = DIR_X, DIR_Z
+            if (iC%position(d) /= eC%position(d)) then
+               numberOfVaryingDirections = numberOfVaryingDirections + 1
+            end if
+         end do
+         if (numberOfVaryingDirections > 1) then
+            res = .false.
+            return
+         end if
+      end do
+
+      res = .true.
+   end function
+
+   function mesh_convertPolylineToLinels(this, pl) result(res)
       type(linel_t), dimension(:), allocatable :: res
-      class(mesh_t), intent(in) :: mesh
-      type(polyline_t), intent(in) :: polyline
+      class(mesh_t), intent(in) :: this
+      type(polyline_t), intent(in) :: pl
+      type(cell_interval_t) :: interval
       type(coordinate_t) :: iC, eC, mC
-      integer :: i, j, dir, lastSegment, nLinelsInSegment
+      integer :: i, j, lastSegment, nLinelsInSegment
       integer, dimension(3) :: segment
 
-      if (.not. areAllSegmentsStraight(polyline)) then
+      if (.not. this%arePolylineSegmentsStructured(pl)) then
          allocate(res(0))
          return
       end if
 
-      allocate(res(countSegments(polyline)))
+      allocate(res(countSegments(pl)))
+      if (size(res) == 0) return
 
       lastSegment = 1
-      do i = 1, size(polyline%coordIds)-1
-         iC = mesh%getCoordinate(polyline%coordIds(i))
-         eC = mesh%getCoordinate(polyline%coordIds(i+1))
-         dir = varyingDirection(iC, eC)
-         segment = int(eC%position - iC%position)
-         nLinelsInSegment = abs(segment(dir))
-         segment = segment / nLinelsInSegment
-         do j = 1, nLinelsInSegment
+      do i = 1, size(pl%coordIds)-1
+         iC = this%getCoordinate(pl%coordIds(i))
+         eC = this%getCoordinate(pl%coordIds(i+1))
+         interval%ini%cell = int(iC%position)
+         interval%end%cell = int(eC%position)
+         if (any(iC%position /= eC%position)) then
+            segment = (interval%end%cell - interval%ini%cell) / interval%getSize()
+            
+            res(lastSegment)%tag = pl%coordIds(i)
+            do j = 1, interval%getSize()
             mC%position = iC%position + segment * (real(j-1) + 0.5)
             res(lastSegment)%cell = floor(mc%position) + FIRST_CELL_START
-            res(lastSegment)%orientation = dir
-            if (j == 1) then
-               res(lastSegment)%tag = trim(intToString(polyline%coordIds(i)))
+               res(lastSegment)%orientation = interval%getOrientation()
+               lastSegment = lastSegment + 1
+            end do
             end if
-            if (i == size(polyline%coordIds)-1 .and. j == nLinelsInSegment) then
-               res(lastSegment)%tag = trim(intToString(polyline%coordIds(i+1)))
-            end if
-            lastSegment = lastSegment + 1
          end do
 
-      end do
+      res(1)%tag             = pl%coordIds( 1 )
+      res(lastSegment-1)%tag = pl%coordIds( size(pl%coordIds) )
 
    contains
       integer function countSegments(pl)
          class(polyline_t) :: pl
+         type(cell_interval_t) :: interval
          type(coordinate_t) :: iC, eC
-         integer :: dir
+         
+         ! Assumes that polyline is structured.
          countSegments = 0
-         do i = 1, size(polyline%coordIds)-1
-            iC = mesh%getCoordinate(polyline%coordIds(i))
-            eC = mesh%getCoordinate(polyline%coordIds(i+1))
-            dir = varyingDirection(iC, eC)
-            countSegments = countSegments + int(abs(eC%position(dir) - iC%position(dir)))
+         do i = 1, size(pl%coordIds)-1
+            iC = this%getCoordinate(pl%coordIds(i))
+            eC = this%getCoordinate(pl%coordIds(i+1))
+            interval%ini%cell = int(iC%position)
+            interval%end%cell = int(eC%position)
+            countSegments = countSegments + interval%getSize()
          end do
-      end function
-
-      function areAllSegmentsStraight(pl) result(res)
-         logical :: res
-         class(polyline_t) :: pl
-         type(coordinate_t) :: iC, eC
-         integer :: i, d
-         integer :: numberOfVaryingDirections
-
-         do i = 1, size(polyline%coordIds)-1
-            iC = mesh%getCoordinate(polyline%coordIds(i))
-            eC = mesh%getCoordinate(polyline%coordIds(i+1))
-            numberOfVaryingDirections = 0
-            do d = DIR_X, DIR_Z
-               if (iC%position(d) /= eC%position(d)) then
-                  numberOfVaryingDirections = numberOfVaryingDirections + 1
-               end if
-            end do
-            if (numberOfVaryingDirections /= 1) then
-               res = .false.
-               return
-            end if
-         end do
-
-         res = .true.
       end function
    end function
 
-   function convertNodeToPixels(mesh, node) result(res)
+   function mesh_convertNodeToPixels(this, node) result(res)
       type(pixel_t), dimension(:), allocatable :: res
-      class(mesh_t), intent(in) :: mesh
+      class(mesh_t), intent(in) :: this
       type(node_t), intent(in) :: node
 
       type(coordinate_t) :: c
       logical :: coordFound
 
-      c = mesh%getCoordinate(node%coordIds(1), found=coordFound)
+      c = this%getCoordinate(node%coordIds(1), found=coordFound)
       if (.not. coordFound) then
          allocate(res(0))
          return
       end if
       allocate(res(1))
       res(1)%cell = c%position + FIRST_CELL_START
-      res(1)%tag = trim(intToString(node%coordIds(1)))
-   end function
-
-   function intToString(i) result(res)
-      character (len=MAX_LINE) :: res
-      integer, intent(in) :: i
-      write(res, '(i10)') i
-      res = trim(adjustl(res))
-   end function
-
-   integer function varyingDirection(a, b)
-      type(coordinate_t), intent(in) :: a, b
-      do varyingDirection = DIR_X, DIR_Z
-         if (a%position(varyingDirection) /= b%position(varyingDirection)) return
-      end do
+      res(1)%tag = node%coordIds(1)
    end function
 
 end module
