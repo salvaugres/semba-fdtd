@@ -21,6 +21,15 @@ add_library(semba-types
 )
 add_subdirectory(external/fhash/)
 
+if (${CMAKE_Fortran_COMPILER_ID} STREQUAL "GNU" AND ${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+	set(JSONFORTRAN_DIR "${CMAKE_SOURCE_DIR}/precompiled_libraries/linux-gcc-rls/jsonfortran/")
+	set(JSONFORTRAN_LIB ${JSONFORTRAN_DIR}libjsonfortran.a)
+elseif(${CMAKE_Fortran_COMPILER_ID} STREQUAL "Intel" AND ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+	set(JSONFORTRAN_DIR "${CMAKE_SOURCE_DIR}/precompiled_libraries/windows-intel-rls/jsonfortran/")
+	set(JSONFORTRAN_LIB ${JSONFORTRAN_DIR}jsonfortran.lib)
+endif()
+include_directories(${JSONFORTRAN_DIR}/include/)
+
 if (CompileWithJSON)
 	message(STATUS "Compiling JSON format parser")
 	add_definitions(-DCompileWithJSON)
