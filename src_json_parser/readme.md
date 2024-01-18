@@ -4,16 +4,20 @@ This module allows to read the [FDTD-JSON format](#the-fdtd-json-format) and par
 
 ## Compilation and testing
 
-### Compilation with GNU Fortran
+### Compilation with GNU Fortran (Linux)
 
 Assuming `gfortran` and `cmake` are accessible from path, this module can be compiled from the project main directory run
 
     cmake -S . -B <BUILD_DIR> -DCompileWithJSON=YES
     cmake --build <BUILD_DIR> -j
 
-### Compilation with Intel Fortran Classic
+### Compilation with Intel Fortran Classic (Windows)
 
-Tested to work.
+Assuming `ifort` and `cmake` are accessible. Use same command as for `gfortran`
+
+### Compilation with Intel LLVM
+
+Planned.
 
 ### Compilation with NVIDIA Fortran compiler
 
@@ -21,9 +25,11 @@ Tested to work with `-O0` optimizations. Higher optimizations produce SEGFAULTs.
 
 ### Testing
 
-This project uses the ctest tool available within cmake. Once build, you can run
+This project uses the ctest tool available within cmake. Once build, in Linux you can run 
 
     ctest --test-dir <BUILD_DIR>/src_json_parser/test/ --output-on-failure
+
+in Windows, add `-C Debug` or `-C Release` accordingly.
 
 # The FDTD-JSON format
 
