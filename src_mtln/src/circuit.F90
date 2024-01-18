@@ -1,14 +1,22 @@
-module circuit_mod
+module model_mod
 
     use ngspice_interface_mod
     implicit none
 
+    type test_t
+        real(kind=8), allocatable :: voltages(:)
+        ! real(kind=8), allocatable :: times(:)
+    end type test_t
+
+
     type, public :: circuit_t
     character (len=:), allocatable :: name
-    real :: time, dt
+    real :: time = 0.0, dt = 0.0
     logical :: errorFlag = .false.
-    real :: v
     
+
+    ! type(test_t), pointer :: values   
+    real(kind=8), pointer :: voltages(:)
 
     contains
         procedure :: init
@@ -21,7 +29,7 @@ module circuit_mod
         procedure :: getVectorInfo2
         procedure :: getAllPlots
         procedure :: getAllVecs
-        ! procedure :: circSendChar => SendChar
+        ! procedure :: SendChar
         ! procedure, private :: SendStat
         ! procedure, private :: SendChar
         ! procedure, private :: SendChar
@@ -32,36 +40,40 @@ module circuit_mod
 
 contains
 
-    ! integer(c_int) function SendChar(this, output, id, returnPtr)
-    !     class(circuit_t) :: this
-    !     type(c_ptr), value, intent(in) :: output
-    !     integer(c_int), intent(in), value :: id
-    !     type(c_ptr), value, intent(in) :: returnPtr
+    ! integer(c_int) function SendChar(output, id, returnPtr)
+    !     ! class(circuit_t) :: this
+    !     type(c_ptr), value, intent(in), optional :: output
+    !     integer(c_int), intent(in), value, optional :: id
+    !     type(c_ptr), value, intent(in), optional :: returnPtr
     !     character(len=:), pointer :: f_output
     !     character(len=:), allocatable :: string
         
     !     SendChar = 0
     !     call c_f_pointer(output, f_output)
-    !     string = f_output(1:index(f_output, c_null_char)-1)
-    !     ! string = string(index(string,'stdout'):len(string)) ! remove 'stdout'?
-    !     write(*,*) 'SendChar: ', trim(string)
-    !     if (index('stderror Error:', string) /= 0) then
-    !         SendChar = 1
-    !     end if
+    !     ! string = f_output(1:index(f_output, c_null_char)-1)
+    !     ! ! string = string(index(string,'stdout'):len(string)) ! remove 'stdout'?
+    !     ! write(*,*) 'SendChar: ', trim(string)
+    !     ! if (index('stderror Error:', string) /= 0) then
+    !     !     SendChar = 1
+    !     ! end if
+
     ! end function
+
 
     subroutine init(this)
         class(circuit_t) :: this
-        type(c_funptr) ::cSendChar
-        type(c_funptr) ::cSendStat
-        type(c_funptr) ::cControlledExit
-        type(c_funptr) ::cSendData
-        type(c_funptr) ::cSendInitData
-        type(c_funptr) ::cBGThreadRunning
-        type(c_ptr) :: returnPtr
+        type(c_funptr) :: cSendChar
+        type(c_funptr) :: cSendStat
+        type(c_funptr) :: cControlledExit
+        type(c_funptr) :: cSendData
+        type(c_funptr) :: cSendInitData
+        type(c_funptr) :: cBGThreadRunning
+        ! type(*) :: returnPtr
+
 
         integer :: res
-        
+
+
         ! cSendChar = c_null_funptr
         cSendChar = c_funloc(SendChar)
         cSendStat = c_funloc(SendStat)
@@ -70,9 +82,17 @@ contains
         cSendInitData = c_funloc(SendInitData)
         cBGThreadRunning = c_funloc(BGThreadRunning)
 
-        res = ngSpice_Init(cSendChar, cSendStat, cControlledExit, cSendData, cSendInitData, cBGThreadRunning, returnPtr)
-        ! res = ngSpice_Command('source ' // netlist)
+        ! returnPtr = c_loc(this%voltages)
+        ! returnPtr = c_loc(this%values)
 
+        res = ngSpice_Init(cSendChar, cSendStat, cControlledExit, cSendData, cSendInitData, cBGThreadRunning, c_loc(this%voltages))
+        ! res = ngSpice_Command('source ' // netlist)
+        ! netlist = '../../src_mtln/testData/netlist.cir'
+        ! res = ngSpice_Command('source ' // netlist // c_null_char)
+        ! res = ngSpice_Command('run ' // c_null_char)
+  
+
+        write(*,*) 'Init'
     end subroutine
 
     subroutine loadNetlist(this, netlist)
@@ -85,9 +105,8 @@ contains
     subroutine run(this)
         class(circuit_t) :: this
         integer :: out
-        character(len=:), allocatable :: string
         out = ngSpice_Command('run ' // c_null_char)
-        
+                
     end subroutine
 
     subroutine print(this)

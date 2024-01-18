@@ -19,7 +19,7 @@ module testingTools_mod
         module procedure dotmul
     end interface operator(*)
             
-            
+
     contains
             
     function dotmatrixmul(a,b) result(res)
@@ -184,6 +184,23 @@ module testingTools_mod
         endif
 
     end function 
+
+    function checkNear_real8(target, number, rel_tol) result(is_near)
+        real(kind=8), intent(in) :: target, number
+        real(kind=8) :: rel_tol
+        logical :: is_near
+        real(kind=8) :: abs_diff
+
+        abs_diff = abs(target-number)
+        if (abs_diff == 0.0) then
+            is_near = .true.
+        else 
+            is_near = abs(target-number)/target < rel_tol
+        endif
+
+    end function 
+
+ 
 
  end module testingTools_mod
  

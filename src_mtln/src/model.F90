@@ -1,6 +1,7 @@
-module ngspice_interface_mod
+module model_mod
 
     use iso_c_binding
+
     implicit none
 
     type, bind(c) :: vectorInfo
@@ -27,7 +28,7 @@ module ngspice_interface_mod
     type, bind(c) :: pVecInfo
         type(c_ptr) :: pVecInfo_ptr ! vecInfo
     end type
-    
+
     type, bind(C) :: vecInOfAll
         type(c_ptr) :: name
         type(c_ptr) :: title
@@ -119,12 +120,78 @@ module ngspice_interface_mod
     end interface
 
 
+    type test_t
+        real(kind=8), allocatable :: voltages(:)
+        real(kind=8), allocatable :: nodeIndices(:)
+    end type test_t
+
+    type, public :: circuit_t
+    character (len=:), allocatable :: name
+    real :: time = 0.0, dt = 0.0
+    logical :: errorFlag = .false.
+    
+
+    type(test_t) :: values   
+    ! real(kind=8), allocatable :: voltages(:)
+
+    contains
+        procedure :: init
+        procedure :: run
+        procedure :: loadNetlist
+        procedure :: print
+        procedure :: command
+
+    end type circuit_t
+
 contains
 
-    integer(c_int) function SendChar(output, id, returnPtr) bind(C, name="SendChar")
+    subroutine init(this)
+        class(circuit_t) :: this
+        integer :: res
+
+        res = ngSpice_Init(c_funloc(SendChar), &
+                           c_funloc(SendStat), & 
+                           c_funloc(ControlledExit), & 
+                           c_funloc(SendData), &
+                           c_funloc(SendInitData), &
+                           c_funloc(BGThreadRunning), &
+                           this%values)
+  
+
+        write(*,*) 'Init'
+    end subroutine
+
+    subroutine loadNetlist(this, netlist)
+        class(circuit_t) :: this
+        character(len=*), intent(in) :: netlist
+        integer :: res
+        res = ngSpice_Command('source ' // netlist // c_null_char)
+    end subroutine
+
+    subroutine run(this)
+        class(circuit_t) :: this
+        integer :: out
+        out = ngSpice_Command('run ' // c_null_char)
+                
+    end subroutine
+
+    subroutine print(this)
+        class(circuit_t) :: this
+        integer :: out
+        out = ngSpice_Command('print all'// c_null_char)
+    end subroutine
+
+    subroutine command(this, line)
+        class(circuit_t) :: this
+        character(len=*), intent(in) :: line
+        integer :: out
+        out = ngSpice_Command(line // c_null_char)
+    end subroutine
+
+    integer(c_int) function SendChar(output, id, returnPtr)
         type(c_ptr), value, intent(in) :: output
         integer(c_int), intent(in), value :: id
-        type(c_ptr), value :: returnPtr
+        type(test_t) :: returnPtr
         character(len=:), pointer :: f_output
         character(len=:), allocatable :: string
         
@@ -137,10 +204,11 @@ contains
         end if
     end function
 
-    integer(c_int) function SendStat(status, id, returnPtr) bind(C, name="SendStat")
+    integer(c_int) function SendStat(status, id, returnPtr)
         type(c_ptr), value, intent(in) :: status
         integer(c_int), intent(in), value :: id
-        type(c_ptr), value :: returnPtr
+        ! type(c_ptr), value :: returnPtr
+        type(test_t) :: returnPtr
         character(len=:), pointer :: f_output
         character(len=:), allocatable :: string
 
@@ -149,10 +217,12 @@ contains
         write(*,*) 'SendStat: ', trim(string)
     end function
 
-    integer(c_int) function ControlledExit(status, unloadDll, exitOnQuit, id, returnPtr) bind(C, name="ControlledExit")
+    integer(c_int) function ControlledExit(status, unloadDll, exitOnQuit, id, returnPtr)
         logical(c_bool), intent(in) :: unloadDll, exitOnQuit
         integer(c_int), intent(in), value :: status, id
-        type(c_ptr), value :: returnPtr
+        ! type(c_ptr), value :: returnPtr
+        type(test_t) :: returnPtr
+
         integer :: res
         if (exitOnQuit .eqv. .true.) then
             write(*,*) 'ControlledExit: Returned form quit with exit status ', status
@@ -180,93 +250,49 @@ contains
         res = res(1:index(res, c_null_char)-1)
     end function
 
-    integer(c_int) function SendData(data, numberOfStructs, id, returnPtr) bind(C, name="SendData")
+    integer(c_int) function SendData(data, numberOfStructs, id, returnPtr)
         type(c_ptr), value, intent(in) :: data
-        type(c_ptr), value :: returnPtr
-        ! type(c_ptr), value :: returnPtr
+        type(test_t) :: returnPtr
         integer(c_int), value :: numberOfStructs, id
 
         type(vecValuesAll), pointer :: valuesAll
         type(c_ptr), pointer :: values(:)
         type(vecValuesArray), allocatable :: vecsaPtr(:) ! array of pointers to type(c_ptr)
-        ! type(test_t), pointer :: saveValues
         integer :: i
-        real(kind=8), pointer :: voltages(:)
 
         write(*,*) 'SendData begin'
-
-        ! if (.not.allocated(saveValues%voltages)) then 
-        !     allocate(saveValues%voltages(0))
-        ! end if  
         
         call c_f_pointer(data, valuesAll) 
         call c_f_pointer(valuesAll%vecsa, values, [valuesAll%vecCount])
         allocate(vecsaPtr(valuesAll%vecCount))
-        ! allocate(saveValues%voltages(valuesAll%vecCount))
+
+        if (.not.allocated(returnPtr%voltages)) then 
+            allocate(returnPtr%voltages(valuesAll%vecCount))
+        end if  
         
-        call c_f_pointer(returnPtr, voltages, [valuesAll%vecCount])
-        ! associate(a=>saveValues%voltages) 
-        ! voltages => saveValues%voltages
         do i = 1, valuesAll%vecCount
             call c_f_pointer(values(i), vecsaPtr(i)%vecValuesPtr)
-            write(*,*) trim(getName(vecsaPtr(i)%vecValuesPtr%name)), vecsaPtr(i)%vecValuesPtr%cReal
-            ! a(i) = vecsaPtr(i)%vecValuesPtr%cReal
-            ! voltages(i) = vecsaPtr(i)%vecValuesPtr%cReal
-            voltages(i) = vecsaPtr(i)%vecValuesPtr%cReal
-            ! saveValues%voltages(i) = vecsaPtr(i)%vecValuesPtr%cReal
+            ! write(*,*) trim(getName(vecsaPtr(i)%vecValuesPtr%name)), vecsaPtr(i)%vecValuesPtr%cReal
+            returnPtr%voltages(i) = vecsaPtr(i)%vecValuesPtr%cReal
         end do
-        ! end associate
-        ! voltages => saveValues%voltages
-        ! returnPtr = c_loc(saveValues)
+
         write(*,*) 'SendData end'
 
     end function
 
-    ! integer(c_int) function SendData(data, numberOfStructs, id, returnPtr) ! bind(C, name="SendData")
-    !     type(c_ptr), value, intent(in) :: data, returnPtr
-    !     integer(c_int), value :: numberOfStructs, id
 
-    !     type(vecValuesAll), pointer :: valuesAll
-    !     type(c_ptr), pointer :: values(:)
-    !     type(vecValuesArray), allocatable :: vecsaPtr(:) ! array of pointers to type(c_ptr)
-
-    !     integer :: i
-
-    !     write(*,*) 'SendData begin'
-
-    !     call c_f_pointer(data, valuesAll) 
-    !     call c_f_pointer(valuesAll%vecsa, values, [valuesAll%vecCount])
-    !     allocate(vecsaPtr(valuesAll%vecCount))
-    !     do i = 1, valuesAll%vecCount
-    !         call c_f_pointer(values(i), vecsaPtr(i)%vecValuesPtr)
-    !         write(*,*) trim(getName(vecsaPtr(i)%vecValuesPtr%name)), vecsaPtr(i)%vecValuesPtr%cReal
-    !     end do
-    !     ! how to make this information available to circuit_t?
-    !     ! how to make it be accesible through the calls to get_vec_info?
-    !     write(*,*) 'SendData end'
-
-    ! end function
-
-    integer(c_int) function SendInitData(initData, id, returnPtr) bind(C, name="SendInitData")
+    integer(c_int) function SendInitData(initData, id, returnPtr)
         integer(c_int), value :: id
         type(vecInOfAll), pointer, intent(in) :: initData
-        ! type(pVecInOfAll), value, intent(in) :: initData
-        ! type(c_ptr), value, intent(in) :: initData
-        type(*) :: returnPtr
-        ! type(vecInOfAll), pointer :: values
-        ! structsPtr%vecCount
-        ! call c_f_pointer(initData, values) 
+        type(test_t) :: returnPtr
         write(*,*) 'SendInitData'
-
-
     end function
 
-    integer(c_int) function BGThreadRunning(isBGThreadNotRunning, id, returnPtr) bind(C, name="BGThreadRunning")
+    integer(c_int) function BGThreadRunning(isBGThreadNotRunning, id, returnPtr)
         logical(c_bool) :: isBGThreadNotRunning
         integer(c_int), value :: id
-        type(c_ptr), value :: returnPtr
-        ! write(*,*) 'isBGThreadNotRunning: ', isBGThreadNotRunning, '. id: ', id
+        type(test_t) :: returnPtr
     end function
 
 
-end module
+end module 
