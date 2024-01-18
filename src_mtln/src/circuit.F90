@@ -20,6 +20,7 @@ module circuit_mod
         procedure :: init
         procedure :: run
         procedure :: step
+        procedure :: resume
         procedure :: loadNetlist
         procedure :: print
         procedure :: command
@@ -51,21 +52,35 @@ contains
         res = ngSpice_Command('source ' // netlist // c_null_char)
     end subroutine
 
-    subroutine step(this, nSteps)
+    subroutine step(this)
         class(circuit_t) :: this
-        integer, optional :: nSteps
-        integer :: out
-        character(len=100) :: cSteps
-        if (present(nSteps)) then 
-            write(cSteps, '(I3)') nSteps
-        end if  
-        out = ngSpice_Command('step '//cSteps // c_null_char)
+        real :: stopTime
+        character(20) :: realString
+        stopTime = this%time + this%dt
+        write(realString, '(E10.2)') stopTime
+
+        ! call this%command('.tran '// realString //' '// realString )
+
+        call this%command('stop when time = '//realString)
+        call this%run()
+        if (this%time == 0) then
+            call this%run()
+        else
+            call this%resume()
+        end if
+
     end subroutine
 
     subroutine run(this)
         class(circuit_t) :: this
         integer :: out
         out = ngSpice_Command('run ' // c_null_char)
+    end subroutine
+
+    subroutine resume(this)
+        class(circuit_t) :: this
+        integer :: out
+        out = ngSpice_Command('resume ' // c_null_char)
     end subroutine
 
     subroutine print(this)
@@ -167,10 +182,10 @@ contains
         
         do i = 1, valuesAll%vecCount
             call c_f_pointer(values(i), vecsaPtr(i)%vecValuesPtr)
-            ! write(*,*) trim(getName(vecsaPtr(i)%vecValuesPtr%name)), vecsaPtr(i)%vecValuesPtr%cReal
             nodes%voltages(i) = vecsaPtr(i)%vecValuesPtr%cReal
             nodes%names(i) = trim(getName(vecsaPtr(i)%vecValuesPtr%name))
         end do
+        write(*,*) trim(getName(vecsaPtr(4)%vecValuesPtr%name)), vecsaPtr(4)%vecValuesPtr%cReal
 
         write(*,*) 'SendData end'
 

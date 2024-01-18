@@ -7,18 +7,24 @@ integer function test_spice_ac() result(error_cnt)
 
     type(circuit_t) :: circuit
     character(len=50) :: netlist
-    real(kind=8) :: result(4)
+    real :: finalTime
     integer :: i
+
+    circuit%time = 0.0
+    circuit%dt = 50e-6
+    finalTime = 200e-6
 
     error_cnt = 0
     netlist = '../../src_mtln/testData/netlist_ac.cir'
     call circuit%init()
     call circuit%loadNetlist(netlist)
-    ! call circuit%command('stop when time = 100u')
-    call circuit%run()
-    ! call circuit%step(10)
+    do while (circuit%time < finalTime)
+        call circuit%step()
+        circuit%time = circuit%time + circuit%dt
+    end do
+    ! call circuit%run()
 
-    call circuit%command('print all')
+    ! call circuit%command('print all')
     ! result = [24.000000000000000, 9.7469741675197206, 15.000000000000000, 24.000000000000000]
     ! if (size(circuit%nodes%voltages) /= 4) then 
     !     error_cnt = error_cnt + 1
