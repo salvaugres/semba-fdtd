@@ -63,7 +63,8 @@ add_fortran_test_executable (mtlnsolver_tests
     "test_matmul_broadcast.F90"
     "test_sum_derived_types.F90"
     "test_q3Phi.F90"
-    "test_spice.F90"
+    "test_spice_dc.F90"
+    "test_spice_ac.F90"
 )
 
 # get_target_property(mtlnsolver_INCLUDES mtlnsolver INCLUDE_DIRECTORIES)

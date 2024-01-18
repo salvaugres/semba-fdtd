@@ -1,95 +1,44 @@
-module model_mod
+module circuit_mod
 
+    ! use iso_c_binding
     use ngspice_interface_mod
     implicit none
 
-    type test_t
+    type nodes_t
         real(kind=8), allocatable :: voltages(:)
-        ! real(kind=8), allocatable :: times(:)
-    end type test_t
-
+        real(kind=8), allocatable :: indices(:)
+        character(len=10), allocatable :: names(:)
+    end type nodes_t
 
     type, public :: circuit_t
     character (len=:), allocatable :: name
     real :: time = 0.0, dt = 0.0
     logical :: errorFlag = .false.
-    
-
-    ! type(test_t), pointer :: values   
-    real(kind=8), pointer :: voltages(:)
+    type(nodes_t) :: nodes   
 
     contains
         procedure :: init
         procedure :: run
+        procedure :: step
         procedure :: loadNetlist
         procedure :: print
         procedure :: command
-        procedure :: getCurrentPlotName
-        procedure :: getVectorInfo
-        procedure :: getVectorInfo2
-        procedure :: getAllPlots
-        procedure :: getAllVecs
-        ! procedure :: SendChar
-        ! procedure, private :: SendStat
-        ! procedure, private :: SendChar
-        ! procedure, private :: SendChar
-        ! procedure, private :: SendChar
-        ! procedure, private :: SendChar
 
     end type circuit_t
 
 contains
 
-    ! integer(c_int) function SendChar(output, id, returnPtr)
-    !     ! class(circuit_t) :: this
-    !     type(c_ptr), value, intent(in), optional :: output
-    !     integer(c_int), intent(in), value, optional :: id
-    !     type(c_ptr), value, intent(in), optional :: returnPtr
-    !     character(len=:), pointer :: f_output
-    !     character(len=:), allocatable :: string
-        
-    !     SendChar = 0
-    !     call c_f_pointer(output, f_output)
-    !     ! string = f_output(1:index(f_output, c_null_char)-1)
-    !     ! ! string = string(index(string,'stdout'):len(string)) ! remove 'stdout'?
-    !     ! write(*,*) 'SendChar: ', trim(string)
-    !     ! if (index('stderror Error:', string) /= 0) then
-    !     !     SendChar = 1
-    !     ! end if
-
-    ! end function
-
-
     subroutine init(this)
         class(circuit_t) :: this
-        type(c_funptr) :: cSendChar
-        type(c_funptr) :: cSendStat
-        type(c_funptr) :: cControlledExit
-        type(c_funptr) :: cSendData
-        type(c_funptr) :: cSendInitData
-        type(c_funptr) :: cBGThreadRunning
-        ! type(*) :: returnPtr
-
-
         integer :: res
 
-
-        ! cSendChar = c_null_funptr
-        cSendChar = c_funloc(SendChar)
-        cSendStat = c_funloc(SendStat)
-        cControlledExit = c_funloc(ControlledExit)
-        cSendData = c_funloc(SendData)
-        cSendInitData = c_funloc(SendInitData)
-        cBGThreadRunning = c_funloc(BGThreadRunning)
-
-        ! returnPtr = c_loc(this%voltages)
-        ! returnPtr = c_loc(this%values)
-
-        res = ngSpice_Init(cSendChar, cSendStat, cControlledExit, cSendData, cSendInitData, cBGThreadRunning, c_loc(this%voltages))
-        ! res = ngSpice_Command('source ' // netlist)
-        ! netlist = '../../src_mtln/testData/netlist.cir'
-        ! res = ngSpice_Command('source ' // netlist // c_null_char)
-        ! res = ngSpice_Command('run ' // c_null_char)
+        res = ngSpice_Init(c_funloc(SendChar), &
+                           c_funloc(SendStat), & 
+                           c_funloc(ControlledExit), & 
+                           c_funloc(SendData), &
+                           c_funloc(SendInitData), &
+                           c_funloc(BGThreadRunning), &
+                           this%nodes)
   
 
         write(*,*) 'Init'
@@ -102,11 +51,21 @@ contains
         res = ngSpice_Command('source ' // netlist // c_null_char)
     end subroutine
 
+    subroutine step(this, nSteps)
+        class(circuit_t) :: this
+        integer, optional :: nSteps
+        integer :: out
+        character(len=100) :: cSteps
+        if (present(nSteps)) then 
+            write(cSteps, '(I3)') nSteps
+        end if  
+        out = ngSpice_Command('step '//cSteps // c_null_char)
+    end subroutine
+
     subroutine run(this)
         class(circuit_t) :: this
         integer :: out
         out = ngSpice_Command('run ' // c_null_char)
-                
     end subroutine
 
     subroutine print(this)
@@ -122,82 +81,114 @@ contains
         out = ngSpice_Command(line // c_null_char)
     end subroutine
 
-    function getCurrentPlotName(this) result(res)
-        class(circuit_t) :: this
-        character(len=:), allocatable :: res
-        character(len=:), pointer :: ptrName
+    integer(c_int) function SendChar(output, id, nodes)
+        type(c_ptr), value, intent(in) :: output
+        integer(c_int), intent(in), value :: id
+        type(nodes_t) :: nodes
+        character(len=:), pointer :: f_output
+        character(len=:), allocatable :: string
         
-        call c_f_pointer(ngSpice_CurPlot(), ptrName)
-        res = ptrName(1:index(ptrName, c_null_char)-1)
+        SendChar = 0
+        call c_f_pointer(output, f_output)
+        string = f_output(1:index(f_output, c_null_char)-1)
+        write(*,*) 'SendChar: ', trim(string)
+        if (index('stderror Error:', string) /= 0) then
+            SendChar = 1
+        end if
+    end function
+
+    integer(c_int) function SendStat(status, id, nodes)
+        type(c_ptr), value, intent(in) :: status
+        integer(c_int), intent(in), value :: id
+        ! type(c_ptr), value :: nodes
+        type(nodes_t) :: nodes
+        character(len=:), pointer :: f_output
+        character(len=:), allocatable :: string
+
+        call c_f_pointer(status, f_output)
+        string = f_output(1:index(f_output, c_null_char)-1)
+        write(*,*) 'SendStat: ', trim(string)
+    end function
+
+    integer(c_int) function ControlledExit(status, unloadDll, exitOnQuit, id, nodes)
+        logical(c_bool), intent(in) :: unloadDll, exitOnQuit
+        integer(c_int), intent(in), value :: status, id
+        ! type(c_ptr), value :: nodes
+        type(nodes_t) :: nodes
+
+        integer :: res
+        if (exitOnQuit .eqv. .true.) then
+            write(*,*) 'ControlledExit: Returned form quit with exit status ', status
+            call exit(status)
+        else if (unloadDll .eqv. .true.) then 
+            write(*,*) "ControlledExit: Unloading ngspice inmmediately is not possible"
+            write(*,*) "ControlledExit: Can we recover?"
+        else
+            write(*,*) "ControlledExit: Unloading ngspice is not possible"
+            write(*,*) "ControlledExit: Can we recover? Send 'quit' command to ngspice"
+            res = ngSpice_Command("quit 5")
+        end if
 
     end function
 
-    function getVectorInfo(this, vectorName) result(res)
-        class(circuit_t) :: this
-        type(pVectorInfo) :: res
-        character(len=:), pointer :: ptrName
-        character(len=:), allocatable :: name
-        character(len=*), intent(in) :: vectorName
+    function getName(cName) result(res)
+        type(c_ptr) :: cName
+        character(len=100) :: res
+        character, pointer :: f_output(:) => null()
+        integer :: i
+        call c_f_pointer(cName, f_output,[100])
+        do i = 1,100
+            res(i:i) = f_output(i)
+        enddo
+        res = res(1:index(res, c_null_char)-1)
+    end function
 
-        call c_f_pointer(ngSpice_CurPlot(), ptrName)
-        name = ptrName(1:index(ptrName, c_null_char)-1)
+    integer(c_int) function SendData(data, numberOfStructs, id, nodes)
+        type(c_ptr), value, intent(in) :: data
+        type(nodes_t) :: nodes
+        integer(c_int), value :: numberOfStructs, id
 
-        res = ngGet_Vec_Info(name//'.'//vectorName//c_null_char)
-        ! res = ngGet_Vec_Info(vectorName//c_null_char)
+        type(vecValuesAll), pointer :: valuesAll
+        type(c_ptr), pointer :: values(:)
+        type(vecValuesArray), allocatable :: vecsaPtr(:) ! array of pointers to type(c_ptr)
+        integer :: i
+
+        write(*,*) 'SendData begin'
+        
+        call c_f_pointer(data, valuesAll) 
+        call c_f_pointer(valuesAll%vecsa, values, [valuesAll%vecCount])
+        allocate(vecsaPtr(valuesAll%vecCount))
+
+        if (.not.allocated(nodes%voltages)) then 
+            allocate(nodes%voltages(valuesAll%vecCount))
+            allocate(nodes%indices(valuesAll%vecCount))
+            allocate(nodes%names(valuesAll%vecCount))
+        end if  
+        
+        do i = 1, valuesAll%vecCount
+            call c_f_pointer(values(i), vecsaPtr(i)%vecValuesPtr)
+            ! write(*,*) trim(getName(vecsaPtr(i)%vecValuesPtr%name)), vecsaPtr(i)%vecValuesPtr%cReal
+            nodes%voltages(i) = vecsaPtr(i)%vecValuesPtr%cReal
+            nodes%names(i) = trim(getName(vecsaPtr(i)%vecValuesPtr%name))
+        end do
+
+        write(*,*) 'SendData end'
 
     end function
 
-    function getVectorInfo2(this, vectorName) result(res)
-        class(circuit_t) :: this
-        ! type(c_ptr) :: pv
-        type(c_ptr) :: res
-        ! character(len=:), pointer :: ptrName
-        ! character(len=:), allocatable :: name
-        character(len=*), intent(in) :: vectorName
 
-        ! call c_f_pointer(ngSpice_CurPlot(), ptrName)
-        ! name = ptrName(1:index(ptrName, c_null_char)-1)
-        ! call this%command("setplot "//name);
-
-        res = ngGet_Vec_Info2(vectorName//c_null_char)
-        ! call c_f_pointer(pv, res)
-
+    integer(c_int) function SendInitData(initData, id, nodes)
+        integer(c_int), value :: id
+        type(vecInOfAll), pointer, intent(in) :: initData
+        type(nodes_t) :: nodes
+        write(*,*) 'SendInitData'
     end function
 
-    ! function getVectorInfo2(this, vectorName) result(res)
-    !     class(circuit_t) :: this
-    !     type(c_ptr) :: pv
-    !     type(vectorInfo), pointer :: res
-    !     character(len=:), pointer :: ptrName
-    !     character(len=:), allocatable :: name
-    !     character(len=*), intent(in) :: vectorName
-
-    !     call c_f_pointer(ngSpice_CurPlot(), ptrName)
-    !     name = ptrName(1:index(ptrName, c_null_char)-1)
-    !     ! call this%command("setplot "//name);
-
-    !     pv = ngGet_Vec_Info2(vectorName//c_null_char)
-    !     call c_f_pointer(pv, res)
-
-    ! end function
-
-    function getAllPlots(this) result(res)
-        class(circuit_t) :: this
-        integer :: length
-        character(len=:), pointer :: res(:)
-        call c_f_pointer(ngSpice_AllPlots(), res, [1])
+    integer(c_int) function BGThreadRunning(isBGThreadNotRunning, id, nodes)
+        logical(c_bool) :: isBGThreadNotRunning
+        integer(c_int), value :: id
+        type(nodes_t) :: nodes
     end function
 
-    function getAllVecs(this, plotName) result(res)
-        class(circuit_t) :: this
-        character(len=*), intent(in) :: plotName
-        character(len=:), pointer :: res(:)
-        character(len=:), pointer :: allPlots(:)
-
-        ! allPlots => this%getAllPlots()
-        ! call this%command('setplot '// plotName)
-        call c_f_pointer(ngSpice_AllVecs(plotName//c_null_char), res, [4])
-
-    end function
 
 end module 
