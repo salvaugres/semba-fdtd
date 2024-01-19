@@ -27,4 +27,6 @@ integer function test_spice_dc() result(error_cnt)
         end if
     end do
 
+    write(*,*) error_cnt
+
 end function
