@@ -15,7 +15,7 @@ integer function test_read_planewave() result(err)
    parser = parser_t(filename)
    problem = parser%readProblemDescription()
    call expect_eq(err, expected, problem)
-
+   
 contains
    function expectedProblemDescription() result (expected)
       type(Parseador) :: expected
