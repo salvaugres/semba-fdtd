@@ -18,11 +18,17 @@ integer function test_spice_ac() result(error_cnt)
     netlist = '../../src_mtln/testData/netlist_ac.cir'
     call circuit%init()
     call circuit%loadNetlist(netlist)
+    call circuit%setStopTimes(finalTime, circuit%dt)
     do while (circuit%time < finalTime)
         call circuit%step()
         circuit%time = circuit%time + circuit%dt
+        write(*,*) 'time: ',circuit%nodes%voltages(4)
     end do
+
     ! call circuit%run()
+    ! call circuit%resume()
+    ! call circuit%resume()
+
 
     ! call circuit%command('print all')
     ! result = [24.000000000000000, 9.7469741675197206, 15.000000000000000, 24.000000000000000]

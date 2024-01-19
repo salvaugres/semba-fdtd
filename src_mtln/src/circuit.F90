@@ -24,6 +24,8 @@ module circuit_mod
         procedure :: loadNetlist
         procedure :: print
         procedure :: command
+        procedure :: isRunning
+        procedure :: setStopTimes
 
     end type circuit_t
 
@@ -39,6 +41,7 @@ contains
                            c_funloc(SendData), &
                            c_funloc(SendInitData), &
                            c_funloc(BGThreadRunning), &
+                        !    c_loc(this))
                            this%nodes)
   
 
@@ -59,10 +62,6 @@ contains
         stopTime = this%time + this%dt
         write(realString, '(E10.2)') stopTime
 
-        ! call this%command('.tran '// realString //' '// realString )
-
-        call this%command('stop when time = '//realString)
-        call this%run()
         if (this%time == 0) then
             call this%run()
         else
@@ -75,6 +74,24 @@ contains
         class(circuit_t) :: this
         integer :: out
         out = ngSpice_Command('run ' // c_null_char)
+    end subroutine
+
+    function isRunning(this) result(res)
+        class(circuit_t) :: this
+        logical :: res
+        res = ngSpice_running()
+    end function
+
+    subroutine setStopTimes(this, finalTime, dt)
+        class(circuit_t) :: this
+        real, intent(in) :: finalTime, dt
+        real :: time = 0.0
+        character(20) :: charTime
+        do while (time < finalTime)
+            time = time + dt
+            write(charTime, '(E10.2)') time
+            call this%command('stop when time = '//charTime)
+        end do
     end subroutine
 
     subroutine resume(this)
@@ -99,15 +116,21 @@ contains
     integer(c_int) function SendChar(output, id, nodes)
         type(c_ptr), value, intent(in) :: output
         integer(c_int), intent(in), value :: id
+        ! type(c_ptr), value, intent(in) :: nodes
+        ! type(circuit_t), pointer :: this
         type(nodes_t) :: nodes
         character(len=:), pointer :: f_output
         character(len=:), allocatable :: string
         
+        ! call c_f_pointer(nodes, this)
+
+
         SendChar = 0
         call c_f_pointer(output, f_output)
         string = f_output(1:index(f_output, c_null_char)-1)
-        write(*,*) 'SendChar: ', trim(string)
-        if (index('stderror Error:', string) /= 0) then
+        write(*,*) trim(string)
+        ! write(*,*) 'SendChar: ', trim(string)
+        if (index('stderr', string) /= 0) then
             SendChar = 1
         end if
     end function
@@ -122,7 +145,8 @@ contains
 
         call c_f_pointer(status, f_output)
         string = f_output(1:index(f_output, c_null_char)-1)
-        write(*,*) 'SendStat: ', trim(string)
+        write(*,*) trim(string)
+        ! write(*,*) 'SendStat: ', trim(string)
     end function
 
     integer(c_int) function ControlledExit(status, unloadDll, exitOnQuit, id, nodes)
@@ -161,6 +185,8 @@ contains
     integer(c_int) function SendData(data, numberOfStructs, id, nodes)
         type(c_ptr), value, intent(in) :: data
         type(nodes_t) :: nodes
+        ! type(c_ptr), value :: nodes
+        ! type(circuit_t), pointer :: this
         integer(c_int), value :: numberOfStructs, id
 
         type(vecValuesAll), pointer :: valuesAll
@@ -168,7 +194,9 @@ contains
         type(vecValuesArray), allocatable :: vecsaPtr(:) ! array of pointers to type(c_ptr)
         integer :: i
 
-        write(*,*) 'SendData begin'
+        ! call c_f_pointer(nodes, this)
+
+        ! write(*,*) 'SendData begin'
         
         call c_f_pointer(data, valuesAll) 
         call c_f_pointer(valuesAll%vecsa, values, [valuesAll%vecCount])
@@ -185,9 +213,9 @@ contains
             nodes%voltages(i) = vecsaPtr(i)%vecValuesPtr%cReal
             nodes%names(i) = trim(getName(vecsaPtr(i)%vecValuesPtr%name))
         end do
-        write(*,*) trim(getName(vecsaPtr(4)%vecValuesPtr%name)), vecsaPtr(4)%vecValuesPtr%cReal
+        ! write(*,*) trim(getName(vecsaPtr(4)%vecValuesPtr%name)), vecsaPtr(4)%vecValuesPtr%cReal
 
-        write(*,*) 'SendData end'
+        ! write(*,*) 'SendData end'
 
     end function
 
@@ -196,7 +224,7 @@ contains
         integer(c_int), value :: id
         type(vecInOfAll), pointer, intent(in) :: initData
         type(nodes_t) :: nodes
-        write(*,*) 'SendInitData'
+        ! write(*,*) 'SendInitData'
     end function
 
     integer(c_int) function BGThreadRunning(isBGThreadNotRunning, id, nodes)
