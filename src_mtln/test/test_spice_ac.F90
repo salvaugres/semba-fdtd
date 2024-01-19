@@ -22,24 +22,12 @@ integer function test_spice_ac() result(error_cnt)
     do while (circuit%time < finalTime)
         call circuit%step()
         circuit%time = circuit%time + circuit%dt
-        write(*,*) 'time: ',circuit%nodes%voltages(4)
+
+        if (checkNear(circuit%nodes%time, circuit%time, 0.01) .eqv. .false. ) then 
+            error_cnt = error_cnt + 1
+        end if
     end do
 
-    ! call circuit%run()
-    ! call circuit%resume()
-    ! call circuit%resume()
-
-
-    ! call circuit%command('print all')
-    ! result = [24.000000000000000, 9.7469741675197206, 15.000000000000000, 24.000000000000000]
-    ! if (size(circuit%nodes%voltages) /= 4) then 
-    !     error_cnt = error_cnt + 1
-    ! end if
-
-    ! do i = 1, 4                      
-    !     if (checkNear_dp(circuit%nodes%voltages(i), result(i), 0.01) .eqv. .false. ) then 
-    !         error_cnt = error_cnt + 1
-    !     end if
-    ! end do
+    write(*,*) error_cnt
 
 end function

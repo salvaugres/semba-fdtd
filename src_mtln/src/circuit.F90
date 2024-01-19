@@ -4,10 +4,17 @@ module circuit_mod
     use ngspice_interface_mod
     implicit none
 
+    type string_t
+        character(len=100) :: name
+        integer :: length
+    end type string_t
+
     type nodes_t
-        real(kind=8), allocatable :: voltages(:)
-        real(kind=8), allocatable :: indices(:)
-        character(len=10), allocatable :: names(:)
+        real, allocatable :: voltages(:)
+        real, allocatable :: indices(:)
+        real :: time
+        type(string_t), allocatable :: tags(:)
+        ! character(len=:), allocatable :: names(:)
     end type nodes_t
 
     type, public :: circuit_t
@@ -116,20 +123,14 @@ contains
     integer(c_int) function SendChar(output, id, nodes)
         type(c_ptr), value, intent(in) :: output
         integer(c_int), intent(in), value :: id
-        ! type(c_ptr), value, intent(in) :: nodes
-        ! type(circuit_t), pointer :: this
         type(nodes_t) :: nodes
         character(len=:), pointer :: f_output
         character(len=:), allocatable :: string
-        
-        ! call c_f_pointer(nodes, this)
-
 
         SendChar = 0
         call c_f_pointer(output, f_output)
         string = f_output(1:index(f_output, c_null_char)-1)
         write(*,*) trim(string)
-        ! write(*,*) 'SendChar: ', trim(string)
         if (index('stderr', string) /= 0) then
             SendChar = 1
         end if
@@ -138,7 +139,6 @@ contains
     integer(c_int) function SendStat(status, id, nodes)
         type(c_ptr), value, intent(in) :: status
         integer(c_int), intent(in), value :: id
-        ! type(c_ptr), value :: nodes
         type(nodes_t) :: nodes
         character(len=:), pointer :: f_output
         character(len=:), allocatable :: string
@@ -146,13 +146,11 @@ contains
         call c_f_pointer(status, f_output)
         string = f_output(1:index(f_output, c_null_char)-1)
         write(*,*) trim(string)
-        ! write(*,*) 'SendStat: ', trim(string)
     end function
 
     integer(c_int) function ControlledExit(status, unloadDll, exitOnQuit, id, nodes)
         logical(c_bool), intent(in) :: unloadDll, exitOnQuit
         integer(c_int), intent(in), value :: status, id
-        ! type(c_ptr), value :: nodes
         type(nodes_t) :: nodes
 
         integer :: res
@@ -172,47 +170,52 @@ contains
 
     function getName(cName) result(res)
         type(c_ptr) :: cName
-        character(len=100) :: res
+        ! character(len=100) :: res
+        type(string_t) :: res
         character, pointer :: f_output(:) => null()
-        integer :: i
+        integer :: i, j
         call c_f_pointer(cName, f_output,[100])
         do i = 1,100
-            res(i:i) = f_output(i)
+            if (f_output(i) == c_null_char) exit
+            res%name(i:i) = f_output(i)
         enddo
-        res = res(1:index(res, c_null_char)-1)
+        res%length = i-1
+        ! ALLOCATE(character(len=i) :: res)
+        ! do j = 1,i
+        !     res(j:j) = f_output(j)
+        ! enddo
+        ! res= res(1:i-1)
+        ! res%name = aux(1:index(aux, c_null_char)-1)
+
     end function
 
     integer(c_int) function SendData(data, numberOfStructs, id, nodes)
         type(c_ptr), value, intent(in) :: data
         type(nodes_t) :: nodes
-        ! type(c_ptr), value :: nodes
-        ! type(circuit_t), pointer :: this
         integer(c_int), value :: numberOfStructs, id
 
         type(vecValuesAll), pointer :: valuesAll
         type(c_ptr), pointer :: values(:)
         type(vecValuesArray), allocatable :: vecsaPtr(:) ! array of pointers to type(c_ptr)
         integer :: i
-
-        ! call c_f_pointer(nodes, this)
-
-        ! write(*,*) 'SendData begin'
         
         call c_f_pointer(data, valuesAll) 
         call c_f_pointer(valuesAll%vecsa, values, [valuesAll%vecCount])
         allocate(vecsaPtr(valuesAll%vecCount))
 
         if (.not.allocated(nodes%voltages)) then 
-            allocate(nodes%voltages(valuesAll%vecCount))
-            allocate(nodes%indices(valuesAll%vecCount))
-            allocate(nodes%names(valuesAll%vecCount))
+            allocate(nodes%voltages(valuesAll%vecCount-1))
+            allocate(nodes%indices(valuesAll%vecCount-1))
+            allocate(nodes%tags(valuesAll%vecCount-1))
         end if  
         
-        do i = 1, valuesAll%vecCount
+        do i = 1, valuesAll%vecCount-1
             call c_f_pointer(values(i), vecsaPtr(i)%vecValuesPtr)
             nodes%voltages(i) = vecsaPtr(i)%vecValuesPtr%cReal
-            nodes%names(i) = trim(getName(vecsaPtr(i)%vecValuesPtr%name))
+            nodes%tags(i) = getName(vecsaPtr(i)%vecValuesPtr%name)
         end do
+        call c_f_pointer(values(valuesAll%vecCount), vecsaPtr(valuesAll%vecCount)%vecValuesPtr)
+        nodes%time = vecsaPtr(valuesAll%vecCount)%vecValuesPtr%cReal
         ! write(*,*) trim(getName(vecsaPtr(4)%vecValuesPtr%name)), vecsaPtr(4)%vecValuesPtr%cReal
 
         ! write(*,*) 'SendData end'

@@ -7,7 +7,7 @@ integer function test_spice_dc() result(error_cnt)
 
     type(circuit_t) :: circuit
     character(len=50) :: netlist
-    real(kind=8) :: result(4)
+    real :: result(4)
     integer :: i
 
     error_cnt = 0
@@ -22,7 +22,7 @@ integer function test_spice_dc() result(error_cnt)
     end if
 
     do i = 1, 4                      
-        if (checkNear_dp(circuit%nodes%voltages(i), result(i), 0.01) .eqv. .false. ) then 
+        if (checkNear(circuit%nodes%voltages(i), result(i), 0.01) .eqv. .false. ) then 
             error_cnt = error_cnt + 1
         end if
     end do
