@@ -56,12 +56,12 @@ jobs:
       if: ${{ failure() }}
       run: cat build/CMakeFiles/CMakeConfigureLog.yaml
     
-    - name: Setup upterm session
-      uses: lhotari/action-upterm@v1
+    # - name: Setup upterm session
+    #   uses: lhotari/action-upterm@v1
     
     - name: CMake build
       run: |
-        export FC=ifort
+        # export FC=ifort
         # export CC=icc
         # export CXX=icpc
         cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
