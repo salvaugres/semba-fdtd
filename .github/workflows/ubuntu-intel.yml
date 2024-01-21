@@ -55,7 +55,10 @@ jobs:
     - name: print config log
       if: ${{ failure() }}
       run: cat build/CMakeFiles/CMakeConfigureLog.yaml
-
+    
+    - name: Setup upterm session
+      uses: lhotari/action-upterm@v1
+    
     - name: CMake build
       run: |
         export FC=ifort
