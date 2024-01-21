@@ -45,7 +45,8 @@ jobs:
 
     - name: Setup Intel oneAPI environment
       run: |
-        source /opt/intel/oneapi/compiler/latest/env/vars.sh
+        source /opt/intel/oneapi/setvars.sh
+        #source /opt/intel/oneapi/compiler/latest/env/vars.sh
         printenv >> $GITHUB_ENV
 
     - name: Setup ninja
@@ -57,6 +58,7 @@ jobs:
 
     - name: CMake build
       run: |
+        source /opt/intel/oneapi/compiler/latest/env/vars.sh
         export FC=ifx
         export CC=icx
         export CXX=icpx
