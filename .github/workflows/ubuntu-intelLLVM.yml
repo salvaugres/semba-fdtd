@@ -56,7 +56,9 @@ jobs:
       run: cat build/CMakeFiles/CMakeConfigureLog.yaml
 
     - name: CMake build
-      run: |       
+      run: |
+        source /opt/intel/oneapi/setvars.sh
+        printenv >> $GITHUB_ENV
         export FC=ifx
         export CC=icx
         export CXX=icpx
