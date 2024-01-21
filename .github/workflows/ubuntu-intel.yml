@@ -46,14 +46,17 @@ jobs:
     - name: Setup ninja
       uses: seanmiddleditch/gha-setup-ninja@master
 
+      - name: Setup Intel oneAPI environment
+      run: |
+        source /opt/intel/oneapi/setvars.sh
+        printenv >> $GITHUB_ENV
+
     - name: print config log
       if: ${{ failure() }}
       run: cat build/CMakeFiles/CMakeConfigureLog.yaml
 
     - name: CMake build
       run: |
-        source /opt/intel/oneapi/setvars.sh
-        printenv >> $GITHUB_ENV
         export FC=ifort
         export CC=icc
         export CXX=icpc

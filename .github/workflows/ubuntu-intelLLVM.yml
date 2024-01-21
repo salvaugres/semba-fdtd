@@ -57,8 +57,6 @@ jobs:
 
     - name: CMake build
       run: |
-        source /opt/intel/oneapi/setvars.sh
-        printenv >> $GITHUB_ENV
         export FC=ifx
         export CC=icx
         export CXX=icpx
