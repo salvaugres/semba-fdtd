@@ -12,18 +12,21 @@ on:
   push:
     branches:
       - main
+      - dev
   pull_request:
     branches:
       - main
 
 jobs:
 
-  linux:
+  builds-and-tests:
     runs-on: ubuntu-latest
 
     steps:
-    # must be first as we're using scripts from this repo
+    
     - uses: actions/checkout@v4
+      with:
+        submodules: 'recursive'
 
     - name: cache install oneAPI
       id: cache-install
@@ -45,19 +48,21 @@ jobs:
         source /opt/intel/oneapi/setvars.sh
         printenv >> $GITHUB_ENV
 
-    # optional: any non-oneAPI packages are not cached by this script
-    - name: install Ninja
-      run: sudo apt install ninja-build
+    - name: Setup ninja
+      uses: seanmiddleditch/gha-setup-ninja@master
 
     - name: print config log
       if: ${{ failure() }}
       run: cat build/CMakeFiles/CMakeConfigureLog.yaml
 
     - name: CMake build
-      run: cmake --build build --parallel
+      run: |       
+        cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+        cmake --build build -j
 
-    - name: CMake Test
-      run: ctest --test-dir build -V
+    - name: Run json-parser tests 
+      run: |
+        ctest --test-dir build/src_json_parser/test/ --output-on-failure
 
     - name: exclude unused files from cache
       if: steps.cache-install.outputs.cache-hit != 'true'

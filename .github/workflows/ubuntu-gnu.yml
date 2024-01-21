@@ -17,13 +17,7 @@ env:
 
 jobs:
   builds-and-tests:
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
-        
-    name: ${{ matrix.os }}
-
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
 
     steps:
         
@@ -40,7 +34,7 @@ jobs:
         cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
         cmake --build build -j
           
-    - name: Run tests 
+    - name: Run json-parser tests 
       run: |
         ctest --test-dir build/src_json_parser/test/ --output-on-failure
         
