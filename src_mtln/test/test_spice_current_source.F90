@@ -2,7 +2,6 @@ integer function test_spice_current_source() result(error_cnt)
 
     use circuit_mod
     use testingTools_mod
-    ! use ngspice_interface_mod
     implicit none
 
     type(circuit_t) :: circuit

@@ -21,7 +21,7 @@ module mtln_solver_mod
         procedure :: updatePULTerms
         procedure :: addNetwork
         procedure :: getTimeRange
-        procedure :: computeNWVoltageTerms
+        ! procedure :: computeNWVoltageTerms
         procedure :: runUntil
         procedure :: updateProbes
         procedure :: updateNWCurrent
@@ -29,7 +29,7 @@ module mtln_solver_mod
         procedure :: advanceBundlesVoltage
         procedure :: advanceBundlesCurrent
         procedure :: advanceTime
-        procedure :: step
+        procedure :: step => mtln_step
 
 
     end type mtln_t
@@ -59,7 +59,7 @@ contains
 
     end function
 
-    subroutine step(this)
+    subroutine mtln_step(this)
         class(mtln_t) :: this
 
         call this%advanceBundlesVoltage()
@@ -88,9 +88,9 @@ contains
         class(mtln_t) :: this
         integer :: i
         do i = 1, size(this%networks)
-            call this%networks(i)%updateSources(this%time, this%dt)
+            ! call this%networks(i)%updateSources(this%time, this%dt)
             call this%networks(i)%advanceVoltage(this%dt)
-            call this%networks(i)%updateVoltages(this%bundles)
+            call this%networks(i)%updateBundlesVoltages(this%bundles)
         end do
     end subroutine
 
@@ -150,13 +150,13 @@ contains
         res =  floor(final_time / this%dt)
     end function
 
-    subroutine computeNWVoltageTerms(this)
-        class(mtln_t) :: this
-        integer :: i
-        do i = 1, size(this%networks)
-            call this%networks(i)%computeNWVoltageTerms(this%dt)
-        end do
-    end subroutine
+    ! subroutine computeNWVoltageTerms(this)
+    !     class(mtln_t) :: this
+    !     integer :: i
+    !     do i = 1, size(this%networks)
+    !         call this%networks(i)%computeNWVoltageTerms(this%dt)
+    !     end do
+    ! end subroutine
 
     subroutine updateBundlesTimeStep(this, dt)
         class(mtln_t) :: this
@@ -203,7 +203,7 @@ contains
         end if  
 
         n_time_steps = this%getTimeRange(final_time)
-        call this%computeNWVoltageTerms()
+        ! call this%computeNWVoltageTerms()
         call this%updatePULTerms(n_time_steps)
 
         do i = 1, n_time_steps

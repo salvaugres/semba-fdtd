@@ -1,6 +1,5 @@
 module circuit_mod
 
-    ! use iso_c_binding
     use ngspice_interface_mod
     implicit none
 
@@ -11,9 +10,7 @@ module circuit_mod
 
     type nodes_t
         real, allocatable :: values(:)
-        ! real, allocatable :: voltages(:)
         real, allocatable :: indices(:)
-        ! real :: time
         type(string_t), allocatable :: tags(:)
     
     end type nodes_t
@@ -28,10 +25,10 @@ module circuit_mod
         procedure :: init
         procedure :: run
         procedure :: step
-        procedure :: resume
+        procedure, private :: resume
         procedure, private :: loadNetlist
         procedure :: print
-        procedure :: command
+        procedure, private :: command
         procedure :: isRunning
         procedure :: setStopTimes
         procedure :: getNodeVoltage
@@ -53,7 +50,6 @@ contains
                            c_funloc(SendData), &
                            c_funloc(SendInitData), &
                            c_funloc(BGThreadRunning), &
-                        !    c_loc(this))
                            this%nodes)
   
         call this%loadNetlist(netlist)
@@ -69,11 +65,6 @@ contains
 
     subroutine step(this)
         class(circuit_t) :: this
-        ! real :: stopTime
-        ! character(20) :: realString
-        ! stopTime = this%time + this%dt
-        ! write(realString, '(E10.2)') stopTime
-
         if (this%time == 0) then
             call this%run()
         else
@@ -175,10 +166,9 @@ contains
 
     function getName(cName) result(res)
         type(c_ptr) :: cName
-        ! character(len=100) :: res
         type(string_t) :: res
         character, pointer :: f_output(:) => null()
-        integer :: i, j
+        integer :: i
         res%name = ""
         res%length = 0
         call c_f_pointer(cName, f_output,[100])
@@ -207,14 +197,12 @@ contains
         character(len=*), intent(in) :: name
         real :: res
         res = this%nodes%values(findVoltageIndexByName(this%nodes%tags, name))
-        ! res = this%nodes%voltages(findIndexByName(this%nodes%tags, name))
     end function
 
     function getTime(this) result(res)
         class(circuit_t) :: this
         real :: res
         res = this%nodes%values(findIndexByName(this%nodes%tags, "time"))
-        ! res = this%nodes%voltages(findIndexByName(this%nodes%tags, name))
     end function
 
     function findIndexByName(tags, name) result(res)
@@ -224,8 +212,8 @@ contains
         res = 0
         do i = 1, size(tags)
             if ( tags(i)%name(1:tags(i)%length) == trim(name)) then 
-            ! if ( tags(i)%name(1:tags(i)%length) == trim(name)) then 
                 res = i
+                exit
             end if
         end do
     end function    
@@ -238,8 +226,8 @@ contains
         res = 0
         do i = 1, size(tags)
             if ( tags(i)%name(1:tags(i)%length) == 'V('//trim(name)//')') then 
-            ! if ( tags(i)%name(1:tags(i)%length) == trim(name)) then 
                 res = i
+                exit
             end if
         end do
     end function    
@@ -259,25 +247,17 @@ contains
         allocate(vecsaPtr(valuesAll%vecCount))
 
         if (.not.allocated(nodes%values)) then 
-        ! if (.not.allocated(nodes%voltages)) then 
             allocate(nodes%values(valuesAll%vecCount))
-            ! allocate(nodes%voltages(valuesAll%vecCount-1))
             allocate(nodes%indices(valuesAll%vecCount))
             allocate(nodes%tags(valuesAll%vecCount))
         end if  
         
         do i = 1, valuesAll%vecCount
-        ! do i = 1, valuesAll%vecCount-1
             call c_f_pointer(values(i), vecsaPtr(i)%vecValuesPtr)
             nodes%values(i) = vecsaPtr(i)%vecValuesPtr%cReal
-            ! nodes%voltages(i) = vecsaPtr(i)%vecValuesPtr%cReal
             nodes%tags(i) = getName(vecsaPtr(i)%vecValuesPtr%name)
         end do
         call c_f_pointer(values(valuesAll%vecCount), vecsaPtr(valuesAll%vecCount)%vecValuesPtr)
-        ! nodes%time = vecsaPtr(valuesAll%vecCount)%vecValuesPtr%cReal
-        ! write(*,*) trim(getName(vecsaPtr(4)%vecValuesPtr%name)), vecsaPtr(4)%vecValuesPtr%cReal
-
-        ! write(*,*) 'SendData end'
 
     end function
 
@@ -286,7 +266,6 @@ contains
         integer(c_int), value :: id
         type(vecInOfAll), pointer, intent(in) :: initData
         type(nodes_t) :: nodes
-        ! write(*,*) 'SendInitData'
     end function
 
     integer(c_int) function BGThreadRunning(isBGThreadNotRunning, id, nodes)

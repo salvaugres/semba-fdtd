@@ -24,7 +24,6 @@ integer function test_spice_ac() result(error_cnt)
         circuit%time = circuit%time + circuit%dt
         ! write(*,*) circuit%getNodeVoltage(nodeName)
         if (checkNear(circuit%getTime(), circuit%time, 0.01) .eqv. .false. ) then 
-        ! if (checkNear(circuit%nodes%time, circuit%time, 0.01) .eqv. .false. ) then 
             error_cnt = error_cnt + 1
         end if
     end do

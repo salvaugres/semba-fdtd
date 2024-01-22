@@ -80,7 +80,6 @@ module ngspice_interface_mod
             type(c_funptr), intent(in), value :: cbSendData
             type(c_funptr), intent(in), value :: cbSendInitData
             type(c_funptr), intent(in), value :: cbBGThreadRunning
-            ! type(c_ptr), intent(in), value  :: returnPtr
             type(*) :: returnPtr
         end function
 

@@ -22,7 +22,6 @@ integer function test_spice_dc() result(error_cnt)
 
     do i = 1, 4                      
         if (checkNear(circuit%nodes%values(i), result(i), 0.01) .eqv. .false. ) then 
-        ! if (checkNear(circuit%nodes%voltages(i), result(i), 0.01) .eqv. .false. ) then 
             error_cnt = error_cnt + 1
         end if
     end do
