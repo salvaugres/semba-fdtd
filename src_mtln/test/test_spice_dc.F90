@@ -12,17 +12,17 @@ integer function test_spice_dc() result(error_cnt)
 
     error_cnt = 0
     netlist = '../../src_mtln/testData/netlist_dc.cir'
-    call circuit%init()
-    call circuit%loadNetlist(netlist)
+    call circuit%init(netlist)
     call circuit%run()
 
     result = [24.000000000000000, 9.7469741675197206, 15.000000000000000, 24.000000000000000]
-    if (size(circuit%nodes%voltages) /= 4) then 
+    if (size(circuit%nodes%values) /= 4) then 
         error_cnt = error_cnt + 1
     end if
 
     do i = 1, 4                      
-        if (checkNear(circuit%nodes%voltages(i), result(i), 0.01) .eqv. .false. ) then 
+        if (checkNear(circuit%nodes%values(i), result(i), 0.01) .eqv. .false. ) then 
+        ! if (checkNear(circuit%nodes%voltages(i), result(i), 0.01) .eqv. .false. ) then 
             error_cnt = error_cnt + 1
         end if
     end do

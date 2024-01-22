@@ -10,11 +10,12 @@ module circuit_mod
     end type string_t
 
     type nodes_t
-        real, allocatable :: voltages(:)
+        real, allocatable :: values(:)
+        ! real, allocatable :: voltages(:)
         real, allocatable :: indices(:)
-        real :: time
+        ! real :: time
         type(string_t), allocatable :: tags(:)
-        ! character(len=:), allocatable :: names(:)
+    
     end type nodes_t
 
     type, public :: circuit_t
@@ -28,18 +29,22 @@ module circuit_mod
         procedure :: run
         procedure :: step
         procedure :: resume
-        procedure :: loadNetlist
+        procedure, private :: loadNetlist
         procedure :: print
         procedure :: command
         procedure :: isRunning
         procedure :: setStopTimes
+        procedure :: getNodeVoltage
+        procedure :: getTime
+        procedure :: updateNodeCurrent
 
     end type circuit_t
 
 contains
 
-    subroutine init(this)
+    subroutine init(this, netlist)
         class(circuit_t) :: this
+        character(len=*), intent(in) :: netlist
         integer :: res
 
         res = ngSpice_Init(c_funloc(SendChar), &
@@ -51,7 +56,7 @@ contains
                         !    c_loc(this))
                            this%nodes)
   
-
+        call this%loadNetlist(netlist)
         write(*,*) 'Init'
     end subroutine
 
@@ -64,10 +69,10 @@ contains
 
     subroutine step(this)
         class(circuit_t) :: this
-        real :: stopTime
-        character(20) :: realString
-        stopTime = this%time + this%dt
-        write(realString, '(E10.2)') stopTime
+        ! real :: stopTime
+        ! character(20) :: realString
+        ! stopTime = this%time + this%dt
+        ! write(realString, '(E10.2)') stopTime
 
         if (this%time == 0) then
             call this%run()
@@ -174,20 +179,70 @@ contains
         type(string_t) :: res
         character, pointer :: f_output(:) => null()
         integer :: i, j
+        res%name = ""
+        res%length = 0
         call c_f_pointer(cName, f_output,[100])
         do i = 1,100
             if (f_output(i) == c_null_char) exit
             res%name(i:i) = f_output(i)
         enddo
         res%length = i-1
-        ! ALLOCATE(character(len=i) :: res)
-        ! do j = 1,i
-        !     res(j:j) = f_output(j)
-        ! enddo
-        ! res= res(1:i-1)
-        ! res%name = aux(1:index(aux, c_null_char)-1)
 
     end function
+
+    subroutine updateNodeCurrent(this, nodeIdx, current)
+        class(circuit_t) :: this
+        real :: current
+        character(20) :: sCurrent
+        character(2) :: sIdx
+        integer :: nodeIdx
+        write(sCurrent, '(E10.2)') current
+        write(sIdx, '(I0)') nodeIdx
+        sIdx = trim(sIdx)
+        call this%command("alter @I"//trim(sIdx)//"[dc] = "//trim(sCurrent))
+    end subroutine
+
+    function getNodeVoltage(this, name) result(res)
+        class(circuit_t) :: this
+        character(len=*), intent(in) :: name
+        real :: res
+        res = this%nodes%values(findVoltageIndexByName(this%nodes%tags, name))
+        ! res = this%nodes%voltages(findIndexByName(this%nodes%tags, name))
+    end function
+
+    function getTime(this) result(res)
+        class(circuit_t) :: this
+        real :: res
+        res = this%nodes%values(findIndexByName(this%nodes%tags, "time"))
+        ! res = this%nodes%voltages(findIndexByName(this%nodes%tags, name))
+    end function
+
+    function findIndexByName(tags, name) result(res)
+        type(string_t) :: tags(:)
+        character(len=*), intent(in) :: name
+        integer :: res, i
+        res = 0
+        do i = 1, size(tags)
+            if ( tags(i)%name(1:tags(i)%length) == trim(name)) then 
+            ! if ( tags(i)%name(1:tags(i)%length) == trim(name)) then 
+                res = i
+            end if
+        end do
+    end function    
+
+
+    function findVoltageIndexByName(tags, name) result(res)
+        type(string_t) :: tags(:)
+        character(len=*), intent(in) :: name
+        integer :: res, i
+        res = 0
+        do i = 1, size(tags)
+            if ( tags(i)%name(1:tags(i)%length) == 'V('//trim(name)//')') then 
+            ! if ( tags(i)%name(1:tags(i)%length) == trim(name)) then 
+                res = i
+            end if
+        end do
+    end function    
 
     integer(c_int) function SendData(data, numberOfStructs, id, nodes)
         type(c_ptr), value, intent(in) :: data
@@ -203,19 +258,23 @@ contains
         call c_f_pointer(valuesAll%vecsa, values, [valuesAll%vecCount])
         allocate(vecsaPtr(valuesAll%vecCount))
 
-        if (.not.allocated(nodes%voltages)) then 
-            allocate(nodes%voltages(valuesAll%vecCount-1))
-            allocate(nodes%indices(valuesAll%vecCount-1))
-            allocate(nodes%tags(valuesAll%vecCount-1))
+        if (.not.allocated(nodes%values)) then 
+        ! if (.not.allocated(nodes%voltages)) then 
+            allocate(nodes%values(valuesAll%vecCount))
+            ! allocate(nodes%voltages(valuesAll%vecCount-1))
+            allocate(nodes%indices(valuesAll%vecCount))
+            allocate(nodes%tags(valuesAll%vecCount))
         end if  
         
-        do i = 1, valuesAll%vecCount-1
+        do i = 1, valuesAll%vecCount
+        ! do i = 1, valuesAll%vecCount-1
             call c_f_pointer(values(i), vecsaPtr(i)%vecValuesPtr)
-            nodes%voltages(i) = vecsaPtr(i)%vecValuesPtr%cReal
+            nodes%values(i) = vecsaPtr(i)%vecValuesPtr%cReal
+            ! nodes%voltages(i) = vecsaPtr(i)%vecValuesPtr%cReal
             nodes%tags(i) = getName(vecsaPtr(i)%vecValuesPtr%name)
         end do
         call c_f_pointer(values(valuesAll%vecCount), vecsaPtr(valuesAll%vecCount)%vecValuesPtr)
-        nodes%time = vecsaPtr(valuesAll%vecCount)%vecValuesPtr%cReal
+        ! nodes%time = vecsaPtr(valuesAll%vecCount)%vecValuesPtr%cReal
         ! write(*,*) trim(getName(vecsaPtr(4)%vecValuesPtr%name)), vecsaPtr(4)%vecValuesPtr%cReal
 
         ! write(*,*) 'SendData end'
