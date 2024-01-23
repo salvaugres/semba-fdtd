@@ -10,4 +10,4 @@ add_library(smbjson
 	"nfdetypes_extension.F90" 
 )
 
-target_link_libraries  (smbjson PRIVATE jsonfortran semba-types fhash)
+target_link_libraries(smbjson PRIVATE ${JSONFORTRAN_LIB} semba-types fhash)

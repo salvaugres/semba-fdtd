@@ -6,24 +6,46 @@ project(semba-fdtd Fortran)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-# set(CMAKE_Fortran_MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/mod)
 
 message(STATUS ${CMAKE_Fortran_COMPILER_ID})
 
 option(CompileWithHDF "Use HDF" OFF)
 option(CompileWithMPI "Use MPI" OFF)
 option(CompileWithJSON "Compile JSON format parser" ON)
-option(CompileExecutable "Compiles semba-fdtd executble" ON)
+option(CompileExecutable "Compiles semba-fdtd executable" ON)
+option(CompileWithMTLN "Use MTLN modules" OFF)
 
 add_library(semba-types 
 	"src_main_pub/nfde_types.F90"
 	"src_main_pub/fdetypes.F90"
 )
+add_subdirectory(external/fhash/)
+
+if (${CMAKE_Fortran_COMPILER_ID} STREQUAL "GNU" AND ${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+	set(JSONFORTRAN_DIR "${CMAKE_SOURCE_DIR}/precompiled_libraries/linux-gcc-rls/jsonfortran/")
+	set(JSONFORTRAN_LIB ${JSONFORTRAN_DIR}libjsonfortran.a)
+elseif (${CMAKE_Fortran_COMPILER_ID} STREQUAL "Intel" AND ${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+	set(JSONFORTRAN_DIR "${CMAKE_SOURCE_DIR}/precompiled_libraries/linux-intel-rls/jsonfortran/")
+	set(JSONFORTRAN_LIB ${JSONFORTRAN_DIR}libjsonfortran.a)
+elseif (${CMAKE_Fortran_COMPILER_ID} STREQUAL "IntelLLVM" AND ${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+	set(JSONFORTRAN_DIR "${CMAKE_SOURCE_DIR}/precompiled_libraries/linux-intelLLVM-rls/jsonfortran/")
+	set(JSONFORTRAN_LIB ${JSONFORTRAN_DIR}libjsonfortran-static.a)
+elseif(${CMAKE_Fortran_COMPILER_ID} STREQUAL "Intel" AND ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+	set(JSONFORTRAN_DIR "${CMAKE_SOURCE_DIR}/precompiled_libraries/windows-intel-rls/jsonfortran/")
+	set(JSONFORTRAN_LIB ${JSONFORTRAN_DIR}jsonfortran.lib)
+endif()
+include_directories(${JSONFORTRAN_DIR}/include/)
+MESSAGE(STATUS "Using json-fortran precompiled libraries at: " ${JSONFORTRAN_DIR})
 
 if (CompileWithJSON)
 	message(STATUS "Compiling JSON format parser")
 	add_definitions(-DCompileWithJSON)
 	add_subdirectory(src_json_parser)
+endif()
+
+if (CompileWithMTLN)
+	message(STATUS "Compiling MTLN solver")
+	add_subdirectory(src_mtln)
 endif()
 
 if (CompileExecutable)
@@ -101,6 +123,7 @@ if (CompileWithMPI)
 else()
 	message(STATUS "MPI libraries NOT needed.")
 endif()
+
 
 add_definitions(		
 -DCompileWithInt2 

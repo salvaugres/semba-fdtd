@@ -4,16 +4,20 @@ This module allows to read the [FDTD-JSON format](#the-fdtd-json-format) and par
 
 ## Compilation and testing
 
-### Compilation with GNU Fortran
+### Compilation with GNU Fortran (Linux)
 
 Assuming `gfortran` and `cmake` are accessible from path, this module can be compiled from the project main directory run
 
     cmake -S . -B <BUILD_DIR> -DCompileWithJSON=YES
     cmake --build <BUILD_DIR> -j
 
-### Compilation with Intel Fortran Classic
+### Compilation with Intel Fortran Classic (Windows)
 
-Tested to work.
+Assuming `ifort` and `cmake` are accessible. Use same command as for `gfortran`
+
+### Compilation with Intel LLVM
+
+Planned.
 
 ### Compilation with NVIDIA Fortran compiler
 
@@ -21,9 +25,11 @@ Tested to work with `-O0` optimizations. Higher optimizations produce SEGFAULTs.
 
 ### Testing
 
-This project uses the ctest tool available within cmake. Once build, you can run
+This project uses the ctest tool available within cmake. Once build, in Linux you can run 
 
     ctest --test-dir <BUILD_DIR>/src_json_parser/test/ --output-on-failure
+
+in Windows, add `-C Debug` or `-C Release` accordingly.
 
 # The FDTD-JSON format
 
@@ -526,8 +532,15 @@ Records a scalar field at a single position referenced by `elementIds`. `element
 
 #### `bulkCurrent`
 
-Performs a loop integral along on the contour of the surface reference in the `elementIds` entry. This must point to a single `cell` containing a single `interval` describing an oriented surface.
-Due to Ampere's law, the loop integral of the magnetic field is equal to the total current passing through the surface. `[field]`, can be `electric` or `magnetic`. Defaults to `electric`, which gives the total current passing through the surface.
+Performs a loop integral along on the contour of the surface reference in the `elementIds` entry. This must point to a single `cell` containing a single `interval` which is used to define one or several surfaces. These surfaces are build by enlarging half grid step in the directions perpendicular to the entry `direction`, depending on the type of `interval` as follows:
+
++ If it is a point or a volume, `direction` must be present.
++ For an oriented line, `direction` is optional and the orientation of the line will be used as default.
++ For an oriented surface, `direction` is assumed to be the normal of the surface.
+
+Due to Ampere's law, the loop integral of the magnetic field is equal to the total electric current passing through the surfaces. `[field]`, can be `electric` or `magnetic`. Defaults to `electric`, which gives the total current passing through the surface.
+
+TODO REVIEW DO BULK CURRENTS DO AVERAGES OF MAGNETIC FIELDS IN CELLS NEXT TO THE SELECTED?
 
 ```json
 {
@@ -633,9 +646,8 @@ An example of a planewave propagating towards $\hat{z}$ and polarized in the $+\
 
 This object represents a time-varying vector field applied along an oriented line with the same orientation of the line. Therefore, the `elementIds` within must contain only elements of type `cell` with `intervals` describing a collection of oriented lines. Additionally, it may contain:
 
-+ `[field]`: with a `electric`, `magnetic`, or `current` label which indicates the vector field which will be applied. If not present, it defaults to `electric`.
-
-An example of a `sources` list containing a varying current `nodalSource` is
++ `[field]` with a `electric`, `magnetic`, or `current` label which indicates the vector field which will be applied. If not present, it defaults to `electric`.
++ `[hardness]` with `soft` or `hard` label. A `soft` hardness indicated that the magnitude will be **added** to the field this situation is typical for a waveport. `hard` sources mean that the field is **substituted** by the value established by the `magnitudeFile`, which for an electric field `nodalSource` would be equivalent to a `pec` material if the magnitude is zero.
 
 **Example:**
 
