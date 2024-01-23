@@ -25,7 +25,8 @@ add_library(mtlnsolver
 	"src/rational_approximation.F90"
 	"src/circuit.F90"
 	"src/ngspice_interface.F90"
-	# "src/circuit.F90"
+	"src/mtln_types.F90"
+	"src/preprocess.F90"
 )
 
 if (${CMAKE_Fortran_COMPILER_ID} STREQUAL "GNU" AND ${CMAKE_SYSTEM_NAME} STREQUAL "Linux")

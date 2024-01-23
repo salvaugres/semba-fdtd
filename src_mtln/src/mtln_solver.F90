@@ -4,6 +4,7 @@ module mtln_solver_mod
     use types_mod, only: bundle_iter_t
     use mtl_bundle_mod
     use network_bundle_mod
+    use preprocess_mod
     implicit none
 
 
@@ -41,23 +42,41 @@ module mtln_solver_mod
 
 contains
 
-    function mtlnCtor(bundles, networks) result(res)
+    function mtlnCtor(parsed) result(res)
+        type(parsed_t) :: parsed
         type(mtln_t) :: res
-        class(mtl_bundle_t), dimension(:) :: bundles
-        class(network_bundle_t), dimension(:) :: networks
         integer :: i
+        type(preprocess_t) :: preprocess
 
+        preprocess = preprocessCtor(parsed)
         res%dt = 1e10
         res%time  = 0.0
         allocate(res%networks(0))
-        do i = 1, size(bundles)
-            call res%addBundle(bundles(i)%name, bundles(i))
+        do i = 1, size(preprocess%bundles)
+            call res%addBundle(preprocess%bundles(i)%name, preprocess%bundles(i))
         end do
-        do i = 1, size(networks)
-            call res%addNetwork(networks(i))
+        do i = 1, size(preprocess%networks)
+            call res%addNetwork(preprocess%networks(i))
         end do
 
     end function
+    ! function mtlnCtor(bundles, networks) result(res)
+    !     type(mtln_t) :: res
+    !     class(mtl_bundle_t), dimension(:) :: bundles
+    !     class(network_bundle_t), dimension(:) :: networks
+    !     integer :: i
+
+    !     res%dt = 1e10
+    !     res%time  = 0.0
+    !     allocate(res%networks(0))
+    !     do i = 1, size(bundles)
+    !         call res%addBundle(bundles(i)%name, bundles(i))
+    !     end do
+    !     do i = 1, size(networks)
+    !         call res%addNetwork(networks(i))
+    !     end do
+
+    ! end function
 
     subroutine mtln_step(this)
         class(mtln_t) :: this

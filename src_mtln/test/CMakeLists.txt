@@ -66,6 +66,7 @@ add_fortran_test_executable (mtlnsolver_tests
     "test_spice_dc.F90"
     "test_spice_ac.F90"
     "test_spice_current_source.F90"
+    "test_spice_short.F90"
 )
 
 # get_target_property(mtlnsolver_INCLUDES mtlnsolver INCLUDE_DIRECTORIES)
