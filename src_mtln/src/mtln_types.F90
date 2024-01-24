@@ -1,27 +1,35 @@
 module mtln_types_mod
 
     use fhash, only: fhash_tbl_t, key=>fhash_key, fhash_key_t
+    ! use fhash_key_coordinate_pair, only: coordinate_t
     implicit none
 
 
-    type, public :: coordinate_t
-        integer, dimension(3) :: rel_position
-    end type
+    ! type, extends(coordinate_t) :: coordinate_tt
+    !     integer, dimension(3) :: rel_positions => coordinate_t%rel_positions
+    ! end type
 
     type, public :: element_t
         integer :: id
     end type
 
-    type, extends(element_t) :: polyline
-        type(coordinate_t), dimension(2) :: coordinate_ids
+    type, extends(element_t) :: polyline_t
+        integer, dimension(2,3) :: coordinates
+        integer, dimension(2) :: coordinate_ids
     end type
 
+    interface operator(==)
+        module procedure compare_polylines
+    end interface
+
     type, extends(element_t) :: node
-        type(coordinate_t), dimension(1) :: coordinate_ids
+        integer, dimension(1,3) :: coordinate_ids
+        ! type(coordinate_t), dimension(1) :: coordinate_ids
     end type
 
     type, extends(element_t) :: cell
-        type(coordinate_t), dimension(2) :: intervals
+        integer, dimension(2,3) :: intervals
+        ! type(coordinate_t), dimension(2) :: intervals
     end type
 
     
@@ -74,8 +82,8 @@ module mtln_types_mod
     type, public :: line_t
     end type
 
-    type, public :: bundle_t
-    end type
+    ! type, public :: bundle_t
+    ! end type
     
     type, public :: junction_t
     end type
@@ -95,16 +103,16 @@ module mtln_types_mod
 
     type, public :: cable_t
         character (len=:), allocatable :: name
-        ! integer, dimension(:), allocatable :: element_ids
-        type(element_t), dimension(:), allocatable :: elements
-        ! integer :: material_id ! id of wire, multiwire, terminal, connector
-        type(material_t) :: material
-        ! integer :: initial_terminal_id, end_terminal_id
-        ! integer :: initial_connector_id, end_connector_id
-        type(terminal_t) :: initial_terminal
-        type(terminal_t) :: end_terminal
-        type(segment_connector_t) :: initial_connector
-        type(segment_connector_t) :: end_connector
+        ! type(element_t), dimension(:), allocatable :: elements
+        integer, dimension(:), allocatable :: element_ids
+        integer :: material_id ! id of wire, multiwire, terminal, connector
+        ! type(material_t) :: material
+        integer :: initial_terminal_id, end_terminal_id
+        integer :: initial_connector_id, end_connector_id
+        ! type(terminal_t) :: initial_terminal
+        ! type(terminal_t) :: end_terminal
+        ! type(segment_connector_t) :: initial_connector
+        ! type(segment_connector_t) :: end_connector
 
         type(cable_t), pointer :: parent_cable => null()
         ! contained_in : elementId or pointer to cable_t?
@@ -119,8 +127,20 @@ module mtln_types_mod
         type(wire_t), dimension(:), allocatable :: wires
         type(terminal_t), dimension(:), allocatable :: terminals
         type(segment_connector_t), dimension(:), allocatable :: connectors
+        type(fhash_tbl_t) :: elements ! id : polyline, cell or node
+        type(fhash_tbl_t) :: materials ! id : wire, multiwire, terminal or connector
     end type
 
+contains
 
+    function compare_polylines(a,b) result(res)
+        type(polyline_t), intent(in) :: a,b
+        logical :: res
+        res = .false.
+        if (all(a%coordinates(1,:) .eq. b%coordinates(1,:)) .and. &
+            all(a%coordinates(2,:) .eq. b%coordinates(2,:))) then 
+            res =.true.
+        end if
+    end function
 
 end module
