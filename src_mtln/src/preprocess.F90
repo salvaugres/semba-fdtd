@@ -13,6 +13,7 @@ module preprocess_mod
     implicit none
     !preprocess: gets parser info, generates bundles and networks
 
+
     type, public :: preprocess_t
         class(mtl_bundle_t), dimension(:), allocatable :: bundles ! dict{name:bundle} of MLTD
         type(network_bundle_t), dimension(:), allocatable :: networks !lista de NetworkD, no de network
@@ -30,13 +31,12 @@ module preprocess_mod
 
 contains
 
-    function buildLines(cable_array, materials) result(res)
+    function buildMTLArray(cable_array, materials) result(res)
         type(cable_array_t), intent(in) :: cable_array
         type(mtl_t), dimension(:), allocatable :: res
         type(fhash_tbl_t), value :: materials
         class(*), allocatable :: d
         integer ::stat, i
-        !Reference to impure function 'key_from_int32' at (1) within a PURE procedure
         allocate(res(0))
         do i = 1, size(cable_array%cables)
             call materials%get_raw(key(cable_array%cables%material_id), d, stat)
@@ -65,28 +65,27 @@ contains
         integer :: i
     end function 
 
-    function orderBundle(bundle) result(ordered_bundle)
-        type(cable_array_t), intent(in) :: bundle
+    function buildBundle(colinear_cables) result(bundle)
+        type(cable_array_t), intent(in) :: colinear_cables
         type(cable_array_t) :: ordered_bundle_level
-        type(fhash_tbl_t) :: ordered_bundle ! int : cable_array
-        integer :: i, j, n
+        type(bundle_t) :: bundle
+        integer :: i, j
 
         logical, dimension(:), allocatable :: visited
-        allocate(visited(size(bundle%cables)), source = .false.)
 
-        do i = 1, size(bundle%cables)
-            if (associated(bundle%cables(i)%parent_cable) .eqv. .false.) then 
+        allocate(bundle%levels(0))
+        allocate(visited(size(colinear_cables%cables)), source = .false.)
+
+        do i = 1, size(colinear_cables%cables)
+            if (associated(colinear_cables%cables(i)%parent_cable) .eqv. .false.) then 
                 stop
             end if
         end do
-        ordered_bundle_level%cables = [bundle%cables(i)]
+        ordered_bundle_level%cables = [colinear_cables%cables(i)]
         visited(i) = .true.
-        n = 0
-        call ordered_bundle%set(key(0), value = ordered_bundle_level)
-       
-        do while (findNextLevel(ordered_bundle_level, bundle%cables, visited) /= 0)
-            n = n + 1
-            call ordered_bundle%set(key(n), value = ordered_bundle_level)
+        bundle%levels = [bundle%levels, ordered_bundle_level]
+        do while (findNextLevel(ordered_bundle_level, colinear_cables%cables, visited) /= 0)
+            bundle%levels = [bundle%levels, ordered_bundle_level]
         end do
 
         contains
@@ -122,69 +121,73 @@ contains
         type(cable_t), dimension(:), allocatable, intent(in) :: cables
         type(cable_array_t) :: cable_array
         type(fhash_tbl_t), intent(in) :: elements
-        type(fhash_tbl_t) :: res ! key: integer, dimension(2,3) | value: cable_array
-        class(*), allocatable :: line, b
+        type(fhash_tbl_t) :: map ! key: integer, dimension(2,3) | value: cable_array
+        type(cable_array_t), dimension(:), allocatable :: res
+        class(*), allocatable :: line, b, c_array
         
         integer :: i
         integer :: id, stat
+        
+        type(fhash_iter_t) :: iter
+        class(fhash_key_t), allocatable :: k
 
         do i = 1, size(cables)
             id = cables(i)%element_ids(1)
             call elements%get_raw(key(id), line)
             select type(line) 
             type is(polyline_t)
-                call res%check_key(key(line%coordinates), stat)
+                call map%check_key(key(line%coordinates), stat)
                 if (stat /= 0) then !not found
                     cable_array%cables = [cables(i)]
-                    call res%set(key(line%coordinates), value = cable_array)
+                    call map%set(key(line%coordinates), value = cable_array)
                 else  ! found
-                    call res%get_raw(key(line%coordinates), b)
+                    call map%get_raw(key(line%coordinates), b)
                     select type(b)
                     type is(cable_array_t)
                         b%cables = [b%cables, cables(i)]
-                        call res%set(key(line%coordinates), value = b)
+                        call map%set(key(line%coordinates), value = b)
                     end select
                 end if
             end select
         end do
 
-        ! call bundles%set(key(name), value = bundle)
+        allocate(res(0))
+        iter = fhash_iter_t(map)
+        do while(iter%next(k,c_array))
+            select type(c_array)
+            type is(cable_array_t)
+                res = [res,c_array]
+            end select
+        end do
+
     end function
 
     function preprocessCtor(parsed) result(res)
         type(parsed_t) :: parsed
         type(preprocess_t) :: res
         !ToDo
+        type(cable_array_t), dimension(:), allocatable :: colinear_cables
 
-        class(fhash_key_t), allocatable :: k, k_ordered
-        type(fhash_iter_t) :: iter, iter_ordered
+        integer :: i, j
+        type(bundle_t) :: bundle
 
-        ! type(fhash_tbl_t) :: ordered_bundle
-        ! type(fhash_tbl_t) :: tab
-
-        class(*), allocatable :: cable_array, cable_array_ordered
         type(mtl_t), dimension(:), allocatable :: mtls
-        ! mtls = buildLines(parsed%cables, parsed%materials)
-        ! tab = groupCablesIntoBundles(parsed%cables, parsed%elements)
-        iter = fhash_iter_t(groupColinearCables(parsed%cables, parsed%elements))
+        type(mtl_array_t) :: mtl_levels
+        type(mtl_bundle_t) :: mtl_bundle
+        allocate(res%bundles(0))
+        allocate(mtl_levels%levels(0))
+        
+        colinear_cables = groupColinearCables(parsed%cables, parsed%elements)
             
-        do while(iter%next(k,cable_array))
-            select type(cable_array)
-            type is(cable_array_t)
-                ! ordered_bundle = orderBundle(cable_array)
-                iter_ordered = fhash_iter_t(orderBundle(cable_array)ordered_bundle)
-                do while(iter_ordered%next(k_ordered,cable_array_ordered))
-                    select type(cable_array_ordered)
-                    type is(cable_array_t)
-                        mtls = buildLines(cable_array_ordered, parsed%materials)
-                    end select
+        do i = 1, size(colinear_cables)
+            bundle = buildBundle(colinear_cables(i))
+            do j = 1, size(bundle%levels)
+                mtl_levels%levels = [mtl_levels%levels, buildMTLArray(bundle%levels(i),parsed%materials)]
+            end do
+            mtl_bundle = mtldCtor(mtl_levels)
+            res%bundles = [res%bundles,mtl_bundle]
+        end do
 
-                end do
-
-
-
-            end select
-          end do
 
     end function
 
