@@ -118,6 +118,14 @@ module mtln_types_mod
         ! contained_in : elementId or pointer to cable_t?
     end type
 
+    type, public :: bundle_t 
+        type(cable_array_t), dimension(:), allocatable :: levels
+    end type
+
+    type, public :: cable_array_t
+        type(cable_t), dimension(:), allocatable :: cables
+    end type
+
 
     type, public :: parsed_t
         type(cable_t), dimension(:), allocatable :: cables

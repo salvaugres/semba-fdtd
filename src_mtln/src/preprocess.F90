@@ -7,6 +7,7 @@ module preprocess_mod
     ! use fhash, only: fhash_tbl_t, key=>fhash_key, fhash_key_t
     use fhash, only: fhash_tbl_t
     use fhash_key_coordinate_pair, only: fhash_key_coordinate_pair_t, key=>fhash_key
+    use fhash_data_container, only: fhash_container_t
     
     use network_bundle_mod
     implicit none
@@ -27,44 +28,47 @@ module preprocess_mod
         module procedure preprocessCtor
     end interface
 
-    type, public :: cable_array_t
-        type(cable_t), dimension(:), allocatable :: cables
-    end type
-
 contains
 
-    ! elemental type(mtl_t) function buildLines(cable, materials)
-    !     type(cable_t), intent(in) :: cable
-    !     type(fhash_tbl_t), value :: materials
-    !     class(*), allocatable :: d
-    !     integer ::stat
-    !     !Reference to impure function 'key_from_int32' at (1) within a PURE procedure
-    !     call materials%get_raw(key(cable%material_id), d, stat)
-    !     if (stat /= 0) return
-    !     select type(d)
-    !         type is(wire_t)
-    !             !build mtl
-    !         type is(multiwire_t)
-    !             !build mtl
-    !     end select
+    function buildLines(cable_array, materials) result(res)
+        type(cable_array_t), intent(in) :: cable_array
+        type(mtl_t), dimension(:), allocatable :: res
+        type(fhash_tbl_t), value :: materials
+        class(*), allocatable :: d
+        integer ::stat, i
+        !Reference to impure function 'key_from_int32' at (1) within a PURE procedure
+        allocate(res(0))
+        do i = 1, size(cable_array%cables)
+            call materials%get_raw(key(cable_array%cables%material_id), d, stat)
+            if (stat /= 0) return
+            select type(d)
+                type is(wire_t)
+                    res = [res, buildMTLFromWire(d)]
+                    !build mtl
+                type is(multiwire_t)
+                    res = [res, buildMTLFromMultiwire(d)]
+                    !build mtl
+            end select
+        end do  
         
-    ! end function
+    end function
 
-    ! function buildLines(cables) result(res)
-    !     type(cable_t), dimension(:), allocatable :: cables
-    !     type(mtl_t), dimension(:), allocatable :: res
-    !     integer :: i
+    function buildMTLFromWire(wire) result(res)
+        type(wire_t) :: wire
+        type(mtl_t) :: res
+        integer :: i
+    end function 
 
-
-    ! end function 
+    function buildMTLFromMultiwire(multiwire) result(res)
+        type(multiwire_t) :: multiwire
+        type(mtl_t) :: res
+        integer :: i
+    end function 
 
     function orderBundle(bundle) result(ordered_bundle)
         type(cable_array_t), intent(in) :: bundle
         type(cable_array_t) :: ordered_bundle_level
-        type(cable_array_t), pointer :: next_level
-        type(cable_t), pointer :: cable_ptr
         type(fhash_tbl_t) :: ordered_bundle ! int : cable_array
-        class(*), allocatable :: b
         integer :: i, j, n
 
         logical, dimension(:), allocatable :: visited
@@ -85,34 +89,6 @@ contains
             call ordered_bundle%set(key(n), value = ordered_bundle_level)
         end do
 
-        ! ordered_bundle should contain one integer key for each level. The values are 
-
-        ! do i = 1, size(bundle%cables)
-        !     n = 0
-        !     cable_ptr => bundle%cables(i)%parent_cable
-        !     do while (associated(cable_ptr) .eqv. .true.)
-        !         n = n + 1
-        !         cable_ptr => cable_ptr%parent_cable
-        !     end do
-        !     block
-        !         type(cable_array_t) :: ordered_bundle_level
-        !         integer :: stat = 0
-        !         call ordered_bundle%check_key(key(n), stat)
-        !         if (stat /= 0) then !not found
-        !             ! ordered_bundle_level%cables = [ordered_bundle_level%cables(i)]
-        !             call ordered_bundle%set(key(n), value = ordered_bundle_level)
-        !         else  ! found
-        !             call ordered_bundle%get_raw(key(n), b)
-        !             select type(b)
-        !             type is(cable_array_t)
-        !                 b%cables = [b%cables, bundle%cables(i)]
-        !                 call ordered_bundle%set(key(n), value = b)
-        !             end select
-        !         end if
-        !     end block
-
-        ! end do
-
         contains
             function findNextLevel(curr_level, cables, is_visited) result (next)
                 type(cable_array_t), intent(inout) :: curr_level
@@ -127,7 +103,7 @@ contains
                     do j = 1, size(cables)
                         if (is_visited(i) .eqv. .false.) then 
                             if (associated(cables(j)%parent_cable, tgt)) then 
-                                next_level%cables = [next_level%cables, cables(i)]
+                                nxt_level%cables = [nxt_level%cables, cables(i)]
                                 is_visited(i) = .true.
                             end if
     
@@ -142,11 +118,11 @@ contains
     end function
 
     ! cable with the same start and end relative coordinates belong to the same bundle
-    function groupCablesIntoBundles(cables, elements) result(res)
+    function groupColinearCables(cables, elements) result(res)
         type(cable_t), dimension(:), allocatable, intent(in) :: cables
-        type(cable_array_t) :: bundle
+        type(cable_array_t) :: cable_array
         type(fhash_tbl_t), intent(in) :: elements
-        type(fhash_tbl_t) :: res ! key: integer, dimension(2,3) | value: bundle
+        type(fhash_tbl_t) :: res ! key: integer, dimension(2,3) | value: cable_array
         class(*), allocatable :: line, b
         
         integer :: i
@@ -159,8 +135,8 @@ contains
             type is(polyline_t)
                 call res%check_key(key(line%coordinates), stat)
                 if (stat /= 0) then !not found
-                    bundle%cables = [cables(i)]
-                    call res%set(key(line%coordinates), value = bundle)
+                    cable_array%cables = [cables(i)]
+                    call res%set(key(line%coordinates), value = cable_array)
                 else  ! found
                     call res%get_raw(key(line%coordinates), b)
                     select type(b)
@@ -179,10 +155,39 @@ contains
         type(parsed_t) :: parsed
         type(preprocess_t) :: res
         !ToDo
+
+        class(fhash_key_t), allocatable :: k, k_ordered
+        type(fhash_iter_t) :: iter, iter_ordered
+
+        ! type(fhash_tbl_t) :: ordered_bundle
+        ! type(fhash_tbl_t) :: tab
+
+        class(*), allocatable :: cable_array, cable_array_ordered
         type(mtl_t), dimension(:), allocatable :: mtls
         ! mtls = buildLines(parsed%cables, parsed%materials)
+        ! tab = groupCablesIntoBundles(parsed%cables, parsed%elements)
+        iter = fhash_iter_t(groupColinearCables(parsed%cables, parsed%elements))
             
+        do while(iter%next(k,cable_array))
+            select type(cable_array)
+            type is(cable_array_t)
+                ! ordered_bundle = orderBundle(cable_array)
+                iter_ordered = fhash_iter_t(orderBundle(cable_array)ordered_bundle)
+                do while(iter_ordered%next(k_ordered,cable_array_ordered))
+                    select type(cable_array_ordered)
+                    type is(cable_array_t)
+                        mtls = buildLines(cable_array_ordered, parsed%materials)
+                    end select
+
+                end do
+
+
+
+            end select
+          end do
 
     end function
 
+
+    
 end module

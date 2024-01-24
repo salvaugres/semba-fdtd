@@ -6,8 +6,8 @@ module types_mod
     use fhash_data_container, only: fhash_container_t
     use fhash_sll
 
-    use mtl_bundle_mod
-    use network_mod
+    use mtl_bundle_mod, only: mtl_bundle_t
+    use network_mod, only: network_t
     implicit none
 
     type, extends(fhash_iter_t) :: bundle_iter_t
@@ -28,7 +28,6 @@ module types_mod
     interface network_iter_t
         module procedure :: network_iter_init
     end interface network_iter_t
-
 
 
  contains
@@ -126,5 +125,5 @@ module types_mod
         end if
 
         end function 
-    
+   
 end module
