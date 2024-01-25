@@ -43,11 +43,11 @@ contains
       expected%despl%desY = 0.1
       expected%despl%desZ = 0.1
       expected%despl%mx1 = 0
-      expected%despl%mx2 = 10
+      expected%despl%mx2 = 9
       expected%despl%my1 = 0
-      expected%despl%my2 = 10
+      expected%despl%my2 = 9
       expected%despl%mz1 = 0
-      expected%despl%mz2 = 10
+      expected%despl%mz2 = 9
 
       ! Expected boundaries.
       expected%front%tipoFrontera(:) = F_MUR
@@ -56,8 +56,8 @@ contains
       allocate(expected%plnSrc%collection(1))
       expected%plnSrc%collection(1)%nombre_fichero = "gauss.exc"
       expected%plnSrc%collection(1)%atributo = ""
-      expected%plnSrc%collection(1)%coor1 = [2, 2, 2]
-      expected%plnSrc%collection(1)%coor2 = [9, 9, 9]
+      expected%plnSrc%collection(1)%coor1 = [1, 1, 1]
+      expected%plnSrc%collection(1)%coor2 = [8, 8, 8]
       expected%plnSrc%collection(1)%theta = 0.0
       expected%plnSrc%collection(1)%phi = 0.0
       expected%plnSrc%collection(1)%alpha = 1.5708
@@ -93,9 +93,9 @@ contains
       allocate(expected%Sonda%collection(1)%cordinates(3))
       expected%Sonda%collection(1)%len_cor = 3
       expected%Sonda%collection(1)%cordinates(1:3)%tag = "electric_field_point_probe"
-      expected%Sonda%collection(1)%cordinates(1:3)%Xi = 5
-      expected%Sonda%collection(1)%cordinates(1:3)%Yi = 5
-      expected%Sonda%collection(1)%cordinates(1:3)%Zi = 5
+      expected%Sonda%collection(1)%cordinates(1:3)%Xi = 4
+      expected%Sonda%collection(1)%cordinates(1:3)%Yi = 4
+      expected%Sonda%collection(1)%cordinates(1:3)%Zi = 4
       expected%Sonda%collection(1)%cordinates(1)%Or = NP_COR_EX
       expected%Sonda%collection(1)%cordinates(2)%Or = NP_COR_EY
       expected%Sonda%collection(1)%cordinates(3)%Or = NP_COR_EZ

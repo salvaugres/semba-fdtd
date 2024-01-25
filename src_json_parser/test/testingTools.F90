@@ -44,7 +44,7 @@ contains
       ! if (.not. ex%sWires == pr%sWires) call testFails(error_cnt, 'Expected and read "slanted wires" do not match')
       ! if (.not. ex%tSlots == pr%tSlots) call testFails(error_cnt, 'Expected and read "thin slots" do not match')
 
-      write(*,*) "Read and expected inputs are equal."      
+      if (err == 0) write(*,*) "Read and expected inputs are equal."      
    end subroutine
 
    subroutine testFails(err, msg)

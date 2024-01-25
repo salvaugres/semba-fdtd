@@ -3,7 +3,7 @@ module mesh_mod
    use cells_mod
 
    integer, private, parameter  ::  MAX_LINE = 256
-
+   
    type :: element_t
       integer, dimension(:), allocatable :: coordIds
    end type
@@ -23,7 +23,7 @@ module mesh_mod
    type, public :: mesh_t
       private
       type(fhash_tbl_t) :: coordinates ! Map of CoordinateIds to relative coordinates.
-      type(fhash_tbl_t) :: elements    ! Map of ElementIds to elements/cellsRegions.
+      type(fhash_tbl_t) :: elements    ! Map of ElementIds to elements/cellsRegions.    
    contains
       procedure :: addCoordinate => mesh_addCoordinate
       procedure :: getCoordinate => mesh_getCoordinate
@@ -41,7 +41,6 @@ module mesh_mod
       procedure :: convertNodeToPixels => mesh_convertNodeToPixels
    end type
 
-   integer, public, parameter :: FIRST_CELL_START = 1
 
 contains
    ! __________________________________________________________________
@@ -224,7 +223,7 @@ contains
             res(lastSegment)%tag = pl%coordIds(i)
             do j = 1, interval%getSize()
                mC%position = iC%position + segment * (real(j-1) + 0.5)
-               res(lastSegment)%cell = floor(mc%position) + FIRST_CELL_START
+               res(lastSegment)%cell = floor(mc%position)
                res(lastSegment)%orientation = interval%getOrientation()
                lastSegment = lastSegment + 1
             end do
@@ -266,7 +265,7 @@ contains
          return
       end if
       allocate(res(1))
-      res(1)%cell = c%position + FIRST_CELL_START
+      res(1)%cell = c%position
       res(1)%tag = node%coordIds(1)
    end function
    

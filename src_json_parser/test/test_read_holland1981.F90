@@ -44,11 +44,11 @@ contains
       expected%despl%desY = 0.1
       expected%despl%desZ = 0.1
       expected%despl%mx1 = 0
-      expected%despl%mx2 = 20
+      expected%despl%mx2 = 19
       expected%despl%my1 = 0
-      expected%despl%my2 = 20
+      expected%despl%my2 = 19
       expected%despl%mz1 = 0
-      expected%despl%mz2 = 22
+      expected%despl%mz2 = 21
 
       ! Expected boundaries.
       expected%front%tipoFrontera(:) = F_PML
@@ -60,8 +60,8 @@ contains
       allocate(expected%plnSrc%collection(1))
       expected%plnSrc%collection(1)%nombre_fichero = "gauss.exc"
       expected%plnSrc%collection(1)%atributo = ""
-      expected%plnSrc%collection(1)%coor1 = (/2, 2, 2/)
-      expected%plnSrc%collection(1)%coor2 = (/19, 19, 21/)
+      expected%plnSrc%collection(1)%coor1 = [1, 1, 1]
+      expected%plnSrc%collection(1)%coor2 = [18, 18, 20]
       expected%plnSrc%collection(1)%theta = 1.5708
       expected%plnSrc%collection(1)%phi = 0.0
       expected%plnSrc%collection(1)%alpha = 0.0
@@ -111,9 +111,9 @@ contains
       allocate(expected%tWires%tw(1)%twc(10))
       expected%tWires%tw(1)%twc(1:10)%srcfile = 'None'
       expected%tWires%tw(1)%twc(1:10)%srctype = 'None'
-      expected%tWires%tw(1)%twc(1:10)%i = 12
-      expected%tWires%tw(1)%twc(1:10)%j = 12
-      expected%tWires%tw(1)%twc(1:10)%k = [(i, i=8, 17)]
+      expected%tWires%tw(1)%twc(1:10)%i = 11
+      expected%tWires%tw(1)%twc(1:10)%j = 11
+      expected%tWires%tw(1)%twc(1:10)%k = [(i, i=7, 16)]
       expected%tWires%tw(1)%twc(1:10)%d = DIR_Z
       expected%tWires%tw(1)%twc(1:10)%nd = -1
       expected%tWires%tw(1)%twc(1)%nd  = 1

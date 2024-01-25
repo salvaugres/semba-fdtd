@@ -16,7 +16,6 @@ module smbjson
 
    implicit none
 
-   character (len=*), parameter :: SMBJSON_NO_TAG = "X"
    character (len=*), parameter :: SMBJSON_LOG_SUFFIX = "_log_"
    integer, private, parameter  ::  MAX_LINE = 256
 
@@ -29,7 +28,6 @@ module smbjson
       type(mesh_t) :: mesh
       type(IdChildTable_t) :: matTable
 
-      integer, private :: notag_counter = 0
    contains
       procedure :: readProblemDescription
 
@@ -263,9 +261,9 @@ contains
       res%mx1 = 0
       res%my1 = 0
       res%mz1 = 0
-      res%mx2 = res%nX
-      res%my2 = res%nY
-      res%mz2 = res%nZ
+      res%mx2 = res%nX-1
+      res%my2 = res%nY-1
+      res%mz2 = res%nZ-1
 
 
    contains

@@ -46,9 +46,9 @@ contains
       expected%despl%mx1 = 0
       expected%despl%my1 = 0
       expected%despl%mz1 = 0
-      expected%despl%mx2 = 20
-      expected%despl%my2 = 20
-      expected%despl%mz2 = 20
+      expected%despl%mx2 = 19
+      expected%despl%my2 = 19
+      expected%despl%mz2 = 19
 
       ! Expected boundaries.
       expected%front%tipoFrontera(:) = F_MUR
@@ -66,22 +66,22 @@ contains
       
       ! PEC square
       expected%pecRegs%Surfs(1)%Or = +iEz
-      expected%pecRegs%Surfs(1)%Xi = 6
-      expected%pecRegs%Surfs(1)%Xe = 15
-      expected%pecRegs%Surfs(1)%Yi = 6
-      expected%pecRegs%Surfs(1)%Ye = 15
-      expected%pecRegs%Surfs(1)%Zi = 11
-      expected%pecRegs%Surfs(1)%Ze = 11
+      expected%pecRegs%Surfs(1)%Xi = 5
+      expected%pecRegs%Surfs(1)%Xe = 14
+      expected%pecRegs%Surfs(1)%Yi = 5
+      expected%pecRegs%Surfs(1)%Ye = 14
+      expected%pecRegs%Surfs(1)%Zi = 10
+      expected%pecRegs%Surfs(1)%Ze = 10
       expected%pecRegs%Surfs(1)%tag = ''
 
       ! Exit line
       expected%pecRegs%Lins(1)%Or = +iEy
-      expected%pecRegs%Lins(1)%Xi = 11
-      expected%pecRegs%Lins(1)%Xe = 11
-      expected%pecRegs%Lins(1)%Yi = 16
-      expected%pecRegs%Lins(1)%Ye = 20
-      expected%pecRegs%Lins(1)%Zi = 11
-      expected%pecRegs%Lins(1)%Ze = 11
+      expected%pecRegs%Lins(1)%Xi = 10
+      expected%pecRegs%Lins(1)%Xe = 10
+      expected%pecRegs%Lins(1)%Yi = 15
+      expected%pecRegs%Lins(1)%Ye = 19
+      expected%pecRegs%Lins(1)%Zi = 10
+      expected%pecRegs%Lins(1)%Ze = 10
       expected%pecRegs%Lins(1)%tag = ''
 
       ! Expected sources.
@@ -100,12 +100,12 @@ contains
       allocate(expected%nodSrc%NodalSource(1)%c2P(1))
       expected%nodSrc%NodalSource(1)%n_C2P = 1
       expected%nodSrc%NodalSource(1)%c2P(1)%Or = iEy
-      expected%nodSrc%NodalSource(1)%c2P(1)%Xi = 11
-      expected%nodSrc%NodalSource(1)%c2P(1)%Xe = 11
-      expected%nodSrc%NodalSource(1)%c2P(1)%Yi =  1
-      expected%nodSrc%NodalSource(1)%c2P(1)%Ye =  5
-      expected%nodSrc%NodalSource(1)%c2P(1)%Zi = 11
-      expected%nodSrc%NodalSource(1)%c2P(1)%Ze = 11
+      expected%nodSrc%NodalSource(1)%c2P(1)%Xi = 10
+      expected%nodSrc%NodalSource(1)%c2P(1)%Xe = 10
+      expected%nodSrc%NodalSource(1)%c2P(1)%Yi =  0
+      expected%nodSrc%NodalSource(1)%c2P(1)%Ye =  4
+      expected%nodSrc%NodalSource(1)%c2P(1)%Zi = 10
+      expected%nodSrc%NodalSource(1)%c2P(1)%Ze = 10
       expected%nodSrc%NodalSource(1)%c2P(1)%tag = ''
       expected%nodSrc%NodalSource(1)%c2P(1)%xc = 0.0
       expected%nodSrc%NodalSource(1)%c2P(1)%yc = 1.0
@@ -135,12 +135,12 @@ contains
       expected%BloquePrb%bp(1)%fstart = 0.0
       expected%BloquePrb%bp(1)%fstop = 0.0
       expected%BloquePrb%bp(1)%fstep = 0.0
-      expected%BloquePrb%bp(1)%i1 = 10
-      expected%BloquePrb%bp(1)%i2 = 11
-      expected%BloquePrb%bp(1)%j1 =  3
-      expected%BloquePrb%bp(1)%j2 =  3
-      expected%BloquePrb%bp(1)%k1 = 10
-      expected%BloquePrb%bp(1)%k2 = 11
+      expected%BloquePrb%bp(1)%i1 = 9
+      expected%BloquePrb%bp(1)%i2 = 10
+      expected%BloquePrb%bp(1)%j1 =  2
+      expected%BloquePrb%bp(1)%j2 =  2
+      expected%BloquePrb%bp(1)%k1 = 9
+      expected%BloquePrb%bp(1)%k2 = 10
       expected%BloquePrb%bp(1)%skip = 1
       expected%BloquePrb%bp(1)%nml = iEy
       expected%BloquePrb%bp(1)%t = BcELECT
@@ -155,12 +155,12 @@ contains
       expected%BloquePrb%bp(2)%fstart = 0.0
       expected%BloquePrb%bp(2)%fstop = 0.0
       expected%BloquePrb%bp(2)%fstep = 0.0
-      expected%BloquePrb%bp(2)%i1 = 10
-      expected%BloquePrb%bp(2)%i2 = 11
-      expected%BloquePrb%bp(2)%j1 = 18
-      expected%BloquePrb%bp(2)%j2 = 18
-      expected%BloquePrb%bp(2)%k1 = 10
-      expected%BloquePrb%bp(2)%k2 = 11
+      expected%BloquePrb%bp(2)%i1 = 9
+      expected%BloquePrb%bp(2)%i2 = 10
+      expected%BloquePrb%bp(2)%j1 = 17
+      expected%BloquePrb%bp(2)%j2 = 17
+      expected%BloquePrb%bp(2)%k1 = 9
+      expected%BloquePrb%bp(2)%k2 = 10
       expected%BloquePrb%bp(2)%skip = 1
       expected%BloquePrb%bp(2)%nml = iEy
       expected%BloquePrb%bp(2)%t = BcELECT

@@ -112,8 +112,8 @@ contains
          type(cell_interval_t), intent(in) :: interval
          integer, intent(in) :: dir
          integer :: a, b
-         a = interval%ini%cell(dir) + FIRST_CELL_START
-         b = interval%end%cell(dir) + FIRST_CELL_START
+         a = interval%ini%cell(dir) 
+         b = interval%end%cell(dir)
          if (a < b) then
             xi = a
             xe = b - 1
