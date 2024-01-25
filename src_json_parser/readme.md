@@ -390,7 +390,7 @@ They must contain the following entries:
 
 #### `terminal`
 
-A `terminal` models lumped circuit element located at one end of a `wire` or `multiwire`.
+A `terminal` models a lumped circuit which is assumed to located at one end of a `wire` or `multiwire`. Terminals are assumed to be assigned on points and therefore have zero dimension.
 
 + If the terminal is associated with a `wire`, the `terminations` array must contain a single `termination`.
 + In the case it is associated with a $N+1$ conductors `multiwire`, the `terminations` array must contain $N$ entries.

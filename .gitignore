@@ -34,9 +34,7 @@
 .bak
 .vs
 build/
-build-rls/
-build-dbg/
-build-nv/
+build-*/
 
 CMakeSettings.json
 /CppProperties.json
