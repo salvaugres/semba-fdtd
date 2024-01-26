@@ -4,6 +4,7 @@ module mtl_bundle_mod
     use utils_mod
     use probes_mod
     use dispersive_mod
+    use mtl_mod, only: mtl_array_t
     use fhash, only: fhash_tbl_t
     implicit none
 
@@ -47,7 +48,8 @@ contains
 
     function mtldCtor(levels, name) result(res)
         type(mtl_bundle_t) :: res
-        type(fhash_tbl_t), intent(in) :: levels
+        type(mtl_array_t), intent(in) :: levels
+        ! type(fhash_tbl_t), intent(in) :: levels
         character(len=*), intent(in), optional :: name
         ! real, allocatable, dimension(:,:) :: v, i
         

@@ -44,7 +44,9 @@ module mtl_mod
         module procedure mtlInHomogeneous
     end interface
 
-    
+    type, public :: mtl_array_t
+        type(mtl_t), dimension(:), allocatable :: levels
+    end type
 
 contains
 

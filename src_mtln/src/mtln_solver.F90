@@ -4,6 +4,7 @@ module mtln_solver_mod
     use types_mod, only: bundle_iter_t
     use mtl_bundle_mod
     use network_bundle_mod
+    use preprocess_mod
     implicit none
 
 
@@ -21,7 +22,7 @@ module mtln_solver_mod
         procedure :: updatePULTerms
         procedure :: addNetwork
         procedure :: getTimeRange
-        procedure :: computeNWVoltageTerms
+        ! procedure :: computeNWVoltageTerms
         procedure :: runUntil
         procedure :: updateProbes
         procedure :: updateNWCurrent
@@ -29,7 +30,7 @@ module mtln_solver_mod
         procedure :: advanceBundlesVoltage
         procedure :: advanceBundlesCurrent
         procedure :: advanceTime
-        procedure :: step
+        procedure :: step => mtln_step
 
 
     end type mtln_t
@@ -41,25 +42,43 @@ module mtln_solver_mod
 
 contains
 
-    function mtlnCtor(bundles, networks) result(res)
+    function mtlnCtor(parsed) result(res)
+        type(parsed_t) :: parsed
         type(mtln_t) :: res
-        class(mtl_bundle_t), dimension(:) :: bundles
-        class(network_bundle_t), dimension(:) :: networks
         integer :: i
+        type(preprocess_t) :: pre
 
+        pre = preprocess(parsed)
         res%dt = 1e10
         res%time  = 0.0
         allocate(res%networks(0))
-        do i = 1, size(bundles)
-            call res%addBundle(bundles(i)%name, bundles(i))
+        do i = 1, size(pre%bundles)
+            call res%addBundle(pre%bundles(i)%name, pre%bundles(i))
         end do
-        do i = 1, size(networks)
-            call res%addNetwork(networks(i))
+        do i = 1, size(pre%networks)
+            call res%addNetwork(pre%networks(i))
         end do
 
     end function
+    ! function mtlnCtor(bundles, networks) result(res)
+    !     type(mtln_t) :: res
+    !     class(mtl_bundle_t), dimension(:) :: bundles
+    !     class(network_bundle_t), dimension(:) :: networks
+    !     integer :: i
 
-    subroutine step(this)
+    !     res%dt = 1e10
+    !     res%time  = 0.0
+    !     allocate(res%networks(0))
+    !     do i = 1, size(bundles)
+    !         call res%addBundle(bundles(i)%name, bundles(i))
+    !     end do
+    !     do i = 1, size(networks)
+    !         call res%addNetwork(networks(i))
+    !     end do
+
+    ! end function
+
+    subroutine mtln_step(this)
         class(mtln_t) :: this
 
         call this%advanceBundlesVoltage()
@@ -88,9 +107,9 @@ contains
         class(mtln_t) :: this
         integer :: i
         do i = 1, size(this%networks)
-            call this%networks(i)%updateSources(this%time, this%dt)
+            ! call this%networks(i)%updateSources(this%time, this%dt)
             call this%networks(i)%advanceVoltage(this%dt)
-            call this%networks(i)%updateVoltages(this%bundles)
+            call this%networks(i)%updateBundlesVoltages(this%bundles)
         end do
     end subroutine
 
@@ -150,13 +169,13 @@ contains
         res =  floor(final_time / this%dt)
     end function
 
-    subroutine computeNWVoltageTerms(this)
-        class(mtln_t) :: this
-        integer :: i
-        do i = 1, size(this%networks)
-            call this%networks(i)%computeNWVoltageTerms(this%dt)
-        end do
-    end subroutine
+    ! subroutine computeNWVoltageTerms(this)
+    !     class(mtln_t) :: this
+    !     integer :: i
+    !     do i = 1, size(this%networks)
+    !         call this%networks(i)%computeNWVoltageTerms(this%dt)
+    !     end do
+    ! end subroutine
 
     subroutine updateBundlesTimeStep(this, dt)
         class(mtln_t) :: this
@@ -203,7 +222,7 @@ contains
         end if  
 
         n_time_steps = this%getTimeRange(final_time)
-        call this%computeNWVoltageTerms()
+        ! call this%computeNWVoltageTerms()
         call this%updatePULTerms(n_time_steps)
 
         do i = 1, n_time_steps

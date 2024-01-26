@@ -1,0 +1,9 @@
+* Multiple dc sources 
+v1 1 0 dc 24 
+v2 3 0 dc 15 
+r1 1 2 10k 
+r2 2 3 8.1k 
+r3 2 0 4.7k 
+.dc v1 24 24 1 
+.save v(3) v(2) v(1)
+.end 
