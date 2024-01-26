@@ -22,6 +22,7 @@ module preprocess_mod
     
     contains
         ! procedure :: buildLines
+        ! procedure :: groupCollinearCables
 
     end type
 
@@ -31,36 +32,60 @@ module preprocess_mod
 
 contains
 
-    function buildMTLArray(cable_array, materials) result(res)
+    function buildMTLArray(cable_array, parsed) result(res)
         type(cable_array_t), intent(in) :: cable_array
         type(mtl_t), dimension(:), allocatable :: res
-        type(fhash_tbl_t), value :: materials
+        type(parsed_t) :: parsed
         class(*), allocatable :: d
         integer ::stat, i
         allocate(res(0))
         do i = 1, size(cable_array%cables)
-            call materials%get_raw(key(cable_array%cables%material_id), d, stat)
+            call parsed%materials%get_raw(key(cable_array%cables(i)%material_id), d, stat)
             if (stat /= 0) return
             select type(d)
                 type is(wire_t)
-                    res = [res, buildMTLFromWire(d)]
+                    res = [res, buildMTLFromWire(d, cable_array%cables(i), parsed%mesh)]
                     !build mtl
                 type is(multiwire_t)
-                    res = [res, buildMTLFromMultiwire(d)]
+                    res = [res, buildMTLFromMultiwire(d, parsed)]
                     !build mtl
             end select
         end do  
         
     end function
 
-    function buildMTLFromWire(wire) result(res)
-        type(wire_t) :: wire
+    function buildMTLFromWire(wire, cable, mesh) result(res)
+        type(wire_t), intent(in) :: wire
+        type(cable_t), intent(in) :: cable
+        type(mesh_t), intent(in) :: mesh
         type(mtl_t) :: res
-        integer :: i
+        integer :: i, stat
+        class(*), allocatable :: poly
+        real, dimension(3) :: init, end
+
+        ! i = cable%element_ids(1)
+        ! call mesh%elements%get_raw(key(i), poly, stat)
+        ! if (stat /= 0) then 
+        !     select type(poly)
+        !     type(polyline_t)
+        !         init = poly%coordinates(1)*mesh%grid%steps_in_direction(1)%steps
+        !     end select
+        ! else
+        !     !error
+        ! end if
+        ! res = mtl_t(lpul = eye(1)*wire%ref_inductance_per_meter, &
+        !             cpul = eye(1)*wire%ref_capacitance_per_meter, &
+        !             rpul = eye(1)*wire%resistance_per_meter, & 
+        !             gpul = eye(1)*0, &
+        !             node_positions = ,&
+        !             divisions =  ,&
+        !             name = cable%name)
+
     end function 
 
-    function buildMTLFromMultiwire(multiwire) result(res)
-        type(multiwire_t) :: multiwire
+    function buildMTLFromMultiwire(multiwire, parsed) result(res)
+        type(multiwire_t), intent(in) :: multiwire
+        type(parsed_t), intent(in) :: parsed
         type(mtl_t) :: res
         integer :: i
     end function 
@@ -131,34 +156,34 @@ contains
         type(fhash_iter_t) :: iter
         class(fhash_key_t), allocatable :: k
 
-        do i = 1, size(cables)
-            id = cables(i)%element_ids(1)
-            call elements%get_raw(key(id), line)
-            select type(line) 
-            type is(polyline_t)
-                call map%check_key(key(line%coordinates), stat)
-                if (stat /= 0) then !not found
-                    cable_array%cables = [cables(i)]
-                    call map%set(key(line%coordinates), value = cable_array)
-                else  ! found
-                    call map%get_raw(key(line%coordinates), b)
-                    select type(b)
-                    type is(cable_array_t)
-                        b%cables = [b%cables, cables(i)]
-                        call map%set(key(line%coordinates), value = b)
-                    end select
-                end if
-            end select
-        end do
+        ! do i = 1, size(cables)
+        !     id = cables(i)%element_ids(1)
+        !     call elements%get_raw(key(id), line)
+        !     select type(line) 
+        !     type is(polyline_t)
+        !         call map%check_key(key(line%relative_coordinates), stat)
+        !         if (stat /= 0) then !not found
+        !             cable_array%cables = [cables(i)]
+        !             call map%set(key(line%relative_coordinates), value = cable_array)
+        !         else  ! found
+        !             call map%get_raw(key(line%relative_coordinates), b)
+        !             select type(b)
+        !             type is(cable_array_t)
+        !                 b%cables = [b%cables, cables(i)]
+        !                 call map%set(key(line%relative_coordinates), value = b)
+        !             end select
+        !         end if
+        !     end select
+        ! end do
 
-        allocate(res(0))
-        iter = fhash_iter_t(map)
-        do while(iter%next(k,c_array))
-            select type(c_array)
-            type is(cable_array_t)
-                res = [res,c_array]
-            end select
-        end do
+        ! allocate(res(0))
+        ! iter = fhash_iter_t(map)
+        ! do while(iter%next(k,c_array))
+        !     select type(c_array)
+        !     type is(cable_array_t)
+        !         res = [res,c_array]
+        !     end select
+        ! end do
 
     end function
 
@@ -177,12 +202,12 @@ contains
         allocate(res%bundles(0))
         allocate(mtl_levels%levels(0))
         
-        colinear_cables = groupColinearCables(parsed%cables, parsed%elements)
+        colinear_cables = groupColinearCables(parsed%cables, parsed%mesh%elements)
             
         do i = 1, size(colinear_cables)
             bundle = buildBundle(colinear_cables(i))
             do j = 1, size(bundle%levels)
-                mtl_levels%levels = [mtl_levels%levels, buildMTLArray(bundle%levels(i),parsed%materials)]
+                mtl_levels%levels = [mtl_levels%levels, buildMTLArray(bundle%levels(i),parsed)]
             end do
             mtl_bundle = mtldCtor(mtl_levels)
             res%bundles = [res%bundles,mtl_bundle]

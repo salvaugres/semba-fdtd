@@ -14,8 +14,8 @@ module mtln_types_mod
     end type
 
     type, extends(element_t) :: polyline_t
-        integer, dimension(2,3) :: coordinates
-        integer, dimension(2) :: coordinate_ids
+        real, dimension(:,:), allocatable :: relative_coordinates
+        integer, dimension(:), allocatable :: coordinate_ids
     end type
 
     interface operator(==)
@@ -54,6 +54,7 @@ module mtln_types_mod
     type, extends(material_t) :: multiwire_t
         real, dimension(:,:), allocatable :: resistance_per_meter
         real, dimension(:,:), allocatable :: capacitance_per_meter
+        real, dimension(:,:), allocatable :: inductance_per_meter
         type(transfer_impedance_per_meter_t) :: transfer_impedance_per_meter
     end type
 
@@ -82,8 +83,6 @@ module mtln_types_mod
     type, public :: line_t
     end type
 
-    ! type, public :: bundle_t
-    ! end type
     
     type, public :: junction_t
     end type
@@ -126,6 +125,21 @@ module mtln_types_mod
         type(cable_t), dimension(:), allocatable :: cables
     end type
 
+    type, public :: steps_t
+        real, dimension(:), allocatable :: steps
+    end type
+
+    type, public :: grid_t
+        integer, dimension(3) :: number_of_cells
+        type(steps_t), dimension(3) :: steps_in_direction
+    end type
+
+    type, public :: mesh_t
+        type(fhash_tbl_t) :: elements ! id : polyline, cell or node
+        type(fhash_tbl_t) :: coordinates ! id : relativePosition
+        type(grid_t) :: grid
+    end type
+
 
     type, public :: parsed_t
         type(cable_t), dimension(:), allocatable :: cables
@@ -135,7 +149,8 @@ module mtln_types_mod
         type(wire_t), dimension(:), allocatable :: wires
         type(terminal_t), dimension(:), allocatable :: terminals
         type(segment_connector_t), dimension(:), allocatable :: connectors
-        type(fhash_tbl_t) :: elements ! id : polyline, cell or node
+        type(mesh_t) :: mesh
+        ! type(fhash_tbl_t) :: elements ! id : polyline, cell or node
         type(fhash_tbl_t) :: materials ! id : wire, multiwire, terminal or connector
     end type
 
@@ -146,10 +161,10 @@ contains
         type(polyline_t), intent(in) :: a,b
         logical :: res
         res = .false.
-        if (all(a%coordinates(1,:) .eq. b%coordinates(1,:)) .and. &
-            all(a%coordinates(2,:) .eq. b%coordinates(2,:))) then 
-            res =.true.
-        end if
+        ! if (all(a%coordinates(1,:) .eq. b%coordinates(1,:)) .and. &
+        !     all(a%coordinates(2,:) .eq. b%coordinates(2,:))) then 
+        !     res =.true.
+        ! end if
     end function
 
 end module
