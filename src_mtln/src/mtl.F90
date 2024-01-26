@@ -48,7 +48,6 @@ module mtl_mod
         type(mtl_t), dimension(:), allocatable :: levels
     end type
 
-
 contains
 
     

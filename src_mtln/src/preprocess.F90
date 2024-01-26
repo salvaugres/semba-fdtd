@@ -27,195 +27,170 @@ module preprocess_mod
     end type
 
     interface preprocess_t
-        module procedure preprocessCtor
+        module procedure preprocess
     end interface
 
 contains
 
-    function buildMTLArray(cable_array, parsed) result(res)
-        type(cable_array_t), intent(in) :: cable_array
-        type(mtl_t), dimension(:), allocatable :: res
-        type(parsed_t) :: parsed
-        class(*), allocatable :: d
-        integer ::stat, i
-        allocate(res(0))
-        do i = 1, size(cable_array%cables)
-            call parsed%materials%get_raw(key(cable_array%cables(i)%material_id), d, stat)
-            if (stat /= 0) return
-            select type(d)
-                type is(wire_t)
-                    res = [res, buildMTLFromWire(d, cable_array%cables(i), parsed%mesh)]
-                    !build mtl
-                type is(multiwire_t)
-                    res = [res, buildMTLFromMultiwire(d, parsed)]
-                    !build mtl
-            end select
-        end do  
+    ! function buildMTLArray(cable_array, parsed) result(res)
+    !     type(cable_array_t), intent(in) :: cable_array
+    !     type(mtl_t), dimension(:), allocatable :: res
+    !     type(parsed_t) :: parsed
+    !     class(*), allocatable :: d
+    !     integer ::stat, i
+    !     allocate(res(0))
+    !     do i = 1, size(cable_array%cables)
+    !         call parsed%materials%get_raw(key(cable_array%cables(i)%material_id), d, stat)
+    !         if (stat /= 0) return
+    !         select type(d)
+    !             type is(wire_t)
+    !                 res = [res, buildMTLFromWire(d, cable_array%cables(i), parsed%mesh)]
+    !                 !build mtl
+    !             type is(multiwire_t)
+    !                 res = [res, buildMTLFromMultiwire(d, parsed)]
+    !                 !build mtl
+    !         end select
+    !     end do  
         
-    end function
+    ! end function
 
-    function buildMTLFromWire(wire, cable, mesh) result(res)
-        type(wire_t), intent(in) :: wire
-        type(cable_t), intent(in) :: cable
-        type(mesh_t), intent(in) :: mesh
-        type(mtl_t) :: res
-        integer :: i, stat
-        class(*), allocatable :: poly
-        real, dimension(3) :: init, end
+    ! function buildMTLFromWire(wire, cable, mesh) result(res)
+    !     type(wire_t), intent(in) :: wire
+    !     type(cable_t), intent(in) :: cable
+    !     type(mesh_t), intent(in) :: mesh
+    !     type(mtl_t) :: res
+    !     integer :: i, stat
+    !     class(*), allocatable :: poly
+    !     real, dimension(3) :: init, end
 
-        ! i = cable%element_ids(1)
-        ! call mesh%elements%get_raw(key(i), poly, stat)
-        ! if (stat /= 0) then 
-        !     select type(poly)
-        !     type(polyline_t)
-        !         init = poly%coordinates(1)*mesh%grid%steps_in_direction(1)%steps
-        !     end select
-        ! else
-        !     !error
-        ! end if
-        ! res = mtl_t(lpul = eye(1)*wire%ref_inductance_per_meter, &
-        !             cpul = eye(1)*wire%ref_capacitance_per_meter, &
-        !             rpul = eye(1)*wire%resistance_per_meter, & 
-        !             gpul = eye(1)*0, &
-        !             node_positions = ,&
-        !             divisions =  ,&
-        !             name = cable%name)
+    !     ! i = cable%element_ids(1)
+    !     ! call mesh%elements%get_raw(key(i), poly, stat)
+    !     ! if (stat /= 0) then 
+    !     !     select type(poly)
+    !     !     type(polyline_t)
+    !     !         init = poly%coordinates(1)*mesh%grid%steps_in_direction(1)%steps
+    !     !     end select
+    !     ! else
+    !     !     !error
+    !     ! end if
+    !     ! res = mtl_t(lpul = eye(1)*wire%ref_inductance_per_meter, &
+    !     !             cpul = eye(1)*wire%ref_capacitance_per_meter, &
+    !     !             rpul = eye(1)*wire%resistance_per_meter, & 
+    !     !             gpul = eye(1)*0, &
+    !     !             node_positions = ,&
+    !     !             divisions =  ,&
+    !     !             name = cable%name)
 
-    end function 
+    ! end function 
 
-    function buildMTLFromMultiwire(multiwire, parsed) result(res)
-        type(multiwire_t), intent(in) :: multiwire
-        type(parsed_t), intent(in) :: parsed
-        type(mtl_t) :: res
-        integer :: i
-    end function 
+    ! function buildMTLFromMultiwire(multiwire, parsed) result(res)
+    !     type(multiwire_t), intent(in) :: multiwire
+    !     type(parsed_t), intent(in) :: parsed
+    !     type(mtl_t) :: res
+    !     integer :: i
+    ! end function 
 
-    function buildBundle(colinear_cables) result(bundle)
-        type(cable_array_t), intent(in) :: colinear_cables
-        type(cable_array_t) :: ordered_bundle_level
-        type(bundle_t) :: bundle
-        integer :: i, j
 
-        logical, dimension(:), allocatable :: visited
+    ! function preprocessCtor(parsed) result(res)
+    !     type(parsed_t) :: parsed
+    !     type(preprocess_t) :: res
+    !     !ToDo
+    !     type(cable_array_t), dimension(:), allocatable :: colinear_cables
 
-        allocate(bundle%levels(0))
-        allocate(visited(size(colinear_cables%cables)), source = .false.)
+    !     integer :: i, j
+    !     type(bundle_t) :: bundle
 
-        do i = 1, size(colinear_cables%cables)
-            if (associated(colinear_cables%cables(i)%parent_cable) .eqv. .false.) then 
-                stop
-            end if
-        end do
-        ordered_bundle_level%cables = [colinear_cables%cables(i)]
-        visited(i) = .true.
-        bundle%levels = [bundle%levels, ordered_bundle_level]
-        do while (findNextLevel(ordered_bundle_level, colinear_cables%cables, visited) /= 0)
-            bundle%levels = [bundle%levels, ordered_bundle_level]
+    !     type(mtl_t), dimension(:), allocatable :: mtls
+    !     type(mtl_array_t) :: mtl_levels
+    !     type(mtl_bundle_t) :: mtl_bundle
+    !     allocate(res%bundles(0))
+    !     allocate(mtl_levels%levels(0))
+        
+    !     colinear_cables = groupColinearCables(parsed%cables, parsed%mesh%elements)
+            
+    !     do i = 1, size(colinear_cables)
+    !         bundle = buildBundle(colinear_cables(i))
+    !         do j = 1, size(bundle%levels)
+    !             mtl_levels%levels = [mtl_levels%levels, buildMTLArray(bundle%levels(i),parsed)]
+    !         end do
+    !         mtl_bundle = mtldCtor(mtl_levels)
+    !         res%bundles = [res%bundles,mtl_bundle]
+    !     end do
+
+
+    ! end function
+
+    function buildBundleFromParent(parent, cables) result(res)
+        type(cable_t), intent(in) :: parent
+        type(cable_t), dimension(:), intent(in) :: cables
+        type(cable_array_t) :: level
+        type(cable_bundle_t) :: res
+
+        allocate(res%levels(1))
+        level%cables = [parent]
+        res%levels(1) = level
+
+        do while (findNextLevel(level) /= 0)
+            res%levels = [res%levels, level]
         end do
 
         contains
-            function findNextLevel(curr_level, cables, is_visited) result (next)
+            integer function findNextLevel(curr_level)
                 type(cable_array_t), intent(inout) :: curr_level
-                type(cable_t), dimension(:), intent(in) :: cables
                 type(cable_t), target :: tgt
-                logical, dimension(:), intent(inout) :: is_visited
-                type(cable_array_t) :: nxt_level
-                integer :: next
+                type(cable_array_t) :: next_level
+                integer :: i,j
+                allocate(next_level%cables(0))
                 do i = 1, size(curr_level%cables) 
                     tgt = curr_level%cables(i)
-                    allocate(nxt_level%cables(0))
                     do j = 1, size(cables)
-                        if (is_visited(i) .eqv. .false.) then 
-                            if (associated(cables(j)%parent_cable, tgt)) then 
-                                nxt_level%cables = [nxt_level%cables, cables(i)]
-                                is_visited(i) = .true.
-                            end if
-    
+                        if (associated(cables(j)%parent_cable, tgt)) then 
+                            next_level%cables = [next_level%cables, cables(j)]
                         end if
                     end do
                 end do
-                
-                next = size(nxt_level%cables)
-                curr_level = nxt_level
+                curr_level = next_level
+                findNextLevel = size(curr_level%cables)
             end function
 
     end function
 
-    ! cable with the same start and end relative coordinates belong to the same bundle
-    function groupColinearCables(cables, elements) result(res)
-        type(cable_t), dimension(:), allocatable, intent(in) :: cables
-        type(cable_array_t) :: cable_array
-        type(fhash_tbl_t), intent(in) :: elements
-        type(fhash_tbl_t) :: map ! key: integer, dimension(2,3) | value: cable_array
-        type(cable_array_t), dimension(:), allocatable :: res
-        class(*), allocatable :: line, b, c_array
-        
+    function findParentCables(cables) result(res)
+        type(cable_t), dimension(:), intent(in) :: cables
+        type(cable_t), dimension(:), allocatable :: res
         integer :: i
-        integer :: id, stat
-        
-        type(fhash_iter_t) :: iter
-        class(fhash_key_t), allocatable :: k
-
-        ! do i = 1, size(cables)
-        !     id = cables(i)%element_ids(1)
-        !     call elements%get_raw(key(id), line)
-        !     select type(line) 
-        !     type is(polyline_t)
-        !         call map%check_key(key(line%relative_coordinates), stat)
-        !         if (stat /= 0) then !not found
-        !             cable_array%cables = [cables(i)]
-        !             call map%set(key(line%relative_coordinates), value = cable_array)
-        !         else  ! found
-        !             call map%get_raw(key(line%relative_coordinates), b)
-        !             select type(b)
-        !             type is(cable_array_t)
-        !                 b%cables = [b%cables, cables(i)]
-        !                 call map%set(key(line%relative_coordinates), value = b)
-        !             end select
-        !         end if
-        !     end select
-        ! end do
-
-        ! allocate(res(0))
-        ! iter = fhash_iter_t(map)
-        ! do while(iter%next(k,c_array))
-        !     select type(c_array)
-        !     type is(cable_array_t)
-        !         res = [res,c_array]
-        !     end select
-        ! end do
-
+        allocate(res(0))
+        do i = 1, size(cables)
+            if (associated(cables(i)%parent_cable) .eqv. .false.) then 
+                res = [res, cables(i)]
+            end if
+        end do
     end function
 
-    function preprocessCtor(parsed) result(res)
-        type(parsed_t) :: parsed
-        type(preprocess_t) :: res
-        !ToDo
-        type(cable_array_t), dimension(:), allocatable :: colinear_cables
 
-        integer :: i, j
-        type(bundle_t) :: bundle
+    function buildBundlesFromCables(cables) result(bundles)
+        type(cable_t), dimension(:), intent(in) :: cables
+        type(cable_bundle_t), dimension(:), allocatable :: bundles
+        type(cable_t), dimension(:), allocatable :: parents
+        integer :: i
 
-        type(mtl_t), dimension(:), allocatable :: mtls
-        type(mtl_array_t) :: mtl_levels
-        type(mtl_bundle_t) :: mtl_bundle
-        allocate(res%bundles(0))
-        allocate(mtl_levels%levels(0))
-        
-        colinear_cables = groupColinearCables(parsed%cables, parsed%mesh%elements)
-            
-        do i = 1, size(colinear_cables)
-            bundle = buildBundle(colinear_cables(i))
-            do j = 1, size(bundle%levels)
-                mtl_levels%levels = [mtl_levels%levels, buildMTLArray(bundle%levels(i),parsed)]
-            end do
-            mtl_bundle = mtldCtor(mtl_levels)
-            res%bundles = [res%bundles,mtl_bundle]
+        allocate(bundles(0))
+        parents = findParentCables(cables)
+        do i = 1, size(parents)
+            bundles = [bundles, buildBundleFromParent(parents(i), cables)]
         end do
 
-
     end function
 
+    function preprocess(parsed) result(res)
+        type(parsed_t), intent(in):: parsed
+        type(preprocess_t) :: res
 
+        type(cable_bundle_t), dimension(:), allocatable :: bundles ! dimension eq to number of bundles
+
+        bundles = buildBundlesFromCables(parsed%cables)
+
+
+    end function
     
 end module

@@ -46,17 +46,17 @@ contains
         type(parsed_t) :: parsed
         type(mtln_t) :: res
         integer :: i
-        type(preprocess_t) :: preprocess
+        type(preprocess_t) :: pre
 
-        preprocess = preprocessCtor(parsed)
+        pre = preprocess(parsed)
         res%dt = 1e10
         res%time  = 0.0
         allocate(res%networks(0))
-        do i = 1, size(preprocess%bundles)
-            call res%addBundle(preprocess%bundles(i)%name, preprocess%bundles(i))
+        do i = 1, size(pre%bundles)
+            call res%addBundle(pre%bundles(i)%name, pre%bundles(i))
         end do
-        do i = 1, size(preprocess%networks)
-            call res%addNetwork(preprocess%networks(i))
+        do i = 1, size(pre%networks)
+            call res%addNetwork(pre%networks(i))
         end do
 
     end function
