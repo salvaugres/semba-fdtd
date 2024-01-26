@@ -22,7 +22,8 @@ module mtl_bundle_mod
 
         real, dimension(:,:,:), allocatable :: v_term, i_term
         real, dimension(:,:,:), allocatable :: v_diff, i_diff
-        
+
+
     contains
         ! procedure :: add_localized_longitudinal_field
         procedure :: mergePULMatrices
@@ -48,7 +49,7 @@ contains
 
     function mtldCtor(levels, name) result(res)
         type(mtl_bundle_t) :: res
-        type(mtl_array_t), intent(in) :: levels
+        type(mtl_array_t), dimension(:), intent(in) :: levels
         ! type(fhash_tbl_t), intent(in) :: levels
         character(len=*), intent(in), optional :: name
         ! real, allocatable, dimension(:,:) :: v, i

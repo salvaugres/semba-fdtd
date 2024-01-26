@@ -33,7 +33,7 @@ contains
         res%l = res%readInductiveTerm()
         
         poles = res%readPoles()
-        Residues = res%readResidues()
+        residues = res%readResidues()
 
         res%number_of_poles = size(poles)
 

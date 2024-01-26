@@ -2,7 +2,7 @@ module preprocess_mod
 
     use mtln_types_mod
     use mtl_bundle_mod
-    use mtl_mod
+    use mtl_mod!, only: mtl_t, mtl_array_t, line_bundle_t,
 
     ! use fhash, only: fhash_tbl_t, key=>fhash_key, fhash_key_t
     use fhash, only: fhash_tbl_t
@@ -17,7 +17,7 @@ module preprocess_mod
     type, public :: preprocess_t
         class(mtl_bundle_t), dimension(:), allocatable :: bundles ! dict{name:bundle} of MLTD
         type(network_bundle_t), dimension(:), allocatable :: networks !lista de NetworkD, no de network
-
+        type(transfer_impedance_t) :: external_transfer_impedance 
         real, private :: priv_real
     
     contains
@@ -120,7 +120,135 @@ contains
 
     ! end function
 
-    function buildBundleFromParent(parent, cables) result(res)
+    subroutine addConnector(line, connector, side)
+        type(mtl_t), intent(inout) :: line
+        type(connector_t) :: connector
+        integer :: side
+
+        integer :: i
+        do i = 1, size(connector%resistances)
+            line%rpul(side,i,i) = connector%resistances(i)
+        end do
+
+    end subroutine
+
+    function conductorsInLevel(line) result(res)
+        type(line_bundle_t), intent(in) :: line
+        integer, dimension(:) :: res
+        integer :: i,j,k
+
+        allocate(res(size(line%levels)), 0)
+        do i = 1, size(line%levels)
+            do j = 1, size(line%levels(i))
+                res(i) = res(i) + line%levels(i)%cable(j)%conductors_in_level
+            end do
+        end do
+    end function
+
+    function findConductorsBeforeCable(name, level) result(res)
+        character(len=:), intent(in) :: name
+        type(cable_array_t), intent(in) :: level
+        integer :: res 
+        integer :: i
+        res = 0
+        do i = 1, size(level%cables)
+            if (level%cables(i)%name /= name) then
+                res = res + level%cables(i)%number_of_conductors
+            else 
+                return
+            end if  
+        end do
+    end function
+
+    subroutine setBundleTransferImpedance(bundle, line)
+        type(mtl_bundle_t), intent(inout) :: bundle
+        type(line_bundle_t), intent(in) :: line
+        integer :: i,j
+        integer :: n_before_out, n_before_in, n_before_parent, n_before_child
+        integer :: conductor_sum
+        integer, dimension(:) :: range_in
+        integer :: conductor_out
+        type(transfer_impedance_per_meter_t) :: zt
+
+        integer, dimension(:) :: conductors_in_level
+        conductors_in_level = conductorsInLevel(line)
+        character(len=:), allocatable :: name
+        allocate(range_in(0), range_out(0))
+        do i = 2, size(line%levels)
+            conductor_sum = 0
+            do j = 1, size(line%levels(i))
+
+                name = line%levels(i)%cable(j)%parent_cable%name
+                n_before_parent = findConductorsBeforeCable(name, line%levels(i-1)) + sum(conductors_in_level(1:i-2))
+                conductor_out = n_before_parent + line%levels(i)%cable(j)%conductor_in_parent
+                
+                name = line%levels(i)%cable(j)%name
+                n_before_child = findConductorsBeforeCable(name, line%levels(i)) + sum(conductors_in_level(1:i-1))
+                range_in = n_before_child + [(k, k = 1, line%levels(i)%cable(j)%number_of_conductors)]
+
+                call bundle%addTransferImpedance(conductor_out, range_in, zt)
+
+            end do
+        end do  
+
+
+    end subroutine
+
+    function buildMTLBundles(lines) result(res)
+        type(line_bundle_t), dimension(:), intent(in) :: lines
+        type(mtl_bundle_t), dimension(:), allocatable :: res
+        integer :: i
+
+        allocate(res(size(lines)))
+        do i = 1, size(lines)
+            res(i) = mtldCtor(lines(i)%levels, "bundle_"//lines(i)%levels(0)%lines(0)%name)
+            call setBundleTransferImpedance(res(i), lines(i))
+        end do  
+
+    end function    
+
+    function buildLineFromCable(cable) result(res)
+        type(cable_t), intent(in) :: cable
+        type(mtl_t) :: res
+        res = mtlHomogeneous(lpul = cable%inductance_per_meter, &
+        cpul = cable%capacitance_per_meter, &
+                    rpul = cable%resistance_per_meter, &
+                    gpul = cable%conductance_per_meter, &
+                    node_positions = cable%node_positions, &
+                    divisions = [100], &
+                    name = cable%name)
+                    ! steps = cable%step_size, 
+                    ! name = cable%name)
+
+        if (associated(cable%initial_connector)) call addConnector(res, cable%initial_connector, 0)
+        if (associated(cable%end_connector))     call addConnector(res, cable%initial_connector, size(res%rpul,1))
+                
+
+    end function
+
+    function buildLineBundles(cable_bundles) result(res)
+        type(cable_bundle_t), dimension(:), allocatable :: cable_bundles
+        type(line_bundle_t), dimension(:), allocatable :: res
+        integer :: i, j, k
+        integer :: nb, nl, nc
+        nb = size(cable_bundles)
+
+        do i = 1, nb
+            allocate(res(nb))
+            nl = size(cable_bundles(i)%levels)
+            do j = 1, nl
+                allocate(res(i)%levels(nl))
+                nc = size(cable_bundles(i)%levels(j)%cables)
+                do k = 1, nc
+                    allocate(res(i)%levels(j)%lines(nc))
+                    res(i)%levels(j)%lines(nc) = buildLineFromCable(cable_bundles(i)%levels(j)%cables(k))
+                end do
+            end do
+        end do
+
+    end function
+
+    function buildCableBundleFromParent(parent, cables) result(res)
         type(cable_t), intent(in) :: parent
         type(cable_t), dimension(:), intent(in) :: cables
         type(cable_array_t) :: level
@@ -168,16 +296,16 @@ contains
     end function
 
 
-    function buildBundlesFromCables(cables) result(bundles)
+    function buildCableBundles(cables) result(cable_bundles)
         type(cable_t), dimension(:), intent(in) :: cables
-        type(cable_bundle_t), dimension(:), allocatable :: bundles
+        type(cable_bundle_t), dimension(:), allocatable :: cable_bundles
         type(cable_t), dimension(:), allocatable :: parents
         integer :: i
 
-        allocate(bundles(0))
+        allocate(cable_bundles(0))
         parents = findParentCables(cables)
         do i = 1, size(parents)
-            bundles = [bundles, buildBundleFromParent(parents(i), cables)]
+            cable_bundles = [cable_bundles, buildCableBundleFromParent(parents(i), cables)]
         end do
 
     end function
@@ -186,11 +314,17 @@ contains
         type(parsed_t), intent(in):: parsed
         type(preprocess_t) :: res
 
-        type(cable_bundle_t), dimension(:), allocatable :: bundles ! dimension eq to number of bundles
+        ! type(cable_bundle_t), dimension(:), allocatable :: cable_bundles ! dimension eq to number of bundles
+        ! type(line_bundle_t), dimension(:), allocatable :: line_bundles
 
-        bundles = buildBundlesFromCables(parsed%cables)
-
-
+        ! cable_bundles = buildCableBundles(parsed%cables)
+        ! line_bundles = buildLineBundles(cable_bundles)
+        ! ! allocate(res%bundles(size(line_bundles)))
+        ! res%bundles = buildMTLBundles(line_bundles)
+        ! cable_bundles = 
+        ! line_bundles = 
+        ! allocate(res%bundles(size(line_bundles)))
+        res%bundles = buildMTLBundles(buildLineBundles(buildCableBundles(parsed%cables)))
     end function
     
 end module

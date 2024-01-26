@@ -12,7 +12,7 @@ module mtl_mod
         real, allocatable, dimension(:,:,:) :: lpul, cpul, rpul, gpul
         real, allocatable, dimension(:,:) :: u, du
         real, allocatable, dimension(:,:,:) :: du_length(:,:,:)
-        type(connector_t) :: connectors
+        type(lumped_t) :: lumped_elements
         real :: time = 0.0, dt = 1e10
         ! real, allocatable, dimension(:,:) :: v, i
         ! real, allocatable :: longitudinalE(:,:), transversalE(:,:)
@@ -45,7 +45,11 @@ module mtl_mod
     end interface
 
     type, public :: mtl_array_t
-        type(mtl_t), dimension(:), allocatable :: levels
+        type(mtl_t), dimension(:), allocatable :: lines
+    end type
+
+    type, public :: line_bundle_t
+        type(mtl_array_t), dimension(:), allocatable :: levels
     end type
 
 contains
@@ -96,7 +100,7 @@ contains
         
         res%dt = res%getMaxTimeStep()
         
-        res%connectors = connector_t(res%number_of_conductors, 0, res%u, res%dt)
+        res%lumped_elements = lumped_t(res%number_of_conductors, 0, res%u, res%dt)
 
     end function
 
@@ -118,7 +122,7 @@ contains
         
         res%dt = res%getMaxTimeStep()
         
-        res%connectors = connector_t(res%number_of_conductors, 0, res%u, res%dt)
+        res%lumped_elements = lumped_t(res%number_of_conductors, 0, res%u, res%dt)
 
     end function
 

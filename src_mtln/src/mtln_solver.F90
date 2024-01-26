@@ -13,6 +13,9 @@ module mtln_solver_mod
         type(fhash_tbl_t) :: bundles ! dict{name:bundle} of MLTD
         type(network_bundle_t), allocatable, dimension(:) :: networks !lista de NetworkD, no de network
         character(len=:), allocatable, dimension(:) :: names
+        real, dimension(:), allocatable :: external_current
+        type(transfer_impedance_t) :: external_transfer_impedance
+
     contains
 
         procedure :: addBundle => mtln_setBundle
@@ -58,6 +61,7 @@ contains
         do i = 1, size(pre%networks)
             call res%addNetwork(pre%networks(i))
         end do
+        res%external_transfer_impedance = pre%external_transfer_impedance
 
     end function
     ! function mtlnCtor(bundles, networks) result(res)
@@ -89,7 +93,15 @@ contains
         call this%advanceTime()
         call this%updateProbes()
 
+        ! call this%updateExternalCurrent()
+
     end subroutine
+
+    ! subroutine updateExternalCurrent(this)
+    !     class(mtln_t) :: this
+
+
+    ! end subroutine
 
     subroutine advanceBundlesVoltage(this)
         class(mtln_t) :: this

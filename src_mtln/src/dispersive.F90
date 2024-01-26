@@ -25,15 +25,15 @@ module dispersive_mod
         module procedure dispersiveCtor
     end interface
 
-    type, extends(dispersive_t) :: connector_t
+    type, extends(dispersive_t) :: lumped_t
     contains
-        procedure :: addDispersiveConnector
+        procedure :: addDispersiveLumped
         procedure, private :: positionIsEmpty
-        procedure, private :: addDispersiveConnectorInConductor
-    end type connector_t
+        procedure, private :: addDispersiveLumpedInConductor
+    end type lumped_t
 
-    interface connector_t
-        module procedure connectorCtor
+    interface lumped_t
+        module procedure lumpedCtor
     end interface
 
     type, extends(dispersive_t) :: transfer_impedance_t
@@ -124,8 +124,8 @@ contains
         !TODO
     end function
     
-    function connectorCtor(number_of_conductors, number_of_poles, u, dt) result(res)
-        type(connector_t) :: res
+    function lumpedCtor(number_of_conductors, number_of_poles, u, dt) result(res)
+        type(lumped_t) :: res
         integer :: number_of_conductors, number_of_divisions, number_of_poles
         real :: dt
         real, dimension(:,:) :: u
@@ -133,7 +133,7 @@ contains
     end function 
 
     function positionIsEmpty(this, index, conductor) result(res)
-        class(connector_t) :: this
+        class(lumped_t) :: this
         integer, intent(in) :: index, conductor
         logical :: res
         res = .true.
@@ -147,8 +147,8 @@ contains
     end function
 
 
-    subroutine addDispersiveConnector(this, position, conductor, model)
-        class(connector_t) :: this
+    subroutine addDispersiveLumped(this, position, conductor, model)
+        class(lumped_t) :: this
         real, dimension(3), intent(in) :: position
         integer, intent(in) :: conductor
         type(fhash_tbl_t), intent(in) :: model
@@ -162,14 +162,14 @@ contains
 
         connector = pol_res_t(model, this%dt)
         if (connector%number_of_poles > this%number_of_poles) call this%increaseOrder(connector%number_of_poles)
-        call this%addDispersiveConnectorInConductor(index, conductor, connector)
+        call this%addDispersiveLumpedInConductor(index, conductor, connector)
        
         this%q1_sum = sumQComponents(this%q1)
         this%q2_sum = sumQComponents(this%q2)
     end subroutine
 
-    subroutine addDispersiveConnectorInConductor(this, index, conductor, connector)
-        class(connector_t) :: this
+    subroutine addDispersiveLumpedInConductor(this, index, conductor, connector)
+        class(lumped_t) :: this
         integer, intent(in) :: index, conductor
         type(pol_res_t), intent(in) :: connector
 

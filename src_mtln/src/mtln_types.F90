@@ -170,18 +170,29 @@ module mtln_types_mod
     type, public :: transfer_impedance_per_meter_t
         real :: inductive_term
         real :: resistive_term
+        complex, dimension(:), allocatable :: poles, residues
         ! poles and residues
         character (len=:), allocatable :: direction
     end type
 
+    type :: connector_t
+        real, dimension(:), allocatable :: resistances
+        type(transfer_impedance_per_meter_t) :: transfer_impedance_per_meter
+    end type
+
     type, public :: cable_t
         character (len=:), allocatable :: name
-        real, allocatable, dimension(:) :: resistance_per_meter
+        real, allocatable, dimension(:,:) :: resistance_per_meter
         real, allocatable, dimension(:,:) :: capacitance_per_meter
         real, allocatable, dimension(:,:) :: inductance_per_meter
+        real, allocatable, dimension(:,:) :: conductance_per_meter
         real, allocatable, dimension(:,:) :: step_size
         type(transfer_impedance_per_meter_t) :: transfer_impedance
         type(cable_t), pointer :: parent_cable => null()
+        integer :: conductor_in_parent
+        type(connector_t), pointer :: initial_connector => null()
+        type(connector_t), pointer :: end_connector => null()
+        real, allocatable, dimension(:,:) :: node_positions !!!
     end type
 
     type, public :: parsed_t
