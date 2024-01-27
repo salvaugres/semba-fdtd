@@ -20,6 +20,7 @@ add_library(semba-types
 	"src_main_pub/fdetypes.F90"
 )
 add_subdirectory(external/fhash/)
+add_subdirectory(external/googletest/)
 
 
 
