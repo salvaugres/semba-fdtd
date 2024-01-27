@@ -8,13 +8,18 @@ integer function test_init_inhomogeneous() result(error_cnt)
     integer :: i,j
 
     
-    real,dimension(2,2) :: lpul1 = reshape( source = [ 4.4712610E-07, 1.4863653E-07, 1.4863653E-07, 4.4712610E-07 ], shape = [ 2,2 ] )
-    real,dimension(2,2) :: lpul2 = reshape( source = [ 2.4712610E-07, 0.4863653E-07, 0.4863653E-07, 2.4712610E-07 ], shape = [ 2,2 ] )
+    real,dimension(2,2) :: lpul1 = reshape( &
+        source = [ 4.4712610E-07, 1.4863653E-07, 1.4863653E-07, 4.4712610E-07 ], shape = [ 2,2 ] )
+    real,dimension(2,2) :: lpul2 = reshape( &
+        source = [ 2.4712610E-07, 0.4863653E-07, 0.4863653E-07, 2.4712610E-07 ], shape = [ 2,2 ] )
     real,dimension(2,2,2) :: lpul
     
-    real,dimension(2,2) :: cpul1 = reshape( source = [ 1.242e-10, -6.453e-11,-6.453e-11, 1.242e-10 ], shape = [ 2,2 ] )
-    real,dimension(2,2) :: cpul2 = reshape( source = [ 2.242e-10, -7.453e-11,-7.453e-11, 2.242e-10 ], shape = [ 2,2 ] )
-    real,dimension(2,2) :: cpul3 = reshape( source = [ 3.242e-10, -8.453e-11,-8.453e-11, 3.242e-10 ], shape = [ 2,2 ] )
+    real,dimension(2,2) :: cpul1 = reshape( &
+        source = [ 1.242e-10, -6.453e-11,-6.453e-11, 1.242e-10 ], shape = [ 2,2 ] )
+    real,dimension(2,2) :: cpul2 = reshape( &
+        source = [ 2.242e-10, -7.453e-11,-7.453e-11, 2.242e-10 ], shape = [ 2,2 ] )
+    real,dimension(2,2) :: cpul3 = reshape( &
+        source = [ 3.242e-10, -8.453e-11,-8.453e-11, 3.242e-10 ], shape = [ 2,2 ] )
     real,dimension(3,2,2) :: cpul
     
     real,dimension(2,2) :: rpul0 = reshape( source = [ 0.0, 0.0, 0.0, 0.0 ], shape = [ 2,2 ] )
@@ -23,7 +28,8 @@ integer function test_init_inhomogeneous() result(error_cnt)
     real,dimension(2,2) :: gpul0 = reshape( source = [ 0.0, 0.0, 0.0, 0.0 ], shape = [ 2,2 ] )
     real,dimension(3,2,2) :: gpul
     
-    real, dimension(2,3) :: node_positions = reshape( source = [ 0.0, 0.0, 0.0, 100.0, 0.0, 0.0], shape = [2,3], order=(/2,1/) )
+    real, dimension(2,3) :: node_positions = reshape( &
+        source = [ 0.0, 0.0, 0.0, 100.0, 0.0, 0.0], shape = [2,3], order=(/2,1/) )
     integer, dimension(1) :: ndiv = (/2/)
     type(mtl_t) :: line 
     

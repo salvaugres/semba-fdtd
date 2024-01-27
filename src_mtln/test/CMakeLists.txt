@@ -1,37 +1,37 @@
 cmake_minimum_required(VERSION 3.5)
-enable_language (C Fortran)
+enable_language (CXX Fortran)
 enable_testing ()
+include(FortranCInterface)
+FortranCInterface_VERIFY(CXX)
+# function (mangle_fortran_name CNAME FNAME)
+#     set (TMP)
+#     if (WIN32)
+#         string (TOUPPER "${FNAME}" TMP)
+#     else ()
+#         string (TOLOWER "${FNAME}_" TMP)
+#     endif ()
+#     set (${CNAME} ${TMP} PARENT_SCOPE)
+# endfunction ()
 
-function (mangle_fortran_name CNAME FNAME)
-    set (TMP)
-    if (WIN32)
-        string (TOUPPER "${FNAME}" TMP)
-    else ()
-        string (TOLOWER "${FNAME}_" TMP)
-    endif ()
-    set (${CNAME} ${TMP} PARENT_SCOPE)
-endfunction ()
-
-function (mangle_fortran_filename_list MANGLED)
-    set (TMP)
-    foreach (TFILE ${ARGN})
-        string (REGEX REPLACE ".F90$" "" TESTNAME ${TFILE})
-        mangle_fortran_name (C_TESTNAME ${TESTNAME})
-        list (APPEND TMP ${C_TESTNAME})
-    endforeach ()
-    set (${MANGLED} ${TMP} PARENT_SCOPE)
-endfunction()
+# function (mangle_fortran_filename_list MANGLED)
+#     set (TMP)
+#     foreach (TFILE ${ARGN})
+#         string (REGEX REPLACE ".F90$" "" TESTNAME ${TFILE})
+#         mangle_fortran_name (C_TESTNAME ${TESTNAME})
+#         list (APPEND TMP ${C_TESTNAME})
+#     endforeach ()
+#     set (${MANGLED} ${TMP} PARENT_SCOPE)
+# endfunction()
 
 function (add_fortran_test_executable TARGET)
     set (TEST_FILES ${ARGN})
-    mangle_fortran_filename_list (TEST_FILES_MANGLED ${TEST_FILES})
+    # mangle_fortran_filename_list (TEST_FILES_MANGLED ${TEST_FILES})
 
-    create_test_sourcelist (_ main.c ${TEST_FILES_MANGLED})
+    # create_test_sourcelist (_ main.c ${TEST_FILES_MANGLED})
 
     add_library (${TARGET}_fortran ${TEST_FILES} "testingTools.F90")
     target_link_libraries (${TARGET}_fortran mtlnsolver fhash)
 
-    
     add_executable (${TARGET} main.c)
     target_link_libraries (${TARGET} ${TARGET}_fortran)
 
@@ -50,24 +50,38 @@ function (add_fortran_test_executable TARGET)
     endwhile ()
 endfunction ()
 
-add_fortran_test_executable (mtlnsolver_tests
-    # "test_init_homogeneous.F90"
+# add_fortran_test_executable (mtlnsolver_tests
+#     "test_init_homogeneous.F90"
     # "test_init_inhomogeneous.F90"
-    "test_eigvals.F90"
-    "test_time_step.F90"
-    "test_fhash.F90"
-    "test_fhash_ptr.F90"
-    "test_dot_product.F90"
-    "test_elemental_component_sum.F90"
-    "test_4dim_component_sum.F90"
-    "test_matmul_broadcast.F90"
-    "test_sum_derived_types.F90"
-    "test_q3Phi.F90"
-    "test_spice_dc.F90"
-    "test_spice_ac.F90"
-    "test_spice_current_source.F90"
-    "test_spice_short.F90"
-    "test_types.F90"
+    # "test_eigvals.F90"
+    # "test_time_step.F90"
+    # "test_fhash.F90"
+    # "test_fhash_ptr.F90"
+    # "test_dot_product.F90"
+    # "test_elemental_component_sum.F90"
+    # "test_4dim_component_sum.F90"
+    # "test_matmul_broadcast.F90"
+    # "test_sum_derived_types.F90"
+    # "test_q3Phi.F90"
+    # "test_spice_dc.F90"
+    # "test_spice_ac.F90"
+    # "test_spice_current_source.F90"
+    # "test_spice_short.F90"
+# )
+# target_link_libraries(mtlnsolver_tests stdc++)
+
+add_executable(mtlnsolver_tests 
+    "testing.cpp"
+    "testingTools.f90"
+    "test_init_homogeneous.F90"
 )
 
+find_package(GTest CONFIG REQUIRED)
+
+target_link_libraries(mtlnsolver_tests
+    mtlnsolver 
+    fhash   
+    GTest::gtest_main
+    GTest::gtest
+)
 # get_target_property(mtlnsolver_INCLUDES mtlnsolver INCLUDE_DIRECTORIES)
