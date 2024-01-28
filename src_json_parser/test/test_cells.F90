@@ -1,4 +1,4 @@
-integer function test_cells() result(err)
+integer function test_cells() bind(C) result(err)
    use cells_mod
    use testingTools
 

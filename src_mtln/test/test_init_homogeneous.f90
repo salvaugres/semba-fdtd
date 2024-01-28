@@ -1,4 +1,4 @@
-integer function test_init_homogeneous_() bind(C, name="test_init_homogeneous_") result(error_cnt) 
+integer function test_init_homogeneous() bind(C) result(error_cnt) 
     use mtl_mod
     use testingTools_mod
 
