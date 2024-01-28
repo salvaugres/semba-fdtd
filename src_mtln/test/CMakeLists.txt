@@ -30,20 +30,6 @@ target_link_libraries(mtln_solver_tests_fortran
     fhash   
 )
 
-
-# add_compile_options(-nofor-main)
-# add_executable(mtlnsolver_tests 
-#     "testing.cpp"
-# )
-
-# find_package(GTest CONFIG REQUIRED)
-
-# target_link_libraries(mtlnsolver_tests
-#     mtln_solver_tests_fortran
-#     GTest::gtest_main
-#     GTest::gtest
-# )
-# set_property(TARGET mtlnsolver_tests PROPERTY LINKER_LANGUAGE Fortran)
 add_executable(mtlnsolver_tests "main_test.cpp")
 target_link_libraries(mtlnsolver_tests
     mtln_solver_tests_fortran
