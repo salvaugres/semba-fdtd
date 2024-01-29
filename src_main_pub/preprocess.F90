@@ -5149,6 +5149,8 @@ endif
          sgg%Med(contamedia)%EDispersive(1)%NumPolRes33 /= 0) THEN
             sgg%Med(contamedia)%Is%EDispersive = .TRUE.
             sgg%Med(contamedia)%Is%EDispersiveAnis = .TRUE.
+            print *, "Error: anisotropic dispersive unsupported"
+            stop
             sgg%Med(contamedia)%Is%Dielectric = .FALSE.
          END IF
          IF (sgg%Med(contamedia)%MDispersive(1)%NumPolRes11 /= 0) THEN
@@ -5160,6 +5162,8 @@ endif
          sgg%Med(contamedia)%MDISPERSIVE(1)%NumPolRes33 /= 0) THEN
             sgg%Med(contamedia)%Is%MDISPERSIVE = .TRUE.
             sgg%Med(contamedia)%Is%MDISPERSIVEAnis = .TRUE.
+            print *, "Error: anisotropic dispersive unsupported"
+            stop
             sgg%Med(contamedia)%Is%Dielectric = .FALSE.
          END IF
          !!!!
