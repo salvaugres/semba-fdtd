@@ -4,6 +4,7 @@ module mtl_bundle_mod
     use utils_mod
     use probes_mod
     use dispersive_mod
+    use mtln_types_mod
     use mtl_mod, only: mtl_array_t
     use fhash, only: fhash_tbl_t
     implicit none
@@ -112,18 +113,27 @@ contains
         
     end function isProbeinLine
 
-    subroutine bundle_addTransferImpedance(this, out_level, out_level_conductors, &
-                                          in_level, in_level_conductors, &
-                                          impedance_model)
+    subroutine bundle_addTransferImpedance(this, conductor_out, range_in, transfer_impedance)
         class(mtl_bundle_t) :: this
-        integer, intent(in) :: out_level, in_level
-        integer, dimension(:), intent(in) :: out_level_conductors, in_level_conductors
-        type(fhash_tbl_t), intent(in) :: impedance_model
+        integer, intent(in) :: conductor_out
+        integer, dimension(:), intent(in) :: range_in
+        type(transfer_impedance_per_meter_t) :: transfer_impedance
 
-        call this%transfer_impedance%addTransferImpedance(this%conductors_in_level, out_level, out_level_conductors, &
-                                                          in_level, in_level_conductors, impedance_model)
+        call this%transfer_impedance%addTransferImpedance(conductor_out, range_in, transfer_impedance)
 
     end subroutine
+    ! subroutine bundle_addTransferImpedance(this, out_level, out_level_conductors, &
+    !                                       in_level, in_level_conductors, &
+    !                                       impedance_model)
+    !     class(mtl_bundle_t) :: this
+    !     integer, intent(in) :: out_level, in_level
+    !     integer, dimension(:), intent(in) :: out_level_conductors, in_level_conductors
+    !     type(fhash_tbl_t), intent(in) :: impedance_model
+
+    !     call this%transfer_impedance%addTransferImpedance(this%conductors_in_level, out_level, out_level_conductors, &
+    !                                                       in_level, in_level_conductors, impedance_model)
+
+    ! end subroutine
 
     subroutine updateLRTerms(this)
         class(mtl_bundle_t) ::this

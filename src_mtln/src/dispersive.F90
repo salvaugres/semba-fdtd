@@ -1,8 +1,7 @@
 module dispersive_mod
     use utils_mod
-    ! use utils_mod, only: dotMatmul, entryMatmul, entry, componentSum, add_entries
-    use fhash, only: fhash_tbl_t, key=>fhash_key, fhash_key_t
     use rational_approximation_mod
+    use mtln_types_mod
     implicit none
     
     type :: dispersive_t
@@ -42,7 +41,7 @@ module dispersive_mod
         procedure :: setTransferImpedance
         procedure, private :: isCouplingInwards
         procedure, private :: isCouplingOutwards
-        procedure, private :: computeRange
+        ! procedure, private :: computeRange
         procedure, private :: addTransferImpedanceInConductors
         procedure, private :: setTransferImpedanceInConductors
     end type transfer_impedance_t
@@ -151,7 +150,7 @@ contains
         class(lumped_t) :: this
         real, dimension(3), intent(in) :: position
         integer, intent(in) :: conductor
-        type(fhash_tbl_t), intent(in) :: model
+        type(transfer_impedance_per_meter_t), intent(in) :: model
         integer :: index
         type(pol_res_t) :: connector
 
@@ -205,73 +204,47 @@ contains
         if (direction == "outwards" .or. direction == "both") res = .true.
     end function
 
-    subroutine addTransferImpedance(this, levels, out_level, out_level_conductors, &
-                                                  in_level, in_level_conductors, &
-                                                  model)
+    subroutine addTransferImpedance(this, conductor_out, range_in, model)
         class(transfer_impedance_t) :: this
-        integer, intent(in) :: out_level, in_level
-        integer, dimension(:), intent(in) :: out_level_conductors, in_level_conductors
-        type(fhash_tbl_t), intent(in) :: model, levels
-        integer :: i, j
-        integer, dimension(:), allocatable :: range_in, range_out
+        integer, intent(in) :: conductor_out
+        integer, dimension(:), intent(in) :: range_in
+        type(transfer_impedance_per_meter_t) :: model
+        integer :: i
         type(pol_res_t) :: connector
 
         connector = pol_res_t(model, this%dt)
         if (connector%number_of_poles > this%number_of_poles) call this%increaseOrder(connector%number_of_poles)
 
-        !todo compute ranges
-        range_in =  this%computeRange(in_level, in_level_conductors)        
-        range_out = this%computeRange(out_level, out_level_conductors)        
-        do i = 1, size(range_out)
-            do j = 1, size(range_in)
-                if (this%isCouplingInwards(connector%direction)) then
-                    call this%addTransferImpedanceInConductors(range_in(j), range_out(i), connector)
-                else if (this%isCouplingOutwards(connector%direction)) then
-                    call this%addTransferImpedanceInConductors(range_out(i), range_in(j), connector)
-                end if
-            end do
+        do i = 1, size(range_in)
+            if (this%isCouplingInwards(connector%direction)) then
+                call this%addTransferImpedanceInConductors(range_in(i), conductor_out, connector)
+            else if (this%isCouplingOutwards(connector%direction)) then
+                call this%addTransferImpedanceInConductors(conductor_out, range_in(i), connector)
+            end if
         end do
 
         this%q1_sum = sumQComponents(this%q1)
         this%q2_sum = sumQComponents(this%q2)
     end subroutine
-    
-    function computeRange(this, level, conductors) result(res)
-        class(transfer_impedance_t) :: this
-        integer, intent(in) :: level
-        integer, dimension(:), intent(in) :: conductors
-        integer, dimension(:), allocatable :: res
-        !TODO res
-    end function
 
-    subroutine setTransferImpedance(this, levels, out_level, out_level_conductors, &
-                                    in_level, in_level_conductors, index, &
-                                    model)
+    subroutine setTransferImpedance(this, index, conductor_out, range_in, model)
         class(transfer_impedance_t) :: this
-        integer, intent(in) :: out_level, in_level
-        integer, dimension(:), intent(in) :: out_level_conductors, in_level_conductors
         integer, intent(in) :: index
-        type(fhash_tbl_t), intent(in) :: model, levels
-
-        integer :: i, j
-        integer, dimension(:), allocatable :: range_in, range_out
-
+        integer, intent(in) :: conductor_out
+        integer, dimension(:), intent(in) :: range_in
+        type(transfer_impedance_per_meter_t) :: model
+        integer :: i
         type(pol_res_t) :: connector
 
         connector = pol_res_t(model, this%dt)
         if (connector%number_of_poles > this%number_of_poles) call this%increaseOrder(connector%number_of_poles)
 
-        !todo compute ranges
-        range_in =  this%computeRange(in_level, in_level_conductors)        
-        range_out = this%computeRange(out_level, out_level_conductors)        
-        do i = 1, size(range_out)
-            do j = 1, size(range_in)
-                if (this%isCouplingInwards(connector%direction)) then
-                    call this%setTransferImpedanceInConductors(index, range_in(j), range_out(i), connector)
-                else if (this%isCouplingOutwards(connector%direction)) then
-                    call this%setTransferImpedanceInConductors(index, range_out(i), range_in(j), connector)
-                end if
-            end do
+        do i = 1, size(range_in)
+            if (this%isCouplingInwards(connector%direction)) then
+                call this%setTransferImpedanceInConductors(index, range_in(i), conductor_out, connector)
+            else if (this%isCouplingOutwards(connector%direction)) then
+                call this%setTransferImpedanceInConductors(index, conductor_out, range_in(i), connector)
+            end if
         end do
 
         this%q1_sum = sumQComponents(this%q1)

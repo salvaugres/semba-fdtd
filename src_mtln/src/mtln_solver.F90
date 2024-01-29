@@ -64,23 +64,6 @@ contains
         res%external_transfer_impedance = pre%external_transfer_impedance
 
     end function
-    ! function mtlnCtor(bundles, networks) result(res)
-    !     type(mtln_t) :: res
-    !     class(mtl_bundle_t), dimension(:) :: bundles
-    !     class(network_bundle_t), dimension(:) :: networks
-    !     integer :: i
-
-    !     res%dt = 1e10
-    !     res%time  = 0.0
-    !     allocate(res%networks(0))
-    !     do i = 1, size(bundles)
-    !         call res%addBundle(bundles(i)%name, bundles(i))
-    !     end do
-    !     do i = 1, size(networks)
-    !         call res%addNetwork(networks(i))
-    !     end do
-
-    ! end function
 
     subroutine mtln_step(this)
         class(mtln_t) :: this

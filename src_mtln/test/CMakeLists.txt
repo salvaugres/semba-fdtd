@@ -68,6 +68,10 @@ add_fortran_test_executable (mtlnsolver_tests
     "test_spice_current_source.F90"
     "test_spice_short.F90"
     "test_types.F90"
+    "test_conductors_in_level.F90"
+    "test_conductors_before_cable.F90"
+    "test_zt_conductor_ranges.F90"
+    "test_zt_conductor_ranges_2.F90"
 )
 
 # get_target_property(mtlnsolver_INCLUDES mtlnsolver INCLUDE_DIRECTORIES)

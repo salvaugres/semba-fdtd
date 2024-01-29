@@ -14,6 +14,12 @@ module mtl_mod
         real, allocatable, dimension(:,:,:) :: du_length(:,:,:)
         type(lumped_t) :: lumped_elements
         real :: time = 0.0, dt = 1e10
+        
+        character (len=:), allocatable :: parent_name
+        integer :: conductor_in_parent
+
+        type(transfer_impedance_per_meter_t) :: transfer_impedance
+
         ! real, allocatable, dimension(:,:) :: v, i
         ! real, allocatable :: longitudinalE(:,:), transversalE(:,:)
         ! real, allocatable :: vTerm(:,:,:), iTerm(:,:,:)
@@ -82,12 +88,18 @@ contains
     end subroutine
 
 
-    function mtlHomogeneous(lpul, cpul, rpul, gpul, node_positions, divisions, name) result(res)
+    function mtlHomogeneous(lpul, cpul, rpul, gpul, &
+                            node_positions, divisions, name, &
+                            parent_name, conductor_in_parent, &
+                            transfer_impedance) result(res)
         type(mtl_t) :: res
         real, intent(in), dimension(:,:) :: lpul, cpul, rpul, gpul
         real, intent(in), dimension(:,:) :: node_positions
         integer, intent(in), dimension(:) :: divisions
         character(len=*), intent(in) :: name
+        character(len=*), intent(in), optional :: parent_name
+        integer, intent(in), optional :: conductor_in_parent
+        type(transfer_impedance_per_meter_t), intent(in), optional :: transfer_impedance
         ! real, allocatable, dimension(:,:) :: v, i
         res%name = name
         
@@ -99,8 +111,19 @@ contains
         call res%initRGHomogeneous(rpul, gpul)
         
         res%dt = res%getMaxTimeStep()
-        
         res%lumped_elements = lumped_t(res%number_of_conductors, 0, res%u, res%dt)
+
+        if (present(parent_name)) then 
+            res%parent_name = parent_name
+        end if
+
+        if (present(conductor_in_parent)) then 
+            res%conductor_in_parent = conductor_in_parent
+        end if
+
+        if (present(transfer_impedance)) then 
+            res%transfer_impedance = transfer_impedance
+        end if 
 
     end function
 
