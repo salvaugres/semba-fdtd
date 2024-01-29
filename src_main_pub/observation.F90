@@ -625,7 +625,7 @@ contains
                   else
                      output(ii)%item(i)%columnas=1
                   endif                
-                  !mpdir 190319
+                  !mpdir 190319       !desrotacion para que los nombres sean correctos 
                   if      (mpidir==3) then
                       extpoint=trim(adjustl(chari)) //'_'//trim(adjustl(charj)) //'_'//trim(adjustl(chark))
                       select case (field)
@@ -992,7 +992,7 @@ contains
                   write(chari2,'(i7)') i2
                   write(charj2,'(i7)') j2
                   write(chark2,'(i7)') k2
-                  !mpidir 190319
+                  !mpidir 190319     !desrotacion para que los nombres sean correctos 
                   if      (mpidir==3) then
                       extpoint=trim(adjustl(chari)) //'_'//trim(adjustl(charj)) //'_'//trim(adjustl(chark))//'__'// &
                                trim(adjustl(chari2))//'_'//trim(adjustl(charj2))//'_'//trim(adjustl(chark2))
@@ -1149,7 +1149,7 @@ contains
                      write(chari2,'(i7)') sgg%observation(ii)%P(i)%XE
                      write(charj2,'(i7)') sgg%observation(ii)%P(i)%YE
                      write(chark2,'(i7)') sgg%observation(ii)%P(i)%ZE
-                      !mpidir 190319
+                      !mpidir 190319     !desrotacion para que los nombres sean correctos 
                      if      (mpidir==3) then
                         extpoint=trim(adjustl(chari)) //'_'//trim(adjustl(charj)) //'_'//trim(adjustl(chark))//'__'// &
                                  trim(adjustl(chari2))//'_'//trim(adjustl(charj2))//'_'//trim(adjustl(chark2))
@@ -1782,7 +1782,7 @@ contains
                      write(charj2,'(i7)') sgg%observation(ii)%P(i)%YE
                      write(chark2,'(i7)') sgg%observation(ii)%P(i)%ZE
                      
-                  !mpidir 190319
+                  !mpidir 190319      !desrotacion para que los nombres sean correctos 
                   if      (mpidir==3) then
                       extpoint=trim(adjustl(chari)) //'_'//trim(adjustl(charj)) //'_'//trim(adjustl(chark))//'__'// &
                                trim(adjustl(chari2))//'_'//trim(adjustl(charj2))//'_'//trim(adjustl(chark2))
@@ -2014,7 +2014,7 @@ contains
                   write(chari2,'(i7)') sgg%observation(ii)%P(1)%XE
                   write(charj2,'(i7)') sgg%observation(ii)%P(1)%YE
                   write(chark2,'(i7)') sgg%observation(ii)%P(1)%ZE
-                  !mpidir 190319
+                  !mpidir 190319      !desrotacion para que los nombres sean correctos 
                   if      (mpidir==3) then
                       extpoint=trim(adjustl(chari)) //'_'//trim(adjustl(charj)) //'_'//trim(adjustl(chark))//'__'// &
                                trim(adjustl(chari2))//'_'//trim(adjustl(charj2))//'_'//trim(adjustl(chark2))
@@ -2132,7 +2132,7 @@ contains
                select case(field)
                 case (iEx,iEy,iEz,iVx,iVy,iVz,iJx,iJy,iJz,iHx,iHy,iHz)
                   conta=conta+1                  
-                  !mpidir 190319
+                  !mpidir 190319 !desrotacion para que los nombres sean correctos 
                   if      (mpidir==3)then
                       extpoint=trim(adjustl(chari)) //'_'//trim(adjustl(charj)) //'_'//trim(adjustl(chark))
                       select case (field)
@@ -2244,7 +2244,7 @@ contains
                   write(chari2,'(i7)') i2
                   write(charj2,'(i7)') j2
                   write(chark2,'(i7)') k2
-                  !mpidir 190319
+                  !mpidir 190319    !desrotacion para que los nombres sean correctos 
                   if      (mpidir==3) then
                       extpoint=trim(adjustl(chari)) //'_'//trim(adjustl(charj)) //'_'//trim(adjustl(chark))//'__'// &
                                trim(adjustl(chari2))//'_'//trim(adjustl(charj2))//'_'//trim(adjustl(chark2))
