@@ -81,7 +81,7 @@ contains
 
         iter = network_iter_t(this%levels)
         do while(iter%findNext(name,network))
-            call network%updateBundlesVoltages(bundles)
+            ! call network%updateBundlesVoltages(bundles)
         enddo
     end subroutine 
 
@@ -94,7 +94,7 @@ contains
 
         iter = network_iter_t(this%levels)
         do while(iter%findNext(name,network))
-            call network%updateCurrents(bundles)
+            ! call network%updateCurrents(bundles)
         enddo
     end subroutine 
 

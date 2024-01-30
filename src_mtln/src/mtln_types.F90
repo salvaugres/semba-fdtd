@@ -2,6 +2,24 @@ module mtln_types_mod
 
     implicit none
 
+    ! networks
+
+    type :: terminal_node_t
+        type(cable_t), pointer :: belongs_to_cable => null()
+        integer :: conductor_in_cable
+        character(len=:), allocatable :: side ! initial or end
+    end type
+
+    type :: terminal_connection_t
+        type(terminal_node_t), dimension(:), allocatable :: nodes
+    end type
+
+    type :: terminal_network_t
+        type(terminal_connection_t), dimension(:), allocatable :: connections
+    end type
+
+    ! bundles
+
     type, public :: transfer_impedance_per_meter_t
         real :: inductive_term
         real :: resistive_term
