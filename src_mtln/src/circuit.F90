@@ -41,7 +41,7 @@ contains
 
     subroutine init(this, netlist)
         class(circuit_t) :: this
-        character(len=*), intent(in) :: netlist
+        character(len=*), intent(in), optional :: netlist
         integer :: res
 
         res = ngSpice_Init(c_funloc(SendChar), &
@@ -51,8 +51,9 @@ contains
                            c_funloc(SendInitData), &
                            c_funloc(BGThreadRunning), &
                            this%nodes)
-  
-        call this%loadNetlist(netlist)
+        if (present(netlist)) then
+            call this%loadNetlist(netlist)
+        end if
         write(*,*) 'Init'
     end subroutine
 
