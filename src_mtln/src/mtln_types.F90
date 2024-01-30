@@ -2,7 +2,6 @@ module mtln_types_mod
 
     implicit none
 
-    ! networks
 
     type :: termination_t
         character(len=:), allocatable :: type

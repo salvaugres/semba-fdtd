@@ -6,22 +6,16 @@ module preprocess_mod
 
     use fhash, only: fhash_tbl_t, key=>fhash_key, fhash_key_t
 
-    ! use fhash, only: fhash_tbl_t
-    ! use fhash_key_coordinate_pair, only: fhash_key_coordinate_pair_t, key=>fhash_key
-    ! use fhash_data_container, only: fhash_container_t
     
     use network_bundle_mod
     implicit none
-    !preprocess: gets parser info, generates bundles and networks
 
 
     type, public :: preprocess_t
         type(mtl_bundle_t), dimension(:), allocatable :: bundles
         type(network_t), dimension(:), allocatable :: networks
-        ! type(network_bundle_t), dimension(:), allocatable :: networks !lista de NetworkD, no de network
         type(fhash_tbl_t) :: conductors_before_cable
         type(fhash_tbl_t) :: cable_name_to_bundle
-        ! type(transfer_impedance_t) :: external_transfer_impedance
         real :: final_time, dt
     
     contains
@@ -384,7 +378,6 @@ contains
     subroutine connectNodeToGround(this, terminal_nodes, nodes, description)
         class(preprocess_t) :: this
         type(terminal_node_t), dimension(:), allocatable :: terminal_nodes
-        ! type(network_t), intent(inout) :: network
         type(node_t),  dimension(:), intent(inout) :: nodes
         character(50), dimension(:), intent(inout) :: description
 
@@ -436,15 +429,11 @@ contains
             end if
         end do
 
-        ! call res%circuit%init()
-        ! call res%circuit%setStopTimes(this%final_time, this%dt)
         call endDescription(nodes, description, this%final_time, this%dt)
-        ! call res%circuit%readInput(res%description)
         res = networkCtor(nodes, description, this%final_time, this%dt)
     end function
 
     subroutine endDescription(nodes, description, finalTime, dt)
-        ! class(network_t), intent(inout) :: network
         type(node_t), dimension(:), intent(inout) :: nodes
         character(50), dimension(:), intent(inout) :: description
 
@@ -481,8 +470,6 @@ contains
             allocate(nodes(0))
             allocate(description(0))
             res(i) = this%buildNetwork(terminal_networks(i))
-            ! call this%buildNetworkInput(terminal_networks(i), nodes, description)
-            ! res(i) = networkCtor(nodes, description)
         end do
 
 
@@ -492,22 +479,16 @@ contains
         type(parsed_t), intent(in):: parsed
         type(preprocess_t) :: res
         type(fhash_tbl_t) :: cable_name_to_bundle 
-        ! type(cable_bundle_t), dimension(:), allocatable :: cable_bundles ! dimension eq to number of bundles
         type(line_bundle_t), dimension(:), allocatable :: line_bundles
 
         res%final_time = parsed%time_step * parsed%number_of_steps
         res%dt = parsed%time_step
-        ! cable_bundles = buildCableBundles(parsed%cables)
-        ! line_bundles = buildLineBundles(cable_bundles)
-        ! ! allocate(res%bundles(size(line_bundles)))
-        ! res%bundles = buildMTLBundles(line_bundles)
-        ! cable_bundles = 
-        ! line_bundles = 
-        ! allocate(res%bundles(size(line_bundles)))
+
         line_bundles = buildLineBundles(buildCableBundles(parsed%cables))
         res%bundles = res%buildMTLBundles(line_bundles)
         res%cable_name_to_bundle = mapCablesToBundles(line_bundles, res%bundles)
         res%networks = res%buildNetworks(parsed%networks)
+        
     end function
     
 end module
