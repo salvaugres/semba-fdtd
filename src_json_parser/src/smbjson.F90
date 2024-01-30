@@ -785,22 +785,23 @@ contains
 
       call this%core%get(this%root, J_MATERIAL_ASSOCIATIONS, matAss, found)
       if (.not. found) then
-         if (size(cables) == 0) then
-            allocate(res%tw(0))
-            res%n_tw = 0
-            res%n_tw_max = 0
-            return
-         end if
+         allocate(res%tw(0))
+         res%n_tw = 0
+         res%n_tw_max = 0
+         return
       end if
 
       cables = this%jsonValueFilterByKeyValue(matAss, J_TYPE, J_MAT_ASS_TYPE_CABLE)
 
       ! Pre-allocates thin wires.
       block
-         integer :: nTw = 0
-         do i = 1, size(cables)
-            if (isThinWire(cables(i)%p)) nTw = nTw+1
-         end do
+         integer :: nTw
+         nTw = 0
+         if (size(cables) /=0 ) then
+            do i = 1, size(cables)
+               if (isThinWire(cables(i)%p)) nTw = nTw+1
+            end do
+         end if
 
          allocate(res%tw(nTw))
          res%n_tw = size(res%tw)
@@ -808,12 +809,14 @@ contains
       end block
 
       j = 1
-      do i = 1, size(cables)
-         if (isThinWire(cables(i)%p)) then
-            res%tw(j) = readThinWire(cables(i)%p)
-            j = j+1
-         end if
-      end do
+      if (size(cables) /=0 ) then
+         do i = 1, size(cables)
+            if (isThinWire(cables(i)%p)) then
+               res%tw(j) = readThinWire(cables(i)%p)
+               j = j+1
+            end if
+         end do
+      end if
 
    contains
       function readThinWire(cable) result(res)

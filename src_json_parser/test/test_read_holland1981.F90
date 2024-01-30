@@ -1,4 +1,4 @@
-integer function test_read_holland1981() result(err)
+integer function test_read_holland1981() bind (C) result(err)
    use smbjson
    use testingTools
 

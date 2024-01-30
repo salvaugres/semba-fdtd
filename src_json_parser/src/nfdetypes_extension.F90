@@ -123,6 +123,8 @@ contains
       !
       allocate(pD%tWires)
       allocate(pD%tWires%tw(0))
+      pD%tWires%n_tw = 0
+      pD%tWires%n_tw = 0
 
       allocate(pD%sWires)
       allocate(pD%tSlots)

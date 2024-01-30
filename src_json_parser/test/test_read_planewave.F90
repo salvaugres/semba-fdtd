@@ -1,5 +1,4 @@
-
-integer function test_read_planewave() result(err)
+integer function test_read_planewave() bind (C) result(err)
    use smbjson
    use testingTools
 

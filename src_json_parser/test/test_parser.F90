@@ -1,4 +1,4 @@
-integer function test_parser_ctor() result(err)
+integer function test_parser_ctor() bind(C) result(err)
    use smbjson
    use testingTools
 

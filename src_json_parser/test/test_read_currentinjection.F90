@@ -1,4 +1,4 @@
-integer function test_read_currentinjection() result(err)
+integer function test_read_currentinjection() bind (C) result(err)
    use smbjson
    use testingTools
 
