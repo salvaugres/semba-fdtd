@@ -19,8 +19,8 @@ module mtl_bundle_mod
         real :: time = 0.0, dt = 1e10
         type(probe_t), allocatable, dimension(:) :: probes
         type(transfer_impedance_t) :: transfer_impedance
-        type(fhash_tbl_t) :: conductors_in_level
-
+        integer, dimension(:), allocatable :: conductors_in_level
+        
         real, dimension(:,:,:), allocatable :: v_term, i_term
         real, dimension(:,:,:), allocatable :: v_diff, i_diff
 

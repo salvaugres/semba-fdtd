@@ -115,6 +115,13 @@ module ngspice_interface_mod
             character(kind=c_char), dimension(*), intent(in) :: name
         end function
 
+        integer(c_int) function ngSpice_Circ(message) bind(C, name="ngSpice_Circ")
+            import :: c_int, c_ptr, c_char
+            type(c_ptr), intent(in) :: message(*)
+            ! character(kind=c_char), dimension(*), intent(in) :: message(:)
+
+        end function
+
     end interface
 
 

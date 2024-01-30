@@ -67,6 +67,7 @@ add_fortran_test_executable (mtlnsolver_tests
     "test_spice_ac.F90"
     "test_spice_current_source.F90"
     "test_spice_short.F90"
+    "test_spice_read_message.F90"
     "test_networks.F90"
     "test_conductors_in_level.F90"
     "test_conductors_before_cable.F90"

@@ -26,7 +26,8 @@ contains
 
     function network_bundleCtor(levels) result(res)
         type(network_bundle_t) :: res
-        type(fhash_tbl_t) :: levels
+        type(network_t), dimension(:) :: levels
+        ! type(fhash_tbl_t) :: levels
     end function 
 
     subroutine updateIndexNumbers(this, bundles)

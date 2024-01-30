@@ -4,10 +4,18 @@ module mtln_types_mod
 
     ! networks
 
+    type :: termination_t
+        character(len=:), allocatable :: type
+        real :: resistance = 1e-10
+        real :: inductance = 1e-12
+        real :: capacitance = 1e22
+    end type
+
     type :: terminal_node_t
         type(cable_t), pointer :: belongs_to_cable => null()
         integer :: conductor_in_cable
         character(len=:), allocatable :: side ! initial or end
+        type(termination_t) :: termination
     end type
 
     type :: terminal_connection_t
@@ -50,6 +58,9 @@ module mtln_types_mod
 
     type, public :: parsed_t
         type(cable_t), dimension(:), allocatable :: cables
+        type(terminal_network_t), dimension(:), allocatable :: networks
+        real :: time_step
+        integer :: number_of_steps
     end type
 
     type, public :: cable_array_t

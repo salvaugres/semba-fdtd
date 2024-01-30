@@ -21,7 +21,7 @@ integer function test_spice_current_source() result(error_cnt)
     call circuit%init(netlist)
     call circuit%setStopTimes(finalTime, circuit%dt)
     do while (circuit%time < finalTime)
-        call circuit%updateNodeCurrent(1, current)
+        call circuit%updateNodeCurrent("1", current)
         call circuit%step()
         circuit%time = circuit%time + circuit%dt
         ! write(*,*) circuit%getNodeVoltage("1")
