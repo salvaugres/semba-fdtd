@@ -1,4 +1,4 @@
-integer function test_fhash() result(error_cnt)
+integer function test_fhash() bind(C) result(error_cnt)
    use fhash, only: fhash_tbl_t, key=>fhash_key
    implicit none
    type(fhash_tbl_t) :: tbl
