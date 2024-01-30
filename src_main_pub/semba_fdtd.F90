@@ -42,7 +42,7 @@ PROGRAM SEMBA_FDTD_launcher
    USE Resuming
    !nfde parser stuff
    USE NFDETypes                
-!   use nfde_rotate_m
+   use nfde_rotate_m
 #ifdef CompilePrivateVersion  
    USE ParseadorClass
 #endif
@@ -88,8 +88,9 @@ PROGRAM SEMBA_FDTD_launcher
 !!!241018 fin pscaling
    integer (KIND=IKINDMTAG) , allocatable , dimension(:,:,:) ::  sggMtag
    integer (KIND=INTEGERSIZEOFMEDIAMATRICES) , allocatable , dimension(:,:,:) ::  sggMiNo,sggMiEx,sggMiEy,sggMiEz,sggMiHx,sggMiHy,sggMiHz
-
-
+   INTEGER (KIND=4) ::  verdadero_mpidir
+   logical, parameter:: newrotate=.false. !300124 tiramos con el rotador antiguo
+   
    LOGICAL :: dummylog,finishedwithsuccess,l_auxinput, l_auxoutput, ThereArethinslots
    integer (KIND=4) :: myunit,jmed
    REAL (KIND=RKIND) :: maxSourceValue
@@ -1121,14 +1122,21 @@ subroutine cargaNFDE
 #endif
       write(dubuf,*) '[OK]';  call print11(l%layoutnumber,dubuf)
       !--->
-   END IF
+   END IF    
    NFDE_FILE%mpidir=l%mpidir
 !!!!!!!!!!!!!!!!!!!
    WRITE (dubuf,*) 'INIT interpreting geometrical data from ', trim (adjustl(l%fileFDE))
    CALL print11 (l%layoutnumber, dubuf)
 !!!!!!!!!!
+   if(newrotate) then
+       verdadero_mpidir=NFDE_FILE%mpidir
+       NFDE_FILE%mpidir=3     !no lo rota el parseador antiguo
+   endif
    parser => newparser (NFDE_FILE)
-!   parser => rotate (NFDE_FILE)
+   if(newrotate) then      
+       NFDE_FILE%mpidir=verdadero_mpidir   !restorealo
+       call nfde_rotate (parser,NFDE_FILE%mpidir)   !lo rota el parseador nuevo
+   endif
    l%thereare_stoch=NFDE_FILE%thereare_stoch
    l%mpidir=NFDE_FILE%mpidir !bug 100419
 !!!!!!!!!!!

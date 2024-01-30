@@ -86,7 +86,7 @@ contains
 
    function readProblemDescription(this) result (res)
       class(parser_t) :: this
-      type(Parseador) :: res !! Problem Description
+      type(Parseador) :: res 
 
       allocate(this%jsonfile)
       call this%jsonfile%initialize()
@@ -1036,18 +1036,25 @@ contains
 
          if (           isTime .and. .not. isFrequency .and. .not. hasTransferFunction) then
             res = NP_T2_TIME
+            return
          else if (.not. isTime .and.       isFrequency .and. .not. hasTransferFunction) then
             res = NP_T2_FREQ
+            return
          else if (.not. isTime .and. .not. isFrequency .and.       hasTransferFunction) then
             res = NP_T2_TRANSFER
+            return
          else if (      isTime .and.       isFrequency .and. .not. hasTransferFunction) then
             res = NP_T2_TIMEFREQ
+            return
          else if (      isTime .and. .not. isFrequency .and.       hasTransferFunction) then
             res = NP_T2_TIMETRANSF
+            return
          else if (.not. isTime .and.       isFrequency .and.       hasTransferFunction) then
             res = NP_T2_FREQTRANSF
+            return
          else if (      isTime .and.       isFrequency .and.       hasTransferFunction) then
             res = NP_T2_TIMEFRECTRANSF
+            return
          end if
 
          write(error_unit, *) "Error parsing domain."

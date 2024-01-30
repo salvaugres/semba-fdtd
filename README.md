@@ -1,3 +1,7 @@
+[![ubuntu-gnu](https://github.com/OpenSEMBA/fdtd/actions/workflows/ubuntu-gnu.yml/badge.svg?branch=main)](https://github.com/OpenSEMBA/fdtd/actions/workflows/ubuntu-gnu.yml)
+[![ubuntu-intel](https://github.com/OpenSEMBA/fdtd/actions/workflows/ubuntu-intel.yml/badge.svg?branch=main)](https://github.com/OpenSEMBA/fdtd/actions/workflows/ubuntu-intel.yml)
+[![ubuntu-intelLLVM](https://github.com/OpenSEMBA/fdtd/actions/workflows/ubuntu-intelLLVM.yml/badge.svg?branch=main)](https://github.com/OpenSEMBA/fdtd/actions/workflows/ubuntu-intelLLVM.yml)
+
 # semba-fdtd
 
 In a nutshell, semba-fdtd capabilities are
