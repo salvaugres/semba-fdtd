@@ -1,4 +1,4 @@
-integer function test_networks() result(error_cnt)
+integer function test_networks() bind(C) result(error_cnt)
 
     type node_t 
         real, pointer :: v

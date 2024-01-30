@@ -1,4 +1,4 @@
-integer function test_init_inhomogeneous() result(error_cnt)    
+integer function test_init_inhomogeneous() bind(C) result(error_cnt)    
     use mtl_mod
     use testingTools_mod
 

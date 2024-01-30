@@ -1,4 +1,4 @@
-integer function test_matmul_broadcast() result(error_cnt)    
+integer function test_matmul_broadcast() bind(C) result(error_cnt)    
     use testingTools_mod
 
     implicit none

@@ -1,6 +1,4 @@
-
-
-integer function test_q3Phi() result(error_cnt)    
+integer function test_q3Phi() bind(C) result(error_cnt)    
     use testingTools_mod
 
     implicit none
