@@ -3611,9 +3611,7 @@ contains
                                      dzh(KKK - b%Hz%ZI) * (  Hz( III - b%Hz%XI, JJJ - b%Hz%YI, KKK - b%Hz%ZI)-Hz( III - b%Hz%XI  , JJJ - b%Hz%YI-1, KKK - b%Hz%ZI  ))
                                  do if1=1,output( ii)%NumFreqs  
                                     output( ii)%item( i)%Serialized%valorComplex_x(if1,conta) = output( ii)%item( i)%Serialized%valorComplex_x(if1,conta) +  &
-                                                       output( ii)%auxExp_H(if1) * Jx           
-                                    output( ii)%item( i)%Serialized%valorComplex_y(if1,conta) = 0.0
-                                    output( ii)%item( i)%Serialized%valorComplex_z(if1,conta) = 0.0
+                                                       output( ii)%auxExp_H(if1) * Jx      
                                  end do
                               endif
                               if ((sgg%med(sggMiEy(III - b%Ey%XI, JJJ - b%Ey%YI, KKK - b%Ey%ZI))%Is%ThinWire).and.(iii <= SINPML_fullsize(iEy)%XE).and.(jjj <= SINPML_fullsize(iEy)%YE).and.(kkk <= SINPML_fullsize(iEy)%ZE)) then
@@ -3621,10 +3619,8 @@ contains
                                  Jy=dxh(III - b%Hx%XI) * (  Hx( III - b%Hx%XI, JJJ - b%Hx%YI, KKK - b%Hx%ZI)-Hx( III - b%Hx%XI  , JJJ - b%Hx%YI  , KKK - b%Hx%ZI-1))  + &
                                     dzh(KKK - b%Hz%ZI) * ( -Hz( III - b%Hz%XI, JJJ - b%Hz%YI, KKK - b%Hz%ZI)+Hz( III - b%Hz%XI-1, JJJ - b%Hz%YI  , KKK - b%Hz%ZI  ))
                                  do if1=1,output( ii)%NumFreqs                                   
-                                    output( ii)%item( i)%Serialized%valorComplex_x(if1,conta) = 0.0
                                     output( ii)%item( i)%Serialized%valorComplex_y(if1,conta) = output( ii)%item( i)%Serialized%valorComplex_y(if1,conta) +  &
-                                                       output( ii)%auxExp_H(if1) * Jy         
-                                    output( ii)%item( i)%Serialized%valorComplex_z(if1,conta) = 0.0
+                                                       output( ii)%auxExp_H(if1) * Jy  
                                  end do
                               endif
                               if ((sgg%med(sggMiEz(III - b%Ez%XI, JJJ - b%Ez%YI, KKK - b%Ez%ZI))%Is%ThinWire).and.(iii <= SINPML_fullsize(iEz)%XE).and.(jjj <= SINPML_fullsize(iEz)%YE).and.(kkk <= SINPML_fullsize(iEz)%ZE)) then
@@ -3632,8 +3628,6 @@ contains
                                  Jz=dyh(JJJ - b%Hy%YI) * (  Hy( III - b%Hy%XI, JJJ - b%Hy%YI, KKK - b%Hy%ZI) - Hy( III - b%Hy%XI-1, JJJ - b%Hy%YI  , KKK - b%Hy%ZI  )) + &
                                     dxh(III - b%Hx%XI) * ( -Hx( III - b%Hx%XI, JJJ - b%Hx%YI, KKK - b%Hx%ZI) + Hx( III - b%Hx%XI  , JJJ - b%Hx%YI-1, KKK - b%Hx%ZI  ))
                                  do if1=1,output( ii)%NumFreqs
-                                    output( ii)%item( i)%Serialized%valorComplex_x(if1,conta) = 0.0    
-                                    output( ii)%item( i)%Serialized%valorComplex_y(if1,conta) = 0.0
                                     output( ii)%item( i)%Serialized%valorComplex_z(if1,conta) = output( ii)%item( i)%Serialized%valorComplex_z(if1,conta) +  &
                                                        output( ii)%auxExp_H(if1) * Jz
                                  end do
@@ -3649,8 +3643,6 @@ contains
                                     do if1=1,output( ii)%NumFreqs
                                        output( ii)%item( i)%Serialized%valorComplex_x(if1,conta) = output( ii)%item( i)%Serialized%valorComplex_x(if1,conta) +  &
                                                           output( ii)%auxExp_H(if1) * Jx    
-                                       output( ii)%item( i)%Serialized%valorComplex_y(if1,conta) = 0.0
-                                       output( ii)%item( i)%Serialized%valorComplex_z(if1,conta) = 0.0
                                     end do
                                  endif
                               endif
@@ -3663,10 +3655,8 @@ contains
                                     Jy=dxh(III - b%Hx%XI) * (  Hx( III - b%Hx%XI, JJJ - b%Hx%YI, KKK - b%Hx%ZI)-Hx( III - b%Hx%XI  , JJJ - b%Hx%YI  , KKK - b%Hx%ZI-1)) + &
                                        dzh(KKK - b%Hz%ZI) * ( -Hz( III - b%Hz%XI, JJJ - b%Hz%YI, KKK - b%Hz%ZI)+Hz( III - b%Hz%XI-1, JJJ - b%Hz%YI  , KKK - b%Hz%ZI  ))
                                     do if1=1,output( ii)%NumFreqs
-                                       output( ii)%item( i)%Serialized%valorComplex_x(if1,conta) = 0.0
                                        output( ii)%item( i)%Serialized%valorComplex_y(if1,conta) = output( ii)%item( i)%Serialized%valorComplex_y(if1,conta) +  &
-                                                          output( ii)%auxExp_H(if1) * Jy              
-                                       output( ii)%item( i)%Serialized%valorComplex_z(if1,conta) = 0.0
+                                                          output( ii)%auxExp_H(if1) * Jy        
                                        
                                     end do
                                  endif
@@ -3679,9 +3669,7 @@ contains
                                     conta=conta+1
                                     Jz=dyh(JJJ - b%Hy%YI) * (  Hy( III - b%Hy%XI, JJJ - b%Hy%YI, KKK - b%Hy%ZI) - Hy( III - b%Hy%XI-1, JJJ - b%Hy%YI  , KKK - b%Hy%ZI  ))  + &
                                        dxh(III - b%Hx%XI) * ( -Hx( III - b%Hx%XI, JJJ - b%Hx%YI, KKK - b%Hx%ZI) + Hx( III - b%Hx%XI  , JJJ - b%Hx%YI-1, KKK - b%Hx%ZI  ))
-                                    do if1=1,output( ii)%NumFreqs                                                                       
-                                       output( ii)%item( i)%Serialized%valorComplex_x(if1,conta) = 0.0     
-                                       output( ii)%item( i)%Serialized%valorComplex_y(if1,conta) = 0.0
+                                    do if1=1,output( ii)%NumFreqs     
                                        output( ii)%item( i)%Serialized%valorComplex_z(if1,conta) = output( ii)%item( i)%Serialized%valorComplex_z(if1,conta) +  &
                                                           output( ii)%auxExp_H(if1) * Jz
                                     end do
