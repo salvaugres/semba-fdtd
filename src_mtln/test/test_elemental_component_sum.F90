@@ -1,4 +1,4 @@
-integer function test_elemental_component_sum() result(error_cnt)    
+integer function test_elemental_component_sum() bind(C) result(error_cnt)    
     use testingTools_mod
 
     implicit none

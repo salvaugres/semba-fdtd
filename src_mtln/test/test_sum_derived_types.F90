@@ -1,4 +1,4 @@
-integer function test_sum_derived_types() result(err_cnt)
+integer function test_sum_derived_types() bind(C) result(err_cnt)
     use testingTools_mod
 
     implicit none

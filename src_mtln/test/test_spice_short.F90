@@ -1,4 +1,4 @@
-integer function test_spice_short() result(error_cnt)    
+integer function test_spice_short() bind(C) result(error_cnt)    
 
     use circuit_mod
     use testingTools_mod

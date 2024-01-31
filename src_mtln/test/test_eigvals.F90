@@ -1,4 +1,4 @@
-integer function test_eigvals() result(error_cnt)    
+integer function test_eigvals() bind(C) result(error_cnt)    
     use utils_mod
     use testingTools_mod
 

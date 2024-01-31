@@ -1,5 +1,5 @@
-integer function test_coaxial_line_paul_8_6_square() result(error_cnt)    
-    use mtlnsolver
+integer function test_coaxial_line_paul_8_6_square() bind(C) result(error_cnt)    
+    use mtln_solver_mod
 
     implicit none
 

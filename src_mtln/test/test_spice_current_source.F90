@@ -1,4 +1,4 @@
-integer function test_spice_current_source() result(error_cnt)    
+integer function test_spice_current_source() bind(C) result(error_cnt)    
 
     use circuit_mod
     use testingTools_mod

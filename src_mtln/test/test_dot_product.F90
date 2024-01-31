@@ -1,4 +1,4 @@
-integer function test_dot_product() result(error_cnt)    
+integer function test_dot_product() bind(C) result(error_cnt)    
     use testingTools_mod
 
     implicit none

@@ -1,4 +1,4 @@
-function test_conductors_in_level() result(error_cnt)
+function test_conductors_in_level() bind(C) result(error_cnt)
 
     use mtl_mod 
     use preprocess_mod, only: conductorsInLevel, findConductorsBeforeCable

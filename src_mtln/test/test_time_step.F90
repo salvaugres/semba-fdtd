@@ -1,4 +1,4 @@
-integer function test_time_step() result(error_cnt)    
+integer function test_time_step() bind(C) result(error_cnt)    
 
     use mtl_mod
     use testingTools_mod

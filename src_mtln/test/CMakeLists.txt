@@ -7,6 +7,7 @@ add_library(
     "testingTools.f90"
     "test_init_homogeneous.F90"
     "test_init_inhomogeneous.F90"
+    "test_coaxial_line_paul_8_6_square.F90"
     "test_eigvals.F90"
     "test_time_step.F90"
     "test_fhash.F90"
