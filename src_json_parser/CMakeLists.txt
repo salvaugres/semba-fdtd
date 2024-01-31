@@ -1,34 +1,17 @@
 cmake_minimum_required (VERSION 3.18)
 
-project (smbjson)
+message(STATUS "Creating build system for smbjson")
 
-message(STATUS "Creating build system for smbjson project")
-
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_Fortran_MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/mod)
 
-if (${CMAKE_Fortran_COMPILER_ID} STREQUAL "GNU" AND ${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
-	set(JSONFORTRAN_DIR "${CMAKE_SOURCE_DIR}/precompiled_libraries/linux-gcc-rls/jsonfortran/")
-	set(JSONFORTRAN_LIB ${JSONFORTRAN_DIR}libjsonfortran.a)
-elseif (${CMAKE_Fortran_COMPILER_ID} STREQUAL "Intel" AND ${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
-	set(JSONFORTRAN_DIR "${CMAKE_SOURCE_DIR}/precompiled_libraries/linux-intel-rls/jsonfortran/")
-	set(JSONFORTRAN_LIB ${JSONFORTRAN_DIR}libjsonfortran.a)
-elseif (${CMAKE_Fortran_COMPILER_ID} STREQUAL "IntelLLVM" AND ${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
-	set(JSONFORTRAN_DIR "${CMAKE_SOURCE_DIR}/precompiled_libraries/linux-intelLLVM-rls/jsonfortran/")
-	set(JSONFORTRAN_LIB ${JSONFORTRAN_DIR}libjsonfortran-static.a)
-elseif(${CMAKE_Fortran_COMPILER_ID} STREQUAL "Intel" AND ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
-	set(JSONFORTRAN_DIR "${CMAKE_SOURCE_DIR}/precompiled_libraries/windows-intel-rls/jsonfortran/")
-	set(JSONFORTRAN_LIB ${JSONFORTRAN_DIR}jsonfortran.lib)
-	elseif (${CMAKE_Fortran_COMPILER_ID} STREQUAL "IntelLLVM" AND ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
-	set(JSONFORTRAN_DIR "${CMAKE_SOURCE_DIR}/precompiled_libraries/windows-intelLLVM-rls/jsonfortran/")
-	set(JSONFORTRAN_LIB ${JSONFORTRAN_DIR}jsonfortran-static.lib)
-else()
-    message(FATAL_ERROR "json-fortran precompiled libraries for this platform and/or compiler have not been found.")
-endif()
-include_directories(${JSONFORTRAN_DIR}/include/)
-MESSAGE(STATUS "Using json-fortran precompiled libraries at: " ${JSONFORTRAN_DIR})
+add_library(smbjson 
+	"labels_mod.F90"
+	"cells.F90"
+	"smbjson.F90"
+	"idchildtable.F90"
+	"mesh.F90"
+	"parser_tools.F90"
+	"nfdetypes_extension.F90" 
+)
 
-add_subdirectory(src)
-add_subdirectory(test)
+target_link_libraries(smbjson PRIVATE ${JSONFORTRAN_LIB} semba-types fhash)

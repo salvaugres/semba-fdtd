@@ -1,6 +1,8 @@
 module testingTools
    use NFDETypes_extension
    implicit none
+
+   character(len=*), parameter :: PATH_TO_TEST_DATA = 'testData/'
 contains
    subroutine expect_eq_int(err, ex, pr, msg) 
       integer, intent(inout) :: err
