@@ -87,7 +87,7 @@ if (CompileWithMTLN)
 		set(NGSPICE_LIB ${NGSPICE_DIR}ngspice.lib)
 	elseif(${CMAKE_Fortran_COMPILER_ID} STREQUAL "IntelLLVM" AND ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
 		set(NGSPICE_DIR "${CMAKE_SOURCE_DIR}/precompiled_libraries/windows-intel-rls/ngspice/")
-		set(NGSPICE_LIB ${NGSPICE_DIR}ngspice.dll)
+		set(NGSPICE_LIB ${NGSPICE_DIR}ngspice.lib)
 		add_library(ngspice SHARED IMPORTED)
 		set_target_properties(ngspice PROPERTIES 
 			IMPORTED_LOCATION "${NGSPICE_DIR}ngspice.dll"
