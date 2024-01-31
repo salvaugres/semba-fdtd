@@ -13,7 +13,7 @@ module mtl_mod
         real, allocatable, dimension(:,:) :: u, du
         real, allocatable, dimension(:,:,:) :: du_length(:,:,:)
         type(lumped_t) :: lumped_elements
-        real :: time = 0.0, dt = 1e10
+        real :: time = 0.0, dt = 0.0
         
         character (len=:), allocatable :: parent_name
         integer :: conductor_in_parent
@@ -90,17 +90,18 @@ contains
 
     function mtlHomogeneous(lpul, cpul, rpul, gpul, &
                             node_positions, divisions, name, &
-                            parent_name, conductor_in_parent, &
+                            dt, parent_name, conductor_in_parent, &
                             transfer_impedance) result(res)
         type(mtl_t) :: res
         real, intent(in), dimension(:,:) :: lpul, cpul, rpul, gpul
         real, intent(in), dimension(:,:) :: node_positions
         integer, intent(in), dimension(:) :: divisions
         character(len=*), intent(in) :: name
+
+        real, intent(in), optional :: dt
         character(len=*), intent(in), optional :: parent_name
         integer, intent(in), optional :: conductor_in_parent
         type(transfer_impedance_per_meter_t), intent(in), optional :: transfer_impedance
-        ! real, allocatable, dimension(:,:) :: v, i
         res%name = name
         
         call res%checkPULDimensionsHomogeneous(lpul, cpul, rpul, gpul)
@@ -110,30 +111,45 @@ contains
         call res%initLCHomogeneous(lpul, cpul)
         call res%initRGHomogeneous(rpul, gpul)
         
-        res%dt = res%getMaxTimeStep()
+
+        if (present(dt)) then
+            if (dt > res%getMaxTimeStep()) then 
+                return
+                ! error stop 'time step is larger than maximum permitted'                
+            end if
+            res%dt = dt
+        else 
+            res%dt = res%getMaxTimeStep()
+        end if
+
         res%lumped_elements = lumped_t(res%number_of_conductors, 0, res%u, res%dt)
 
         if (present(parent_name)) then 
             res%parent_name = parent_name
         end if
-
         if (present(conductor_in_parent)) then 
             res%conductor_in_parent = conductor_in_parent
         end if
-
         if (present(transfer_impedance)) then 
             res%transfer_impedance = transfer_impedance
         end if 
 
     end function
 
-    function mtlInhomogeneous(lpul, cpul, rpul, gpul, node_positions, divisions, name) result(res)
+    function mtlInhomogeneous(lpul, cpul, rpul, gpul, &
+                            node_positions, divisions, name, &
+                            dt, parent_name, conductor_in_parent, &
+                            transfer_impedance) result(res)
         type(mtl_t) :: res
         real, intent(in), dimension(:,:,:) :: lpul, cpul, rpul, gpul
         real, intent(in), dimension(:,:) :: node_positions
         integer, intent(in), dimension(:) :: divisions
         character(len=*), intent(in) :: name
-        ! real, allocatable, dimension(:,:) :: v, i
+        real, intent(in), optional :: dt
+        character(len=*), intent(in), optional :: parent_name
+        integer, intent(in), optional :: conductor_in_parent
+        type(transfer_impedance_per_meter_t), intent(in), optional :: transfer_impedance
+
         res%name = name
         
         call res%checkPULDimensionsInhomogeneous(lpul, cpul, rpul, gpul)
@@ -143,9 +159,26 @@ contains
         call res%initLCInhomogeneous(lpul, cpul)
         call res%initRGInhomogeneous(rpul, gpul)
         
-        res%dt = res%getMaxTimeStep()
+        if (present(dt)) then
+            if (dt > res%getMaxTimeStep()) then 
+                return
+                ! error stop 'time step is larger than maximum permitted'                
+            end if
+            res%dt = dt
+        else 
+            res%dt = res%getMaxTimeStep()
+        end if
         
         res%lumped_elements = lumped_t(res%number_of_conductors, 0, res%u, res%dt)
+        if (present(parent_name)) then 
+            res%parent_name = parent_name
+        end if
+        if (present(conductor_in_parent)) then 
+            res%conductor_in_parent = conductor_in_parent
+        end if
+        if (present(transfer_impedance)) then 
+            res%transfer_impedance = transfer_impedance
+        end if 
 
     end function
 

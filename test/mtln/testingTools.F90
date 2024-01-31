@@ -3,23 +3,6 @@ module testingTools_mod
     
     character(len=*), parameter :: PATH_TO_TEST_DATA = 'testData/'
 
-    type :: entry
-        real, dimension(:), allocatable :: x
-    end type entry
-    
-    interface operator(+)
-        module procedure add_entries
-    end interface
-    
-    interface operator(==)
-        module procedure compare_entries
-    end interface
-        
-    interface operator(*)
-        module procedure dotmul
-    end interface operator(*)
-            
-
     contains
             
     function dotmatrixmul(a,b) result(res)
@@ -38,82 +21,7 @@ module testingTools_mod
         end do
      end function
   
-    elemental function add_entries(a,b) result(res)
-        type(entry), intent(in) :: a,b
-        type(entry) :: res
-        res%x = a%x + b%x
-    end function
-
-    elemental function compare_entries(a,b) result(res)
-        type(entry), intent(in) :: a,b
-        logical :: res
-        integer :: i
-        res = .true.
-        do i = 1, size(a%x)
-            if (a%x(i) /= b%x(i)) then
-                res = .false.
-                return
-            end if
-        end do
-    end function
-
-    elemental function componentSum(a) result(res)
-        type(entry), intent(in) :: a
-        real :: res
-        res = sum(a%x)
-    end function
-
-    function sumAlongAxis(a) result(res)
-        real, dimension(:,:,:,:), intent(in) :: a
-        integer :: i
-        real, allocatable, dimension(:,:,:) :: res
-        allocate(res(size(a,2), size(a,3), size(a,4)))
-        do i = 1, size(a,1)
-            res(:,:,:) = res(:,:,:) + a(i,:,:,:)
-        end do  
-
-    end function
-
-    function sumAlongLastAxis(a) result(res)
-        real, dimension(:,:,:,:), intent(in) :: a
-        integer :: i
-        real, allocatable, dimension(:,:,:) :: res
-        allocate(res(size(a,1), size(a,2), size(a,3)))
-        res = 0.0
-        do i = 1, size(a,4)
-            res(:,:,:) = res(:,:,:) + a(:,:,:,i)
-        end do  
-
-    end function
-
-
-    function dotmul(a,b) result(res)
-        type(entry), dimension(:,:,:), intent(in) :: a
-        type(entry), dimension(:,:), intent(in) :: b
-        type(entry), dimension(:,:,:),allocatable :: breshaped
   
-        real, dimension(size(A,1), size(A,2), 1) :: res_temp
-        real, dimension(size(A,1), size(A,2)) :: res
-        integer :: i,j,k,nz
-        real :: tmp
-        
-        breshaped = reshape(b, [size(b,1),size(b,2),1])
-        do nz = 1, size(a,1)
-           do j=1,size(breshaped,3)
-              do i=1,size(A,2)
-                    tmp = 0.0 
-                    do k=1,size(A,3)
-                       tmp = tmp + dot_product(a(nz,i,k)%x, breshaped(nz,k,j)%x)
-                    enddo
-                    res_temp(nz,i,j) = tmp
-              enddo
-           enddo
-        enddo
-        
-        res = reshape(res_temp, [size(b,1),size(b,2)])
-  
-    end function
-        
     subroutine comparePULMatrices(error_cnt, m_line, m_input)
         integer, intent(inout) :: error_cnt
         real, intent(in), dimension(:,:,:) :: m_line

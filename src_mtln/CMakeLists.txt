@@ -12,7 +12,6 @@ add_library(mtlnsolver
 	"mtl_bundle.F90"
 	"mtln_solver.F90"
 	"network.F90"
-	"network_bundle.F90"
 	"utils.F90"
 	"probes.F90"
 	"types.F90"
@@ -27,6 +26,6 @@ add_library(mtlnsolver
 target_link_libraries(mtlnsolver PRIVATE
 	${LAPACK_LIB} 
 	${BLAS_LIB} 
-	ngspice
+	${NGSPICE_LIB}
 	fhash
 )

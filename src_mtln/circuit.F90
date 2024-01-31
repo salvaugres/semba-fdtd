@@ -27,6 +27,7 @@ module circuit_mod
         procedure :: step
         procedure, private :: resume
         procedure, private :: loadNetlist
+        procedure :: readInput
         procedure :: print
         procedure, private :: command
         procedure :: isRunning
@@ -117,6 +118,34 @@ contains
         out = ngSpice_Command(line // c_null_char)
     end subroutine
 
+    subroutine readInput(this, input) 
+        class(circuit_t) :: this
+        character(*), intent(in) :: input(:)
+        type(c_ptr) :: argv_c(size(input))
+        integer :: i   
+
+        type string
+            character(len=:,kind=c_char), allocatable :: item
+        end type string
+        type(string), target :: tmp(size(input))
+
+        ! character(len=:),pointer :: input(:)
+        integer :: out
+
+        do i = 1, size(input)
+            ! This may involve kind conversion.
+            tmp(i)%item = trim(input(i)) // c_null_char
+            argv_c(i) = c_loc(tmp(i)%item)
+        end do
+          ! Size of the argv array on the C side indicated by a NULL.
+        ! argv_c(size(argv_c)) = c_null_ptr
+        
+
+        ! type(c_ptr) :: c_input
+        ! out =  ngSpice_Circ(input)
+        out =  ngSpice_Circ(argv_c)
+    end subroutine
+
     integer(c_int) function SendChar(output, id, nodes)
         type(c_ptr), value, intent(in) :: output
         integer(c_int), intent(in), value :: id
@@ -181,16 +210,16 @@ contains
 
     end function
 
-    subroutine updateNodeCurrent(this, nodeIdx, current)
+    subroutine updateNodeCurrent(this, node_name, current)
         class(circuit_t) :: this
         real :: current
         character(20) :: sCurrent
-        character(2) :: sIdx
-        integer :: nodeIdx
+        character(*) :: node_name
+        ! integer :: nodeIdx
         write(sCurrent, '(E10.2)') current
-        write(sIdx, '(I0)') nodeIdx
-        sIdx = trim(sIdx)
-        call this%command("alter @I"//trim(sIdx)//"[dc] = "//trim(sCurrent))
+        ! write(sIdx, '(I0)') nodeIdx
+        ! sIdx = trim(sIdx)
+        call this%command("alter @I"//trim(node_name)//"[dc] = "//trim(sCurrent))
     end subroutine
 
     function getNodeVoltage(this, name) result(res)
@@ -227,6 +256,9 @@ contains
         res = 0
         do i = 1, size(tags)
             if ( tags(i)%name(1:tags(i)%length) == 'V('//trim(name)//')') then 
+                res = i
+                exit
+            else if ( tags(i)%name(1:tags(i)%length) == trim(name)) then 
                 res = i
                 exit
             end if
