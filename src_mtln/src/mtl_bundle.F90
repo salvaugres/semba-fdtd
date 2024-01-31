@@ -26,7 +26,6 @@ module mtl_bundle_mod
 
 
     contains
-        ! procedure :: add_localized_longitudinal_field
         procedure :: mergePULMatrices
         procedure :: addProbe
         procedure :: updateLRTerms
@@ -38,7 +37,8 @@ module mtl_bundle_mod
         procedure :: addTransferImpedance => bundle_addTransferImpedance
         ! procedure :: setConnectorTransferImpedance
         procedure :: isProbeInLine        
-        procedure :: setExternalCurrent
+        procedure :: setExternalCurrent => bundle_setExternalCurrent
+        procedure :: updateExternalCurrent => bundle_updateExternalCurrent
 
     end type mtl_bundle_t
 
@@ -122,18 +122,6 @@ contains
         call this%transfer_impedance%addTransferImpedance(conductor_out, range_in, transfer_impedance)
 
     end subroutine
-    ! subroutine bundle_addTransferImpedance(this, out_level, out_level_conductors, &
-    !                                       in_level, in_level_conductors, &
-    !                                       impedance_model)
-    !     class(mtl_bundle_t) :: this
-    !     integer, intent(in) :: out_level, in_level
-    !     integer, dimension(:), intent(in) :: out_level_conductors, in_level_conductors
-    !     type(fhash_tbl_t), intent(in) :: impedance_model
-
-    !     call this%transfer_impedance%addTransferImpedance(this%conductors_in_level, out_level, out_level_conductors, &
-    !                                                       in_level, in_level_conductors, impedance_model)
-
-    ! end subroutine
 
     subroutine updateLRTerms(this)
         class(mtl_bundle_t) ::this
@@ -257,12 +245,16 @@ contains
         ! call this%transfer_impedance%updatePhi(i_prev, i_now)
     end subroutine
 
-    subroutine setExternalCurrent(this, current)
+    subroutine bundle_setExternalCurrent(this, current)
         class(mtl_bundle_t) :: this
         real, dimension(:), intent(in) :: current
-        !something like this. The current on the level 0 conductor as an initial condiition
-        this%i(1,:) = current
+        this%i(1,:) = current(:)
+    end subroutine
 
+    subroutine bundle_updateExternalCurrent(this, current)
+        class(mtl_bundle_t) :: this
+        real, dimension(:), intent(inout) :: current
+        current(:) =  this%i(1,:)
     end subroutine
 
 end module mtl_bundle_mod

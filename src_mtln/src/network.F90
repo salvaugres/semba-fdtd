@@ -84,6 +84,7 @@ contains
     subroutine network_advanceVoltage(this, dt)
         class(network_t) :: this
         real, intent(in) :: dt
+        call this%updateCircuitCurrentsFromNetwork()
         call this%circuit%step()
         this%circuit%time = this%circuit%time + this%circuit%dt
         call this%updateNetworkVoltagesFromCircuit()
