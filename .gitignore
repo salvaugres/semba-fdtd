@@ -10,6 +10,7 @@
 # Precompiled Headers
 *.gch
 *.pch
+*.i90
 
 # Compiled Dynamic libraries
 *.so
@@ -34,9 +35,8 @@
 .bak
 .vs
 build/
-build-rls/
-build-dbg/
-build-nv/
+build-*/
+
 CMakeSettings.json
 /CppProperties.json
 
@@ -49,3 +49,4 @@ Testing/
 */*.bak
 ./*.bak
 .vscode/ltex.dictionary.en-US.txt
+GPG-PUB-KEY-INTEL-SW-PRODUCTS-2023.PUB
