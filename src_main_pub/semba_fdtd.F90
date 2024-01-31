@@ -88,8 +88,6 @@ PROGRAM SEMBA_FDTD_launcher
 !!!241018 fin pscaling
    integer (KIND=IKINDMTAG) , allocatable , dimension(:,:,:) ::  sggMtag
    integer (KIND=INTEGERSIZEOFMEDIAMATRICES) , allocatable , dimension(:,:,:) ::  sggMiNo,sggMiEx,sggMiEy,sggMiEz,sggMiHx,sggMiHy,sggMiHz
-   INTEGER (KIND=4) ::  verdadero_mpidir
-   logical :: newrotate !300124 tiramos con el rotador antiguo
    
    LOGICAL :: dummylog,finishedwithsuccess,l_auxinput, l_auxoutput, ThereArethinslots
    integer (KIND=4) :: myunit,jmed
@@ -142,7 +140,10 @@ PROGRAM SEMBA_FDTD_launcher
    
    logical :: lexis
    integer (kind=4) :: my_iostat
-!!!!!!!!!!!!!!!!comienzo instrucciones
+   
+   INTEGER (KIND=4) ::  verdadero_mpidir
+   logical :: newrotate !300124 tiramos con el rotador antiguo
+
    newrotate=.false.       !!ojo tocar luego                     
 !!200918 !!!si se lanza con -pscal se overridea esto
    Eps0= 8.8541878176203898505365630317107502606083701665994498081024171524053950954599821142852891607182008932e-12
@@ -348,17 +349,11 @@ PROGRAM SEMBA_FDTD_launcher
 !!!!!!!!!!!!!!!!!!!!
    call print_credits(l)
 #ifdef CompilePrivateVersion   
-   call cargaNFDE(newrotate)
+   call cargaNFDE
 #else
    call cargaFDTDJSON(l%fichin, parser)
 #endif   
 
-      print *,'**** ',parser%front%propiedadesPML(1)%numCapas
-      print *,'**** ',parser%front%propiedadesPML(2)%numCapas
-      print *,'**** ',parser%front%propiedadesPML(3)%numCapas
-      print *,'**** ',parser%front%propiedadesPML(4)%numCapas
-      print *,'**** ',parser%front%propiedadesPML(5)%numCapas
-      print *,'**** ',parser%front%propiedadesPML(6)%numCapas
 !!!!!!!!!!!!!!!!!!!!!!!
    sgg%extraswitches=parser%switches
 !!!da preferencia a los switches por linea de comando
@@ -418,16 +413,6 @@ PROGRAM SEMBA_FDTD_launcher
       CALL print11 (l%layoutnumber, SEPARADOR//SEPARADOR//SEPARADOR)
       !!!!!!!!!!!!!!!!!!!!!!
       call NFDE2sgg
-      
-              
-         print *,trim(adjustl(whoami))//'*postNFDE2SGG***>sgg%PML%NumLayers(1,1)',sgg%PML%NumLayers(1,1)
-         print *,trim(adjustl(whoami))//'*postNFDE2SGG***>sgg%PML%NumLayers(1,2)',sgg%PML%NumLayers(1,2)
-         print *,trim(adjustl(whoami))//'*postNFDE2SGG***>sgg%PML%NumLayers(2,1)',sgg%PML%NumLayers(2,1)
-         print *,trim(adjustl(whoami))//'*postNFDE2SGG***>sgg%PML%NumLayers(2,2)',sgg%PML%NumLayers(2,2)
-         print *,trim(adjustl(whoami))//'*postNFDE2SGG***>sgg%PML%NumLayers(3,1)',sgg%PML%NumLayers(3,1)
-         print *,trim(adjustl(whoami))//'*postNFDE2SGG***>sgg%PML%NumLayers(3,2)',sgg%PML%NumLayers(3,2)
-         
-         
       l%fatalerror=l%fatalerror.or.l%fatalerrornfde2sgg
       !!!!!!!!!!!!!!!!!!!!!
       !NOTE: md: necesito parser vivo hata el conformal ini, lo paso abajo
@@ -1068,8 +1053,7 @@ contains
 
 
 #ifdef CompilePrivateVersion 
-subroutine cargaNFDE(newrotate)
-   logical :: newrotate
+subroutine cargaNFDE
    INTEGER (KIND=8) :: numero,i8,troncho,longitud
    integer (kind=4) :: mpi_t_linea_t,longitud4
    IF (l%existeNFDE) THEN
@@ -1146,16 +1130,21 @@ subroutine cargaNFDE(newrotate)
    WRITE (dubuf,*) 'INIT interpreting geometrical data from ', trim (adjustl(l%fileFDE))
    CALL print11 (l%layoutnumber, dubuf)
 !!!!!!!!!!
-   !if(newrotate) then
-   !    verdadero_mpidir=NFDE_FILE%mpidir
-   !    NFDE_FILE%mpidir=3     !no lo rota el parseador antiguo
-   !endif
-   parser => newparser (NFDE_FILE)               
+   if(newrotate) then
+       verdadero_mpidir=NFDE_FILE%mpidir
+       NFDE_FILE%mpidir=3     !no lo rota el parseador antiguo
+   endif
+   parser => newparser (NFDE_FILE)   
+#ifdef CompileWithMPI            
    CALL MPI_Barrier (SUBCOMM_MPI, l%ierr)
-   !if(newrotate) then      
-   !    NFDE_FILE%mpidir=verdadero_mpidir   !restorealo
-   !    call nfde_rotate (parser,NFDE_FILE%mpidir)   !lo rota el parseador nuevo
-   !endif
+#endif
+   if(newrotate) then      
+       NFDE_FILE%mpidir=verdadero_mpidir   !restorealo
+       call nfde_rotate (parser,NFDE_FILE%mpidir)   !lo rota el parseador nuevo  
+#ifdef CompileWithMPI            
+       CALL MPI_Barrier (SUBCOMM_MPI, l%ierr)
+#endif
+   endif
    l%thereare_stoch=NFDE_FILE%thereare_stoch
    l%mpidir=NFDE_FILE%mpidir !bug 100419
 !!!!!!!!!!!
@@ -1194,13 +1183,7 @@ subroutine NFDE2sgg
       CALL MPI_Barrier (SUBCOMM_MPI, l%ierr)
 #endif
       CALL read_limits_nogeom (l%layoutnumber,l%size, sgg, fullsize, SINPML_fullsize, parser,l%MurAfterPML,l%mur_exist)
-           
-         print *,trim(adjustl(whoami))//'-POST--read_limits_nogeom--->sgg%PML%NumLayers(1,1)',sgg%PML%NumLayers(1,1)
-         print *,trim(adjustl(whoami))//'-POST--read_limits_nogeom--->sgg%PML%NumLayers(1,2)',sgg%PML%NumLayers(1,2)
-         print *,trim(adjustl(whoami))//'-POST--read_limits_nogeom--->sgg%PML%NumLayers(2,1)',sgg%PML%NumLayers(2,1)
-         print *,trim(adjustl(whoami))//'-POST--read_limits_nogeom--->sgg%PML%NumLayers(2,2)',sgg%PML%NumLayers(2,2)
-         print *,trim(adjustl(whoami))//'-POST--read_limits_nogeom--->sgg%PML%NumLayers(3,1)',sgg%PML%NumLayers(3,1)
-         print *,trim(adjustl(whoami))//'-POST--read_limits_nogeom--->sgg%PML%NumLayers(3,2)',sgg%PML%NumLayers(3,2)
+    
       dtantesdecorregir=sgg%dt
       !!!!!corrige el delta de t si es necesario !sgg15 310715 bug distintos sgg%dt !!!!!!!!!!
 
@@ -1309,7 +1292,6 @@ subroutine NFDE2sgg
          CALL read_geomData (sgg,sggMtag,sggMiNo,sggMiEx,sggMiEy,sggMiEz,sggMiHx,sggMiHy,sggMiHz, l%fichin, l%layoutnumber, l%size, SINPML_fullsize, fullsize, parser, &
          l%groundwires,l%attfactorc,l%mibc,l%sgbc,l%sgbcDispersive,l%MEDIOEXTRA,maxSourceValue,l%skindepthpre,l%createmapvtk,l%input_conformal_flag,l%CLIPREGION,l%boundwireradius,l%maxwireradius,l%updateshared,l%run_with_dmma, &
          eps0,mu0,.false.,l%hay_slanted_wires,l%verbose,l%ignoresamplingerrors,tagtype,l%wiresflavor)
-        
          WRITE (dubuf,*) '[OK] ENDED NFDE --------> GEOM'
          CALL print11 (l%layoutnumber, dubuf)
          !writing
@@ -1335,7 +1317,6 @@ subroutine NFDE2sgg
 #endif
 #endif
       ELSE !del l%size==1       
-      
 #ifdef CompileWithMPI
          CALL MPI_Barrier (SUBCOMM_MPI, l%ierr)
 #ifdef CompileWithStochastic
@@ -1345,26 +1326,9 @@ subroutine NFDE2sgg
 #endif
                    
          CALL MPI_Barrier (SUBCOMM_MPI, l%ierr)   
-         print *,trim(adjustl(whoami))//'-POST4--read_limits_nogeom--->sgg%PML%NumLayers(1,1)',sgg%PML%NumLayers(1,1)
-         print *,trim(adjustl(whoami))//'-POST4--read_limits_nogeom--->sgg%PML%NumLayers(1,2)',sgg%PML%NumLayers(1,2)
-         print *,trim(adjustl(whoami))//'-POST4--read_limits_nogeom--->sgg%PML%NumLayers(2,1)',sgg%PML%NumLayers(2,1)
-         print *,trim(adjustl(whoami))//'-POST4--read_limits_nogeom--->sgg%PML%NumLayers(2,2)',sgg%PML%NumLayers(2,2)
-         print *,trim(adjustl(whoami))//'-POST4--read_limits_nogeom--->sgg%PML%NumLayers(3,1)',sgg%PML%NumLayers(3,1)
-         print *,trim(adjustl(whoami))//'-POST4--read_limits_nogeom--->sgg%PML%NumLayers(3,2)',sgg%PML%NumLayers(3,2)
-                  
-         CALL MPI_Barrier (SUBCOMM_MPI, l%ierr)   
 !!!ahora divide el espacio computacional
          CALL MPIdivide (sgg, fullsize, SINPML_fullsize, l%layoutnumber, l%size, l%forcing, l%forced, l%slicesoriginales, l%resume,l%fatalerror)
          !
-         CALL MPI_Barrier (SUBCOMM_MPI, l%ierr)   
-         
-         print *,trim(adjustl(whoami))//'-POST5--read_limits_nogeom--->sgg%PML%NumLayers(1,1)',sgg%PML%NumLayers(1,1)
-         print *,trim(adjustl(whoami))//'-POST5--read_limits_nogeom--->sgg%PML%NumLayers(1,2)',sgg%PML%NumLayers(1,2)
-         print *,trim(adjustl(whoami))//'-POST5--read_limits_nogeom--->sgg%PML%NumLayers(2,1)',sgg%PML%NumLayers(2,1)
-         print *,trim(adjustl(whoami))//'-POST5--read_limits_nogeom--->sgg%PML%NumLayers(2,2)',sgg%PML%NumLayers(2,2)
-         print *,trim(adjustl(whoami))//'-POST5--read_limits_nogeom--->sgg%PML%NumLayers(3,1)',sgg%PML%NumLayers(3,1)
-         print *,trim(adjustl(whoami))//'-POST5--read_limits_nogeom--->sgg%PML%NumLayers(3,2)',sgg%PML%NumLayers(3,2)
-         
          CALL MPI_Barrier (SUBCOMM_MPI, l%ierr)   
          if (l%fatalerror) then
 !intenta recuperarte
@@ -1380,9 +1344,7 @@ subroutine NFDE2sgg
             sgg%Alloc(field)%ZI = Min (sgg%Alloc(field)%ZI, SINPML_fullsize(field)%ZE-1)
          END DO
          !   
-#ifdef CompileWithMPI
          CALL MPI_Barrier (SUBCOMM_MPI, l%ierr)  
-#endif
          !!incluido aqui pq se precisa para clip 16/07/15
          DO field = iEx, iHz
             sgg%SINPMLSweep(field)%XI = Max (SINPML_fullsize(field)%XI, sgg%Sweep(field)%XI)
@@ -1400,7 +1362,7 @@ subroutine NFDE2sgg
          l%groundwires,l%attfactorc,l%mibc,l%sgbc,l%sgbcDispersive,l%MEDIOEXTRA,maxSourceValue,l%skindepthpre,l%createmapvtk,l%input_conformal_flag,l%CLIPREGION,l%boundwireradius,l%maxwireradius,l%updateshared,l%run_with_dmma, &
          eps0,mu0,l%simu_devia,l%hay_slanted_wires,l%verbose,l%ignoresamplingerrors,tagtype,l%wiresflavor)
 
-         pause
+
 #ifdef CompileWithMPI
          !wait until everything comes out
          CALL MPI_Barrier (SUBCOMM_MPI, l%ierr)
@@ -1416,7 +1378,6 @@ subroutine NFDE2sgg
          CONTINUE
       END IF !del l%size==1
       !
-      
 #ifdef CompileWithMPI
       !wait until everything comes out
       CALL MPI_Barrier (SUBCOMM_MPI, l%ierr)

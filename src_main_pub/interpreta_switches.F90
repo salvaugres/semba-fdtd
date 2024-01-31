@@ -1459,7 +1459,7 @@ CONTAINS
       WRITE (dubuf,*) 'Launched on              ', l%time_out2%fecha(7:8), '/', l%time_out2%fecha(5:6), '/', &
       &                l%time_out2%fecha(1:4), ' ', l%time_out2%hora(1:2), ':', l%time_out2%hora(3:4)
       CALL print11 (l%layoutnumber, dubuf)
-      print *, 'Highest integer ',huge(1_4)
+      if (l%layoutnumber==0) print *, 'Highest integer ',huge(1_4)
       return
    end subroutine print_credits
 
