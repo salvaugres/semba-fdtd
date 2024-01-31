@@ -268,15 +268,16 @@ contains
         type(fhash_tbl_t) :: cable_name_to_bundle 
         ! type(cable_bundle_t), dimension(:), allocatable :: cable_bundles ! dimension eq to number of bundles
         type(line_bundle_t), dimension(:), allocatable :: line_bundles
+        type(cable_bundle_t), dimension(:), allocatable :: cable_bundles
 
-        ! cable_bundles = buildCableBundles(parsed%cables)
+        cable_bundles = buildCableBundles(parsed%cables)
         ! line_bundles = buildLineBundles(cable_bundles)
         ! ! allocate(res%bundles(size(line_bundles)))
         ! res%bundles = buildMTLBundles(line_bundles)
         ! cable_bundles = 
         ! line_bundles = 
         ! allocate(res%bundles(size(line_bundles)))
-        line_bundles = buildLineBundles(buildCableBundles(parsed%cables))
+        line_bundles = buildLineBundles(cable_bundles)
         res%bundles = buildMTLBundles(line_bundles)
         cable_name_to_bundle = mapCablesToBundles(line_bundles, res%bundles)
 

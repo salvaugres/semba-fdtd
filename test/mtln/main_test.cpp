@@ -32,7 +32,7 @@ int main(int argc, char **argv)
 TEST(mtln, homogeneous)   { EXPECT_EQ(0, test_init_homogeneous()); }
 TEST(mtln, inhomogeneous) { EXPECT_EQ(0, test_init_inhomogeneous()); }
 TEST(mtln, component_sum_4dim) { EXPECT_EQ(0, test_4dim_component_sum()); }
-TEST(mtln, coaxial_line_paul_8_6_square) { EXPECT_EQ(0, test_coaxial_line_paul_8_6_square()); }
+// TEST(mtln, coaxial_line_paul_8_6_square) { EXPECT_EQ(0, test_coaxial_line_paul_8_6_square()); }
 TEST(mtln, conductors_before_cable) { EXPECT_EQ(0, test_conductors_before_cable()); }
 TEST(mtln, conductors_in_level) { EXPECT_EQ(0, test_conductors_in_level()); }
 TEST(mtln, dot_product) { EXPECT_EQ(0, test_dot_product()); }

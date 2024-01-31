@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.5)
 enable_language (CXX Fortran)
 enable_testing ()
 
+message(STATUS "Creating build system for test/mtlnsolver")
+
 set(CMAKE_Fortran_MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/mod)
 
 add_library(
@@ -32,7 +34,7 @@ add_library(
 )
 target_link_libraries(mtln_solver_tests_fortran
     mtlnsolver 
-    fhash   
+    fhash
 )
 
 add_executable(mtlnsolver_tests "main_test.cpp")
