@@ -485,7 +485,8 @@ contains
         res%final_time = parsed%time_step * parsed%number_of_steps
         res%dt = parsed%time_step
 
-        line_bundles = buildLineBundles(buildCableBundles(parsed%cables))
+        cable_bundles = buildCableBundles(parsed%cables)
+        line_bundles = buildLineBundles(cable_bundles)
         res%bundles = res%buildMTLBundles(line_bundles)
         res%cable_name_to_bundle = mapCablesToBundles(line_bundles, res%bundles)
         res%networks = res%buildNetworks(parsed%networks)
