@@ -27,6 +27,7 @@ module mtl_bundle_mod
 
     contains
         procedure :: mergePULMatrices
+        procedure :: initialAllocation
         procedure :: addProbe
         procedure :: updateLRTerms
         procedure :: updateCGTerms
@@ -60,33 +61,68 @@ contains
             res%name = name
         endif   
         allocate(res%probes(0))
-        !TODO
-        ! call res%mergePULMatrices(levels)
 
-        allocate(res%lpul(res%number_of_divisions, res%number_of_conductors, res%number_of_conductors))
-        allocate(res%cpul(res%number_of_divisions + 1, res%number_of_conductors, res%number_of_conductors))
-        allocate(res%gpul(res%number_of_divisions + 1, res%number_of_conductors, res%number_of_conductors))
-        allocate(res%rpul(res%number_of_divisions, res%number_of_conductors, res%number_of_conductors))
-        allocate(res%du_length(res%number_of_divisions, res%number_of_conductors, res%number_of_conductors))
-        
-        allocate(res%v(res%number_of_conductors, res%number_of_divisions + 1))
-        allocate(res%i(res%number_of_conductors, res%number_of_divisions))
+        res%number_of_conductors = countNumberOfConductors(levels)
+        res%dt = levels(1)%lines(1)%dt
+        res%u = levels(1)%lines(1)%u !? tiene que ser n x n ?
+        res%du = levels(1)%lines(1)%du !?
+        res%number_of_divisions = size(res%du,1)
 
-        allocate(res%i_term(res%number_of_divisions,res%number_of_conductors,res%number_of_conductors))
-        allocate(res%v_diff(res%number_of_divisions,res%number_of_conductors,res%number_of_conductors))
+        call res%initialAllocation()
+        call res%mergePULMatrices(levels)
 
-        allocate(res%v_term(res%number_of_divisions + 1,res%number_of_conductors,res%number_of_conductors))
-        allocate(res%i_diff(res%number_of_divisions + 1,res%number_of_conductors,res%number_of_conductors))
     
         res%transfer_impedance = transfer_impedance_t(res%number_of_conductors, 0, res%u, res%dt)
 
 
     end function
 
+    subroutine initialAllocation(this)
+        class(mtl_bundle_t) :: this
+        allocate(this%lpul(this%number_of_divisions, this%number_of_conductors, this%number_of_conductors), source = 0.0)
+        allocate(this%cpul(this%number_of_divisions + 1, this%number_of_conductors, this%number_of_conductors), source = 0.0)
+        allocate(this%gpul(this%number_of_divisions + 1, this%number_of_conductors, this%number_of_conductors), source = 0.0)
+        allocate(this%rpul(this%number_of_divisions, this%number_of_conductors, this%number_of_conductors), source = 0.0)
+        allocate(this%du_length(this%number_of_divisions, this%number_of_conductors, this%number_of_conductors), source = 0.0)
+        
+        allocate(this%v(this%number_of_conductors, this%number_of_divisions + 1), source = 0.0)
+        allocate(this%i(this%number_of_conductors, this%number_of_divisions), source = 0.0)
+
+        allocate(this%i_term(this%number_of_divisions,this%number_of_conductors,this%number_of_conductors), source = 0.0)
+        allocate(this%v_diff(this%number_of_divisions,this%number_of_conductors,this%number_of_conductors), source = 0.0)
+
+        allocate(this%v_term(this%number_of_divisions + 1,this%number_of_conductors,this%number_of_conductors), source = 0.0)
+        allocate(this%i_diff(this%number_of_divisions + 1,this%number_of_conductors,this%number_of_conductors), source = 0.0)
+    end subroutine
+
+    function countNumberOfConductors(levels) result(res)
+        type(mtl_array_t), dimension(:), intent(in) :: levels
+        integer :: i,j, res
+        res = 0
+        do i = 1, size(levels)
+            do j = 1, size(levels(i)%lines)
+                res = res + levels(i)%lines(j)%number_of_conductors
+            end do
+        end do  
+    end function
+
     subroutine mergePULMatrices(this, levels)
         class(mtl_bundle_t) :: this
-        type(fhash_tbl_t), intent(in) :: levels
-        !TODO
+        type(mtl_array_t), dimension(:), intent(in) :: levels
+        integer :: i, j, n, n_sum
+        n_sum = 0
+        do i = 1, size(levels)
+            do j = 1, size(levels(i)%lines)
+                n = levels(i)%lines(j)%number_of_conductors
+                this%lpul(:, n_sum + 1: n_sum+n , n_sum +1 : n_sum+n) = levels(i)%lines(j)%lpul(:,:,:)
+                this%cpul(:, n_sum + 1: n_sum+n , n_sum +1 : n_sum+n) = levels(i)%lines(j)%cpul(:,:,:)
+                this%rpul(:, n_sum + 1: n_sum+n , n_sum +1 : n_sum+n) = levels(i)%lines(j)%rpul(:,:,:)
+                this%gpul(:, n_sum + 1: n_sum+n , n_sum +1 : n_sum+n) = levels(i)%lines(j)%gpul(:,:,:)
+                this%du_length(:, n_sum + 1: n_sum+n , n_sum +1 : n_sum+n) = levels(i)%lines(j)%du_length(:,:,:)
+                n_sum = n_sum+n
+            end do
+        end do
+
     end subroutine
 
     subroutine addProbe(this, position, probe_type, probe)

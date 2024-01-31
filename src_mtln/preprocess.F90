@@ -2,12 +2,12 @@ module preprocess_mod
 
     use mtln_types_mod
     use mtl_bundle_mod
+    use network_mod
     use mtl_mod!, only: mtl_t, mtl_array_t, line_bundle_t,
 
     use fhash, only: fhash_tbl_t, key=>fhash_key, fhash_key_t
 
     
-    use network_bundle_mod
     implicit none
 
 

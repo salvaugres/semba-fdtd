@@ -3,7 +3,7 @@ module mtln_solver_mod
     ! use fhash, only: fhash_tbl_t, key=>fhash_key, fhash_key_t
     use types_mod, only: bundle_iter_t
     use mtl_bundle_mod
-    use network_bundle_mod
+    use network_mod
     use preprocess_mod
     implicit none
 
