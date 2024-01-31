@@ -11,7 +11,7 @@ integer function test_spice_dc() bind(C) result(error_cnt)
     integer :: i
 
     error_cnt = 0
-    netlist = '../../src_mtln/testData/netlist_dc.cir'
+    netlist = PATH_TO_TEST_DATA//'mtln/netlist_dc.cir'
     call circuit%init(netlist)
     call circuit%run()
 

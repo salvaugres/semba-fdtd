@@ -5,28 +5,23 @@ enable_language (Fortran)
 
 message(STATUS "Creating build system for mtln solver")
 
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_Fortran_MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/mod)
 
-include_directories(src/)
-
 add_library(mtlnsolver
-	"src/mtl.F90"
-	"src/mtl_bundle.F90"
-	"src/mtln_solver.F90"
-	"src/network.F90"
-	"src/network_bundle.F90"
-	"src/utils.F90"
-	"src/probes.F90"
-	"src/types.F90"
-	"src/dispersive.F90"
-	"src/rational_approximation.F90"
-	"src/circuit.F90"
-	"src/ngspice_interface.F90"
-	"src/mtln_types.F90"
-	"src/preprocess.F90"
+	"mtl.F90"
+	"mtl_bundle.F90"
+	"mtln_solver.F90"
+	"network.F90"
+	"network_bundle.F90"
+	"utils.F90"
+	"probes.F90"
+	"types.F90"
+	"dispersive.F90"
+	"rational_approximation.F90"
+	"circuit.F90"
+	"ngspice_interface.F90"
+	"mtln_types.F90"
+	"preprocess.F90"
 )
 
 if (${CMAKE_Fortran_COMPILER_ID} STREQUAL "GNU" AND ${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
@@ -73,5 +68,3 @@ target_link_libraries(mtlnsolver PRIVATE
 	${NGSPICE_LIB} 
 	fhash
 )
-
-add_subdirectory(test)

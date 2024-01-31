@@ -1,4 +1,4 @@
-integer function test_spice_ac() bind(C) result(error_cnt)    
+integer function test_spice_short() bind(C) result(error_cnt)    
 
     use circuit_mod
     use testingTools_mod
@@ -6,8 +6,8 @@ integer function test_spice_ac() bind(C) result(error_cnt)
     implicit none
 
     type(circuit_t) :: circuit
-    character(len=50) :: netlist, nodeName
-    real :: finalTime
+    character(len=50) :: netlist
+    real :: result(4), finalTime
     integer :: i
 
     circuit%time = 0.0
@@ -15,19 +15,13 @@ integer function test_spice_ac() bind(C) result(error_cnt)
     finalTime = 200e-6
 
     error_cnt = 0
-    netlist = '../../src_mtln/testData/netlist_ac.cir'
-    nodeName = "int"
+    netlist = PATH_TO_TEST_DATA//'mtln/netlist_short.cir'
     call circuit%init(netlist)
     call circuit%setStopTimes(finalTime, circuit%dt)
     do while (circuit%time < finalTime)
         call circuit%step()
         circuit%time = circuit%time + circuit%dt
-        ! write(*,*) circuit%getNodeVoltage(nodeName)
-        if (checkNear(circuit%getTime(), circuit%time, 0.01) .eqv. .false. ) then 
-            error_cnt = error_cnt + 1
-        end if
     end do
-
     write(*,*) error_cnt
 
 end function

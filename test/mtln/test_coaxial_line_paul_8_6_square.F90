@@ -1,9 +1,10 @@
 integer function test_coaxial_line_paul_8_6_square() bind(C) result(error_cnt)    
     use mtln_solver_mod
+    use testingTools_mod
 
     implicit none
 
-    character(len=*), parameter :: filename = 'testData/parser/Paul/coaxial_line_paul_8_6_square.smb.json'
+    character(len=*), parameter :: filename = PATH_TO_TEST_DATA//'mtln/coaxial_line_paul_8_6_square.smb.json'
 
 
     ! p = Parser(file)

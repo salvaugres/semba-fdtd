@@ -1,11 +1,11 @@
 module testingTools_mod
-
-
     implicit none
+    
+    character(len=*), parameter :: PATH_TO_TEST_DATA = 'testData/'
+
     type :: entry
         real, dimension(:), allocatable :: x
     end type entry
-
     
     interface operator(+)
         module procedure add_entries

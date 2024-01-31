@@ -54,6 +54,7 @@ endif()
 if (CompileWithMTLN)
 	message(STATUS "Compiling MTLN solver")
 	add_subdirectory(src_mtln)
+	add_subdirectory(test/mtln)
 endif()
 
 if (CompileExecutable)
