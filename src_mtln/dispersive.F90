@@ -56,7 +56,7 @@ contains
 
     function dispersiveCtor(number_of_conductors, number_of_poles, u, dt) result(res)
         type(dispersive_t) :: res
-        integer :: number_of_conductors, number_of_divisions, number_of_poles
+        integer :: number_of_conductors, number_of_poles
         real :: dt
         real, dimension(:,:) :: u
         res%dt = dt
@@ -64,15 +64,15 @@ contains
         res%number_of_divisions = size(u,1)
         res%u = u
     
-        allocate(res%phi(number_of_divisions, number_of_conductors,number_of_poles))
-        allocate(res%q1 (number_of_divisions, number_of_conductors,number_of_conductors, number_of_poles))
-        allocate(res%q2 (number_of_divisions, number_of_conductors,number_of_conductors, number_of_poles))
-        allocate(res%q3 (number_of_divisions, number_of_conductors,number_of_conductors, number_of_poles))
-        allocate(res%d  (number_of_divisions, number_of_conductors,number_of_conductors))
-        allocate(res%e  (number_of_divisions, number_of_conductors,number_of_conductors))
-        allocate(res%q1_sum  (number_of_divisions, number_of_conductors,number_of_conductors))
-        allocate(res%q2_sum  (number_of_divisions, number_of_conductors,number_of_conductors))
-        allocate(res%q3_phi (number_of_divisions, number_of_conductors))
+        allocate(res%phi(res%number_of_divisions, number_of_conductors,number_of_poles))
+        allocate(res%q1 (res%number_of_divisions, number_of_conductors,number_of_conductors, number_of_poles))
+        allocate(res%q2 (res%number_of_divisions, number_of_conductors,number_of_conductors, number_of_poles))
+        allocate(res%q3 (res%number_of_divisions, number_of_conductors,number_of_conductors, number_of_poles))
+        allocate(res%d  (res%number_of_divisions, number_of_conductors,number_of_conductors))
+        allocate(res%e  (res%number_of_divisions, number_of_conductors,number_of_conductors))
+        allocate(res%q1_sum (res%number_of_divisions, number_of_conductors,number_of_conductors))
+        allocate(res%q2_sum (res%number_of_divisions, number_of_conductors,number_of_conductors))
+        allocate(res%q3_phi (res%number_of_divisions, number_of_conductors))
 
     end function
 
