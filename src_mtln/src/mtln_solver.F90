@@ -167,4 +167,21 @@ contains
    
     end subroutine
 
+
+    subroutine runUntil(this, final_time)
+        class(mtln_t) :: this
+        real, intent(in) :: final_time
+        integer :: i
+
+        do i = 1, this%getTimeRange(final_time)
+            call this%advanceBundlesVoltage()
+            call this%advanceNWVoltage()
+            call this%advanceBundlesCurrent()
+            call this%advanceTime()
+            call this%updateProbes()
+        end do
+
+    end subroutine
+    
+
 end module mtln_solver_mod
