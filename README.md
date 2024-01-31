@@ -49,7 +49,7 @@ IEEE Transactions on Electromagnetic Compatibility. 2016. https://doi.org/10.110
 ## Compilation
 
 ## Running cases
-semba-fdtd uses the following [format](src_json_parser/readme.md) as input files.
+semba-fdtd uses the following [format](doc/smbjson.md) as input files.
 
 # License
 All rights reserved by the University of Granada (Spain)

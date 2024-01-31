@@ -1,0 +1,69 @@
+name: windows-intelLLVM
+
+env:
+  WINDOWS_CPP_COMPONENTS: intel.oneapi.win.cpp-dpcpp-common
+  WINDOWS_FORTRAN_COMPONENTS: intel.oneapi.win.ifort-compiler
+  WINDOWS_DPCPP_COMPONENTS: intel.oneapi.win.cpp-dpcpp-common
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+      
+  pull_request:
+    branches:
+      - main
+
+jobs:
+
+  builds-and-tests:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+
+    - uses: actions/checkout@v4
+      with:
+        submodules: 'recursive'
+
+    - name: cache install oneAPI
+      id: cache-install
+      uses: actions/cache@v2
+      with:
+        path: |
+            C:\Program Files (x86)\Intel\oneAPI\setvars-vcvarsall.bat
+            C:\Program Files (x86)\Intel\oneAPI\compiler
+        key: install-${{ env.CACHE_NUMBER }}-${{ env.WINDOWS_HPCKIT_URL }}-${{ env.WINDOWS_FORTRAN_COMPONENTS }}-compiler-${{ hashFiles('**/scripts/cache_exclude_windows.sh') }}
+
+    - name: non-cache install oneAPI
+      if: steps.cache-install.outputs.cache-hit != 'true'
+      timeout-minutes: 10
+      run: .github/workflows/install_windows.bat $WINDOWS_HPCKIT_URL $WINDOWS_FORTRAN_COMPONENTS
+
+    - name: Setup ninja
+      uses: seanmiddleditch/gha-setup-ninja@master
+
+    # - name: Setup upterm session
+    #   uses: lhotari/action-upterm@v1
+
+    - name: CMake build
+      run: |
+        C:\Program Files (x86)\Intel\oneAPI\setvars-vcvarsall.bat
+        cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCompileExecutable=YES -DCompileWithJSON=YES -DCompileWithMTLN=YES
+        cmake --build build -j
+          
+    - name: Run json-parser tests 
+      run: |
+        build/bin/smbjson_tests
+
+    - name: Run mtln tests 
+      run: |
+        build/bin/mtlnsolver_tests
+
+    - name: exclude unused files from cache
+      if: steps.cache-install.outputs.cache-hit != 'true'
+      shell: bash
+      run: sh -c .github/workflows/oneapi_cache_exclude_windows.sh

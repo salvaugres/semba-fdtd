@@ -1,0 +1,9 @@
+* Multiple dc sources 
+vn1 node1 0 dc 24 
+vn2 node3 0 dc 15 
+rn1 node1 node2 10k 
+rn2 node2 node3 8.1k 
+rn3 node2 0 4.7k 
+.dc vn1 24 24 1 
+.save v(node3) v(node2) v(node1)
+.end 
