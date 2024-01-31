@@ -17,6 +17,7 @@ option(CompileWithMTLN "Use MTLN modules" OFF)
 
 add_library(semba-types 
 	"src_main_pub/nfde_types.F90"
+	"src_main_pub/nfde_rotate.F90"
 	"src_main_pub/fdetypes.F90"
 )
 add_subdirectory(external/fhash/)
