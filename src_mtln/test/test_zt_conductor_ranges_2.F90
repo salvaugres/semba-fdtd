@@ -1,4 +1,4 @@
-function test_zt_conductor_ranges_2() bind(C) result(error_cnt)
+integer function test_zt_conductor_ranges_2() bind(C) result(error_cnt)
 
     use mtl_mod 
     use mtl_bundle_mod 
