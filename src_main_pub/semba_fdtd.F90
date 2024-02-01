@@ -45,9 +45,7 @@ PROGRAM SEMBA_FDTD_launcher
 #ifdef CompilePrivateVersion      
    USE ParseadorClass
 #endif
-#ifdef CompileWithJSON
-   USE smbjson, only: fdtdjson_parser_t => parser_t
-#endif 
+   USE smbjson, only: fdtdjson_parser_t => parser_t 
    USE Preprocess
    USE storeData
    
