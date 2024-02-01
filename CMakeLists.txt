@@ -76,6 +76,7 @@ if (CompileWithMTLN)
 	endif()
 	MESSAGE(STATUS "Using lapack precompiled libraries at: " ${LAPACK_DIR})
 
+
 	if (${CMAKE_Fortran_COMPILER_ID} STREQUAL "GNU" AND ${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
 		set(NGSPICE_DIR "${CMAKE_SOURCE_DIR}/precompiled_libraries/linux-gcc-rls/ngspice/")
 		set(NGSPICE_LIB ${NGSPICE_DIR}libngspice.a)
@@ -90,11 +91,6 @@ if (CompileWithMTLN)
 		set_target_properties(ngspice PROPERTIES 
 			IMPORTED_LOCATION "${NGSPICE_DIR}ngspice.dll"
 			IMPORTED_IMPLIB "${NGSPICE_DIR}ngspice.lib"
-		)
-		configure_file(
-			"${NGSPICE_DIR}ngspice.dll"
-			"${CMAKE_BINARY_DIR}/bin/ngspice.dll"
-			COPYONLY
 		)
 	else()
 		message(FATAL_ERROR "ngspice precompiled libraries for this platform and/or compiler have not been found.")
