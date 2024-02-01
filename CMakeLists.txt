@@ -33,9 +33,6 @@ if (CompileWithMTLN)
 endif()
 
 if (CompileExecutable)
-	if (NOT CompilePrivateVersion AND NOT CompileWithJSON)
-		message(FATAL_ERROR "Executable must be compiled with .fdtd.json parser or alternative.")
-	endif()
 	add_executable(semba-fdtd 
 		"src_main_pub/errorreport.F90"
 		"src_main_pub/anisotropic.F90"

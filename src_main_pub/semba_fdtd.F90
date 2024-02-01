@@ -1134,7 +1134,6 @@ subroutine cargaNFDE
 end subroutine cargaNFDE
 #endif
 
-#ifdef CompileWithJSON
    subroutine cargaFDTDJSON(filename, parsed)
       character(len=1024), intent(in) :: filename
       type(Parseador), pointer :: parsed
@@ -1148,7 +1147,6 @@ end subroutine cargaNFDE
       allocate(parsed)
       parsed = parser%readProblemDescription()
    end subroutine cargaFDTDJSON
-#endif
 
 !!!!!!!!!!!!!!!!!
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
