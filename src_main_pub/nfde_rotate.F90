@@ -12,7 +12,7 @@ CONTAINS
    SUBROUTINE nfde_rotate (this,mpidir) 
       TYPE (Parseador), INTENT (INOUT) :: this
       INTEGER (KIND=4) ::  mpidir
-
+      print *,'-----> Warning novel 2024 rotate routine......'
       call  rotate_generateSpaceSteps                (this, mpidir)
       call  rotate_generateCurrent_Field_Sources     (this, mpidir)
       call  rotate_generatePlaneWaves                (this, mpidir)
@@ -27,10 +27,10 @@ CONTAINS
       call  rotate_generateThinSlots                 (this, mpidir)
       call  rotate_generateLossyThinSurface          (this, mpidir)
       call  rotate_generateFDMs                      (this, mpidir)
-!     call rotate_generateSONDAs                     (this, mpidir)
-!     call rotate_generateMasSondas                  (this, mpidir)
-!     call rotate_generateBloqueProbes               (this, mpidir)
-!     call rotate_generateVolumicProbes              (this, mpidir)
+      call rotate_generateSONDAs                     (this, mpidir)
+      call rotate_generateMasSondas                  (this, mpidir)
+      call rotate_generateBloqueProbes               (this, mpidir)
+      call rotate_generateVolumicProbes              (this, mpidir)
 
 
 
@@ -853,7 +853,7 @@ CONTAINS
       RETURN
    END SUBROUTINE rotate_generateMasSondas
    
-   SUBROUTINE rotate_generateBloqueProbes (mpidir,this)    
+   SUBROUTINE rotate_generateBloqueProbes (this,mpidir)    
       TYPE (Parseador), INTENT (INOUT) :: this
       INTEGER (KIND=4) ::  mpidir                          
       integer (kind=4) :: tama,i  
@@ -919,7 +919,7 @@ CONTAINS
       RETURN
    END SUBROUTINE rotate_generateBloqueProbes
 !!   
-   SUBROUTINE rotate_generateVolumicProbes(mpidir,this)    
+   SUBROUTINE rotate_generateVolumicProbes(this,mpidir)    
       TYPE (Parseador), INTENT (INOUT) :: this
       INTEGER (KIND=4) ::  mpidir                          
       integer (kind=4) :: tama,tama2,i,ii  
