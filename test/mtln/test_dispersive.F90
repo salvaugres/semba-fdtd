@@ -1,68 +1,35 @@
 integer function test_dispersive_q3phi() bind(C) result(error_cnt)    
-    use testingTools_mod
+    use dispersive_mod
 
     implicit none
-
+    type(transfer_impedance_per_meter_t) :: zt
+    complex, dimension(1) :: residues, poles
+    type(pol_res_t):: connector
+    ! residues(1)%real = 1e4
+    ! residues(1)%imag = 1e3
+    ! poles(1)%real = -1e6
+    ! poles(1)%imag = 1e1
     
-
-    real, dimension(:,:,:,:), allocatable :: q3
-    real, dimension(:), allocatable :: conn
-
-    real, dimension(:,:,:), allocatable :: phi
-    real, dimension(:,:), allocatable :: q3phi
-    integer :: nr, ndiv, nc, i_div
-
-    nr = 0
-    ndiv = 3
-    nc = 2
-
-    allocate(q3(ndiv,nc,nc,nr), source = 0.0)
-    allocate(conn(nr))
-    ! allocate(phi(ndiv,nc,nr))
-    ! allocate(q3phi(ndiv,nc))
-
-    write(*,*) size(q3,1)
-    write(*,*) size(q3,2)
-    write(*,*) size(q3,3)
-    write(*,*) size(q3,4)
+    ! zt%direction = "both"
+    ! zt%resistive_term = 1e-2
+    ! zt%inductive_term = 1e-6
+    ! zt%poles = poles
+    ! zt%residues = residues
     
-    ! q3(:,:,:,:) = 0.0
-    write(*,*) q3
-    ! q3(1,:,:,1:2) = 1.0
-    ! q3(1,:,:,1:2) = 1.0
-    
-    ! q3(2,:,:,1:2) = 0.5
-    ! q3(2,:,:,1:2) = 0.5
-    
-    ! q3(3,:,:,1:2) = 1.0
-    ! q3(3,:,:,1:2) = 1.0
+    ! connector = pol_resCtor(zt, 1e-8)
 
-    ! phi(:,:,:) = 0.0
-    ! phi(1,:,1:2) = 5.0
-    ! phi(1,:,1:2) = 5.0
 
-    ! phi(2,:,1:2) = 2.0
-    ! phi(2,:,1:2) = 2.0
+    ! real, dimension(:,:,:,:), allocatable :: q3
+    ! real, dimension(:), allocatable :: conn
 
-    ! phi(3,:,1:2) = 5.0
-    ! phi(3,:,1:2) = 5.0
+    ! real, dimension(:,:,:), allocatable :: phi
+    ! real, dimension(:,:), allocatable :: q3phi
+    ! integer :: nr, ndiv, nc, i_div
 
-    ! q3phi(:,:) = reshape(source = [(dotmatrixmul(q3(i_div, :, :, :), phi(i_div, :, :)), i_div = 1, ndiv)], &
-    !                                shape=[ndiv, nc], order=[2,1])
+    ! nr = 0
+    ! ndiv = 3
+    ! nc = 2
 
-    
-    ! write(*,*) dotmatrixmul(q3(1, :, :, :), phi(1, :, :))
-    ! write(*,*) dotmatrixmul(q3(2, :, :, :), phi(2, :, :))
-    ! write(*,*)
-    ! write(*,*) q3phi(1,1)
-    ! write(*,*) q3phi(1,2)
-    ! write(*,*) '---'
-    ! write(*,*) q3phi(2,1)
-    ! write(*,*) q3phi(2,2)
-    ! write(*,*) '---'
-    ! write(*,*) q3phi(3,1)
-    ! write(*,*) q3phi(3,2)
-    ! write(*,*)
-    
+
 
 end function

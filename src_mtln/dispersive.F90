@@ -41,7 +41,6 @@ module dispersive_mod
         procedure :: setTransferImpedance
         procedure, private :: isCouplingInwards
         procedure, private :: isCouplingOutwards
-        ! procedure, private :: computeRange
         procedure, private :: addTransferImpedanceInConductors
         procedure, private :: setTransferImpedanceInConductors
     end type transfer_impedance_t
@@ -174,11 +173,13 @@ contains
 
         this%d(index, conductor, conductor) = this%d(index, conductor, conductor) + connector%r
         this%e(index, conductor, conductor) = this%e(index, conductor, conductor) + connector%l
-
-        this%q1(index, conductor, conductor,:) = this%q1(index, conductor, conductor,:) - connector%q1(:)
-        this%q2(index, conductor, conductor,:) = this%q2(index, conductor, conductor,:) - connector%q2(:)
-        this%q3(index, conductor, conductor,:) = this%q3(index, conductor, conductor,:) - connector%q3(:)
+        if (connector%number_of_poles /= 0) then
+            this%q1(index, conductor, conductor,:) = this%q1(index, conductor, conductor,:) - connector%q1(:)
+            this%q2(index, conductor, conductor,:) = this%q2(index, conductor, conductor,:) - connector%q2(:)
+            this%q3(index, conductor, conductor,:) = this%q3(index, conductor, conductor,:) - connector%q3(:)
+        end if
     end subroutine
+
 
     function transferImpendaceCtor(number_of_conductors, number_of_poles, u, dt) result(res)
         type(transfer_impedance_t) :: res
@@ -258,10 +259,11 @@ contains
 
         this%d(index, conductor_1, conductor_2) = - connector%r
         this%e(index, conductor_1, conductor_2) = - connector%l
-
-        this%q1(index, conductor_1, conductor_2,:) = connector%q1(:)
-        this%q2(index, conductor_1, conductor_2,:) = connector%q2(:)
-        this%q3(index, conductor_1, conductor_2,:) = connector%q3(:)
+        if (connector%number_of_poles /= 0) then
+            this%q1(index, conductor_1, conductor_2,:) = connector%q1(:)
+            this%q2(index, conductor_1, conductor_2,:) = connector%q2(:)
+            this%q3(index, conductor_1, conductor_2,:) = connector%q3(:)
+        end if
     end subroutine
 
     subroutine addTransferImpedanceInConductors(this, conductor_1, conductor_2, connector)
@@ -273,11 +275,13 @@ contains
         this%d(:, conductor_1, conductor_2) = this%d(:, conductor_1, conductor_2) - connector%r
         this%e(:, conductor_1, conductor_2) = this%e(:, conductor_1, conductor_2) - connector%l
 
-        do i = 1, this%number_of_divisions
-            this%q1(i,conductor_1, conductor_2,:) = this%q1(i,conductor_1, conductor_2,:) + connector%q1(:)
-            this%q2(i,conductor_1, conductor_2,:) = this%q2(i,conductor_1, conductor_2,:) + connector%q2(:)
-            this%q3(i,conductor_1, conductor_2,:) = this%q3(i,conductor_1, conductor_2,:) + connector%q3(:)
-        end do
+        if (connector%number_of_poles /= 0) then
+            do i = 1, this%number_of_divisions
+                this%q1(i,conductor_1, conductor_2,:) = this%q1(i,conductor_1, conductor_2,:) + connector%q1(:)
+                this%q2(i,conductor_1, conductor_2,:) = this%q2(i,conductor_1, conductor_2,:) + connector%q2(:)
+                this%q3(i,conductor_1, conductor_2,:) = this%q3(i,conductor_1, conductor_2,:) + connector%q3(:)
+            end do
+        end if
     end subroutine
 
 

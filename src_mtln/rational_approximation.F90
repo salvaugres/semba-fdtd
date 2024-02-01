@@ -26,11 +26,12 @@ contains
         res%l = model%inductive_term
 
         res%number_of_poles = size(model%poles)
-
-        res%q1 =   (model%residues/model%poles) * (1.0-(exp(model%poles*dt)-1.0)/(model%poles*dt))
-        res%q2 = - (model%residues/model%poles) * (1.0/(model%poles*dt) + exp(model%poles*dt)*(1.0-1.0/(model%poles*dt)))
-        res%q3 = - exp(model%poles*dt)
-
+        allocate(res%q1(res%number_of_poles), res%q2(res%number_of_poles), res%q3(res%number_of_poles))
+        if (res%number_of_poles /= 0) then
+            res%q1 =   (model%residues/model%poles) * (1.0-(exp(model%poles*dt)-1.0)/(model%poles*dt))
+            res%q2 = - (model%residues/model%poles) * (1.0/(model%poles*dt) + exp(model%poles*dt)*(1.0-1.0/(model%poles*dt)))
+            res%q3 = - exp(model%poles*dt)
+        end if
         res%direction = res%direction
     end function
 

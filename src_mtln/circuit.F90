@@ -60,9 +60,9 @@ contains
 
     subroutine loadNetlist(this, netlist)
         class(circuit_t) :: this
-        character(len=*), intent(in) :: netlist
+        character(len=*, kind=c_char), intent(in) :: netlist
         integer :: res
-        res = ngSpice_Command('source ' // netlist // c_null_char)
+        res = ngSpice_Command(c_char_'source ' // trim(netlist) // c_null_char)
     end subroutine
 
     subroutine step(this)
