@@ -31,7 +31,7 @@ jobs:
       
     - name: Build application
       run: |       
-        cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCompileExecutable=YES -DCompileWithJSON=YES -DCompileWithMTLN=YES
+        cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCompileExecutable=YES -DCompileWithMTLN=YES
         cmake --build build -j
           
     - name: Run json-parser tests 

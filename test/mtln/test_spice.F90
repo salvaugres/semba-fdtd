@@ -75,7 +75,7 @@ integer function test_spice_ac() bind(C) result(error_cnt)
     implicit none
 
     type(circuit_t) :: circuit
-    character(len=50) :: netlist, nodeName
+    character(len=*), parameter :: netlist = PATH_TO_TEST_DATA//'mtln/netlist_ac.cir'
     real :: finalTime
     integer :: i
 
@@ -84,8 +84,6 @@ integer function test_spice_ac() bind(C) result(error_cnt)
     finalTime = 200e-6
 
     error_cnt = 0
-    netlist = PATH_TO_TEST_DATA//'mtln/netlist_ac.cir'
-    nodeName = "int"
     call circuit%init(netlist)
     call circuit%setStopTimes(finalTime, circuit%dt)
     do while (circuit%time < finalTime)

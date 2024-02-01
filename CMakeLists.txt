@@ -19,7 +19,7 @@ include("${CMAKE_CURRENT_SOURCE_DIR}/set_precompiled_libraries.cmake")
 add_library(semba-types 
 	"src_main_pub/nfde_types.F90"
 	"src_main_pub/fdetypes.F90"
-	"src_mtln/mtln_types.F90"
+	# "src_mtln/mtln_types.F90"
 )
 add_subdirectory(external/fhash/)
 add_subdirectory(external/googletest/)

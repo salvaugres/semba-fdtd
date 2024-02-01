@@ -299,12 +299,16 @@ contains
         integer(c_int), value :: id
         type(vecInOfAll), pointer, intent(in) :: initData
         type(nodes_t) :: nodes
+
+        write(*,*) 'SendInitData'
     end function
 
     integer(c_int) function BGThreadRunning(isBGThreadNotRunning, id, nodes)
         logical(c_bool) :: isBGThreadNotRunning
         integer(c_int), value :: id
         type(nodes_t) :: nodes
+
+        write(*,*) 'BGThreadRunning'
     end function
 
 
