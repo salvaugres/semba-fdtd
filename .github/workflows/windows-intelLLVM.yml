@@ -48,12 +48,9 @@ jobs:
     - name: Setup ninja
       uses: seanmiddleditch/gha-setup-ninja@master
 
-    - name: Setup upterm session
-      uses: lhotari/action-upterm@v1
-
     - name: CMake build
       run: |
-        C:\Program Files (x86)\Intel\oneAPI\setvars-vcvarsall.bat
+        call .github\workflows\set_vars_windows.bat
         cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCompileExecutable=YES -DCompileWithJSON=YES -DCompileWithMTLN=YES
         cmake --build build -j
           

@@ -26,20 +26,8 @@ target_link_libraries(mtln_solver_tests_fortran
 
 add_executable(mtlnsolver_tests "main_test.cpp")
 
-message(STATUS "Copying to: ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${CONFIG}/ngspice.dll")
-# configure_file(
-#     "${NGSPICE_DIR}ngspice.dll"
-#     "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${CONFIG}/ngspice.dll"
-#     COPYONLY
-# )
-message(STATUS "Copying to:" $<TARGET_FILE_DIR:mtlnsolver_tests>)
-# configure_file(
-#     "${NGSPICE_DIR}ngspice.dll"
-#     "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${CONFIG}/ngspice.dll"
-#     COPYONLY
-# )
 if (${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
-    add_custom_command(TARGET mtlnsolver_tests POST_BUILD        # Adds a post-build event to MyTest
+    add_custom_command(TARGET mtlnsolver_tests POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
             "${NGSPICE_DIR}ngspice.dll"      
             $<TARGET_FILE_DIR:mtlnsolver_tests>
