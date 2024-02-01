@@ -84,9 +84,6 @@ integer function test_spice_ac() bind(C) result(error_cnt)
     finalTime = 200e-6
 
     error_cnt = 0
-    ! netlist = 
-    ! netlist 
-    
     call circuit%init(netlist)
     call circuit%setStopTimes(finalTime, circuit%dt)
     do while (circuit%time < finalTime)

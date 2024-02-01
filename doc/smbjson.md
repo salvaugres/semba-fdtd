@@ -288,7 +288,7 @@ A `multilayeredSurface` must contain the entry `<layers>` which is an array indi
 {
     "name": "Composite",
     "type": "multilayeredSurface",
-    "elementIds": [2],
+    "id": 2,
     "layers": [
         {"thickness": 1e-3, "relativePermittivity": 1.3, "electricConductivity": 2e-4},
         {"thickness": 5e-3, "relativePermittivity": 1.3}
@@ -305,7 +305,7 @@ The entry `<file>` is the path to a file containing the poles and residues which
 {
     "name": "carbon_fiber_model",
     "type": "frequencyDependentSurface",
-    "elementIds": [3],
+    "id": 3,
     "file": "cfc.dat"
 }
 ```

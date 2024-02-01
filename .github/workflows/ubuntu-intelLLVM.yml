@@ -65,12 +65,16 @@ jobs:
         export FC=ifx
         export CC=icx
         export CXX=icpx
-        cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+        cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCompileExecutable=YES -DCompileWithMTLN=YES
         cmake --build build -j
-
+          
     - name: Run json-parser tests 
       run: |
-        ctest --test-dir build/src_json_parser/test/ --output-on-failure
+        build/bin/smbjson_tests
+
+    - name: Run mtln tests 
+      run: |
+        build/bin/mtlnsolver_tests
 
     - name: exclude unused files from cache
       if: steps.cache-install.outputs.cache-hit != 'true'

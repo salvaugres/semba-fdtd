@@ -5,7 +5,7 @@ integer function test_coaxial_line_paul_8_6_square() bind(C) result(error_cnt)
     implicit none
 
     character(len=*), parameter :: filename = PATH_TO_TEST_DATA//'mtln/coaxial_line_paul_8_6_square.smb.json'
-
+    error_cnt = 1
 
     ! p = Parser(file)
     ! p.run(finalTime = 18e-6)
