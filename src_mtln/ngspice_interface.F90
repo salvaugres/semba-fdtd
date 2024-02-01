@@ -73,14 +73,14 @@ module ngspice_interface_mod
         integer(c_int) function ngSpice_Init(&
             cbSendChar, cbSendStat, cbControlledExit, cbSendData, &
             cbSendInitData, cbBGThreadRunning, returnPtr) bind(C, name="ngSpice_Init")
-            import :: c_int, c_ptr, c_funptr
+            import :: c_int, c_funptr, c_ptr
             type(c_funptr), intent(in), value :: cbSendChar
             type(c_funptr), intent(in), value :: cbSendStat
             type(c_funptr), intent(in), value :: cbControlledExit
             type(c_funptr), intent(in), value :: cbSendData
             type(c_funptr), intent(in), value :: cbSendInitData
             type(c_funptr), intent(in), value :: cbBGThreadRunning
-            type(*) :: returnPtr
+            type(*), intent(in) :: returnPtr
         end function
 
         integer(c_int) function ngSpice_Command(command) bind(C, name="ngSpice_Command")

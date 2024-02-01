@@ -5,6 +5,7 @@ integer function test_dispersive_q3phi() bind(C) result(error_cnt)
     type(transfer_impedance_per_meter_t) :: zt
     complex, dimension(1) :: residues, poles
     type(pol_res_t):: connector
+    error_cnt = 0
     ! residues(1)%real = 1e4
     ! residues(1)%imag = 1e3
     ! poles(1)%real = -1e6

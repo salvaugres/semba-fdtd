@@ -36,6 +36,9 @@ integer function test_math_matmul_broadcast() bind(C) result(error_cnt)
     integer :: i
 
     real, dimension(:,:,:), allocatable :: A,B,res
+
+    error_cnt = 0
+
     allocate(A(3,2,2))
     allocate(B(3,2,2))
     allocate(res(3,2,2))

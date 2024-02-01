@@ -44,7 +44,6 @@ contains
         class(circuit_t) :: this
         character(len=*), intent(in), optional :: netlist
         integer :: res
-
         res = ngSpice_Init(c_funloc(SendChar), &
                            c_funloc(SendStat), & 
                            c_funloc(ControlledExit), & 
@@ -168,7 +167,7 @@ contains
         type(nodes_t) :: nodes
         character(len=:), pointer :: f_output
         character(len=:), allocatable :: string
-
+        SendStat = 0
         call c_f_pointer(status, f_output)
         string = f_output(1:index(f_output, c_null_char)-1)
         write(*,*) trim(string)
@@ -180,6 +179,7 @@ contains
         type(nodes_t) :: nodes
 
         integer :: res
+        ControlledExit = 0
         if (exitOnQuit .eqv. .true.) then
             write(*,*) 'ControlledExit: Returned form quit with exit status ', status
             call exit(status)
@@ -266,6 +266,7 @@ contains
     end function    
 
     integer(c_int) function SendData(data, numberOfStructs, id, nodes)
+        ! type(pVecValuesAll), value, intent(in) :: data
         type(c_ptr), value, intent(in) :: data
         type(nodes_t) :: nodes
         integer(c_int), value :: numberOfStructs, id
@@ -275,7 +276,9 @@ contains
         type(vecValuesArray), allocatable :: vecsaPtr(:) ! array of pointers to type(c_ptr)
         integer :: i
         
+        SendData = 0
         call c_f_pointer(data, valuesAll) 
+        ! call c_f_pointer(data%pVecValuesAll_ptr, valuesAll) 
         call c_f_pointer(valuesAll%vecsa, values, [valuesAll%vecCount])
         allocate(vecsaPtr(valuesAll%vecCount))
 
@@ -299,7 +302,7 @@ contains
         integer(c_int), value :: id
         type(vecInOfAll), pointer, intent(in) :: initData
         type(nodes_t) :: nodes
-
+        SendInitData  = 0
         write(*,*) 'SendInitData'
     end function
 
@@ -307,7 +310,7 @@ contains
         logical(c_bool) :: isBGThreadNotRunning
         integer(c_int), value :: id
         type(nodes_t) :: nodes
-
+        BGThreadRunning  = 0
         write(*,*) 'BGThreadRunning'
     end function
 
