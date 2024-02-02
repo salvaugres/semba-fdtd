@@ -10,7 +10,10 @@ extern "C" int test_fhash();
 extern "C" int test_math_eigvals();
 extern "C" int test_math_matmul_broadcast();
 extern "C" int test_networks();
-extern "C" int test_dispersive_q3phi();
+extern "C" int test_dispersive_init_1_pole();
+extern "C" int test_dispersive_init_2_poles();
+extern "C" int test_dispersive_init_1_pole_3_levels();
+extern "C" int test_dispersive_init_1_pole_lines_with_lumped();
 extern "C" int test_spice_ac();
 extern "C" int test_spice_current_source();
 extern "C" int test_spice_dc();
@@ -41,7 +44,10 @@ TEST(mtln, preproces_zt_conductor_ranges) { EXPECT_EQ(0, test_preprocess_zt_cond
 TEST(mtln, math_eigvals) { EXPECT_EQ(0, test_math_eigvals()); }
 TEST(mtln, math_matmul_broadcast) { EXPECT_EQ(0, test_math_matmul_broadcast()); }
 TEST(mtln, networks) { EXPECT_EQ(0, test_networks()); }
-TEST(mtln, dispersive_q3Phi) { EXPECT_EQ(0, test_dispersive_q3phi()); }
+TEST(mtln, dispersive_init_1_pole) { EXPECT_EQ(0, test_dispersive_init_1_pole()); }
+TEST(mtln, dispersive_init_2_poles) { EXPECT_EQ(0, test_dispersive_init_2_poles()); }
+TEST(mtln, dispersive_init_1_pole_3_levels) { EXPECT_EQ(0, test_dispersive_init_1_pole_3_levels()); }
+TEST(mtln, dispersive_init_1_pole_lines_with_lumped) { EXPECT_EQ(0, test_dispersive_init_1_pole_lines_with_lumped()); }
 TEST(mtln, spice_ac) { EXPECT_EQ(0, test_spice_ac()); }
 TEST(mtln, spice_current_source) { EXPECT_EQ(0, test_spice_current_source()); }
 TEST(mtln, spice_dc) { EXPECT_EQ(0, test_spice_dc()); }

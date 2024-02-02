@@ -4,9 +4,10 @@ module mtl_bundle_mod
     use utils_mod
     use probes_mod
     use dispersive_mod
-    use mtln_types_mod
-    use mtl_mod, only: mtl_array_t
-    use fhash, only: fhash_tbl_t
+    ! use mtln_types_mod
+    use mtl_mod
+    ! use fhash, only: fhash_tbl_t
+
     implicit none
 
     type, public :: mtl_bundle_t
@@ -27,6 +28,7 @@ module mtl_bundle_mod
 
     contains
         procedure :: mergePULMatrices
+        procedure :: mergeDispersiveMatrices
         procedure :: initialAllocation
         procedure :: addProbe
         procedure :: updateLRTerms
@@ -70,9 +72,7 @@ contains
 
         call res%initialAllocation()
         call res%mergePULMatrices(levels)
-
-    
-        res%transfer_impedance = transfer_impedance_t(res%number_of_conductors, 0, res%u, res%dt)
+        call res%mergeDispersiveMatrices(levels)
 
 
     end function
@@ -120,6 +120,43 @@ contains
                 this%gpul(:, n_sum + 1: n_sum+n , n_sum +1 : n_sum+n) = levels(i)%lines(j)%gpul(:,:,:)
                 this%du_length(:, n_sum + 1: n_sum+n , n_sum +1 : n_sum+n) = levels(i)%lines(j)%du_length(:,:,:)
                 n_sum = n_sum+n
+            end do
+        end do
+    end subroutine
+
+    subroutine mergeDispersiveMatrices(this, levels)
+        class(mtl_bundle_t) :: this
+        type(mtl_array_t), dimension(:), intent(in) :: levels
+        integer :: i, j, n, n_sum, number_of_poles
+        n_sum = 0
+        number_of_poles = 0
+        do i = 1, size(levels)
+            do j = 1, size(levels(i)%lines)
+                number_of_poles = max(number_of_poles, levels(i)%lines(j)%lumped_elements%number_of_poles)
+            end do
+        end do
+        this%transfer_impedance = transfer_impedance_t(this%number_of_conductors, number_of_poles, this%u, this%dt)
+        do i = 1, size(levels)
+            do j = 1, size(levels(i)%lines)
+                n = levels(i)%lines(j)%number_of_conductors
+                this%transfer_impedance%q1(:,n_sum+1:n_sum+n,n_sum +1:n_sum+n,:) = &
+                    levels(i)%lines(j)%lumped_elements%q1(:,:,:,:)
+                this%transfer_impedance%q2(:,n_sum+1:n_sum+n,n_sum +1:n_sum+n,:) = &
+                    levels(i)%lines(j)%lumped_elements%q2(:,:,:,:)
+                this%transfer_impedance%q3(:,n_sum+1:n_sum+n,n_sum +1:n_sum+n,:) = &
+                    levels(i)%lines(j)%lumped_elements%q3(:,:,:,:)
+                this%transfer_impedance%q1_sum(:,n_sum+1:n_sum+n,n_sum +1:n_sum+n) = & 
+                    levels(i)%lines(j)%lumped_elements%q1_sum(:,:,:)
+                this%transfer_impedance%q2_sum(:,n_sum+1:n_sum+n,n_sum +1:n_sum+n) = & 
+                    levels(i)%lines(j)%lumped_elements%q2_sum(:,:,:)
+                this%transfer_impedance%q3_phi(:,n_sum+1:n_sum+n) = & 
+                    levels(i)%lines(j)%lumped_elements%q3_phi(:,:)
+                this%transfer_impedance%phi(:,n_sum+1:n_sum+n,:)  = & 
+                    levels(i)%lines(j)%lumped_elements%phi(:,:,:)
+                this%transfer_impedance%d(:,n_sum+1:n_sum+n,n_sum +1:n_sum+n) = & 
+                    levels(i)%lines(j)%lumped_elements%d(:,:,:)
+                this%transfer_impedance%e(:,n_sum+1:n_sum+n,n_sum +1:n_sum+n) = & 
+                    levels(i)%lines(j)%lumped_elements%e(:,:,:)
             end do
         end do
 

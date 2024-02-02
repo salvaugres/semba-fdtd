@@ -1,7 +1,7 @@
 module dispersive_mod
     use utils_mod
     use rational_approximation_mod
-    use mtln_types_mod
+    ! use mtln_types_mod
     implicit none
     
     type :: dispersive_t
@@ -58,20 +58,22 @@ contains
         integer :: number_of_conductors, number_of_poles
         real :: dt
         real, dimension(:,:) :: u
+        complex :: zero 
         res%dt = dt
         res%number_of_conductors = number_of_conductors
-        res%number_of_divisions = size(u,1)
+        res%number_of_divisions = size(u,1) - 1
         res%u = u
-    
-        allocate(res%phi(res%number_of_divisions, number_of_conductors,number_of_poles))
-        allocate(res%q1 (res%number_of_divisions, number_of_conductors,number_of_conductors, number_of_poles))
-        allocate(res%q2 (res%number_of_divisions, number_of_conductors,number_of_conductors, number_of_poles))
-        allocate(res%q3 (res%number_of_divisions, number_of_conductors,number_of_conductors, number_of_poles))
-        allocate(res%d  (res%number_of_divisions, number_of_conductors,number_of_conductors))
-        allocate(res%e  (res%number_of_divisions, number_of_conductors,number_of_conductors))
-        allocate(res%q1_sum (res%number_of_divisions, number_of_conductors,number_of_conductors))
-        allocate(res%q2_sum (res%number_of_divisions, number_of_conductors,number_of_conductors))
-        allocate(res%q3_phi (res%number_of_divisions, number_of_conductors))
+        zero%re = 0.0
+        zero%im = 0.0
+        allocate(res%phi(res%number_of_divisions, number_of_conductors,number_of_poles), source = zero)
+        allocate(res%q1 (res%number_of_divisions, number_of_conductors,number_of_conductors, number_of_poles), source = zero)
+        allocate(res%q2 (res%number_of_divisions, number_of_conductors,number_of_conductors, number_of_poles), source = zero)
+        allocate(res%q3 (res%number_of_divisions, number_of_conductors,number_of_conductors, number_of_poles), source = zero)
+        allocate(res%d  (res%number_of_divisions, number_of_conductors,number_of_conductors), source = 0.0)
+        allocate(res%e  (res%number_of_divisions, number_of_conductors,number_of_conductors), source = 0.0)
+        allocate(res%q1_sum (res%number_of_divisions, number_of_conductors,number_of_conductors), source = zero)
+        allocate(res%q2_sum (res%number_of_divisions, number_of_conductors,number_of_conductors), source = zero)
+        allocate(res%q3_phi (res%number_of_divisions, number_of_conductors), source = zero)
 
     end function
 
@@ -109,9 +111,12 @@ contains
         new_dispersive%q1(:,:,:,1:this%number_of_poles) = this%q1
         new_dispersive%q2(:,:,:,1:this%number_of_poles) = this%q2
         new_dispersive%q3(:,:,:,1:this%number_of_poles) = this%q3
+        new_dispersive%phi(:,:,1:this%number_of_poles) = this%phi
         call move_alloc(from=new_dispersive%q1, to=this%q1)
         call move_alloc(from=new_dispersive%q2, to=this%q2)
         call move_alloc(from=new_dispersive%q3, to=this%q3)
+        call move_alloc(from=new_dispersive%phi, to=this%phi)
+        this%number_of_poles = number_of_poles
     end subroutine
 
     function findIndex(this, position) result(res)
@@ -124,7 +129,7 @@ contains
     
     function lumpedCtor(number_of_conductors, number_of_poles, u, dt) result(res)
         type(lumped_t) :: res
-        integer :: number_of_conductors, number_of_divisions, number_of_poles
+        integer :: number_of_conductors, number_of_poles
         real :: dt
         real, dimension(:,:) :: u
         res%dispersive_t = dispersiveCtor(number_of_conductors, number_of_poles, u, dt)
@@ -147,13 +152,15 @@ contains
 
     subroutine addDispersiveLumped(this, position, conductor, model)
         class(lumped_t) :: this
-        real, dimension(3), intent(in) :: position
+        integer, intent(in) :: position
+        ! real, dimension(3), intent(in) :: position
         integer, intent(in) :: conductor
         type(transfer_impedance_per_meter_t), intent(in) :: model
         integer :: index
         type(pol_res_t) :: connector
 
-        index = this%findIndex(position)
+        ! index = this%findIndex(position)
+        index = position
         if (.not.this%positionIsEmpty(index, conductor))then
             error stop 'Dispersive connector already in conductor at position'
         end if
@@ -183,7 +190,7 @@ contains
 
     function transferImpendaceCtor(number_of_conductors, number_of_poles, u, dt) result(res)
         type(transfer_impedance_t) :: res
-        integer :: number_of_conductors, number_of_divisions, number_of_poles
+        integer :: number_of_conductors, number_of_poles
         real :: dt
         real, dimension(:,:) :: u
         res%dispersive_t = dispersiveCtor(number_of_conductors, number_of_poles, u, dt)
@@ -219,7 +226,8 @@ contains
         do i = 1, size(range_in)
             if (this%isCouplingInwards(connector%direction)) then
                 call this%addTransferImpedanceInConductors(range_in(i), conductor_out, connector)
-            else if (this%isCouplingOutwards(connector%direction)) then
+            end if
+            if (this%isCouplingOutwards(connector%direction)) then
                 call this%addTransferImpedanceInConductors(conductor_out, range_in(i), connector)
             end if
         end do
@@ -242,8 +250,9 @@ contains
 
         do i = 1, size(range_in)
             if (this%isCouplingInwards(connector%direction)) then
-                call this%setTransferImpedanceInConductors(index, range_in(i), conductor_out, connector)
-            else if (this%isCouplingOutwards(connector%direction)) then
+                call this%setTransferImpedanceInConductors(index,range_in(i), conductor_out, connector)
+            end if  
+            if (this%isCouplingOutwards(connector%direction)) then
                 call this%setTransferImpedanceInConductors(index, conductor_out, range_in(i), connector)
             end if
         end do
