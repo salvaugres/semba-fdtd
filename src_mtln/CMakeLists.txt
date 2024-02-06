@@ -2,6 +2,7 @@ cmake_minimum_required (VERSION 3.7)
 
 project (mtlnsolver)
 enable_language (Fortran)
+# enable_language (C)
 
 message(STATUS "Creating build system for mtlnsolver")
 
