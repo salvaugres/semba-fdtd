@@ -40,10 +40,11 @@ module circuit_mod
 
 contains
 
-    subroutine init(this, netlist)
+    subroutine init(this, names, netlist)
         class(circuit_t) :: this
+        type(string_t), intent(in), dimension(:), optional :: names
         character(len=*), intent(in), optional :: netlist
-        integer :: res
+        integer :: res, i
         res = ngSpice_Init(c_funloc(SendChar), &
                            c_funloc(SendStat), & 
                            c_funloc(ControlledExit), & 
@@ -54,6 +55,14 @@ contains
         if (present(netlist)) then
             call this%loadNetlist(netlist)
         end if
+
+        if (present(names)) then 
+            allocate(this%nodes%tags(size(names)))
+            do i = 1, size(names)
+                this%nodes%tags(i) = names(i)
+            end do
+        end if
+
         write(*,*) 'Init'
     end subroutine
 

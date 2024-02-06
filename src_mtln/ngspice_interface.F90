@@ -44,7 +44,7 @@ module ngspice_interface_mod
     type :: vecValuesArray
         type(vecValues), pointer :: vecValuesPtr
     end type
-
+    
     type, bind(C) :: vecValues
         type(c_ptr) :: name
         real(c_double) :: cReal

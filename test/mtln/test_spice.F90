@@ -52,7 +52,7 @@ integer function test_spice_dc() bind(C) result(error_cnt)
 
     error_cnt = 0
     netlist = PATH_TO_TEST_DATA//'mtln/netlist_dc.cir'
-    call circuit%init(netlist)
+    call circuit%init(netlist=netlist)
     call circuit%run()
 
     result = [24.000000000000000, 9.7469741675197206, 15.000000000000000, 24.000000000000000]
@@ -84,7 +84,7 @@ integer function test_spice_ac() bind(C) result(error_cnt)
     finalTime = 200e-6
 
     error_cnt = 0
-    call circuit%init(netlist)
+    call circuit%init(netlist=netlist)
     call circuit%setStopTimes(finalTime, circuit%dt)
     do while (circuit%time < finalTime)
         call circuit%step()
@@ -116,7 +116,7 @@ integer function test_spice_current_source() bind(C) result(error_cnt)
 
     resistance = 10
     current = 0.1
-    call circuit%init(netlist)
+    call circuit%init(netlist=netlist)
     call circuit%setStopTimes(finalTime, circuit%dt)
     do while (circuit%time < finalTime)
         call circuit%updateNodeCurrent("1", current)
