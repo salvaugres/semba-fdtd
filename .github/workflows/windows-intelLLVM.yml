@@ -50,7 +50,8 @@ jobs:
 
     - name: CMake build
       run: |
-        call ".github\workflows\set_vars_windows.bat"
+        ###call ".github\workflows\set_vars_windows.bat"
+        "C:\Program Files (x86)\Intel\oneAPI\setvars-vcvarsall.bat"
         cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCompileExecutable=YES -DCompileWithMTLN=YES
         cmake --build build -j
           

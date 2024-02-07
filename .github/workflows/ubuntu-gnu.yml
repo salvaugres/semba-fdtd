@@ -16,11 +16,9 @@ env:
   FDTDTESTS_TOP_DIR: fdtd-tests
 
 jobs:
-  builds-and-tests:
+  build:
     runs-on: ubuntu-latest
-
-    steps:
-        
+    steps:       
     - name: Checkout
       uses: actions/checkout@v4
       with:
@@ -33,7 +31,11 @@ jobs:
       run: |       
         cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCompileExecutable=YES -DCompileWithMTLN=YES
         cmake --build build -j
-          
+      
+  test:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
     - name: Run json-parser tests 
       run: |
         build/bin/smbjson_tests
