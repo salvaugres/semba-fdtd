@@ -61,6 +61,7 @@ contains
         complex :: zero 
         res%dt = dt
         res%number_of_conductors = number_of_conductors
+        res%number_of_poles = number_of_poles
         res%number_of_divisions = size(u,1) - 1
         res%u = u
         zero%re = 0.0

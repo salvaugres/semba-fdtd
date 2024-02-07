@@ -139,24 +139,35 @@ contains
         do i = 1, size(levels)
             do j = 1, size(levels(i)%lines)
                 n = levels(i)%lines(j)%number_of_conductors
+
                 this%transfer_impedance%q1(:,n_sum+1:n_sum+n,n_sum +1:n_sum+n,:) = &
                     levels(i)%lines(j)%lumped_elements%q1(:,:,:,:)
+                
                 this%transfer_impedance%q2(:,n_sum+1:n_sum+n,n_sum +1:n_sum+n,:) = &
                     levels(i)%lines(j)%lumped_elements%q2(:,:,:,:)
+                
                 this%transfer_impedance%q3(:,n_sum+1:n_sum+n,n_sum +1:n_sum+n,:) = &
                     levels(i)%lines(j)%lumped_elements%q3(:,:,:,:)
+                
                 this%transfer_impedance%q1_sum(:,n_sum+1:n_sum+n,n_sum +1:n_sum+n) = & 
                     levels(i)%lines(j)%lumped_elements%q1_sum(:,:,:)
+                
                 this%transfer_impedance%q2_sum(:,n_sum+1:n_sum+n,n_sum +1:n_sum+n) = & 
                     levels(i)%lines(j)%lumped_elements%q2_sum(:,:,:)
+                
                 this%transfer_impedance%q3_phi(:,n_sum+1:n_sum+n) = & 
                     levels(i)%lines(j)%lumped_elements%q3_phi(:,:)
+                
                 this%transfer_impedance%phi(:,n_sum+1:n_sum+n,:)  = & 
                     levels(i)%lines(j)%lumped_elements%phi(:,:,:)
+                
                 this%transfer_impedance%d(:,n_sum+1:n_sum+n,n_sum +1:n_sum+n) = & 
                     levels(i)%lines(j)%lumped_elements%d(:,:,:)
+                
                 this%transfer_impedance%e(:,n_sum+1:n_sum+n,n_sum +1:n_sum+n) = & 
                     levels(i)%lines(j)%lumped_elements%e(:,:,:)
+
+                n_sum = n_sum + n
             end do
         end do
 

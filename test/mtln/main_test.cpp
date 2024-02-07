@@ -9,7 +9,7 @@ extern "C" int test_fhash_ptr();
 extern "C" int test_fhash();
 extern "C" int test_math_eigvals();
 extern "C" int test_math_matmul_broadcast();
-extern "C" int test_networks();
+extern "C" int test_networks_pointer_copy();
 extern "C" int test_dispersive_init_1_pole();
 extern "C" int test_dispersive_init_2_poles();
 extern "C" int test_dispersive_init_1_pole_3_levels();
@@ -43,7 +43,7 @@ TEST(mtln, preproces_zt_conductor_ranges_2) { EXPECT_EQ(0, test_preprocess_zt_co
 TEST(mtln, preproces_zt_conductor_ranges) { EXPECT_EQ(0, test_preprocess_zt_conductor_ranges()); }
 TEST(mtln, math_eigvals) { EXPECT_EQ(0, test_math_eigvals()); }
 TEST(mtln, math_matmul_broadcast) { EXPECT_EQ(0, test_math_matmul_broadcast()); }
-TEST(mtln, networks) { EXPECT_EQ(0, test_networks()); }
+TEST(mtln, networks_pointer_copy) { EXPECT_EQ(0, test_networks_pointer_copy()); }
 TEST(mtln, dispersive_init_1_pole) { EXPECT_EQ(0, test_dispersive_init_1_pole()); }
 TEST(mtln, dispersive_init_2_poles) { EXPECT_EQ(0, test_dispersive_init_2_poles()); }
 TEST(mtln, dispersive_init_1_pole_3_levels) { EXPECT_EQ(0, test_dispersive_init_1_pole_3_levels()); }

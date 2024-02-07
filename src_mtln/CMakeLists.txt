@@ -2,7 +2,7 @@ cmake_minimum_required (VERSION 3.7)
 
 project (mtlnsolver)
 enable_language (Fortran)
-# enable_language (C)
+enable_language (C)
 
 message(STATUS "Creating build system for mtlnsolver")
 
@@ -23,10 +23,18 @@ add_library(mtlnsolver
 	"mtln_types.F90"
 	"preprocess.F90"
 )
+add_library(ngspice_interface
+    "ngspice_interface.c"
+)
+
+target_link_libraries(ngspice_interface PRIVATE
+	${NGSPICE_LIB}
+)
 
 target_link_libraries(mtlnsolver PRIVATE
 	${LAPACK_LIB} 
 	${BLAS_LIB} 
 	${NGSPICE_LIB}
 	fhash
+	ngspice_interface
 )

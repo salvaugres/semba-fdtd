@@ -191,14 +191,18 @@ integer function test_dispersive_init_1_pole_lines_with_lumped() bind(C) result(
                 error_cnt = error_cnt + 1
             end if
         end do
-        do i=1,2
-            if(.not.all(bundle%transfer_impedance%q1(pos(i),2,2,:) /= 0)) then
-                error_cnt = error_cnt + 1
-            end if
-            if(.not.all(bundle%transfer_impedance%q1(pos(i),1,1,:) /= 0)) then
-                error_cnt = error_cnt + 1
-            end if
-        end do
+        if(.not.all(bundle%transfer_impedance%q1(5,2,2,:) /= 0)) then
+            error_cnt = error_cnt + 1
+        end if
+        if(.not.all(bundle%transfer_impedance%q1(1,1,1,:) /= 0)) then
+            error_cnt = error_cnt + 1
+        end if
+        if(.not.all(bundle%transfer_impedance%q1(5,1,1,:) == 0)) then
+            error_cnt = error_cnt + 1
+        end if
+        if(.not.all(bundle%transfer_impedance%q1(1,2,2,:) == 0)) then
+            error_cnt = error_cnt + 1
+        end if
     end block
 
 end function

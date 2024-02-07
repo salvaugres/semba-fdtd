@@ -22,6 +22,7 @@ add_library(
 target_link_libraries(mtln_solver_tests_fortran
     mtlnsolver 
     fhash
+    ngspice_interface
 )
 
 add_executable(mtlnsolver_tests "main_test.cpp")
