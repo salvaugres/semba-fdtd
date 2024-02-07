@@ -2,7 +2,7 @@ module preprocess_mod
 
     use mtln_types_mod
     use mtl_bundle_mod
-    use network_mod
+    use network_manager_mod
     use mtl_mod!, only: mtl_t, mtl_array_t, line_bundle_t,
 
     use fhash, only: fhash_tbl_t, key=>fhash_key, fhash_key_t
@@ -13,15 +13,17 @@ module preprocess_mod
 
     type, public :: preprocess_t
         type(mtl_bundle_t), dimension(:), allocatable :: bundles
-        type(network_t), dimension(:), allocatable :: networks
+        type(network_manager_t) :: network_manager
+        ! type(network_t), dimension(:), allocatable :: networks
         type(fhash_tbl_t) :: conductors_before_cable
         type(fhash_tbl_t) :: cable_name_to_bundle
         real :: final_time, dt
     
     contains
         procedure :: buildMTLBundles
-        procedure :: buildNetworks
+        procedure :: buildNetworkManager
         procedure :: buildNetwork
+        ! procedure :: buildNetworks
         procedure :: connectNodeToGround
         procedure :: connectNodes
 
@@ -418,9 +420,7 @@ contains
         integer :: i
 
         allocate(description(0))
-        description = [description, "* network description message"]
         allocate(nodes(0))
-        ! allocate(res%nodes(res%number_of_nodes))
         do i = 1, size(terminal_network%connections)
             if (size(terminal_network%connections(i)%nodes) == 1) then 
                 call this%connectNodeToGround(terminal_network%connections(i)%nodes, nodes, description)
@@ -429,51 +429,119 @@ contains
             end if
         end do
 
-        call endDescription(nodes, description, this%final_time, this%dt)
-        res = networkCtor(nodes, description, this%final_time, this%dt)
+        res = networkCtor(nodes, description)
     end function
 
-    subroutine endDescription(nodes, description, finalTime, dt)
-        type(node_t), dimension(:), intent(inout) :: nodes
+    ! function buildNetwork(this,terminal_network) result(res)
+    !     class(preprocess_t) :: this
+    !     type(terminal_network_t), intent(in) :: terminal_network
+    !     type(node_t), dimension(:), allocatable :: nodes
+    !     character(50), dimension(:), allocatable :: description
+    !     type(network_t) :: res
+    !     integer :: i
+
+    !     allocate(description(0))
+    !     description = [description, "* network description message"]
+    !     allocate(nodes(0))
+    !     ! allocate(res%nodes(res%number_of_nodes))
+    !     do i = 1, size(terminal_network%connections)
+    !         if (size(terminal_network%connections(i)%nodes) == 1) then 
+    !             call this%connectNodeToGround(terminal_network%connections(i)%nodes, nodes, description)
+    !         else
+    !             call this%connectNodes(terminal_network%connections(i)%nodes, nodes, description)
+    !         end if
+    !     end do
+
+    !     call endDescription(nodes, description, this%final_time, this%dt)
+    !     res = networkCtorworkCtor(nodes, description, this%final_time, this%dt)
+    ! end function
+
+    subroutine endDescription(description)
         character(50), dimension(:), intent(inout) :: description
+        description = [description, ".endc"]
+        description = [description, "NULL"]
+    end subroutine
 
-        real, intent(in) :: finalTime, dt
-        character(len=:), allocatable :: saved_nodes
-        character(20) :: sTime, sdt
+    ! function buildNetworks(this, terminal_networks) result(res)
+    !     class(preprocess_t) :: this
+    !     type(terminal_network_t), dimension(:), intent(in) :: terminal_networks
+    !     type(network_t), dimension(:), allocatable :: res
+    !     type(node_t), dimension(:), allocatable :: nodes
+    !     character(50), dimension(:), allocatable :: description
+
+    !     integer :: i
+
+    !     allocate(res(size(terminal_networks)))
+    !     do i = 1, size(terminal_networks)
+    !         allocate(nodes(0))
+    !         allocate(description(0))
+    !         res(i) = this%buildNetwork(terminal_networks(i), description)
+    !     end do
+
+
+    ! end function
+
+    subroutine addDescription(description, nw_description)
+        character(50), dimension(:), intent(inout) :: description
+        character(50), dimension(:), intent(in) :: nw_description
         integer :: i
+        do i = 1, size(nw_description,1)
+            description = [description, nw_description(i)]
+        end do
+    end subroutine
 
-        write(sTime, '(E10.2)') finalTime
+    subroutine addAnalysis(description, final_time, dt)
+        character(50), dimension(:), intent(inout) :: description
+        real, intent(in) :: final_time, dt
+        character(20) :: sTime, sdt
+        write(sTime, '(E10.2)') final_time
         write(sdt, '(E10.2)') dt
-        saved_nodes = ""
-        
         description = [description, ".tran "//sdt//" "//sTime]
+
+    end subroutine
+
+    subroutine addSavedNodes(description, nodes)
+        character(50), dimension(:), intent(inout) :: description
+        type(node_t), dimension(:), intent(in) :: nodes
+        character(len=:), allocatable :: saved_nodes
+        integer :: i
+        saved_nodes = ""
         do i = 1, size(nodes)
             saved_nodes = saved_nodes // nodes(i)%name // " "
         end do
         description = [description, ".save " // saved_nodes]
-        description = [description, ".endc"]
-        description = [description, "NULL"]
 
     end subroutine
 
-    function buildNetworks(this, terminal_networks) result(res)
+
+    function buildNetworkManager(this, terminal_networks) result(res)
         class(preprocess_t) :: this
         type(terminal_network_t), dimension(:), intent(in) :: terminal_networks
-        type(network_t), dimension(:), allocatable :: res
-        type(node_t), dimension(:), allocatable :: nodes
+        type(network_t), dimension(:), allocatable :: networks
+        type(network_manager_t) :: res
         character(50), dimension(:), allocatable :: description
-
         integer :: i
 
-        allocate(res(size(terminal_networks)))
+        allocate(networks(size(terminal_networks)))
         do i = 1, size(terminal_networks)
-            allocate(nodes(0))
-            allocate(description(0))
-            res(i) = this%buildNetwork(terminal_networks(i))
+            networks(i) = this%buildNetwork(terminal_networks(i))
         end do
+        
+        allocate(description(0))
+        description = [description, "* network description message"]
+        do i = 1, size(networks)
+            call addDescription(description, networks(i)%description)
+        end do
+        call addAnalysis(description, this%final_time, this%dt)
+        do i = 1, size(networks)
+            call addSavedNodes(description, networks(i)%nodes)
+        end do
+        call endDescription(description)        
 
+        res = network_managerCtor(networks, description, this%final_time, this%dt)
 
     end function
+
 
     function preprocess(parsed) result(res)
         type(parsed_t), intent(in):: parsed
@@ -489,7 +557,8 @@ contains
         line_bundles = buildLineBundles(cable_bundles)
         res%bundles = res%buildMTLBundles(line_bundles)
         res%cable_name_to_bundle = mapCablesToBundles(line_bundles, res%bundles)
-        res%networks = res%buildNetworks(parsed%networks)
+        res%network_manager = res%buildNetworkManager(parsed%networks)
+        ! res%networks = res%buildNetworks(parsed%networks)
         
     end function
     

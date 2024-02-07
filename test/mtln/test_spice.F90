@@ -147,3 +147,42 @@ integer function test_spice_current_source() bind(C) result(error_cnt)
     end do
 
 end function
+
+integer function test_spice_multiple() bind(C) result(error_cnt)
+
+    use circuit_mod
+    use testingTools_mod
+    implicit none
+    
+    type(circuit_t) :: circuit
+    character(len=50) :: netlist
+    real :: dt = 50e-6
+    real :: finalTime = 200e-6
+    type(string_t), dimension(7) :: names
+    names(1) = string_t("n1in", 4)
+    names(2) = string_t("n1int", 5)
+    names(3) = string_t("n1out", 5)
+    names(4) = string_t("time", 4)
+    names(5) = string_t("n2in", 5)
+    names(6) = string_t("n2int", 5)
+    names(7) = string_t("n2out", 5)
+    circuit%time = 0.0
+    circuit%dt = 50e-6
+    finalTime = 200e-6
+
+    error_cnt = 0
+
+    netlist = PATH_TO_TEST_DATA//'mtln/netlist_multiple.cir'
+    call circuit%init(names = names, netlist = netlist)
+    call circuit%setStopTimes(finalTime, dt)
+    do while (circuit%time < finalTime)
+        call circuit%step()
+        circuit%time = circuit%time + circuit%dt
+        if (checkNear(circuit%getTime(), circuit%time, 0.01) .eqv. .false. ) then 
+            error_cnt = error_cnt + 1
+        end if
+    end do
+   
+
+
+end function

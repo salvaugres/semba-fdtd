@@ -41,6 +41,7 @@ module mtl_bundle_mod
         ! procedure :: setConnectorTransferImpedance
         procedure :: isProbeInLine        
         procedure :: setExternalCurrent => bundle_setExternalCurrent
+        procedure :: setExternalVoltage => bundle_setExternalVoltage
         procedure :: updateExternalCurrent => bundle_updateExternalCurrent
 
     end type mtl_bundle_t
@@ -333,6 +334,12 @@ contains
         class(mtl_bundle_t) :: this
         real, dimension(:), intent(in) :: current
         this%i(1,:) = current(:)
+    end subroutine
+
+    subroutine bundle_setExternalVoltage(this, voltage)
+        class(mtl_bundle_t) :: this
+        real, dimension(:), intent(in) :: voltage
+        this%v(1,:) = voltage(:)
     end subroutine
 
     subroutine bundle_updateExternalCurrent(this, current)

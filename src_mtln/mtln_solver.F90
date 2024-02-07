@@ -3,7 +3,8 @@ module mtln_solver_mod
     ! use fhash, only: fhash_tbl_t, key=>fhash_key, fhash_key_t
     use types_mod, only: bundle_iter_t
     use mtl_bundle_mod
-    use network_mod
+    use network_manager_mod
+    ! use network_mod
     use preprocess_mod
     implicit none
 
@@ -11,8 +12,10 @@ module mtln_solver_mod
     type, public :: mtln_t
         real :: time, dt
         type(mtl_bundle_t), allocatable, dimension(:) :: bundles
-        type(network_t), allocatable, dimension(:) :: networks
-        integer :: number_of_bundles, number_of_networks
+        type(network_manager_t) :: network_manager
+        ! type(network_t), allocatable, dimension(:) :: networks
+        integer :: number_of_bundles
+        ! integer :: number_of_networks
 
     contains
 
@@ -47,11 +50,12 @@ contains
         pre = preprocess(parsed)
         res%dt = pre%dt
         res%time  = 0.0
-
+        
         res%bundles = pre%bundles
-        res%networks = pre%networks
+        res%network_manager = pre%network_manager
+        ! res%networks = pre%networks
         res%number_of_bundles = size(res%bundles)
-        res%number_of_networks = size(res%networks)
+        ! res%number_of_networks = size(res%networks)
 
         call res%updateBundlesTimeStep(res%dt)
         call res%updatePULTerms(res%getTimeRange(pre%final_time))
@@ -108,10 +112,11 @@ contains
 
     subroutine advanceNWVoltage(this)
         class(mtln_t) :: this
-        integer :: i
-        do i = 1, this%number_of_networks
-            call this%networks(i)%advanceVoltage(this%dt)
-        end do
+        ! integer :: i
+        ! do i = 1, this%number_of_networks
+        !     call this%networks(i)%advanceVoltage(this%dt)
+        ! end do
+        call this%network_manager%advanceVoltage(this%dt)
     end subroutine
 
     subroutine advanceBundlesCurrent(this)
@@ -148,7 +153,7 @@ contains
         class(mtln_t) :: this
         real :: dt
         integer :: i
-        do i = 1, this%number_of_networks
+        do i = 1, this%number_of_bundles
             this%bundles(i)%dt = dt
         end do
     end subroutine
