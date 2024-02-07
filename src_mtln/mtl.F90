@@ -124,6 +124,7 @@ contains
 
         res%lumped_elements = lumped_t(res%number_of_conductors, 0, res%u, res%dt)
 
+
         if (present(parent_name)) then 
             res%parent_name = parent_name
         end if

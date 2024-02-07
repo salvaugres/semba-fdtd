@@ -35,13 +35,14 @@ integer function test_math_matmul_broadcast() bind(C) result(error_cnt)
     implicit none
     integer :: i
 
-    real, dimension(:,:,:), allocatable :: A,B,res
+    real, dimension(:,:,:), allocatable :: A,B, res1, res2
 
     error_cnt = 0
 
     allocate(A(3,2,2))
     allocate(B(3,2,2))
-    allocate(res(3,2,2))
+    allocate(res1(3,2,2))
+    allocate(res2(3,2,2))
     A(:,1,1) = 1.0
     A(:,2,1) = 0.0
     A(:,1,2) = 0.0
@@ -53,21 +54,13 @@ integer function test_math_matmul_broadcast() bind(C) result(error_cnt)
     B(:,2,2) = -1.0
 
     do i = 1,3
-        res(i,:,:) = matmul(A(i,:,:),B(i,:,:))    
+        res1(i,:,:) = matmul(A(i,:,:),B(i,:,:))    
     enddo
-        ! [(matmul(this%duNorm(i), this%lpul(i)), i = 1, this%number_of_divisions)]
-
     
-    write(*,*) 'All res'
-    write(*,*) res(1,:,:)
-    write(*,*) res(2,:,:)
-    write(*,*) res(3,:,:)
-    
-    res = reshape(source=[(matmul(A(i,:,:),B(i,:,:)), i = 1,3)], shape=[3,2,2], order=[2,3,1])
+    res2 = reshape(source=[(matmul(A(i,:,:),B(i,:,:)), i = 1,3)], shape=[3,2,2], order=[2,3,1])
 
-    write(*,*) 'after'
-    write(*,*) res(1,:,:)
-    write(*,*) res(2,:,:)
-    write(*,*) res(3,:,:)
+    if (.not.(all(res1 == res2))) then 
+        error_cnt = error_cnt +1 
+    end if
 
 end function

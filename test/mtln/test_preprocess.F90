@@ -2,29 +2,17 @@ function test_preprocess_conductors_before_cable() bind(C) result(error_cnt)
 
     use mtl_mod 
     use preprocess_mod, only: conductorsInLevel, findConductorsBeforeCable
-    real,dimension(2,2) :: l2 = reshape( source = [ 4.4712610E-07, 1.4863653E-07, 1.4863653E-07, 4.4712610E-07 ], shape = [ 2,2 ] )
-    real,dimension(2,2) :: c2 = reshape( source = [ 2.242e-10, -7.453e-11,-7.453e-11, 2.242e-10 ], shape = [ 2,2 ] )
-    real,dimension(2,2) :: r2 = reshape( source = [ 0.0, 0.0, 0.0, 0.0 ], shape = [ 2,2 ] )
-    real,dimension(2,2) :: g2 = reshape( source = [ 0.0, 0.0, 0.0, 0.0 ], shape = [ 2,2 ] )
-    real,dimension(1,1) :: l1 = reshape( source = [ 4.4712610E-07 ], shape = [ 1,1 ] )
-    real,dimension(1,1) :: c1 = reshape( source = [ 2.242e-10 ], shape = [ 1,1 ] )
-    real,dimension(1,1) :: r1 = reshape( source = [ 0.0 ], shape = [ 1,1 ] )
-    real,dimension(1,1) :: g1 = reshape( source = [ 0.0 ], shape = [ 1,1 ] )
+    use testingTools_mod
 
-    real, dimension(2,3) :: node_positions = &
-    reshape( source = [ 0.0, 0.0, 0.0, 100.0, 0.0, 0.0], shape = [2,3], order=(/2,1/) )
-    integer, dimension(1) :: divisions = (/5/)
-
-    
     type(mtl_t) :: line1, line2, line3_1, line3_2, line4
     type(line_bundle_t) :: line_bundle
     error_cnt = 0
   
-    line1   = mtl_t(l1, c1, r1, g1, node_positions, divisions, "line1")
-    line2   = mtl_t(l2, c2, r2, g2, node_positions, divisions, "line2",   parent_name = "line1",   conductor_in_parent = 1)
-    line3_1 = mtl_t(l2, c2, r2, g2, node_positions, divisions, "line3_1", parent_name = "line2",   conductor_in_parent = 1)
-    line3_2 = mtl_t(l2, c2, r2, g2, node_positions, divisions, "line3_2", parent_name = "line2",   conductor_in_parent = 2)
-    line4   = mtl_t(l2, c2, r2, g2, node_positions, divisions, "line4",   parent_name = "line3_2", conductor_in_parent = 2)
+    line1   = buildLineWithNConductors(1, "line1")
+    line2   = buildLineWithNConductors(2, "line2",   parent_name = "line1",   conductor_in_parent = 1)
+    line3_1 = buildLineWithNConductors(2, "line3_1", parent_name = "line2",   conductor_in_parent = 1)
+    line3_2 = buildLineWithNConductors(2, "line3_2", parent_name = "line2",   conductor_in_parent = 2)
+    line4   = buildLineWithNConductors(2, "line4",   parent_name = "line3_2", conductor_in_parent = 2)
 
     allocate(line_bundle%levels(4))
     line_bundle%levels(1)%lines = [line1]
@@ -51,30 +39,18 @@ function test_preprocess_conductors_in_level() bind(C) result(error_cnt)
 
     use mtl_mod 
     use preprocess_mod, only: conductorsInLevel, findConductorsBeforeCable
+    use testingTools_mod
 
     type(mtl_t) :: line1, line2, line3_1, line3_2, line4
     type(line_bundle_t) :: line_bundle
-    
-    real,dimension(2,2) :: l2 = reshape( source = [ 4.4712610E-07, 1.4863653E-07, 1.4863653E-07, 4.4712610E-07 ], shape = [ 2,2 ] )
-    real,dimension(2,2) :: c2 = reshape( source = [ 2.242e-10, -7.453e-11,-7.453e-11, 2.242e-10 ], shape = [ 2,2 ] )
-    real,dimension(2,2) :: r2 = reshape( source = [ 0.0, 0.0, 0.0, 0.0 ], shape = [ 2,2 ] )
-    real,dimension(2,2) :: g2 = reshape( source = [ 0.0, 0.0, 0.0, 0.0 ], shape = [ 2,2 ] )
-    real,dimension(1,1) :: l1 = reshape( source = [ 4.4712610E-07 ], shape = [ 1,1 ] )
-    real,dimension(1,1) :: c1 = reshape( source = [ 2.242e-10 ], shape = [ 1,1 ] )
-    real,dimension(1,1) :: r1 = reshape( source = [ 0.0 ], shape = [ 1,1 ] )
-    real,dimension(1,1) :: g1 = reshape( source = [ 0.0 ], shape = [ 1,1 ] )
-    
-    real, dimension(2,3) :: node_positions = &
-    reshape( source = [ 0.0, 0.0, 0.0, 100.0, 0.0, 0.0], shape = [2,3], order=(/2,1/) )
-    integer, dimension(1) :: divisions = (/5/)
 
     error_cnt = 0
     
-    line1   = mtl_t(l1, c1, r1, g1, node_positions, divisions, "line1")
-    line2   = mtl_t(l2, c2, r2, g2, node_positions, divisions, "line2"  , parent_name = "line1",   conductor_in_parent = 1)
-    line3_1 = mtl_t(l2, c2, r2, g2, node_positions, divisions, "line3_1", parent_name = "line2",   conductor_in_parent = 1)
-    line3_2 = mtl_t(l2, c2, r2, g2, node_positions, divisions, "line3_2", parent_name = "line2",   conductor_in_parent = 2)
-    line4   = mtl_t(l2, c2, r2, g2, node_positions, divisions, "line4"  , parent_name = "line3_2", conductor_in_parent = 2)
+    line1   = buildLineWithNConductors(1, name= "line1")
+    line2   = buildLineWithNConductors(2, name= "line2"  , parent_name = "line1",   conductor_in_parent = 1)
+    line3_1 = buildLineWithNConductors(2, name= "line3_1", parent_name = "line2",   conductor_in_parent = 1)
+    line3_2 = buildLineWithNConductors(2, name= "line3_2", parent_name = "line2",   conductor_in_parent = 2)
+    line4   = buildLineWithNConductors(2, name= "line4"  , parent_name = "line3_2", conductor_in_parent = 2)
 
     allocate(line_bundle%levels(4))
     line_bundle%levels(1)%lines = [line1]
@@ -94,22 +70,11 @@ integer function test_preprocess_zt_conductor_ranges() bind(C) result(error_cnt)
     use mtl_mod 
     use mtl_bundle_mod 
     use preprocess_mod, only: conductorsInLevel, findOuterConductorNumber, findInnerConductorRange
+    use testingTools_mod
 
     type :: range
         integer, dimension(:), allocatable :: idx
     end type
-
-    real,dimension(2,2) :: l2 = reshape( source = [ 4.4712610E-07, 1.4863653E-07, 1.4863653E-07, 4.4712610E-07 ], shape = [ 2,2 ] )
-    real,dimension(2,2) :: c2 = reshape( source = [ 2.242e-10, -7.453e-11,-7.453e-11, 2.242e-10 ], shape = [ 2,2 ] )
-    real,dimension(2,2) :: r2 = reshape( source = [ 0.0, 0.0, 0.0, 0.0 ], shape = [ 2,2 ] )
-    real,dimension(2,2) :: g2 = reshape( source = [ 0.0, 0.0, 0.0, 0.0 ], shape = [ 2,2 ] )
-    real,dimension(1,1) :: l1 = reshape( source = [ 4.4712610E-07 ], shape = [ 1,1 ] )
-    real,dimension(1,1) :: c1 = reshape( source = [ 2.242e-10 ], shape = [ 1,1 ] )
-    real,dimension(1,1) :: r1 = reshape( source = [ 0.0 ], shape = [ 1,1 ] )
-    real,dimension(1,1) :: g1 = reshape( source = [ 0.0 ], shape = [ 1,1 ] )
-    real, dimension(2,3) :: node_positions = &
-    reshape( source = [ 0.0, 0.0, 0.0, 100.0, 0.0, 0.0], shape = [2,3], order=(/2,1/) )
-    integer, dimension(1) :: divisions = (/5/)
 
     type(mtl_t) :: line1, line2, line3_1, line3_2, line4
     type(line_bundle_t) :: line_bundle
@@ -131,11 +96,11 @@ integer function test_preprocess_zt_conductor_ranges() bind(C) result(error_cnt)
     expected_in(4)%idx = [8,9]
 
     error_cnt = 0
-    line1   = mtl_t(l1, c1, r1, g1, node_positions, divisions, name = "line1")
-    line2   = mtl_t(l2, c2, r2, g2, node_positions, divisions, name = "line2",   parent_name = "line1",   conductor_in_parent = 1)
-    line3_1 = mtl_t(l2, c2, r2, g2, node_positions, divisions, name = "line3_1", parent_name = "line2",   conductor_in_parent = 1)
-    line3_2 = mtl_t(l2, c2, r2, g2, node_positions, divisions, name = "line3_2", parent_name = "line2",   conductor_in_parent = 2)
-    line4   = mtl_t(l2, c2, r2, g2, node_positions, divisions, name = "line4",   parent_name = "line3_2", conductor_in_parent = 2)
+    line1 =   buildLineWithNConductors(1, "line1")
+    line2 =   buildLineWithNConductors(2, "line2",  parent_name= "line1", conductor_in_parent= 1)
+    line3_1 = buildLineWithNConductors(2, "line3_1",parent_name= "line2", conductor_in_parent= 1)
+    line3_2 = buildLineWithNConductors(2, "line3_2",parent_name= "line2", conductor_in_parent= 2)
+    line4 =   buildLineWithNConductors(2, "line4",  parent_name= "line3_2", conductor_in_parent= 2)
 
     allocate(line_bundle%levels(4))
     line_bundle%levels(1)%lines = [line1]
@@ -166,7 +131,7 @@ integer function test_preprocess_zt_conductor_ranges() bind(C) result(error_cnt)
                 error_cnt = error_cnt + 1
             end if
             cnt = cnt + 1
-            write(*,*) 'out: ', conductor_out, ' in: [', range_in,']'
+            ! write(*,*) 'out: ', conductor_out, ' in: [', range_in,']'
         end do
     end do  
 
@@ -177,31 +142,11 @@ integer function test_preprocess_zt_conductor_ranges_2() bind(C) result(error_cn
     use mtl_mod 
     use mtl_bundle_mod 
     use preprocess_mod, only: conductorsInLevel, findOuterConductorNumber, findInnerConductorRange
+    use testingTools_mod
 
     type :: range
         integer, dimension(:), allocatable :: idx
     end type
-
-    real,dimension(2,2) :: l2 = reshape( source = [ 4.4712610E-07, 1.4863653E-07, 1.4863653E-07, 4.4712610E-07 ], shape = [ 2,2 ] )
-    real,dimension(2,2) :: c2 = reshape( source = [ 2.242e-10, -7.453e-11,-7.453e-11, 2.242e-10 ], shape = [ 2,2 ] )
-    real,dimension(2,2) :: r2 = reshape( source = [ 0.0, 0.0, 0.0, 0.0 ], shape = [ 2,2 ] )
-    real,dimension(2,2) :: g2 = reshape( source = [ 0.0, 0.0, 0.0, 0.0 ], shape = [ 2,2 ] )
-    real,dimension(1,1) :: l1 = reshape( source = [ 4.4712610E-07 ], shape = [ 1,1 ] )
-    real,dimension(1,1) :: c1 = reshape( source = [ 2.242e-10 ], shape = [ 1,1 ] )
-    real,dimension(1,1) :: r1 = reshape( source = [ 0.0 ], shape = [ 1,1 ] )
-    real,dimension(1,1) :: g1 = reshape( source = [ 0.0 ], shape = [ 1,1 ] )
-    real,dimension(3,3) :: l3 = reshape( source = [ 4.4712610E-07, 1.4863653E-07, 1.4863653E-07, & 
-                                                    1.4863653E-07, 4.4712610E-07, 1.4863653E-07, & 
-                                                    4.4712610E-07, 1.4863653E-07, 1.4863653E-07 ], shape = [ 3,3 ] )
-    real,dimension(3,3) :: c3 = reshape( source = [ 2.242e-10, -7.453e-11,-7.453e-11, & 
-                                                    -7.453e-11, 2.242e-10, -7.453e-11,&
-                                                    -7.453e-11, -7.453e-11, 2.242e-10 ], shape = [ 3,3 ] )
-    real,dimension(3,3) :: r3 = reshape( source = [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ], shape = [ 3,3 ] )
-    real,dimension(3,3) :: g3 = reshape( source = [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ], shape = [ 3,3 ] )
-
-    real, dimension(2,3) :: node_positions = &
-    reshape( source = [ 0.0, 0.0, 0.0, 100.0, 0.0, 0.0], shape = [2,3], order=(/2,1/) )
-    integer, dimension(1) :: divisions = (/5/)
 
     type(mtl_t) :: line1, line2, line3_1, line3_2, line3_3, line4_1, line4_2, line4_3
     type(line_bundle_t) :: line_bundle
@@ -226,17 +171,14 @@ integer function test_preprocess_zt_conductor_ranges_2() bind(C) result(error_cn
     expected_in(7)%idx = [13]
 
     error_cnt = 0
-    line1   = mtl_t(l1, c1, r1, g1, node_positions, divisions, name = "line1")
-
-    line2   = mtl_t(l3, c3, r3, g3, node_positions, divisions, name = "line2",   parent_name = "line1",   conductor_in_parent = 1)
-
-    line3_1 = mtl_t(l1, c1, r1, g1, node_positions, divisions, name = "line3_1", parent_name = "line2", conductor_in_parent = 1)
-    line3_2 = mtl_t(l2, c2, r2, g2, node_positions, divisions, name = "line3_2", parent_name = "line2", conductor_in_parent = 2)
-    line3_3 = mtl_t(l2, c2, r2, g2, node_positions, divisions, name = "line3_3", parent_name = "line2", conductor_in_parent = 3)
-
-    line4_1 = mtl_t(l2, c2, r2, g2, node_positions, divisions, name = "line4_1", parent_name = "line3_2", conductor_in_parent = 2)
-    line4_2 = mtl_t(l1, c1, r1, g1, node_positions, divisions, name = "line4_2", parent_name = "line3_3", conductor_in_parent = 1)
-    line4_3 = mtl_t(l1, c1, r1, g1, node_positions, divisions, name = "line4_3", parent_name = "line3_3", conductor_in_parent = 2)
+    line1   = buildLineWithNConductors(1, name = "line1")
+    line2   = buildLineWithNConductors(3, name = "line2",   parent_name = "line1",   conductor_in_parent = 1)
+    line3_1 = buildLineWithNConductors(1, name = "line3_1", parent_name = "line2", conductor_in_parent = 1)
+    line3_2 = buildLineWithNConductors(2, name = "line3_2", parent_name = "line2", conductor_in_parent = 2)
+    line3_3 = buildLineWithNConductors(2, name = "line3_3", parent_name = "line2", conductor_in_parent = 3)
+    line4_1 = buildLineWithNConductors(2, name = "line4_1", parent_name = "line3_2", conductor_in_parent = 2)
+    line4_2 = buildLineWithNConductors(1, name = "line4_2", parent_name = "line3_3", conductor_in_parent = 1)
+    line4_3 = buildLineWithNConductors(1, name = "line4_3", parent_name = "line3_3", conductor_in_parent = 2)
 
     allocate(line_bundle%levels(4))
     line_bundle%levels(1)%lines = [line1]
@@ -267,7 +209,7 @@ integer function test_preprocess_zt_conductor_ranges_2() bind(C) result(error_cn
                 error_cnt = error_cnt + 1
             end if
             cnt = cnt + 1
-            write(*,*) 'out: ', conductor_out, ' in: [', range_in,']'
+            ! write(*,*) 'out: ', conductor_out, ' in: [', range_in,']'
         end do
     end do  
 

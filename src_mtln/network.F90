@@ -51,14 +51,22 @@ contains
     function networkCtor(nodes, description, final_time, dt) result(res)
         type(node_t), dimension(:), allocatable :: nodes
         character(*), dimension(:), allocatable :: description
+        type(string_t), dimension(:), allocatable :: names
         real :: final_time, dt
+        integer :: i
         type(network_t) :: res
 
         res%nodes = nodes
         res%description = description
         res%number_of_nodes = size(nodes)
 
-        call res%circuit%init()
+        allocate(names(size(nodes)))
+        do i = 1, size(nodes)
+            names(i)%name = nodes(i)%name
+            names(i)%length = len(nodes(i)%name)
+        end do
+
+        call res%circuit%init(names)
         call res%circuit%setStopTimes(final_time, dt)
         call res%circuit%readInput(res%description)
 

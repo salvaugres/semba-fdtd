@@ -1,26 +1,80 @@
 module testingTools_mod
     use iso_c_binding
+    use mtl_mod, only: mtl_t
+    ! use mtl_bundle_mod
     implicit none
     
     character(len=*, kind=c_char), parameter :: PATH_TO_TEST_DATA = c_char_'testData/'
 
-    contains
-            
-    function dotmatrixmul(a,b) result(res)
-        real, dimension(:,:,:), intent(in) :: a
-        real, dimension(:,:), intent(in) :: b
-        real, dimension(:), allocatable :: res
+contains
+    
+    ! type(mtl_bundle_t) function buildBundleFromLines()
+
+    type(mtl_t) function buildLineWithNConductors(n,name, parent_name, conductor_in_parent, dt) result(res)
+    
+        integer, intent(in) :: n
+        character(len=*), intent(in) :: name
+        real, intent(in), optional :: dt
+        character(len=*), intent(in), optional :: parent_name
+        integer, intent(in), optional :: conductor_in_parent
+        ! type(mtl_t) :: res
+        real, allocatable, dimension(:,:) :: lpul, cpul, rpul, gpul
+        real, dimension(2,3) :: node_positions = reshape( &
+        source = [ 0.0, 0.0, 0.0, 100.0, 0.0, 0.0], shape = [2,3], order=(/2,1/) )
+        integer, dimension(1) :: ndiv = (/5/)
         integer :: i,j
+
+        allocate(lpul(n,n), source = 0.0)
+        allocate(cpul(n,n), source = 0.0)
+        allocate(gpul(n,n), source = 0.0)
+        allocate(rpul(n,n), source = 0.0)
+
+        do i = 1, n
+            do j = 1, n
+                rpul(i,j) = 0.0
+                gpul(i,j) = 0.0
+                if (i==j) then
+                    lpul(i,j) = 4.4712610E-07
+                    cpul(i,j) = 2.242e-10
+                else 
+                    lpul(i,j) = 1.4863653E-07
+                    cpul(i,j) = -7.453e-11
+                end if
+            end do
+        end do
+        if (present(dt) .and. .not.present(parent_name)) then
+            res = mtl_t(lpul, cpul, rpul, gpul, node_positions, ndiv, name, & 
+                        dt = dt)
+        else if (.not.present(dt) .and. present(parent_name) ) then
+            res = mtl_t(lpul, cpul, rpul, gpul, node_positions, ndiv, name, & 
+                        parent_name= parent_name, &
+                        conductor_in_parent=conductor_in_parent)
+        else if (present(dt) .and. present(parent_name) ) then
+            res = mtl_t(lpul, cpul, rpul, gpul, node_positions, ndiv, name, & 
+                        parent_name= parent_name, &
+                        conductor_in_parent=conductor_in_parent, &
+                        dt = dt)
+        else 
+            res = mtl_t(lpul, cpul, rpul, gpul, node_positions, ndiv, name)
+        end if
+    end function    
+
+
+    ! function dotmatrixmul(a,b) result(res)
+    !     real, dimension(:,:,:), intent(in) :: a
+    !     real, dimension(:,:), intent(in) :: b
+    !     real, dimension(:), allocatable :: res
+    !     integer :: i,j
         
   
-        allocate(res(size(a,1)))
-        do i = 1, size(a,1)
-           res(i) = 0.0
-           do j = 1, size(a,2)
-              res(i) = res(i) + dot_product(a(i,j,:),b(j,:))
-           end do
-        end do
-     end function
+    !     allocate(res(size(a,1)))
+    !     do i = 1, size(a,1)
+    !        res(i) = 0.0
+    !        do j = 1, size(a,2)
+    !           res(i) = res(i) + dot_product(a(i,j,:),b(j,:))
+    !        end do
+    !     end do
+    !  end function
   
   
     subroutine comparePULMatrices(error_cnt, m_line, m_input)
