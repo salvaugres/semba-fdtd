@@ -43,7 +43,7 @@ jobs:
     - name: non-cache install oneAPI
       if: steps.cache-install.outputs.cache-hit != 'true'
       timeout-minutes: 10
-      run: .github/workflows/install_windows.bat $WINDOWS_HPCKIT_URL $WINDOWS_FORTRAN_COMPONENTS
+      run: .github/workflows/install_windows.bat $WINDOWS_HPCKIT_URL $WINDOWS_FORTRAN_COMPONENTS $WINDOWS_CPP_COMPONENTS
 
     - name: Setup ninja
       uses: seanmiddleditch/gha-setup-ninja@master
