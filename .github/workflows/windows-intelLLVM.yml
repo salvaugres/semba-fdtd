@@ -57,7 +57,7 @@ jobs:
         # .github/workflows/set_vars_windows.bat
         # cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCompileExecutable=YES -DCompileWithMTLN=YES
         # cmake --build build -j
-        .github/workflows/set_vars_windows.bat
+        .github/workflows/build_windows.bat
           
     - name: Run json-parser tests 
       run: |
