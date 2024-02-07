@@ -42,7 +42,7 @@ jobs:
 
     - name: non-cache install oneAPI
       if: steps.cache-install.outputs.cache-hit != 'true'
-      timeout-minutes: 10
+      timeout-minutes: 20
       run: .github/workflows/install_windows.bat $WINDOWS_HPCKIT_URL
 
     - name: Setup ninja
