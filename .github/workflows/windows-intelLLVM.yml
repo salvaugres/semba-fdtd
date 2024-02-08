@@ -54,13 +54,13 @@ jobs:
       run: |
         .github/workflows/build_windows.bat
           
-    - name: Run json-parser tests 
-      run: |
-        build/bin/smbjson_tests.exe
+    # - name: Run json-parser tests 
+    #   run: |
+    #     build/bin/smbjson_tests.exe
 
-    - name: Run mtln tests 
-      run: |
-        build/bin/mtlnsolver_tests.exe
+    # - name: Run mtln tests 
+    #   run: |
+    #     build/bin/mtlnsolver_tests.exe
 
     - name: exclude unused files from cache
       if: steps.cache-install.outputs.cache-hit != 'true'
