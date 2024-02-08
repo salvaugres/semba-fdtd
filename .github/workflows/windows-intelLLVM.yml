@@ -65,4 +65,4 @@ jobs:
     - name: exclude unused files from cache
       if: steps.cache-install.outputs.cache-hit != 'true'
       shell: bash
-      run: sh -c .github/workflows/oneapi_cache_exclude_windows.sh
+      run: .github/workflows/oneapi_cache_exclude_windows.sh
