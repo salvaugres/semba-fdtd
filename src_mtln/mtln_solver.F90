@@ -28,7 +28,8 @@ module mtln_solver_mod
         procedure :: advanceBundlesCurrent
         procedure :: advanceTime
         procedure :: step => mtln_step
-        procedure :: setExternalCurrent
+        procedure :: setExternalVoltage
+        ! procedure :: setExternalCurrent
         procedure :: updateExternalCurrent
         
         procedure :: runUntil
@@ -64,8 +65,9 @@ contains
 
     subroutine mtln_step(this, currents, voltages)
         class(mtln_t) :: this
-        real, dimension(:,:), intent(out) :: currents
+        real, dimension(:,:), intent(in out) :: currents
         real, dimension(:,:), intent(in) :: voltages
+        integer :: i 
 
         call this%setExternalVoltage(voltages)
 
@@ -78,15 +80,14 @@ contains
         call this%updateProbes()
 
         call this%updateExternalCurrent(currents)
-
     end subroutine
 
-    subroutine setExternalCurrent(this, currents)
+    subroutine setExternalVoltage(this, voltages)
         class(mtln_t) :: this
-        real, dimension(:,:), intent(in) :: currents
+        real, dimension(:,:), intent(in) :: voltages
         integer :: i
         do i = 1, this%number_of_bundles
-            call this%bundles(i)%setExternalCurrent(currents(i,:))
+            call this%bundles(i)%setExternalVoltage(voltages(i,:))
         end do
 
     end subroutine

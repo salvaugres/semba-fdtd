@@ -44,8 +44,8 @@ integer function test_coaxial_line_paul_8_6_square() bind(C) result(error_cnt)
     network_left%connections = [connection_left]
     network_right%connections = [connection_right]
 
-    parser%networks = [network_left, network_right]
-    parser%cables = [cable]
+    parsed%networks = [network_left, network_right]
+    parsed%cables = [cable]
 
     pre = preprocess(parsed)
 
