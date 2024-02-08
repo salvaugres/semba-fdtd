@@ -36,10 +36,6 @@ int
 ng_data(pvecvaluesall vdata, int numvecs, int ident, void* userdata);
 
 
-int
-ciprefix(const char *p, const char *s);
-
-
 void start()
 {
     int ret = 0;
@@ -79,8 +75,6 @@ ng_getchar(char* outputreturn, int ident, void* userdata)
 {
     // printf("%s\n", outputreturn);
     /* setting a flag if an error message occurred */
-    if (ciprefix("stderr Error:", outputreturn))
-        errorflag = true;
     return 0;
 }
 
