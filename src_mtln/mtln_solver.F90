@@ -62,11 +62,12 @@ contains
 
     end function
 
-    subroutine mtln_step(this, currents)
+    subroutine mtln_step(this, currents, voltages)
         class(mtln_t) :: this
-        real, dimension(:,:), intent(inout) :: currents
+        real, dimension(:,:), intent(out) :: currents
+        real, dimension(:,:), intent(in) :: voltages
 
-        call this%setExternalCurrent(currents)
+        call this%setExternalVoltage(voltages)
 
         call this%advanceBundlesVoltage()
         call this%advanceNWVoltage()
@@ -112,10 +113,6 @@ contains
 
     subroutine advanceNWVoltage(this)
         class(mtln_t) :: this
-        ! integer :: i
-        ! do i = 1, this%number_of_networks
-        !     call this%networks(i)%advanceVoltage(this%dt)
-        ! end do
         call this%network_manager%advanceVoltage()
     end subroutine
 
