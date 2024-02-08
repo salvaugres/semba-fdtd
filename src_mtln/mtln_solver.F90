@@ -116,7 +116,7 @@ contains
         ! do i = 1, this%number_of_networks
         !     call this%networks(i)%advanceVoltage(this%dt)
         ! end do
-        call this%network_manager%advanceVoltage(this%dt)
+        call this%network_manager%advanceVoltage()
     end subroutine
 
     subroutine advanceBundlesCurrent(this)

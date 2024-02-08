@@ -77,7 +77,7 @@ preceded by token stdout, same with stderr.*/
 int
 ng_getchar(char* outputreturn, int ident, void* userdata)
 {
-    // printf("%s\n", outputreturn);
+    printf("%s\n", outputreturn);
     /* setting a flag if an error message occurred */
     if (ciprefix("stderr Error:", outputreturn))
         errorflag = true;

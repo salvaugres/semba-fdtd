@@ -26,6 +26,7 @@ module circuit_mod
         procedure :: run
         procedure :: step
         procedure, private :: resume
+        procedure :: quit
         procedure, private :: loadNetlist
         procedure :: readInput
         procedure :: setStopTimes
@@ -99,6 +100,11 @@ contains
     subroutine resume(this)
         class(circuit_t) :: this
         call command('resume ' // c_null_char)
+    end subroutine
+
+    subroutine quit(this)
+        class(circuit_t) :: this
+        call command('quit 0' // c_null_char)
     end subroutine
 
     subroutine readInput(this, input) 

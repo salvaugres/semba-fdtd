@@ -355,7 +355,7 @@ contains
         integer :: stat
         class(*), pointer :: d
         type(node_t) :: res
-
+        character(len=4) :: sConductor
         integer :: conductor_number
 
         call conductors_before_cable%get(key(node%belongs_to_cable%name), conductor_number)
@@ -363,7 +363,8 @@ contains
 
         call cable_name_to_bundle%get_raw_ptr(key(node%belongs_to_cable%name), d, stat)
         if (stat /= 0) return
-        res%name = node%belongs_to_cable%name//"_"//node%side
+        write(sConductor,'(I4)') node%conductor_in_cable
+        res%name = node%belongs_to_cable%name//"_"//trim(sConductor)//"_"//node%side
         select type(d)
         type is (mtl_bundle_t)
             if (node%side == "initial") then 
@@ -432,54 +433,11 @@ contains
         res = networkCtor(nodes, description)
     end function
 
-    ! function buildNetwork(this,terminal_network) result(res)
-    !     class(preprocess_t) :: this
-    !     type(terminal_network_t), intent(in) :: terminal_network
-    !     type(node_t), dimension(:), allocatable :: nodes
-    !     character(50), dimension(:), allocatable :: description
-    !     type(network_t) :: res
-    !     integer :: i
-
-    !     allocate(description(0))
-    !     description = [description, "* network description message"]
-    !     allocate(nodes(0))
-    !     ! allocate(res%nodes(res%number_of_nodes))
-    !     do i = 1, size(terminal_network%connections)
-    !         if (size(terminal_network%connections(i)%nodes) == 1) then 
-    !             call this%connectNodeToGround(terminal_network%connections(i)%nodes, nodes, description)
-    !         else
-    !             call this%connectNodes(terminal_network%connections(i)%nodes, nodes, description)
-    !         end if
-    !     end do
-
-    !     call endDescription(nodes, description, this%final_time, this%dt)
-    !     res = networkCtorworkCtor(nodes, description, this%final_time, this%dt)
-    ! end function
-
     subroutine endDescription(description)
         character(50), dimension(:), intent(inout) :: description
         description = [description, ".endc"]
         description = [description, "NULL"]
     end subroutine
-
-    ! function buildNetworks(this, terminal_networks) result(res)
-    !     class(preprocess_t) :: this
-    !     type(terminal_network_t), dimension(:), intent(in) :: terminal_networks
-    !     type(network_t), dimension(:), allocatable :: res
-    !     type(node_t), dimension(:), allocatable :: nodes
-    !     character(50), dimension(:), allocatable :: description
-
-    !     integer :: i
-
-    !     allocate(res(size(terminal_networks)))
-    !     do i = 1, size(terminal_networks)
-    !         allocate(nodes(0))
-    !         allocate(description(0))
-    !         res(i) = this%buildNetwork(terminal_networks(i), description)
-    !     end do
-
-
-    ! end function
 
     subroutine addDescription(description, nw_description)
         character(50), dimension(:), intent(inout) :: description
@@ -496,7 +454,7 @@ contains
         character(20) :: sTime, sdt
         write(sTime, '(E10.2)') final_time
         write(sdt, '(E10.2)') dt
-        description = [description, ".tran "//sdt//" "//sTime]
+        description = [description, trim(".tran "//sdt//" "//sTime)]
 
     end subroutine
 
@@ -509,7 +467,7 @@ contains
         do i = 1, size(nodes)
             saved_nodes = saved_nodes // nodes(i)%name // " "
         end do
-        description = [description, ".save " // saved_nodes]
+        description = [description, trim(".save " // saved_nodes)]
 
     end subroutine
 

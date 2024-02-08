@@ -79,21 +79,25 @@ integer function test_spice_dc() bind(C) result(error_cnt)
 
 end function
 
-integer function test_spice_ac() bind(C) result(error_cnt)    
+integer function test_spice_tran() bind(C) result(error_cnt)    
 
     use circuit_mod
     use testingTools_mod
     implicit none
 
     type(circuit_t) :: circuit
-    character(len=*, kind=c_char), parameter :: netlist= PATH_TO_TEST_DATA//c_char_'mtln/netlist_ac.cir'
+    character(len=*, kind=c_char), parameter :: netlist= PATH_TO_TEST_DATA//c_char_'mtln/netlist_tran.cir'
     real :: finalTime
+    real :: result(3)
     integer :: i
     type(string_t), dimension(4) :: names
     names(1) = string_t("in", 2)
     names(2) = string_t("int", 3)
     names(3) = string_t("out", 3)
     names(4) = string_t("time", 4)
+
+    result = [5.0,0.092995181699999999,0.053166680000000001]
+
     circuit%time = 0.0
     circuit%dt = 50e-6
     finalTime = 200e-6
@@ -108,8 +112,65 @@ integer function test_spice_ac() bind(C) result(error_cnt)
             error_cnt = error_cnt + 1
         end if
     end do
+    if (checkNear(circuit%getNodeVoltage("in"), result(1), 0.01) .eqv. .false. ) then 
+        error_cnt = error_cnt + 1
+    end if
+    if (checkNear(circuit%getNodeVoltage("int"), result(2), 0.01) .eqv. .false. ) then 
+        error_cnt = error_cnt + 1
+    end if
+    if (checkNear(circuit%getNodeVoltage("out"), result(3), 0.01) .eqv. .false. ) then 
+        error_cnt = error_cnt + 1
+    end if
+
+    ! call circuit%quit()
 
 end function
+
+! integer function test_spice_tran_2() bind(C) result(error_cnt)    
+
+!     use circuit_mod
+!     use testingTools_mod
+!     implicit none
+
+!     type(circuit_t) :: circuit
+!     character(len=*, kind=c_char), parameter :: netlist= PATH_TO_TEST_DATA//c_char_'mtln/netlist_tran_2.cir'
+!     real :: finalTime
+!     integer :: i
+!     real :: result(3)
+!     type(string_t), dimension(4) :: names
+!     names(1) = string_t("in", 2)
+!     names(2) = string_t("int", 3)
+!     names(3) = string_t("out", 3)
+!     names(4) = string_t("time", 4)
+    
+!     result = [5.0,0.0039656539400000001,0.00069279532199999997]
+    
+!     circuit%time = 0.0
+!     circuit%dt = 50e-6
+!     finalTime = 200e-6
+
+!     error_cnt = 0
+!     call circuit%init(names=names,netlist=netlist)
+!     call circuit%setStopTimes(finalTime, circuit%dt)
+!     do while (circuit%time < finalTime)
+!         call circuit%step()
+!         circuit%time = circuit%time + circuit%dt
+!         if (checkNear(circuit%getTime(), circuit%time, 0.01) .eqv. .false. ) then 
+!             error_cnt = error_cnt + 1
+!         end if
+!     end do
+!     if (checkNear(circuit%getNodeVoltage("in"), result(1), 0.01) .eqv. .false. ) then 
+!         error_cnt = error_cnt + 1
+!     end if
+!     if (checkNear(circuit%getNodeVoltage("int"), result(2), 0.01) .eqv. .false. ) then 
+!         error_cnt = error_cnt + 1
+!     end if
+!     if (checkNear(circuit%getNodeVoltage("out"), result(3), 0.01) .eqv. .false. ) then 
+!         error_cnt = error_cnt + 1
+!     end if
+
+    ! call circuit%quit()
+! end function
 
 integer function test_spice_current_source() bind(C) result(error_cnt)    
 
@@ -159,13 +220,13 @@ integer function test_spice_multiple() bind(C) result(error_cnt)
     real :: dt = 50e-6
     real :: finalTime = 200e-6
     type(string_t), dimension(7) :: names
-    names(1) = string_t("n1in", 4)
-    names(2) = string_t("n1int", 5)
-    names(3) = string_t("n1out", 5)
+    names(1) = string_t("n1_in", 4)
+    names(2) = string_t("n1_int", 5)
+    names(3) = string_t("n1_out", 5)
     names(4) = string_t("time", 4)
-    names(5) = string_t("n2in", 5)
-    names(6) = string_t("n2int", 5)
-    names(7) = string_t("n2out", 5)
+    names(5) = string_t("n2_in", 5)
+    names(6) = string_t("n2_int", 5)
+    names(7) = string_t("n2_out", 5)
     circuit%time = 0.0
     circuit%dt = 50e-6
     finalTime = 200e-6
