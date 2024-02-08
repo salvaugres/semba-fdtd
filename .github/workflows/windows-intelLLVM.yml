@@ -56,7 +56,6 @@ jobs:
           
     - name: Run json-parser tests 
       run: |
-        ls build/bin
         build/bin/smbjson_tests.exe
 
     - name: Run mtln tests 
