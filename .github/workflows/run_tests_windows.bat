@@ -20,3 +20,4 @@ for /f "tokens=* usebackq" %%f in (`dir /b "C:\Program Files (x86)\Intel\oneAPI\
 @call "C:\Program Files (x86)\Intel\oneAPI\compiler\%LATEST_VERSION%\env\vars.bat"
 
 build\bin\smbjson_tests.exe
+build\bin\mtlnsolver_tests.exe
