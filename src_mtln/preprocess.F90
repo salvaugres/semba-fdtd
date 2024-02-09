@@ -14,7 +14,7 @@ module preprocess_mod
     type, public :: preprocess_t
         type(mtl_bundle_t), dimension(:), allocatable :: bundles
         type(network_manager_t) :: network_manager
-        ! type(network_t), dimension(:), allocatable :: networks
+        type(probe_t), dimension(:), allocatable :: probes
         type(fhash_tbl_t) :: conductors_before_cable
         type(fhash_tbl_t) :: cable_name_to_bundle
         real :: final_time, dt
@@ -23,10 +23,8 @@ module preprocess_mod
         procedure :: buildMTLBundles
         procedure :: buildNetworkManager
         procedure :: buildNetwork
-        ! procedure :: buildNetworks
         procedure :: connectNodeToGround
         procedure :: connectNodes
-
     end type
 
     interface preprocess_t
@@ -52,7 +50,7 @@ contains
     function conductorsInLevel(line) result(res)
         type(line_bundle_t), intent(in) :: line
         integer, dimension(:), allocatable :: res
-        integer :: i,j,k
+        integer :: i,j
 
         allocate(res(size(line%levels)), source = 0)
         do i = 1, size(line%levels)
@@ -92,7 +90,6 @@ contains
         type(mtl_array_t), intent(in) :: level
         integer, intent(in) :: conductors_in_level
         integer, dimension(:), allocatable :: res
-        ! allocate(res(0))
         integer :: k
         res = findConductorsBeforeCable(line%name, level) + & 
               conductors_in_level + &
@@ -112,7 +109,6 @@ contains
 
         conductors_in_level = conductorsInLevel(line)
         bundle%conductors_in_level = conductors_in_level
-        ! allocate(range_in(0))
         do i = 2, size(line%levels)
             do j = 1, size(line%levels(i)%lines)
                 conductor_out = findOuterConductorNumber(line%levels(i)%lines(j), line%levels(i-1), sum(conductors_in_level(1:i-2)))
@@ -156,6 +152,7 @@ contains
             res(i) = mtldCtor(lines(i)%levels, "bundle_"//lines(i)%levels(0)%lines(0)%name)
             call setBundleTransferImpedance(res(i), lines(i))
             call mapConductorsBeforeCable(conductors_before_cable, lines(i))
+            ! res(i)%addProbe()
         end do  
         this%conductors_before_cable = conductors_before_cable
     end function    
@@ -174,14 +171,11 @@ contains
                              cpul = cable%capacitance_per_meter, &
                              rpul = cable%resistance_per_meter, &
                              gpul = cable%conductance_per_meter, &
-                             node_positions = cable%node_positions, &
-                             divisions = [100], &
+                             step_size = cable%step_size, &
                              name = cable%name, &
                              parent_name = parent_name, &
                              conductor_in_parent = conductor_in_parent, & 
                              transfer_impedance = res%transfer_impedance)
-                    ! steps = cable%step_size, 
-                    ! name = cable%name)
 
         if (associated(cable%initial_connector)) call addConnector(res, cable%initial_connector, 0)
         if (associated(cable%end_connector))     call addConnector(res, cable%initial_connector, size(res%rpul,1))
@@ -500,6 +494,28 @@ contains
 
     end function
 
+    function addProbes(cable_name_to_bundle, parsed_probes) result(res)
+        type(fhash_tbl_t) :: cable_name_to_bundle
+        type(parsed_probe_t), dimension(:), allocatable :: parsed_probes
+        type(probe_t), dimension(:), allocatable :: res
+        integer :: i
+        integer :: stat
+        class(*), pointer :: d
+
+        allocate(res(size(parsed_probes)))
+
+        do i = 1, size(parsed_probes)
+            call cable_name_to_bundle%get_raw_ptr(key = key(parsed_probes(i)%attached_to_cable%name), &
+                                                       value = d, &
+                                                       stat=stat)
+
+            if (stat /= 0) return
+            select type(d)
+            type is (mtl_bundle_t)
+                res = [res, d%addProbe(index = parsed_probes(i)%index, probe_type = parsed_probes(i)%type)]
+            end select
+        end do
+    end function
 
     function preprocess(parsed) result(res)
         type(parsed_t), intent(in):: parsed
@@ -515,8 +531,8 @@ contains
         line_bundles = buildLineBundles(cable_bundles)
         res%bundles = res%buildMTLBundles(line_bundles)
         res%cable_name_to_bundle = mapCablesToBundles(line_bundles, res%bundles)
+        res%probes = addProbes(res%cable_name_to_bundle, parsed%probes)
         res%network_manager = res%buildNetworkManager(parsed%networks)
-        ! res%networks = res%buildNetworks(parsed%networks)
         
     end function
     

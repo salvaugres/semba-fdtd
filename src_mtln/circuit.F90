@@ -8,11 +8,18 @@ module circuit_mod
         integer :: length
     end type string_t
 
+    type source_t
+        logical :: has_source = .false.
+        real, dimension(:), allocatable :: time
+        real, dimension(:), allocatable :: voltage
+    contains 
+        procedure :: interpolate
+    end type
+
     type nodes_t
         real, allocatable :: values(:)
-        real, allocatable :: indices(:)
-        type(string_t), allocatable :: tags(:)
-    
+        type(source_t), allocatable :: sources(:)
+        type(string_t), allocatable :: names(:)
     end type nodes_t
 
     type, public :: circuit_t
@@ -34,10 +41,19 @@ module circuit_mod
         procedure :: updateNodes
         procedure :: getTime
         procedure :: updateNodeCurrent
+        procedure :: updateVoltageSources
 
     end type circuit_t
 
 contains
+
+    real function interpolate(this, time) result(res)
+        class(source_t) :: this
+        real :: time
+        integer :: index
+        index = maxloc(this%time - time, 1, (this%time - time) >= 0)
+        res = 0.5*(this%voltage(index+1) + this%voltage(index))
+    end function
 
     subroutine init(this, names, netlist)
         class(circuit_t) :: this
@@ -54,11 +70,11 @@ contains
             error stop 'Missing node names'
         end if
 
-        allocate(this%nodes%tags(size(names)))
+        allocate(this%nodes%names(size(names)))
         allocate(this%nodes%values(size(names)))
-        allocate(this%nodes%indices(size(names)))
+        allocate(this%nodes%sources(size(names)))
         do i = 1, size(names)
-            this%nodes%tags(i) = names(i)
+            this%nodes%names(i) = names(i)
         end do
 
     end subroutine
@@ -71,6 +87,7 @@ contains
 
     subroutine step(this)
         class(circuit_t) :: this
+        call this%updateVoltageSources(this%time)
         if (this%time == 0) then
             call this%run()
         else
@@ -141,6 +158,19 @@ contains
 
     end function
 
+    subroutine updateVoltageSources(this, time)
+        class(circuit_t) :: this
+        real, intent(in) :: time
+        character(20) :: sVoltage
+        integer :: i, index
+        do i = 1, size(this%nodes%values)
+            if (this%nodes%sources(i)%has_source) then 
+                write(sVoltage, '(E10.2)') this%nodes%sources(i)%interpolate(time)
+                call command("alter @V"//trim(this%nodes%names(i)%name)//"[dc] = "//trim(sVoltage) // c_null_char)
+            end if
+        end do
+    end subroutine
+
     subroutine updateNodeCurrent(this, node_name, current)
         class(circuit_t) :: this
         real :: current
@@ -156,8 +186,8 @@ contains
         type(vectorInfo), pointer :: info
         real(kind=c_double), pointer :: values(:)
 
-        do i = 1, size(this%nodes%tags)
-            call c_f_pointer(get_vector_info(trim(this%nodes%tags(i)%name)//c_null_char), info)
+        do i = 1, size(this%nodes%names)
+            call c_f_pointer(get_vector_info(trim(this%nodes%names(i)%name)//c_null_char), info)
             call c_f_pointer(info%vRealData, values,shape=[info%vLength])
             this%nodes%values(i) = values(ubound(values,1))
         end do
@@ -167,38 +197,38 @@ contains
         class(circuit_t) :: this
         character(len=*), intent(in) :: name
         real :: res
-        res = this%nodes%values(findVoltageIndexByName(this%nodes%tags, name))
+        res = this%nodes%values(findVoltageIndexByName(this%nodes%names, name))
     end function
 
     function getTime(this) result(res)
         class(circuit_t) :: this
         real :: res
-        res = this%nodes%values(findIndexByName(this%nodes%tags, "time"))
+        res = this%nodes%values(findIndexByName(this%nodes%names, "time"))
     end function
 
-    function findIndexByName(tags, name) result(res)
-        type(string_t) :: tags(:)
+    function findIndexByName(names, name) result(res)
+        type(string_t) :: names(:)
         character(len=*), intent(in) :: name
         integer :: res, i
         res = 0
-        do i = 1, size(tags)
-            if ( tags(i)%name(1:tags(i)%length) == trim(name)) then 
+        do i = 1, size(names)
+            if ( names(i)%name(1:names(i)%length) == trim(name)) then 
                 res = i
                 exit
             end if
         end do
     end function    
 
-    function findVoltageIndexByName(tags, name) result(res)
-        type(string_t) :: tags(:)
+    function findVoltageIndexByName(names, name) result(res)
+        type(string_t) :: names(:)
         character(len=*), intent(in) :: name
         integer :: res, i
         res = 0
-        do i = 1, size(tags)
-            if ( tags(i)%name(1:tags(i)%length) == 'V('//trim(name)//')') then 
+        do i = 1, size(names)
+            if ( names(i)%name(1:names(i)%length) == 'V('//trim(name)//')') then 
                 res = i
                 exit
-            else if ( tags(i)%name(1:tags(i)%length) == trim(name)) then 
+            else if ( names(i)%name(1:names(i)%length) == trim(name)) then 
                 res = i
                 exit
             end if

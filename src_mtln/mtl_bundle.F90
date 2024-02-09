@@ -1,12 +1,9 @@
 module mtl_bundle_mod
 
-    ! use mtlnsolver_mod
     use utils_mod
     use probes_mod
     use dispersive_mod
-    ! use mtln_types_mod
     use mtl_mod
-    ! use fhash, only: fhash_tbl_t
 
     implicit none
 
@@ -14,7 +11,7 @@ module mtl_bundle_mod
         character (len=:), allocatable :: name
         real, allocatable, dimension(:,:,:) :: lpul, cpul, rpul, gpul
         integer  :: number_of_conductors = 0, number_of_divisions = 0
-        real, allocatable, dimension(:,:) :: u, du
+        real, dimension(:), allocatable :: step_size
         real, allocatable, dimension(:,:) :: v, i
         real, allocatable, dimension(:,:,:) :: du_length(:,:,:)
         real :: time = 0.0, dt = 1e10
@@ -39,7 +36,6 @@ module mtl_bundle_mod
         procedure :: advanceCurrent => bundle_advanceCurrent
         procedure :: addTransferImpedance => bundle_addTransferImpedance
         ! procedure :: setConnectorTransferImpedance
-        procedure :: isProbeInLine        
         procedure :: setExternalCurrent => bundle_setExternalCurrent
         procedure :: setExternalVoltage => bundle_setExternalVoltage
         procedure :: updateExternalCurrent => bundle_updateExternalCurrent
@@ -55,9 +51,7 @@ contains
     function mtldCtor(levels, name) result(res)
         type(mtl_bundle_t) :: res
         type(mtl_array_t), dimension(:), intent(in) :: levels
-        ! type(fhash_tbl_t), intent(in) :: levels
         character(len=*), intent(in), optional :: name
-        ! real, allocatable, dimension(:,:) :: v, i
         
         res%name = ""
         if (present(name)) then
@@ -67,10 +61,8 @@ contains
 
         res%number_of_conductors = countNumberOfConductors(levels)
         res%dt = levels(1)%lines(1)%dt
-        res%u = levels(1)%lines(1)%u !? tiene que ser n x n ?
-        res%du = levels(1)%lines(1)%du !?
-        res%number_of_divisions = size(res%du,1)
-
+        res%step_size = levels(1)%lines(1)%step_size
+        res%number_of_divisions = size(res%step_size,1)
         call res%initialAllocation()
         call res%mergePULMatrices(levels)
         call res%mergeDispersiveMatrices(levels)
@@ -136,7 +128,8 @@ contains
                 number_of_poles = max(number_of_poles, levels(i)%lines(j)%lumped_elements%number_of_poles)
             end do
         end do
-        this%transfer_impedance = transfer_impedance_t(this%number_of_conductors, number_of_poles, this%u, this%dt)
+        this%transfer_impedance = &
+            transfer_impedance_t(this%number_of_conductors, number_of_poles, this%number_of_divisions, this%dt)
         do i = 1, size(levels)
             do j = 1, size(levels(i)%lines)
                 n = levels(i)%lines(j)%number_of_conductors
@@ -174,29 +167,13 @@ contains
 
     end subroutine
 
-    subroutine addProbe(this, position, probe_type, probe)
+    type(probe_t) function addProbe(this, index, probe_type) result(res)
         class(mtl_bundle_t) :: this
-        real, intent(in), dimension(3) :: position
-        character (len=*), intent(in), allocatable :: probe_type
-        type(probe_t), intent(inout) :: probe
-
-        if (.not.(this%isProbeInLine(position))) then
-            error stop 'Probe position is out of MTL line'
-        end if  
-
-        probe = probe_t(position, probe_type, this%dt, this%u)
-        this%probes = [this%probes, probe]
-
-    end subroutine 
-
-    function isProbeinLine(this, position) result(res)
-        class(mtl_bundle_t) this
-        real, intent(in), dimension(3) :: position
-        logical :: res
-        !TODO
-        res = .true.
-        
-    end function isProbeinLine
+        integer, intent(in) :: index
+        character (len=*), intent(in) :: probe_type
+        res = probeCtor(index, probe_type, this%dt)
+        this%probes = [this%probes, res]
+    end function
 
     subroutine bundle_addTransferImpedance(this, conductor_out, range_in, transfer_impedance)
         class(mtl_bundle_t) :: this

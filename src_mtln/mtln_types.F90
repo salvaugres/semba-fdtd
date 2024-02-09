@@ -46,7 +46,7 @@ module mtln_types_mod
         real, allocatable, dimension(:,:) :: capacitance_per_meter
         real, allocatable, dimension(:,:) :: inductance_per_meter
         real, allocatable, dimension(:,:) :: conductance_per_meter
-        real, allocatable, dimension(:,:) :: step_size
+        real, allocatable, dimension(:) :: step_size
         type(transfer_impedance_per_meter_t) :: transfer_impedance
         type(cable_t), pointer :: parent_cable => null()
         integer :: conductor_in_parent
@@ -55,9 +55,18 @@ module mtln_types_mod
         real, allocatable, dimension(:,:) :: node_positions !!!
     end type
 
+
+    type :: parsed_probe_t
+        type(cable_t), pointer :: attached_to_cable => null()
+        !integer :: conductor_in_cable ! needed if probes are not transversal
+        integer :: index
+        character(len=:), allocatable :: type
+    end type
+
     type, public :: parsed_t
         type(cable_t), dimension(:), allocatable :: cables
         type(terminal_network_t), dimension(:), allocatable :: networks
+        type(parsed_probe_t), dimension(:), allocatable :: probes
         real :: time_step
         integer :: number_of_steps
     end type

@@ -1,7 +1,5 @@
 module probes_mod
 
-    ! use mtlnsolver_mod
-    ! use utils_mod
     implicit none
 
     type, public :: probe_t
@@ -26,16 +24,14 @@ module probes_mod
 
 contains
 
-    function probeCtor(position, probe_type, dt, u) result(res)
+    function probeCtor(index, probe_type, dt) result(res)
         type(probe_t) :: res
-        real, dimension(3) :: position
-        character (len=*), intent(in), allocatable :: probe_type
+        integer, intent(in) :: index
+        character (len=*), intent(in) :: probe_type
         real, intent(in) :: dt
-        real, dimension(:,:), intent(in)  :: u
-        integer :: i
         
         res%type = probe_type
-        res%index = minloc([(norm2(u(i,:) - position), i = 1, size(u,1))], dim = 1)
+        res%index = index
         res%dt = dt
         res%current_frame = 0
         ! allocate(res%val(0), res%t(0,0))

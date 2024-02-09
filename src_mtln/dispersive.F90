@@ -1,7 +1,6 @@
 module dispersive_mod
     use utils_mod
     use rational_approximation_mod
-    ! use mtln_types_mod
     implicit none
     
     type :: dispersive_t
@@ -17,7 +16,6 @@ module dispersive_mod
         procedure :: updateQ3Phi
         procedure :: updatePhi
         procedure, private :: increaseOrder
-        procedure, private :: findIndex
     end type dispersive_t
     
     interface dispersive_t
@@ -39,8 +37,6 @@ module dispersive_mod
     contains
         procedure :: addTransferImpedance
         procedure :: setTransferImpedance
-        procedure, private :: isCouplingInwards
-        procedure, private :: isCouplingOutwards
         procedure, private :: addTransferImpedanceInConductors
         procedure, private :: setTransferImpedanceInConductors
     end type transfer_impedance_t
@@ -53,17 +49,16 @@ module dispersive_mod
 contains
     
 
-    function dispersiveCtor(number_of_conductors, number_of_poles, u, dt) result(res)
+    function dispersiveCtor(number_of_conductors, number_of_poles, number_of_divisions, dt) result(res)
         type(dispersive_t) :: res
         integer :: number_of_conductors, number_of_poles
         real :: dt
-        real, dimension(:,:) :: u
+        integer, intent(in) :: number_of_divisions
         complex :: zero 
         res%dt = dt
         res%number_of_conductors = number_of_conductors
         res%number_of_poles = number_of_poles
-        res%number_of_divisions = size(u,1) - 1
-        res%u = u
+        res%number_of_divisions = number_of_divisions
         zero%re = 0.0
         zero%im = 0.0
         allocate(res%phi(res%number_of_divisions, number_of_conductors,number_of_poles), source = zero)
@@ -108,7 +103,7 @@ contains
         integer, intent(in) :: number_of_poles
         type(dispersive_t) :: new_dispersive
 
-        new_dispersive = dispersive_t(this%number_of_conductors, number_of_poles, this%u, this%dt)
+        new_dispersive = dispersive_t(this%number_of_conductors, number_of_poles, this%number_of_divisions, this%dt)
         new_dispersive%q1(:,:,:,1:this%number_of_poles) = this%q1
         new_dispersive%q2(:,:,:,1:this%number_of_poles) = this%q2
         new_dispersive%q3(:,:,:,1:this%number_of_poles) = this%q3
@@ -120,20 +115,13 @@ contains
         this%number_of_poles = number_of_poles
     end subroutine
 
-    function findIndex(this, position) result(res)
-        class(dispersive_t) :: this
-        real, dimension(3), intent(in) :: position
-        integer :: res
-        res = 0
-        !TODO
-    end function
     
-    function lumpedCtor(number_of_conductors, number_of_poles, u, dt) result(res)
+    function lumpedCtor(number_of_conductors, number_of_poles, number_of_divisions, dt) result(res)
         type(lumped_t) :: res
         integer :: number_of_conductors, number_of_poles
         real :: dt
-        real, dimension(:,:) :: u
-        res%dispersive_t = dispersiveCtor(number_of_conductors, number_of_poles, u, dt)
+        integer, intent(in) :: number_of_divisions
+        res%dispersive_t = dispersiveCtor(number_of_conductors, number_of_poles, number_of_divisions, dt)
     end function 
 
     function positionIsEmpty(this, index, conductor) result(res)
@@ -151,17 +139,13 @@ contains
     end function
 
 
-    subroutine addDispersiveLumped(this, position, conductor, model)
+    subroutine addDispersiveLumped(this, index, conductor, model)
         class(lumped_t) :: this
-        integer, intent(in) :: position
-        ! real, dimension(3), intent(in) :: position
+        integer, intent(in) :: index
         integer, intent(in) :: conductor
         type(transfer_impedance_per_meter_t), intent(in) :: model
-        integer :: index
         type(pol_res_t) :: connector
 
-        ! index = this%findIndex(position)
-        index = position
         if (.not.this%positionIsEmpty(index, conductor))then
             error stop 'Dispersive connector already in conductor at position'
         end if
@@ -189,24 +173,22 @@ contains
     end subroutine
 
 
-    function transferImpendaceCtor(number_of_conductors, number_of_poles, u, dt) result(res)
+    function transferImpendaceCtor(number_of_conductors, number_of_poles, number_of_divisions, dt) result(res)
         type(transfer_impedance_t) :: res
         integer :: number_of_conductors, number_of_poles
         real :: dt
-        real, dimension(:,:) :: u
-        res%dispersive_t = dispersiveCtor(number_of_conductors, number_of_poles, u, dt)
+        integer :: number_of_divisions
+        res%dispersive_t = dispersiveCtor(number_of_conductors, number_of_poles, number_of_divisions, dt)
     end function 
 
-    function isCouplingInwards(this, direction) result(res)
-        class(transfer_impedance_t) :: this
+    function isCouplingInwards(direction) result(res)
         character(len=*), intent(in) :: direction
         logical :: res
         res = .false.
         if (direction == "inwards" .or. direction == "both") res = .true.
     end function
 
-    function isCouplingOutWards(this, direction) result(res)
-        class(transfer_impedance_t) :: this
+    function isCouplingOutWards(direction) result(res)
         character(len=*), intent(in) :: direction
         logical :: res
         res = .false.
@@ -225,10 +207,10 @@ contains
         if (connector%number_of_poles > this%number_of_poles) call this%increaseOrder(connector%number_of_poles)
 
         do i = 1, size(range_in)
-            if (this%isCouplingInwards(connector%direction)) then
+            if (isCouplingInwards(connector%direction)) then
                 call this%addTransferImpedanceInConductors(range_in(i), conductor_out, connector)
             end if
-            if (this%isCouplingOutwards(connector%direction)) then
+            if (isCouplingOutwards(connector%direction)) then
                 call this%addTransferImpedanceInConductors(conductor_out, range_in(i), connector)
             end if
         end do
@@ -250,10 +232,10 @@ contains
         if (connector%number_of_poles > this%number_of_poles) call this%increaseOrder(connector%number_of_poles)
 
         do i = 1, size(range_in)
-            if (this%isCouplingInwards(connector%direction)) then
+            if (isCouplingInwards(connector%direction)) then
                 call this%setTransferImpedanceInConductors(index,range_in(i), conductor_out, connector)
             end if  
-            if (this%isCouplingOutwards(connector%direction)) then
+            if (isCouplingOutwards(connector%direction)) then
                 call this%setTransferImpedanceInConductors(index, conductor_out, range_in(i), connector)
             end if
         end do

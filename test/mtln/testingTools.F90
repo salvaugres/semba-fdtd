@@ -57,9 +57,7 @@ contains
         character(len=*), intent(in), optional :: parent_name
         integer, intent(in), optional :: conductor_in_parent
         real, allocatable, dimension(:,:) :: lpul, cpul, rpul, gpul
-        real, dimension(2,3) :: node_positions = reshape( &
-        source = [ 0.0, 0.0, 0.0, 100.0, 0.0, 0.0], shape = [2,3], order=(/2,1/) )
-        integer, dimension(1) :: ndiv = (/5/)
+        real, dimension(5) :: step_size = [20.0, 20.0, 20.0, 20.0, 20.0]
         integer :: i,j
 
         allocate(lpul(n,n), source = 0.0)
@@ -81,19 +79,18 @@ contains
             end do
         end do
         if (present(dt) .and. .not.present(parent_name)) then
-            res = mtl_t(lpul, cpul, rpul, gpul, node_positions, ndiv, name, & 
-                        dt = dt)
+            res = mtl_t(lpul, cpul, rpul, gpul, step_size, name, dt = dt)
         else if (.not.present(dt) .and. present(parent_name) ) then
-            res = mtl_t(lpul, cpul, rpul, gpul, node_positions, ndiv, name, & 
+            res = mtl_t(lpul, cpul, rpul, gpul, step_size, name, & 
                         parent_name= parent_name, &
                         conductor_in_parent=conductor_in_parent)
         else if (present(dt) .and. present(parent_name) ) then
-            res = mtl_t(lpul, cpul, rpul, gpul, node_positions, ndiv, name, & 
+            res = mtl_t(lpul, cpul, rpul, gpul, step_size, name, & 
                         parent_name= parent_name, &
                         conductor_in_parent=conductor_in_parent, &
                         dt = dt)
         else 
-            res = mtl_t(lpul, cpul, rpul, gpul, node_positions, ndiv, name)
+            res = mtl_t(lpul, cpul, rpul, gpul, step_size, name)
         end if
     end function    
 

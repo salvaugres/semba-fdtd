@@ -1,10 +1,8 @@
 module mtln_solver_mod 
 
-    ! use fhash, only: fhash_tbl_t, key=>fhash_key, fhash_key_t
     use types_mod, only: bundle_iter_t
     use mtl_bundle_mod
     use network_manager_mod
-    ! use network_mod
     use preprocess_mod
     implicit none
 
@@ -13,10 +11,7 @@ module mtln_solver_mod
         real :: time, dt
         type(mtl_bundle_t), allocatable, dimension(:) :: bundles
         type(network_manager_t) :: network_manager
-        ! type(network_t), allocatable, dimension(:) :: networks
         integer :: number_of_bundles
-        ! integer :: number_of_networks
-
     contains
 
         procedure :: updateBundlesTimeStep
@@ -29,7 +24,6 @@ module mtln_solver_mod
         procedure :: advanceTime
         procedure :: step => mtln_step
         procedure :: setExternalVoltage
-        ! procedure :: setExternalCurrent
         procedure :: updateExternalCurrent
         
         procedure :: runUntil
@@ -54,9 +48,7 @@ contains
         
         res%bundles = pre%bundles
         res%network_manager = pre%network_manager
-        ! res%networks = pre%networks
         res%number_of_bundles = size(res%bundles)
-        ! res%number_of_networks = size(res%networks)
 
         call res%updateBundlesTimeStep(res%dt)
         call res%updatePULTerms(res%getTimeRange(pre%final_time))
