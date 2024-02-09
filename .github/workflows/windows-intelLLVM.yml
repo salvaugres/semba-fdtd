@@ -58,7 +58,9 @@ jobs:
       shell: bash
       run: |
         .github/workflows/set_vars_windows.bat
-        set PATH=%PATH%;build/bin/smbjson_tests.exe
+        # set PATH=%PATH%;build/bin/
+        cd build/bin
+        ls
         build/bin/smbjson_tests.exe
 
     - name: Run mtln tests 
