@@ -19,7 +19,6 @@ module mtln_types_mod
         integer :: conductor_in_cable
         character(len=:), allocatable :: side ! initial or end
         type(termination_t) :: termination
-        class(*), allocatable :: terminationpol
     end type
 
     type :: terminal_connection_t
