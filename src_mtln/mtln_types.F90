@@ -2,12 +2,16 @@ module mtln_types_mod
 
     implicit none
 
-
+    
     type :: termination_t
-        character(len=:), allocatable :: type
-        real :: resistance = 1e-10
-        real :: inductance = 1e-12
-        real :: capacitance = 1e22
+    character(len=:), allocatable :: type
+    real :: resistance = 1e-10
+    real :: inductance = 1e-12
+    real :: capacitance = 1e22
+    end type
+    
+    type, extends(termination_t) :: source_termination_t
+        character(len=:), allocatable :: path_to_excitation
     end type
 
     type :: terminal_node_t
@@ -15,6 +19,7 @@ module mtln_types_mod
         integer :: conductor_in_cable
         character(len=:), allocatable :: side ! initial or end
         type(termination_t) :: termination
+        class(*), allocatable :: terminationpol
     end type
 
     type :: terminal_connection_t

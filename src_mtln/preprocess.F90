@@ -285,7 +285,7 @@ contains
 
     function writeSeriesNode(node, termination, end_node) result(res)
         type(node_t), intent(in) :: node
-        type(termination_t), intent(in) :: termination
+        class(termination_t), intent(in) :: termination
         character(len=*), intent(in) :: end_node
         character(len=100), allocatable :: res(:)
         character(len=:), allocatable :: node_name
@@ -296,9 +296,15 @@ contains
         write(sC, '(E10.2)') termination%capacitance
         write(lineC, '(E10.2)') node%line_c_per_meter
         allocate(res(0))
-        res = [res, trim("R" // node%name // " " // node%name // " "   // node%name //"_R " // sR)]
+        select type(termination)
+        type is(source_termination_t)
+            res = [res, trim("V" // node%name // " " // node%name // " "   // node%name //"_V 0" )]
+            res = [res, trim("R" // node%name // " " // node%name // "_V "   // node%name //"_R " // sR)]
+        type is(termination_t)
+            res = [res, trim("R" // node%name // " " // node%name // " "   // node%name //"_R " // sR)]
+        end select
         res = [res, trim("L" // node%name // " " // node%name // "_R " // node%name //"_L " // sL)]
-        res = [res, trim("C" // node%name // " " // node%name // "_L " // end_node // sC)]
+        res = [res, trim("C" // node%name // " " // node%name // "_L " // end_node //" "// sC)]
         res = [res, trim("CL" // node%name // " " // node%name // " 0 " // lineC)]
         res = [res, trim("I" // node%name // " " // " 0 " // node%name // " dc 0")]
 
@@ -308,7 +314,7 @@ contains
 
     function writeLCpRsNode(node, termination, end_node) result(res)
         type(node_t), intent(in) :: node
-        type(termination_t), intent(in) :: termination
+        class(termination_t), intent(in) :: termination
         character(len=*), intent(in) :: end_node
         character(len=100), allocatable :: res(:)
         character(len=:), allocatable :: node_name
@@ -320,9 +326,15 @@ contains
         write(lineC, '(E10.2)') node%line_c_per_meter
         
         allocate(res(0))
-        res = [res, trim("L" // node%name // " " // node%name // " " // node%name //"_p " // sL)]
-        res = [res, trim("C" // node%name // " " // node%name // " " // node%name //"_p " // sC)]
-        res = [res, trim("R" // node%name // " " // node%name // "_p " // end_node // sR)]
+        select type(termination)
+        type is(source_termination_t)
+            res = [res, trim("V" // node%name // " " // node%name // " "   // node%name //"_V 0")]
+            res = [res, trim("R" // node%name // " " // node%name // "_V "   // node%name //"_p " // sR)]
+        type is(termination_t)
+            res = [res, trim("R" // node%name // " " // node%name // " "   // node%name //"_p " // sR)]
+        end select
+        res = [res, trim("L" // node%name // " " // node%name // "_p " // end_node //" "// sL)]
+        res = [res, trim("C" // node%name // " " // node%name // "_p " // end_node //" "// sC)]
         res = [res, trim("CL" // node%name // " " // node%name // " 0 " // lineC)]
         res = [res, trim("I" // node%name // " " // " 0 " // node%name // " dc 0")]
 
@@ -330,7 +342,7 @@ contains
 
     function writeNodeDescription(node, termination, end_node) result(res)
         type(node_t), intent(in) :: node
-        type(termination_t), intent(in) :: termination
+        class(termination_t), intent(in) :: termination
         character(len=:), allocatable :: res(:)
         character(len=*), intent(in) :: end_node
 
