@@ -147,7 +147,7 @@ PROGRAM SEMBA_FDTD_launcher
    INTEGER (KIND=4) ::  verdadero_mpidir
    logical :: newrotate !300124 tiramos con el rotador antiguo
 
-   newrotate=.true.       !!ojo tocar luego                     
+   newrotate=.false.       !!ojo tocar luego                     
 !!200918 !!!si se lanza con -pscal se overridea esto
    Eps0= 8.8541878176203898505365630317107502606083701665994498081024171524053950954599821142852891607182008932e-12
    Mu0 = 1.2566370614359172953850573533118011536788677597500423283899778369231265625144835994512139301368468271e-6
@@ -1133,7 +1133,6 @@ subroutine cargaNFDE
    WRITE (dubuf,*) 'INIT interpreting geometrical data from ', trim (adjustl(l%fileFDE))
    CALL print11 (l%layoutnumber, dubuf)
 !!!!!!!!!!
-!!!!   
    if(newrotate) then
        verdadero_mpidir=NFDE_FILE%mpidir
        NFDE_FILE%mpidir=3     !no lo rota el parseador antiguo
