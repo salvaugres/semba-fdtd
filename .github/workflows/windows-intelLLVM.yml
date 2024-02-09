@@ -55,8 +55,10 @@ jobs:
         .github/workflows/build_windows.bat
           
     - name: Run json-parser tests 
+      shell: bash
       run: |
         .github/workflows/set_vars_windows.bat
+        set PATH=%PATH%;build/bin/smbjson_tests.exe
         build/bin/smbjson_tests.exe
 
     - name: Run mtln tests 
