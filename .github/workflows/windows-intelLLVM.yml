@@ -55,7 +55,6 @@ jobs:
         .github/workflows/build_windows.bat
           
     - name: Run json-parser tests 
-      shell: bash
       run: |
         .github/workflows/set_vars_windows.bat
         build/bin/smbjson_tests.exe
