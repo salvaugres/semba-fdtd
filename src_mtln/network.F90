@@ -3,7 +3,7 @@ module network_mod
     use fhash, only: fhash_tbl_t, key=>fhash_key, fhash_key_t
     use mtl_bundle_mod
     use mtln_types_mod
-    use circuit_mod
+    use circuit_mod, only: string_t
     implicit none
 
     type node_t
@@ -18,7 +18,7 @@ module network_mod
         integer :: number_of_nodes = 0
         type(node_t), dimension(:), allocatable :: nodes
         character(50), dimension(:), allocatable :: description
-        type(circuit_t), pointer :: circuit
+        ! type(circuit_t), pointer :: circuit
     contains
 
     end type network_t

@@ -25,7 +25,7 @@ extern "C" int test_preprocess_conductors_before_cable();
 extern "C" int test_preprocess_conductors_in_level();
 extern "C" int test_preprocess_zt_conductor_ranges_2();
 extern "C" int test_preprocess_zt_conductor_ranges();
-// extern "C" int test_coaxial_line_paul_8_6_square();
+extern "C" int test_coaxial_line_paul_8_6_square();
 
 int main(int argc, char **argv) 
 {
@@ -58,4 +58,4 @@ TEST(mtln, spice_multiple) { EXPECT_EQ(0, test_spice_multiple()); }
 TEST(mtln, spice_current_source) { EXPECT_EQ(0, test_spice_current_source()); }
 TEST(mtln, spice_dc) { EXPECT_EQ(0, test_spice_dc()); }
 TEST(mtln, spice_read_message) { EXPECT_EQ(0, test_spice_read_message()); }
-// TEST(mtln, coaxial_line_paul_8_6_square) { EXPECT_EQ(0, test_coaxial_line_paul_8_6_square()); }
+TEST(mtln, coaxial_line_paul_8_6_square) { EXPECT_EQ(0, test_coaxial_line_paul_8_6_square()); }

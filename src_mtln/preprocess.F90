@@ -25,6 +25,7 @@ module preprocess_mod
         procedure :: buildNetwork
         procedure :: connectNodeToGround
         procedure :: connectNodes
+        procedure :: addNode
     end type
 
     interface preprocess_t
@@ -34,6 +35,26 @@ module preprocess_mod
 contains
 
 
+    function preprocess(parsed) result(res)
+        type(parsed_t), intent(in):: parsed
+        type(preprocess_t) :: res
+        type(fhash_tbl_t) :: cable_name_to_bundle 
+        type(line_bundle_t), dimension(:), allocatable :: line_bundles
+        type(cable_bundle_t), dimension(:), allocatable :: cable_bundles
+
+        res%final_time = parsed%time_step * parsed%number_of_steps
+        res%dt = parsed%time_step
+
+        cable_bundles = buildCableBundles(parsed%cables)
+        line_bundles = buildLineBundles(cable_bundles)
+        res%bundles = res%buildMTLBundles(line_bundles)
+        res%cable_name_to_bundle = mapCablesToBundles(line_bundles, res%bundles)
+        if (size(parsed%probes) /= 0) then
+            res%probes = addProbes(res%cable_name_to_bundle, parsed%probes)
+        end if
+        res%network_manager = res%buildNetworkManager(parsed%networks)
+        
+    end function
 
     subroutine addConnector(line, connector, side)
         type(mtl_t), intent(inout) :: line
@@ -149,10 +170,9 @@ contains
 
         allocate(res(size(lines)))
         do i = 1, size(lines)
-            res(i) = mtldCtor(lines(i)%levels, "bundle_"//lines(i)%levels(0)%lines(0)%name)
+            res(i) = mtldCtor(lines(i)%levels, "bundle_"//lines(i)%levels(1)%lines(1)%name)
             call setBundleTransferImpedance(res(i), lines(i))
             call mapConductorsBeforeCable(conductors_before_cable, lines(i))
-            ! res(i)%addProbe()
         end do  
         this%conductors_before_cable = conductors_before_cable
     end function    
@@ -190,15 +210,15 @@ contains
         integer :: nb, nl, nc
         nb = size(cable_bundles)
 
+        allocate(res(nb))
         do i = 1, nb
-            allocate(res(nb))
             nl = size(cable_bundles(i)%levels)
+            allocate(res(i)%levels(nl))
             do j = 1, nl
-                allocate(res(i)%levels(nl))
                 nc = size(cable_bundles(i)%levels(j)%cables)
+                allocate(res(i)%levels(j)%lines(nc))
                 do k = 1, nc
-                    allocate(res(i)%levels(j)%lines(nc))
-                    res(i)%levels(j)%lines(nc) = buildLineFromCable(cable_bundles(i)%levels(j)%cables(k))
+                    res(i)%levels(j)%lines(k) = buildLineFromCable(cable_bundles(i)%levels(j)%cables(k))
                 end do
             end do
         end do
@@ -276,7 +296,8 @@ contains
         do i = 1, size(lines)
             do j = 1, size(lines(i)%levels)
                 do k = 1, size(lines(i)%levels(j)%lines)
-                    call res%set(key(lines(i)%levels(j)%lines(k)%name), value = bundles(i))
+                    call res%set(key(lines(i)%levels(j)%lines(k)%name), value = i)
+                    ! call res%set(key(lines(i)%levels(j)%lines(k)%name), value = bundles(i))
                 end do
             end do
         end do
@@ -287,24 +308,26 @@ contains
         type(node_t), intent(in) :: node
         class(termination_t), intent(in) :: termination
         character(len=*), intent(in) :: end_node
-        character(len=100), allocatable :: res(:)
-        character(len=:), allocatable :: node_name
-        character(20) :: sR, sL, sC, lineC
+        character(len=256), allocatable :: res(:)
+        character(20) :: charR, charL, charC, lineC
 
-        write(sR, '(E10.2)') termination%resistance
-        write(sL, '(E10.2)') termination%inductance
-        write(sC, '(E10.2)') termination%capacitance
-        write(lineC, '(E10.2)') node%line_c_per_meter
+        write(*, *) termination%resistance
+
+        write(charC, *) termination%capacitance
+        write(charR, *) termination%resistance
+        write(charL, *) termination%inductance
+        write(lineC, *) node%line_c_per_meter
+
         allocate(res(0))
         select type(termination)
         type is(source_termination_t)
             res = [res, trim("V" // node%name // " " // node%name // " "   // node%name //"_V 0" )]
-            res = [res, trim("R" // node%name // " " // node%name // "_V "   // node%name //"_R " // sR)]
+            res = [res, trim("R" // node%name // " " // node%name // "_V "   // node%name //"_R " // charR)]
         type is(termination_t)
-            res = [res, trim("R" // node%name // " " // node%name // " "   // node%name //"_R " // sR)]
+            res = [res, trim("R" // node%name // " " // node%name // " "   // node%name //"_R " // charR)]
         end select
-        res = [res, trim("L" // node%name // " " // node%name // "_R " // node%name //"_L " // sL)]
-        res = [res, trim("C" // node%name // " " // node%name // "_L " // end_node //" "// sC)]
+        res = [res, trim("L" // node%name // " " // node%name // "_R " // node%name //"_L " // charL)]
+        res = [res, trim("C" // node%name // " " // node%name // "_L " // end_node //" "// charC)]
         res = [res, trim("CL" // node%name // " " // node%name // " 0 " // lineC)]
         res = [res, trim("I" // node%name // " " // " 0 " // node%name // " dc 0")]
 
@@ -316,7 +339,7 @@ contains
         type(node_t), intent(in) :: node
         class(termination_t), intent(in) :: termination
         character(len=*), intent(in) :: end_node
-        character(len=100), allocatable :: res(:)
+        character(len=256), allocatable :: res(:)
         character(len=:), allocatable :: node_name
         character(20) :: sR, sL, sC, lineC
         
@@ -354,47 +377,67 @@ contains
 
     end function    
 
-    function addNode(node, cable_name_to_bundle, conductors_before_cable) result(res)
+    ! function addNode(node, cable_name_to_bundle, conductors_before_cable) result(res)
+    function addNode(this, node) result(res)
+        class(preprocess_t) :: this
         type(terminal_node_t) :: node
-        type(fhash_tbl_t) :: cable_name_to_bundle
-        type(fhash_tbl_t) :: conductors_before_cable
+        ! type(fhash_tbl_t) :: cable_name_to_bundle
+        ! type(fhash_tbl_t) :: conductors_before_cable
         integer :: stat
-        class(*), pointer :: d
+        ! class(*), allocatable, target :: d
+        type(mtl_bundle_t), target :: tbundle
+        integer :: d
         type(node_t) :: res
         character(len=4) :: sConductor
         integer :: conductor_number
 
-        call conductors_before_cable%get(key(node%belongs_to_cable%name), conductor_number)
+        call this%conductors_before_cable%get(key(node%belongs_to_cable%name), conductor_number)
         conductor_number = conductor_number + node%conductor_in_cable
 
-        call cable_name_to_bundle%get_raw_ptr(key(node%belongs_to_cable%name), d, stat)
+        ! call cable_name_to_bundle%get_raw(key(node%belongs_to_cable%name), d, stat)
+        call this%cable_name_to_bundle%get(key(node%belongs_to_cable%name), d, stat)
         if (stat /= 0) return
-        write(sConductor,'(I4)') node%conductor_in_cable
-        res%name = node%belongs_to_cable%name//"_"//trim(sConductor)//"_"//node%side
-        select type(d)
-        type is (mtl_bundle_t)
-            if (node%side == "initial") then 
-                res%v => d%v(conductor_number, lbound(d%v,2))
-                res%i => d%i(conductor_number, lbound(d%i,2))
-            else if (node%side == "end") then 
-                res%v => d%v(conductor_number, ubound(d%v,2))
-                res%i => d%i(conductor_number, ubound(d%i,2))
-            end if
-        end select
-
+        tbundle = this%bundles(d)
+        ! sConductor = char(node%conductor_in_cable)
+        write(sConductor,'(I0)') node%conductor_in_cable
+        res%name = trim(node%belongs_to_cable%name)//"_"//trim(sConductor)//"_"//trim(node%side)
+        write(*,*) sConductor
+        write(*,*) trim(sConductor)
+        if (node%side == "initial") then 
+            res%v => tbundle%v(conductor_number, lbound(tbundle%v,2))
+            res%i => tbundle%i(conductor_number, lbound(tbundle%i,2))
+        else if (node%side == "end") then 
+            res%v => tbundle%v(conductor_number, ubound(tbundle%v,2))
+            res%i => tbundle%i(conductor_number, ubound(tbundle%i,2))
+        end if
+        ! select type(d)
+        ! type is (mtl_bundle_t)
+        !     if (node%side == "initial") then 
+        !         res%v => d%v(conductor_number, lbound(d%v,2))
+        !         res%i => d%i(conductor_number, lbound(d%i,2))
+        !     else if (node%side == "end") then 
+        !         res%v => d%v(conductor_number, ubound(d%v,2))
+        !         res%i => d%i(conductor_number, ubound(d%i,2))
+        !     end if
+        ! end select
+        ! deallocate(d)
     end function
 
     subroutine connectNodeToGround(this, terminal_nodes, nodes, description)
         class(preprocess_t) :: this
         type(terminal_node_t), dimension(:), allocatable :: terminal_nodes
-        type(node_t),  dimension(:), intent(inout) :: nodes
-        character(50), dimension(:), intent(inout) :: description
+        type(node_t),  dimension(:), allocatable, intent(inout) :: nodes
+        character(50), dimension(:), allocatable, intent(inout) :: description
 
         type(node_t) :: new_node
         integer :: stat
-        class(*), pointer :: d
+        ! class(*), pointer :: d
         
-        new_node = addNode(terminal_nodes(1), this%cable_name_to_bundle, this%conductors_before_cable)
+        new_node = this%addNode(terminal_nodes(1))
+        ! new_node = addNode(terminal_nodes(1), this%cable_name_to_bundle, this%conductors_before_cable)
+        ! if(.not.allocated(nodes) .or. size(nodes)==0) then 
+        !     allocate(nodes(1))
+        ! end if
         nodes = [nodes, new_node]
         description = [description, writeNodeDescription(new_node, terminal_nodes(1)%termination, "0")]
     end subroutine
@@ -406,12 +449,14 @@ contains
         character(50), dimension(:), intent(inout) :: description
         type(node_t) :: new_node
         integer :: i, stat
-        class(*), pointer :: d
+        ! class(*), pointer :: d
         character(len=:), allocatable :: interior_node
 
-        interior_node = terminal_nodes(1)%belongs_to_cable%name//"_"//terminal_nodes(2)%belongs_to_cable%name//"_inter"
+        interior_node = trim(terminal_nodes(1)%belongs_to_cable%name)//"_"//&
+                        trim(terminal_nodes(2)%belongs_to_cable%name)//"_inter"
         do i = 1, 2
-            new_node = addNode(terminal_nodes(i), this%cable_name_to_bundle, this%conductors_before_cable)
+            new_node =this%addNode(terminal_nodes(i))
+            ! new_node = addNode(terminal_nodes(i), this%cable_name_to_bundle, this%conductors_before_cable)
             nodes = [nodes, new_node]
             description = [description, writeNodeDescription(new_node, terminal_nodes(i)%termination, interior_node)]
         end do
@@ -440,13 +485,13 @@ contains
     end function
 
     subroutine endDescription(description)
-        character(50), dimension(:), intent(inout) :: description
-        description = [description, ".endc"]
+        character(50), dimension(:), allocatable, intent(inout) :: description
+        description = [description, ".end"]
         description = [description, "NULL"]
     end subroutine
 
     subroutine addDescription(description, nw_description)
-        character(50), dimension(:), intent(inout) :: description
+        character(50), dimension(:), allocatable, intent(inout) :: description
         character(50), dimension(:), intent(in) :: nw_description
         integer :: i
         do i = 1, size(nw_description,1)
@@ -455,7 +500,7 @@ contains
     end subroutine
 
     subroutine addAnalysis(description, final_time, dt)
-        character(50), dimension(:), intent(inout) :: description
+        character(50), dimension(:), allocatable, intent(inout) :: description
         real, intent(in) :: final_time, dt
         character(20) :: sTime, sdt
         write(sTime, '(E10.2)') final_time
@@ -464,16 +509,18 @@ contains
 
     end subroutine
 
-    subroutine addSavedNodes(description, nodes)
-        character(50), dimension(:), intent(inout) :: description
-        type(node_t), dimension(:), intent(in) :: nodes
+    subroutine addSavedNodes(description, networks)
+        character(50), dimension(:), allocatable, intent(inout) :: description
+        type(network_t), dimension(:), intent(in) :: networks
         character(len=:), allocatable :: saved_nodes
-        integer :: i
-        saved_nodes = ""
-        do i = 1, size(nodes)
-            saved_nodes = saved_nodes // nodes(i)%name // " "
+        integer :: i,j
+        saved_nodes = ".save "
+        do j = 1, size(networks)
+            do i = 1, size(networks(j)%nodes)
+                saved_nodes = saved_nodes // trim(networks(j)%nodes(i)%name) // " "
+            end do
         end do
-        description = [description, trim(".save " // saved_nodes)]
+        description = [description, trim(saved_nodes)]
 
     end subroutine
 
@@ -483,7 +530,7 @@ contains
         type(terminal_network_t), dimension(:), intent(in) :: terminal_networks
         type(network_t), dimension(:), allocatable :: networks
         type(network_manager_t) :: res
-        character(50), dimension(:), allocatable :: description
+        character(256), dimension(:), allocatable :: description
         integer :: i
 
         allocate(networks(size(terminal_networks)))
@@ -497,9 +544,7 @@ contains
             call addDescription(description, networks(i)%description)
         end do
         call addAnalysis(description, this%final_time, this%dt)
-        do i = 1, size(networks)
-            call addSavedNodes(description, networks(i)%nodes)
-        end do
+        call addSavedNodes(description, networks)
         call endDescription(description)        
 
         res = network_managerCtor(networks, description, this%final_time, this%dt)
@@ -512,12 +557,12 @@ contains
         type(probe_t), dimension(:), allocatable :: res
         integer :: i
         integer :: stat
-        class(*), pointer :: d
+        class(*), allocatable :: d
 
         allocate(res(size(parsed_probes)))
 
         do i = 1, size(parsed_probes)
-            call cable_name_to_bundle%get_raw_ptr(key = key(parsed_probes(i)%attached_to_cable%name), &
+            call cable_name_to_bundle%get_raw(key = key(parsed_probes(i)%attached_to_cable%name), &
                                                        value = d, &
                                                        stat=stat)
 
@@ -526,26 +571,9 @@ contains
             type is (mtl_bundle_t)
                 res = [res, d%addProbe(index = parsed_probes(i)%index, probe_type = parsed_probes(i)%type)]
             end select
+            ! deallocate(d)
         end do
     end function
 
-    function preprocess(parsed) result(res)
-        type(parsed_t), intent(in):: parsed
-        type(preprocess_t) :: res
-        type(fhash_tbl_t) :: cable_name_to_bundle 
-        type(line_bundle_t), dimension(:), allocatable :: line_bundles
-        type(cable_bundle_t), dimension(:), allocatable :: cable_bundles
-
-        res%final_time = parsed%time_step * parsed%number_of_steps
-        res%dt = parsed%time_step
-
-        cable_bundles = buildCableBundles(parsed%cables)
-        line_bundles = buildLineBundles(cable_bundles)
-        res%bundles = res%buildMTLBundles(line_bundles)
-        res%cable_name_to_bundle = mapCablesToBundles(line_bundles, res%bundles)
-        res%probes = addProbes(res%cable_name_to_bundle, parsed%probes)
-        res%network_manager = res%buildNetworkManager(parsed%networks)
-        
-    end function
     
 end module
