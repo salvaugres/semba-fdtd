@@ -23,6 +23,7 @@ module mtln_solver_mod
         procedure :: advanceBundlesCurrent
         procedure :: advanceTime
         procedure :: step => mtln_step
+        procedure :: step_alone
         procedure :: setExternalVoltage
         procedure :: updateExternalCurrent
         
@@ -72,6 +73,21 @@ contains
         call this%updateProbes()
 
         call this%updateExternalCurrent(currents)
+    end subroutine
+
+    subroutine step_alone(this)
+        class(mtln_t) :: this
+        integer :: i 
+
+
+        call this%advanceBundlesVoltage()
+        call this%advanceNWVoltage()
+        call this%advanceBundlesCurrent()
+        ! call this%updateNWCurrent()
+
+        call this%advanceTime()
+        call this%updateProbes()
+
     end subroutine
 
     subroutine setExternalVoltage(this, voltages)
@@ -177,6 +193,6 @@ contains
         end do
 
     end subroutine
-    
+
 
 end module mtln_solver_mod

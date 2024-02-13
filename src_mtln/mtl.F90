@@ -11,7 +11,7 @@ module mtl_mod
         integer  :: number_of_conductors
         real, allocatable, dimension(:,:,:) :: lpul, cpul, rpul, gpul
         real, allocatable, dimension(:) :: step_size
-        real, allocatable, dimension(:,:,:) :: du_length(:,:,:)
+        real, allocatable, dimension(:,:,:) :: du(:,:,:)
         type(lumped_t) :: lumped_elements
         real :: time = 0.0, dt = 0.0
 
@@ -176,7 +176,7 @@ contains
         class(mtl_t) :: this
         integer :: j
 
-        this%du_length = reshape(source = [(this%step_size(j)*eye(this%number_of_conductors) , j = 1, size(this%step_size))], &
+        this%du = reshape(source = [(this%step_size(j)*eye(this%number_of_conductors) , j = 1, size(this%step_size))], &
                               shape = [size(this%step_size), this%number_of_conductors, this%number_of_conductors], &
                               order=[2,3,1])
     end subroutine
@@ -234,7 +234,7 @@ contains
     function getMaxTimeStep(this) result(res)
         class(mtl_t) :: this
         real :: res
-        res= minval(pack(this%du_length, this%du_length /= 0))/maxval(this%getPhaseVelocities())
+        res= minval(pack(this%du, this%du /= 0))/maxval(this%getPhaseVelocities())
     end function
 
     subroutine initRGHomogeneous(this, rpul, gpul)

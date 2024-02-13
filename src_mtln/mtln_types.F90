@@ -18,7 +18,7 @@ module mtln_types_mod
         type(cable_t), pointer :: belongs_to_cable => null()
         integer :: conductor_in_cable
         character(len=:), allocatable :: side ! initial or end
-        type(termination_t) :: termination
+        class(termination_t), allocatable :: termination
     end type
 
     type :: terminal_connection_t

@@ -13,7 +13,7 @@ module mtl_bundle_mod
         integer  :: number_of_conductors = 0, number_of_divisions = 0
         real, dimension(:), allocatable :: step_size
         real, allocatable, dimension(:,:) :: v, i
-        real, allocatable, dimension(:,:,:) :: du_length(:,:,:)
+        real, allocatable, dimension(:,:,:) :: du(:,:,:)
         real :: time = 0.0, dt = 1e10
         type(probe_t), allocatable, dimension(:) :: probes
         type(transfer_impedance_t) :: transfer_impedance
@@ -76,7 +76,7 @@ contains
         allocate(this%cpul(this%number_of_divisions + 1, this%number_of_conductors, this%number_of_conductors), source = 0.0)
         allocate(this%gpul(this%number_of_divisions + 1, this%number_of_conductors, this%number_of_conductors), source = 0.0)
         allocate(this%rpul(this%number_of_divisions, this%number_of_conductors, this%number_of_conductors), source = 0.0)
-        allocate(this%du_length(this%number_of_divisions, this%number_of_conductors, this%number_of_conductors), source = 0.0)
+        allocate(this%du(this%number_of_divisions, this%number_of_conductors, this%number_of_conductors), source = 0.0)
         
         allocate(this%v(this%number_of_conductors, this%number_of_divisions + 1), source = 0.0)
         allocate(this%i(this%number_of_conductors, this%number_of_divisions), source = 0.0)
@@ -111,7 +111,7 @@ contains
                 this%cpul(:, n_sum + 1: n_sum+n , n_sum +1 : n_sum+n) = levels(i)%lines(j)%cpul(:,:,:)
                 this%rpul(:, n_sum + 1: n_sum+n , n_sum +1 : n_sum+n) = levels(i)%lines(j)%rpul(:,:,:)
                 this%gpul(:, n_sum + 1: n_sum+n , n_sum +1 : n_sum+n) = levels(i)%lines(j)%gpul(:,:,:)
-                this%du_length(:, n_sum + 1: n_sum+n , n_sum +1 : n_sum+n) = levels(i)%lines(j)%du_length(:,:,:)
+                this%du(:, n_sum + 1: n_sum+n , n_sum +1 : n_sum+n) = levels(i)%lines(j)%du(:,:,:)
                 n_sum = n_sum+n
             end do
         end do
@@ -201,7 +201,7 @@ contains
         ! enddo
 
         F1 = reshape(source=[(matmul( &
-            this%du_length(i,:,:), &
+            this%du(i,:,:), &
             this%lpul(i,:,:)/this%dt + &
                 0.5*this%transfer_impedance%d(i,:,:) + &
                 this%transfer_impedance%e(i,:,:)/this%dt + &
@@ -211,7 +211,7 @@ contains
             shape=[this%number_of_divisions,this%number_of_conductors, this%number_of_conductors], &
             order=[2,3,1])
         F2 = reshape(source=[(matmul( &
-            this%du_length(i,:,:), &
+            this%du(i,:,:), &
             this%lpul(i,:,:)/this%dt - &
             0.5*this%transfer_impedance%d(i,:,:) + &
             this%transfer_impedance%e(i,:,:)/this%dt - &
@@ -235,22 +235,22 @@ contains
     subroutine updateCGTerms(this)
         class(mtl_bundle_t) ::this
         real, dimension(this%number_of_divisions + 1,this%number_of_conductors,this%number_of_conductors) :: F1, F2, IF1
-        real, dimension(this%number_of_divisions + 1, this%number_of_conductors,this%number_of_conductors) :: extended_du_length
+        real, dimension(this%number_of_divisions + 1, this%number_of_conductors,this%number_of_conductors) :: extended_du
         integer :: i
         
-        extended_du_length(1,:,:) = this%du_length(1,:,:)
+        extended_du(1,:,:) = this%du(1,:,:)
         do i = 2, this%number_of_divisions
-            extended_du_length(i,:,:)= 0.5*(this%du_length(i,:,:)+this%du_length(i-1,:,:))
+            extended_du(i,:,:)= 0.5*(this%du(i,:,:)+this%du(i-1,:,:))
         end do
-        extended_du_length(this%number_of_divisions + 1,:,:) = this%du_length(this%number_of_divisions,:,:)
+        extended_du(this%number_of_divisions + 1,:,:) = this%du(this%number_of_divisions,:,:)
 
         F1 = reshape(&
-            source=[(matmul(extended_du_length(i,:,:), &
+            source=[(matmul(extended_du(i,:,:), &
             this%cpul(i,:,:)/this%dt) + 0.5*this%gpul(i,:,:), i = 1, this%number_of_divisions + 1)], &
             shape=[this%number_of_divisions + 1,this%number_of_conductors, this%number_of_conductors], &
             order=[2,3,1])
         F2 = reshape(&
-            source=[(matmul(extended_du_length(i,:,:), &
+            source=[(matmul(extended_du(i,:,:), &
             this%cpul(i,:,:)/this%dt) - 0.5*this%gpul(i,:,:), i = 1, this%number_of_divisions + 1)], &
             shape=[this%number_of_divisions + 1,this%number_of_conductors, this%number_of_conductors], &
             order=[2,3,1])
@@ -278,33 +278,33 @@ contains
         class(mtl_bundle_t) ::this
         integer :: i
 
-        ! do i = 2, this%number_of_divisions
-        !     this%v(:, i) = matmul(this%v_term(i,:,:), this%v(:,i)) - &
-        !                    matmul(this%i_diff(i,:,:), this%i(:,i) - this%i(:,i-1)  )
-        !                    ! + eT?
-        ! end do
+        do i = 2, this%number_of_divisions
+            this%v(:, i) = matmul(this%v_term(i,:,:), this%v(:,i)) - &
+                           matmul(this%i_diff(i,:,:), this%i(:,i) - this%i(:,i-1)  )
+        end do
 
 
-        !? this%v = reshape(source=[(matmul(this%v_term(i,:,:), this%v(:,i)), i = 2, this%number_of_divisions - 1)], &
-        !                  shape = [this%number_of_divisions + 1,this%number_of_conductors, this%number_of_conductors], &
-        !                  order = [2,3,1])
+        ! this%v(:,2:this%number_of_divisions) = &
+        !          reshape(source=[(matmul(this%v_term(i,:,:), this%v(:,i)), i = 2, this%number_of_divisions - 1)], &
+        !                  shape = [this%number_of_divisions -1,this%number_of_conductors], &
+        !                  order = [2,1])
     end subroutine
 
     subroutine bundle_advanceCurrent(this)
         class(mtl_bundle_t) ::this
         real, dimension(:,:), allocatable :: i_prev, i_now
         integer :: i
-        ! call this%transfer_impedance%updateQ3Phi()
-        ! i_prev = this%i
-        ! do i = 1, this%number_of_divisions 
-        !     this%i(:,i) = matmul(this%i_term(i,:,:), this%i(:,i)) - &
-        !                   matmul(this%v_diff(i,:,:), (this%v(:,i+1) - this%v(:,i))) - &
-        !                         !  matmul(0.5*this%du_length(i,:,:), this%el))
-        !                   matmul(this%v_diff(i,:,:), matmul(this%du_length(i,:,:), this%transfer_impedance%q3_phi(i,:)))
-        ! enddo
-        ! !TODO - revisar
-        ! i_now = this%i
-        ! call this%transfer_impedance%updatePhi(i_prev, i_now)
+        call this%transfer_impedance%updateQ3Phi()
+        i_prev = this%i
+        do i = 1, this%number_of_divisions 
+            this%i(:,i) = matmul(this%i_term(i,:,:), this%i(:,i)) - &
+                          matmul(this%v_diff(i,:,:), (this%v(:,i+1) - this%v(:,i))) - &
+                                !  matmul(0.5*this%du_length(i,:,:), this%el))
+                          matmul(this%v_diff(i,:,:), matmul(this%du(i,:,:), this%transfer_impedance%q3_phi(i,:)))
+        enddo
+        !TODO - revisar
+        i_now = this%i
+        call this%transfer_impedance%updatePhi(i_prev, i_now)
     end subroutine
 
     subroutine bundle_setExternalCurrent(this, current)

@@ -148,13 +148,15 @@ contains
         integer, dimension(:), allocatable :: conductors_in_level
         integer :: i,j
         conductors_in_level = conductorsInLevel(line)
-        do i = 1, size(line%levels)
+        call conductors_before_cable%set(key(line%levels(1)%lines(1)%name), 0)
+        do i = 2, size(line%levels)
             do j = 1, size(line%levels(i)%lines)
                 range_in = findInnerConductorRange(line%levels(i)%lines(j), line%levels(i), sum(conductors_in_level(1:i-1)))
                 if (size(range_in) /= 0) then 
-                    call conductors_before_cable%set(key(line%levels(i)%lines(j)%name), range_in(1))
+                    call conductors_before_cable%set(key(line%levels(i)%lines(j)%name), range_in(1) - 1)
                 else
-                    call conductors_before_cable%set(key(line%levels(i)%lines(j)%name), range_in(0))
+                    error stop 'range in cannot be empty'
+                    ! call conductors_before_cable%set(key(line%levels(i)%lines(j)%name), range_in(0))
                 end if
             end do
         end do  
@@ -304,35 +306,98 @@ contains
 
     end function
 
+    function writeSeriesRLCnode(node, termination, end_node) result(res)
+        type(node_t), intent(in) :: node
+        class(termination_t), intent(in) :: termination
+        character(len=*), intent(in) :: end_node
+        character(len=256), allocatable :: res(:)
+        character(20) :: charR, charL, charC, sr_from_line
+
+        write(charC, *) termination%capacitance
+        write(charR, *) termination%resistance
+        write(charL, *) termination%inductance
+        write(sr_from_line, *) node%r_from_line
+
+        allocate(res(0))
+
+        res = [res, trim("R" // node%name // " " // node%name // " "   // node%name //"_R " // charR)]
+        res = [res, trim("L" // node%name // " " // node%name // "_R " // node%name //"_L " // charL)]
+        select type(termination)
+        type is(source_termination_t)
+            res = [res, trim("C" // node%name // " " // node%name // "_L " // node%name //"_V "// charC)]
+            res = [res, trim("V" // node%name // " " // node%name // "_V " // end_node //" dc 0" )]
+        type is(termination_t)
+            res = [res, trim("C" // node%name // " " // node%name // "_L " // end_node //" "// charC)]
+        end select
+        res = [res, trim("RC" // node%name // " " // node%name // " 0 " // sr_from_line)]
+        res = [res, trim("I" // node%name // " " // node%name// " 0 " // " dc 0")]
+        ! res = [res, trim("I" // node%name // " " // " 0 " // node%name // " dc 0")]
+    end function
+
+    function writeSeriesRLnode(node, termination, end_node) result(res)
+        type(node_t), intent(in) :: node
+        class(termination_t), intent(in) :: termination
+        character(len=*), intent(in) :: end_node
+        character(len=256), allocatable :: res(:)
+        character(20) :: charR, charL, sr_from_line
+
+        write(charR, *) termination%resistance
+        write(charL, *) termination%inductance
+        write(sr_from_line, *) node%r_from_line
+
+        allocate(res(0))
+
+        res = [res, trim("R" // node%name // " " // node%name // " "   // node%name //"_R " // charR)]
+        select type(termination)
+        type is(source_termination_t)
+            res = [res, trim("L" // node%name // " " // node%name // "_R " // node%name //"_L " // charL)]
+            res = [res, trim("V" // node%name // " " // node%name // "_L " // end_node //" dc 0" )]
+        type is(termination_t)
+        res = [res, trim("L" // node%name // " " // node%name // "_R " // end_node //" "// charL)]
+        end select
+        res = [res, trim("RC" // node%name // " " // node%name // " 0 " // sr_from_line)]
+        ! res = [res, trim("I" // node%name // " " // " 0 " // node%name // " dc 0")]
+        res = [res, trim("I" // node%name // " " // node%name// " 0 " // " dc 0")]
+
+    end function
+
+
+
     function writeSeriesNode(node, termination, end_node) result(res)
         type(node_t), intent(in) :: node
         class(termination_t), intent(in) :: termination
         character(len=*), intent(in) :: end_node
         character(len=256), allocatable :: res(:)
-        character(20) :: charR, charL, charC, lineC
 
-        write(*, *) termination%resistance
+        if (termination%capacitance >= 1e22) then 
+            res = writeSeriesRLnode(node, termination, end_node)
+        else
+            res = writeSeriesRLCnode(node, termination, end_node)
+        end if
 
-        write(charC, *) termination%capacitance
-        write(charR, *) termination%resistance
-        write(charL, *) termination%inductance
+    end function
+
+    function writeShortNode(node, termination, end_node) result(res)
+        type(node_t), intent(in) :: node
+        class(termination_t), intent(in) :: termination
+        character(len=*), intent(in) :: end_node
+        character(len=256), allocatable :: res(:)
+        character(20) :: lineC, sr_from_line
+
         write(lineC, *) node%line_c_per_meter
+        write(sr_from_line, *) node%r_from_line
 
         allocate(res(0))
         select type(termination)
         type is(source_termination_t)
-            res = [res, trim("V" // node%name // " " // node%name // " "   // node%name //"_V 0" )]
-            res = [res, trim("R" // node%name // " " // node%name // "_V "   // node%name //"_R " // charR)]
+            res = [res, trim("V" // node%name // " " // node%name // " " // end_node//" dc 0")]
         type is(termination_t)
-            res = [res, trim("R" // node%name // " " // node%name // " "   // node%name //"_R " // charR)]
+            res = [res, trim("R" // node%name // " " // node%name // " " // end_node //" 0")]
         end select
-        res = [res, trim("L" // node%name // " " // node%name // "_R " // node%name //"_L " // charL)]
-        res = [res, trim("C" // node%name // " " // node%name // "_L " // end_node //" "// charC)]
-        res = [res, trim("CL" // node%name // " " // node%name // " 0 " // lineC)]
-        res = [res, trim("I" // node%name // " " // " 0 " // node%name // " dc 0")]
-
-
-
+        res = [res, trim("RC" // node%name // " " // node%name // " 0 " // sr_from_line)]
+        ! res = [res, trim("CL" // node%name // " " // node%name // " 0 " // lineC)]
+        ! res = [res, trim("I" // node%name // " " // " 0 " // node%name // " dc 0")]
+        res = [res, trim("I" // node%name // " " // node%name// " 0 " // " dc 0")]
     end function
 
     function writeLCpRsNode(node, termination, end_node) result(res)
@@ -341,38 +406,45 @@ contains
         character(len=*), intent(in) :: end_node
         character(len=256), allocatable :: res(:)
         character(len=:), allocatable :: node_name
-        character(20) :: sR, sL, sC, lineC
+        character(20) :: sR, sL, sC, lineC, sr_from_line
         
         write(sR, '(E10.2)') termination%resistance
         write(sL, '(E10.2)') termination%inductance
         write(sC, '(E10.2)') termination%capacitance
         write(lineC, '(E10.2)') node%line_c_per_meter
+        write(sr_from_line, '(E10.2)') node%r_from_line
         
         allocate(res(0))
+        res = [res, trim("R" // node%name // " " // node%name // " "   // node%name //"_p " // sR)]
         select type(termination)
         type is(source_termination_t)
-            res = [res, trim("V" // node%name // " " // node%name // " "   // node%name //"_V 0")]
-            res = [res, trim("R" // node%name // " " // node%name // "_V "   // node%name //"_p " // sR)]
+            res = [res, trim("L" // node%name // " " // node%name // "_p " // node%name //"_V "// sL)]
+            res = [res, trim("C" // node%name // " " // node%name // "_p " // node%name //"_V "// sC)]
+            res = [res, trim("V" // node%name // " " // node%name // "_V " // end_node //" dc 0" )]
         type is(termination_t)
-            res = [res, trim("R" // node%name // " " // node%name // " "   // node%name //"_p " // sR)]
+            res = [res, trim("L" // node%name // " " // node%name // "_p " // end_node //" "// sL)]
+            res = [res, trim("C" // node%name // " " // node%name // "_p " // end_node //" "// sC)]
         end select
-        res = [res, trim("L" // node%name // " " // node%name // "_p " // end_node //" "// sL)]
-        res = [res, trim("C" // node%name // " " // node%name // "_p " // end_node //" "// sC)]
-        res = [res, trim("CL" // node%name // " " // node%name // " 0 " // lineC)]
-        res = [res, trim("I" // node%name // " " // " 0 " // node%name // " dc 0")]
+
+        res = [res, trim("RC" // node%name // " " // node%name // " 0 " // sr_from_line)]
+        ! res = [res, trim("CL" // node%name // " " // node%name // " 0 " // lineC)]
+        res = [res, trim("I" // node%name // " " // node%name// " 0 " // " dc 0")]
+        ! res = [res, trim("I" // node%name // " " // " 0 " // node%name // " dc 0")]
 
     end function
 
     function writeNodeDescription(node, termination, end_node) result(res)
         type(node_t), intent(in) :: node
         class(termination_t), intent(in) :: termination
-        character(len=:), allocatable :: res(:)
+        character(len=256), allocatable :: res(:)
         character(len=*), intent(in) :: end_node
 
         if (termination%type == "series") then 
             res = writeSeriesNode(node, termination, end_node)
         else if (termination%type == "LCpRs") then 
             res = writeLCpRsNode(node, termination, end_node)
+        else if (termination%type == "short") then 
+            res = writeShortNode(node, termination , end_node)
         end if
 
     end function    
@@ -390,7 +462,8 @@ contains
         type(node_t) :: res
         character(len=4) :: sConductor
         integer :: conductor_number
-
+        real :: step
+        class(termination_t), allocatable :: termination
         call this%conductors_before_cable%get(key(node%belongs_to_cable%name), conductor_number)
         conductor_number = conductor_number + node%conductor_in_cable
 
@@ -401,15 +474,25 @@ contains
         ! sConductor = char(node%conductor_in_cable)
         write(sConductor,'(I0)') node%conductor_in_cable
         res%name = trim(node%belongs_to_cable%name)//"_"//trim(sConductor)//"_"//trim(node%side)
-        write(*,*) sConductor
-        write(*,*) trim(sConductor)
         if (node%side == "initial") then 
             res%v => tbundle%v(conductor_number, lbound(tbundle%v,2))
             res%i => tbundle%i(conductor_number, lbound(tbundle%i,2))
+            res%line_c_per_meter = tbundle%cpul(lbound(tbundle%cpul,1), conductor_number, conductor_number)
+            step = tbundle%du(lbound(tbundle%cpul,1), conductor_number, conductor_number)
         else if (node%side == "end") then 
             res%v => tbundle%v(conductor_number, ubound(tbundle%v,2))
             res%i => tbundle%i(conductor_number, ubound(tbundle%i,2))
+            res%line_c_per_meter = tbundle%cpul(ubound(tbundle%cpul,1), conductor_number, conductor_number)
+            step = tbundle%du(ubound(tbundle%cpul,1), conductor_number, conductor_number)
         end if
+        res%r_from_line = this%dt/(step * res%line_c_per_meter)
+
+        res%source = ""
+        select type(termination => node%termination)
+        type is(source_termination_t)
+            res%source = termination%path_to_excitation
+        end select
+
         ! select type(d)
         ! type is (mtl_bundle_t)
         !     if (node%side == "initial") then 
@@ -427,13 +510,14 @@ contains
         class(preprocess_t) :: this
         type(terminal_node_t), dimension(:), allocatable :: terminal_nodes
         type(node_t),  dimension(:), allocatable, intent(inout) :: nodes
-        character(50), dimension(:), allocatable, intent(inout) :: description
+        character(256), dimension(:), allocatable, intent(inout) :: description
 
         type(node_t) :: new_node
         integer :: stat
         ! class(*), pointer :: d
         
         new_node = this%addNode(terminal_nodes(1))
+        
         ! new_node = addNode(terminal_nodes(1), this%cable_name_to_bundle, this%conductors_before_cable)
         ! if(.not.allocated(nodes) .or. size(nodes)==0) then 
         !     allocate(nodes(1))
@@ -446,7 +530,7 @@ contains
         class(preprocess_t) :: this
         type(terminal_node_t), dimension(:), allocatable :: terminal_nodes
         type(node_t),  dimension(:), intent(inout) :: nodes
-        character(50), dimension(:), intent(inout) :: description
+        character(256), dimension(:), intent(inout) :: description
         type(node_t) :: new_node
         integer :: i, stat
         ! class(*), pointer :: d
@@ -467,7 +551,7 @@ contains
         class(preprocess_t) :: this
         type(terminal_network_t), intent(in) :: terminal_network
         type(node_t), dimension(:), allocatable :: nodes
-        character(50), dimension(:), allocatable :: description
+        character(256), dimension(:), allocatable :: description
         type(network_t) :: res
         integer :: i
 
@@ -485,22 +569,22 @@ contains
     end function
 
     subroutine endDescription(description)
-        character(50), dimension(:), allocatable, intent(inout) :: description
+        character(256), dimension(:), allocatable, intent(inout) :: description
         description = [description, ".end"]
         description = [description, "NULL"]
     end subroutine
 
-    subroutine addDescription(description, nw_description)
-        character(50), dimension(:), allocatable, intent(inout) :: description
-        character(50), dimension(:), intent(in) :: nw_description
+    subroutine addNetworksDescription(description, networks)
+        character(256), dimension(:), allocatable, intent(inout) :: description
+        type(network_t), dimension(:), intent(in) :: networks
         integer :: i
-        do i = 1, size(nw_description,1)
-            description = [description, nw_description(i)]
+        do i = 1, size(networks)
+            description = [description, networks(i)%description]
         end do
     end subroutine
 
     subroutine addAnalysis(description, final_time, dt)
-        character(50), dimension(:), allocatable, intent(inout) :: description
+        character(256), dimension(:), allocatable, intent(inout) :: description
         real, intent(in) :: final_time, dt
         character(20) :: sTime, sdt
         write(sTime, '(E10.2)') final_time
@@ -510,7 +594,7 @@ contains
     end subroutine
 
     subroutine addSavedNodes(description, networks)
-        character(50), dimension(:), allocatable, intent(inout) :: description
+        character(256), dimension(:), allocatable, intent(inout) :: description
         type(network_t), dimension(:), intent(in) :: networks
         character(len=:), allocatable :: saved_nodes
         integer :: i,j
@@ -540,13 +624,12 @@ contains
         
         allocate(description(0))
         description = [description, "* network description message"]
-        do i = 1, size(networks)
-            call addDescription(description, networks(i)%description)
-        end do
+        call addNetworksDescription(description, networks)
         call addAnalysis(description, this%final_time, this%dt)
         call addSavedNodes(description, networks)
         call endDescription(description)        
 
+        write(*,*) description
         res = network_managerCtor(networks, description, this%final_time, this%dt)
 
     end function

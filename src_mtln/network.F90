@@ -10,14 +10,16 @@ module network_mod
         real, pointer :: v
         real, pointer :: i
         character(len=:), allocatable :: name
+        character(len=:), allocatable :: source
         real :: line_c_per_meter
+        real :: r_from_line
     end type
 
 
     type, public :: network_t
         integer :: number_of_nodes = 0
         type(node_t), dimension(:), allocatable :: nodes
-        character(50), dimension(:), allocatable :: description
+        character(256), dimension(:), allocatable :: description
         ! type(circuit_t), pointer :: circuit
     contains
 

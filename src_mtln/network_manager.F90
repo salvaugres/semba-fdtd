@@ -21,6 +21,18 @@ module network_manager_mod
 
 contains
 
+    function copy_sources_names(networks) result(res)
+        type(network_t), dimension(:), intent(in) :: networks
+        type(string_t), dimension(:), allocatable :: res
+        integer :: i,j
+        allocate(res(0))
+        do i = 1, size(networks)
+            do j = 1, size(networks(i)%nodes)
+                res = [res, string_t(networks(i)%nodes(j)%source, len(networks(i)%nodes(j)%source))]
+            end do
+        end do
+    end function
+
     function copy_node_names(networks) result(res)
         type(network_t), dimension(:), intent(in) :: networks
         type(string_t), dimension(:), allocatable :: res
@@ -44,7 +56,7 @@ contains
         res%dt = dt
         res%time = 0.0
         res%networks = networks
-        call res%circuit%init(copy_node_names(networks))
+        call res%circuit%init(copy_node_names(networks), copy_sources_names(networks))
         res%circuit%dt = dt
         call res%circuit%readInput(description)
         call res%circuit%setStopTimes(final_time, dt)
@@ -67,7 +79,11 @@ contains
         integer :: i, j
         do i = 1, size(this%networks)
             do j = 1, this%networks(i)%number_of_nodes
-                call this%circuit%updateNodeCurrent(this%networks(i)%nodes(j)%name, this%networks(i)%nodes(j)%i)
+                if (index(this%networks(i)%nodes(j)%name, "initial") /= 0) then 
+                    call this%circuit%updateNodeCurrent(this%networks(i)%nodes(j)%name, this%networks(i)%nodes(j)%i)
+                else
+                    call this%circuit%updateNodeCurrent(this%networks(i)%nodes(j)%name, - this%networks(i)%nodes(j)%i)
+                end if
             end do
         end do
     end subroutine

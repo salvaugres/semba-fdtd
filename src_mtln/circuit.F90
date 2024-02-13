@@ -51,13 +51,16 @@ contains
         class(source_t) :: this
         real :: time
         integer :: index
-        index = maxloc(this%time - time, 1, (this%time - time) >= 0)
+        real, dimension(:), allocatable :: timediff
+        timediff = this%time - time
+        index = maxloc(this%time - time, 1, (this%time - time) <= 0)
         res = 0.5*(this%voltage(index+1) + this%voltage(index))
     end function
 
-    subroutine init(this, names, netlist)
+    subroutine init(this, names, sources, netlist)
         class(circuit_t) :: this
         type(string_t), intent(in), dimension(:), optional :: names
+        type(string_t), intent(in), dimension(:), optional :: sources
         character(len=*), intent(in), optional :: netlist
         integer :: i
 
@@ -76,8 +79,30 @@ contains
         do i = 1, size(names)
             this%nodes%names(i) = names(i)
         end do
+        if (present(sources)) then 
+            do i = 1, size(sources)
+                this%nodes%sources(i) = setSource(sources(i))
+            end do
+        end if
 
     end subroutine
+
+    type(source_t) function setSource(source_path) result(res)
+        type(string_t), intent(in) :: source_path
+        real :: time, v
+        integer :: io
+        allocate(res%time(0), res%voltage(0))
+        if (source_path%length /= 0 ) then 
+            res%has_source = .true.
+            open(unit = 1, file = source_path%name)
+            do
+                read(1, *, iostat = io) time, v
+                if (io /= 0) exit
+                res%time = [res%time, time]
+                res%voltage = [res%voltage, v]
+            end do
+        end if
+    end function    
 
     subroutine loadNetlist(this, netlist)
         class(circuit_t) :: this
