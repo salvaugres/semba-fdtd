@@ -33,7 +33,7 @@ contains
         res%type = probe_type
         res%index = index
         res%dt = dt
-        res%current_frame = 0
+        res%current_frame = 1
         ! allocate(res%val(0), res%t(0,0))
 
     end function

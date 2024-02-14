@@ -11,6 +11,7 @@ module mtln_solver_mod
         real :: time, dt
         type(mtl_bundle_t), allocatable, dimension(:) :: bundles
         type(network_manager_t) :: network_manager
+        type(probe_t), allocatable, dimension(:) :: probes
         integer :: number_of_bundles
     contains
 
@@ -50,7 +51,7 @@ contains
         res%bundles = pre%bundles
         res%network_manager = pre%network_manager
         res%number_of_bundles = size(res%bundles)
-
+        res%probes = pre%probes
         call res%updateBundlesTimeStep(res%dt)
         call res%updatePULTerms(res%getTimeRange(pre%final_time))
 

@@ -79,11 +79,12 @@ contains
         integer :: i, j
         do i = 1, size(this%networks)
             do j = 1, this%networks(i)%number_of_nodes
-                if (index(this%networks(i)%nodes(j)%name, "initial") /= 0) then 
-                    call this%circuit%updateNodeCurrent(this%networks(i)%nodes(j)%name, this%networks(i)%nodes(j)%i)
-                else
-                    call this%circuit%updateNodeCurrent(this%networks(i)%nodes(j)%name, - this%networks(i)%nodes(j)%i)
-                end if
+                call this%circuit%updateNodeCurrent(this%networks(i)%nodes(j)%name, this%networks(i)%nodes(j)%i)
+                ! if (index(this%networks(i)%nodes(j)%name, "initial") /= 0) then 
+                !     call this%circuit%updateNodeCurrent(this%networks(i)%nodes(j)%name, this%networks(i)%nodes(j)%i)
+                ! else
+                !     call this%circuit%updateNodeCurrent(this%networks(i)%nodes(j)%name, this%networks(i)%nodes(j)%i)
+                ! end if
             end do
         end do
     end subroutine

@@ -9,6 +9,8 @@ module testingTools_mod
 
 contains
     
+    
+
     type(network_t) function buildNetwork(name, r1, c1, r2, c2, target_v_nodes, target_i_nodes) result(res)
         character(len=*), intent(in) :: name, r1, c1, r2, c2
         character(100), dimension(:), allocatable :: description

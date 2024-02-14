@@ -65,7 +65,7 @@ integer function test_coaxial_line_paul_8_6_square() bind(C) result(error_cnt)
     network_right%connections = [connection_right]
 
     probe%attached_to_cable => cable
-    probe%index = 0 
+    probe%index = 1 
     probe%type = "voltage"
 
 
@@ -74,7 +74,7 @@ integer function test_coaxial_line_paul_8_6_square() bind(C) result(error_cnt)
     parsed%cables = [cable]
     parsed%probes = [probe]
     parsed%number_of_steps = 900
-    parsed%time_step = 2e-8
+    parsed%time_step = 2.0e-8
     ! pre = preprocess(parsed)
 
     solver = mtlnCtor(parsed)
@@ -82,6 +82,14 @@ integer function test_coaxial_line_paul_8_6_square() bind(C) result(error_cnt)
     write(*,*) error_cnt
     ! p = Parser(file)
     ! p.run(finalTime = 18e-6)
+    block
+        integer :: i
+        open(unit = 1, file =  'probe.txt')
+        do i = 1, size(solver%bundles(1)%probes(1)%t)
+            write(1,*) solver%bundles(1)%probes(1)%t(i)," ", solver%bundles(1)%probes(1)%val(i,1)
+        end do
+
+    end block
 
     block
         real, dimension(:), allocatable :: start_times, end_times, expected_voltages
@@ -97,4 +105,7 @@ integer function test_coaxial_line_paul_8_6_square() bind(C) result(error_cnt)
     !     end = np.argmin(np.abs(p.probes["v_source"].t - t_end*1e-6))
     !     assert np.all(np.isclose(p.probes["v_source"].val[start:end], v))
     end block
+
+
+
 end function test_coaxial_line_paul_8_6_square
