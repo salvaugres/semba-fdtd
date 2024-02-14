@@ -11,7 +11,10 @@ module network_manager_mod
     contains
         procedure :: advanceVoltage => network_advanceVoltage
         procedure :: updateCircuitCurrentsFromNetwork
+        procedure :: updateCircuitvoltagesFromNetwork
         procedure :: updateNetworkVoltagesFromCircuit
+        procedure :: updateNetworkVoltages
+        procedure :: getIsCurrents
     end type
 
     interface network_manager_t
@@ -63,12 +66,47 @@ contains
 
     end function
 
+    subroutine getIsCurrents(this)
+        class(network_manager_t) :: this
+        integer :: i,j
+        do i = 1, size(this%networks)
+            do j = 1, this%networks(i)%number_of_nodes
+                this%networks(i)%nodes(j)%is_now = this%circuit%getNodeCurrent(this%networks(i)%nodes(j)%name)
+            end do
+        end do
+    end subroutine
+
     subroutine updateNetworkVoltagesFromCircuit(this)
         class(network_manager_t) :: this
         integer :: i, j
         do i = 1, size(this%networks)
             do j = 1, this%networks(i)%number_of_nodes
                 this%networks(i)%nodes(j)%v = this%circuit%getNodeVoltage(this%networks(i)%nodes(j)%name)
+            end do
+        end do
+    end subroutine
+
+    subroutine updateNetworkVoltages(this)
+        class(network_manager_t) :: this
+        integer :: i, j
+        real :: is_now, is_prev, I1, c
+        do i = 1, size(this%networks)
+            do j = 1, this%networks(i)%number_of_nodes
+                this%networks(i)%nodes(j)%is_now = this%circuit%getNodeCurrent(this%networks(i)%nodes(j)%name)
+                is_now = this%networks(i)%nodes(j)%is_now
+                is_prev = this%networks(i)%nodes(j)%is_prev
+                I1 = this%networks(i)%nodes(j)%i
+                c = this%networks(i)%nodes(j)%line_c_per_meter
+                if (index(this%networks(i)%nodes(j)%name, "initial") /= 0) then 
+                    this%networks(i)%nodes(j)%v = this%networks(i)%nodes(j)%v - 2*this%dt/(4.0*c)*I1 + &
+                                                  this%dt * (is_now + is_prev)/(4.0*c)
+                else 
+                    this%networks(i)%nodes(j)%v = this%networks(i)%nodes(j)%v + 2*this%dt/(4.0*c)*I1 - &
+                                                  this%dt * (is_now + is_prev)/(4.0*c)
+
+                end if
+                
+                this%networks(i)%nodes(j)%is_prev = is_now
             end do
         end do
     end subroutine
@@ -89,13 +127,25 @@ contains
         end do
     end subroutine
 
+    subroutine updateCircuitVoltagesFromNetwork(this)
+        class(network_manager_t) :: this
+        integer :: i, j
+        do i = 1, size(this%networks)
+            do j = 1, this%networks(i)%number_of_nodes
+                call this%circuit%updateNodeVoltage(this%networks(i)%nodes(j)%name, this%networks(i)%nodes(j)%v)
+            end do
+        end do
+    end subroutine
+
     subroutine network_advanceVoltage(this)
         class(network_manager_t) :: this
 
-        call this%updateCircuitCurrentsFromNetwork()
+        ! call this%updateCircuitCurrentsFromNetwork()
+        call this%updateCircuitVoltagesFromNetwork()
         call this%circuit%step()
         this%circuit%time = this%circuit%time + this%circuit%dt
-        call this%updateNetworkVoltagesFromCircuit()
+        ! call this%updateNetworkVoltagesFromCircuit()
+        call this%updateNetworkVoltages()
     end subroutine
 
 end module

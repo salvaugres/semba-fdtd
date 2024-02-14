@@ -38,9 +38,11 @@ module circuit_mod
         procedure :: readInput
         procedure :: setStopTimes
         procedure :: getNodeVoltage
+        procedure :: getNodeCurrent
         procedure :: updateNodes
         procedure :: getTime
         procedure :: updateNodeCurrent
+        procedure :: updateNodeVoltage
         procedure :: updateVoltageSources
 
     end type circuit_t
@@ -205,6 +207,20 @@ contains
         call command("alter @I"//trim(node_name)//"[dc] = "//trim(sCurrent) // c_null_char)
     end subroutine
 
+    subroutine updateNodeVoltage(this, node_name, voltage)
+        class(circuit_t) :: this
+        real :: voltage
+        character(20) :: sVoltage
+        character(*) :: node_name
+        if (index(node_name, "initial") /= 0) then
+            write(sVoltage, '(E10.2)') voltage
+            call command("alter @V1"//trim(node_name)//"[dc] = "//trim(sVoltage) // c_null_char)
+        else
+            write(sVoltage, '(E10.2)') -voltage
+            call command("alter @V1"//trim(node_name)//"[dc] = "//trim(sVoltage) // c_null_char)
+        end if
+    end subroutine
+
     subroutine updateNodes(this) 
         class(circuit_t) :: this
         integer :: i
@@ -212,13 +228,25 @@ contains
         real(kind=c_double), pointer :: values(:)
 
         do i = 1, size(this%nodes%names)
-            call c_f_pointer(get_vector_info(trim(this%nodes%names(i)%name)//c_null_char), info)
+            if (this%nodes%names(i)%name /= "time") then 
+                call c_f_pointer(get_vector_info("V1"//trim(this%nodes%names(i)%name)//"#branch"//c_null_char), info)
+            else 
+                call c_f_pointer(get_vector_info(trim(this%nodes%names(i)%name)//c_null_char), info)
+            end if
+            ! call c_f_pointer(get_vector_info(trim(this%nodes%names(i)%name)//c_null_char), info)
             call c_f_pointer(info%vRealData, values,shape=[info%vLength])
             this%nodes%values(i) = values(ubound(values,1))
         end do
     end subroutine
 
     function getNodeVoltage(this, name) result(res)
+        class(circuit_t) :: this
+        character(len=*), intent(in) :: name
+        real :: res
+        res = this%nodes%values(findVoltageIndexByName(this%nodes%names, name))
+    end function
+
+    function getNodeCurrent(this, name) result(res)
         class(circuit_t) :: this
         character(len=*), intent(in) :: name
         real :: res

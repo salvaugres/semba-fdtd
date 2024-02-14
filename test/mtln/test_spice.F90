@@ -59,6 +59,7 @@ integer function test_spice_dc() bind(C) result(error_cnt)
     names(1) = string_t("node1", 5)
     names(2) = string_t("node2", 5)
     names(3) = string_t("node3", 5)
+    ! names(3) = string_t("vn1#branch", 10)
     names(4) = string_t("v-sweep", 7)
 
     error_cnt = 0

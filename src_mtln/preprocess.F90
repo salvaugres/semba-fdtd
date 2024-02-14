@@ -362,13 +362,12 @@ contains
         type is(termination_t)
         res = [res, trim("L" // node%name // " " // node%name // "_R " // end_node //" "// charL)]
         end select
-        ! res = [res, trim("RC" // node%name // " " // node%name //" "//node%name//"_t " // sr_from_line)]
-        ! res = [res, trim("I" // node%name // " " // node%name// "_t 0 " // " dc 0")]
+        res = [res, trim("V1" // node%name // " " // node%name // " 0 dc 0" )]
 
-        res = [res, trim("RC" // node%name // " " // node%name // " 0 " // sr_from_line)]
-        ! res = [res, trim("CL" // node%name // " " // node%name // " 0 " // lineC)]
-        ! res = [res, trim("I" // node%name // " " // " 0 " // node%name // " dc 0")]
-        res = [res, trim("I" // node%name // " " // node%name// " 0 " // " dc 0")]
+        ! res = [res, trim("RC" // node%name // " " // node%name // " 0 " // sr_from_line)]
+        ! ! res = [res, trim("CL" // node%name // " " // node%name // " 0 " // lineC)]
+        ! ! res = [res, trim("I" // node%name // " " // " 0 " // node%name // " dc 0")]
+        ! res = [res, trim("I" // node%name // " " // node%name// " 0 " // " dc 0")]
 
     end function
 
@@ -403,15 +402,16 @@ contains
         type is(source_termination_t)
             res = [res, trim("V" // node%name // " " // node%name // " " // end_node//" dc 0")]
         type is(termination_t)
-            res = [res, trim("R" // node%name // " " // node%name // " " // end_node //" 0")] !check
+            ! res = [res, trim("R" // node%name // " " // node%name // " " // end_node //" 0")] !check
         end select
+        res = [res, trim("V1" // node%name // " " // node%name // " 0 dc 0" )]
         ! res = [res, trim("RC" // node%name // " " // node%name //" "//node%name//"_t " // sr_from_line)]
         ! res = [res, trim("I" // node%name // " " // node%name// "_t 0 " // " dc 0")]
 
-        res = [res, trim("RC" // node%name // " " // node%name // " 0 " // sr_from_line)]
-        ! res = [res, trim("CL" // node%name // " " // node%name // " 0 " // lineC)]
-        ! res = [res, trim("I" // node%name // " " // " 0 " // node%name // " dc 0")]
-        res = [res, trim("I" // node%name // " " // node%name// " 0 " // " dc 0")]
+        ! res = [res, trim("RC" // node%name // " " // node%name // " 0 " // sr_from_line)]
+        ! ! res = [res, trim("CL" // node%name // " " // node%name // " 0 " // lineC)]
+        ! ! res = [res, trim("I" // node%name // " " // " 0 " // node%name // " dc 0")]
+        ! res = [res, trim("I" // node%name // " " // node%name// " 0 " // " dc 0")]
     end function
 
     function writeLCpRsNode(node, termination, end_node) result(res)
@@ -601,7 +601,8 @@ contains
         saved_nodes = ".save "
         do j = 1, size(networks)
             do i = 1, size(networks(j)%nodes)
-                saved_nodes = saved_nodes // trim(networks(j)%nodes(i)%name) // " "
+                saved_nodes = saved_nodes // "V1"//trim(networks(j)%nodes(i)%name)//"#branch "
+                ! saved_nodes = saved_nodes // trim(networks(j)%nodes(i)%name) // " "
             end do
         end do
         description = [description, trim(saved_nodes)]

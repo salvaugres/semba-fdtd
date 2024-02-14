@@ -9,6 +9,8 @@ module network_mod
     type node_t
         real, pointer :: v
         real, pointer :: i
+        real :: is_now = 0
+        real :: is_prev = 0
         character(len=:), allocatable :: name
         character(len=:), allocatable :: source
         real :: line_c_per_meter
