@@ -144,7 +144,7 @@ contains
         time = 0.5*dt
         do while (time < finalTime)
             time = time + dt
-            write(charTime, '(E10.2)') time
+            write(charTime, '(E10.4)') time
             call command('stop when time = '//charTime // c_null_char)
         end do
     end subroutine
@@ -202,8 +202,8 @@ contains
         do i = 1, size(this%nodes%values)
             if (this%nodes%sources(i)%has_source) then
                 interp = this%nodes%sources(i)%interpolate(time, this%dt) 
-                ! write(*,*) interp
-                write(sVoltage, '(E10.2)') interp
+                write(*,*) interp
+                write(sVoltage, '(E10.4)') interp
                 call command("alter @V"//trim(this%nodes%names(i)%name)//"[dc] = "//trim(sVoltage) // c_null_char)
             end if
         end do
@@ -214,7 +214,7 @@ contains
         real :: current
         character(20) :: sCurrent
         character(*) :: node_name
-        write(sCurrent, '(E10.2)') current
+        write(sCurrent, '(E10.4)') current
         call command("alter @I"//trim(node_name)//"[dc] = "//trim(sCurrent) // c_null_char)
     end subroutine
 
@@ -224,10 +224,10 @@ contains
         character(20) :: sVoltage
         character(*) :: node_name
         if (index(node_name, "initial") /= 0) then
-            write(sVoltage, '(E10.2)') voltage
+            write(sVoltage, '(E10.4)') voltage
             call command("alter @V1"//trim(node_name)//"[dc] = "//trim(sVoltage) // c_null_char)
         else
-            write(sVoltage, '(E10.2)') voltage
+            write(sVoltage, '(E10.4)') voltage
             call command("alter @V1"//trim(node_name)//"[dc] = "//trim(sVoltage) // c_null_char)
         end if
     end subroutine

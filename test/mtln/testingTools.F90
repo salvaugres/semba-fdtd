@@ -18,26 +18,26 @@ contains
         type(node_t) :: node_int, node_out, node_in
         real, dimension(:),intent(in), target :: target_v_nodes, target_i_nodes
 
-        node_int%v => target_v_nodes(1)
-        node_int%i => target_i_nodes(1)
-        node_in%v  => target_v_nodes(2)
-        node_in%i  => target_i_nodes(2)
-        node_out%v => target_v_nodes(3)
-        node_out%i => target_i_nodes(3)
+        node_int%values%v => target_v_nodes(1)
+        node_int%values%i => target_i_nodes(1)
+        node_in%values%v  => target_v_nodes(2)
+        node_in%values%i  => target_i_nodes(2)
+        node_out%values%v => target_v_nodes(3)
+        node_out%values%i => target_i_nodes(3)
 
         node_int%name = name//"_int"
-        node_int%v = 0.0
-        node_int%i = 0.0
+        node_int%values%v = 0.0
+        node_int%values%i = 0.0
         node_int%line_c_per_meter = 0.0
     
         node_in%name = name//"_in"
-        node_in%v = 0.0
-        node_in%i = 0.0
+        node_in%values%v = 0.0
+        node_in%values%i = 0.0
         node_in%line_c_per_meter = 0.0
     
         node_out%name = name//"_out"
-        node_out%v = 0.0
-        node_out%i = 0.0
+        node_out%values%v = 0.0
+        node_out%values%i = 0.0
         node_out%line_c_per_meter = 0.0
 
         nodes = [node_in, node_int, node_out]

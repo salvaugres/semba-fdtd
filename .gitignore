@@ -50,3 +50,7 @@ Testing/
 ./*.bak
 .vscode/ltex.dictionary.en-US.txt
 GPG-PUB-KEY-INTEL-SW-PRODUCTS-2023.PUB
+
+# mtln files
+./testData/mtln/*exc 
+probes*txt

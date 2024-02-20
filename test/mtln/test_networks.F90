@@ -106,12 +106,12 @@ integer function test_networks_simple_manager() bind(C) result(error_cnt)
         end if
     end do
 
-    if ((checkNear(manager%networks(1)%nodes(1)%v, manager%circuit%nodes%values(1), 0.01) .eqv. .false.) .or. &
-        (checkNear(manager%networks(1)%nodes(2)%v, manager%circuit%nodes%values(2), 0.01) .eqv. .false.) .or. &
-        (checkNear(manager%networks(1)%nodes(3)%v, manager%circuit%nodes%values(3), 0.01) .eqv. .false.) .or. &
-        (checkNear(manager%networks(2)%nodes(1)%v, manager%circuit%nodes%values(4), 0.01) .eqv. .false.) .or. &
-        (checkNear(manager%networks(2)%nodes(2)%v, manager%circuit%nodes%values(5), 0.01) .eqv. .false.) .or. &
-        (checkNear(manager%networks(2)%nodes(3)%v, manager%circuit%nodes%values(6), 0.01) .eqv. .false.)) then 
+    if ((checkNear(manager%networks(1)%nodes(1)%values%v, manager%circuit%nodes%values(1), 0.01) .eqv. .false.) .or. &
+        (checkNear(manager%networks(1)%nodes(2)%values%v, manager%circuit%nodes%values(2), 0.01) .eqv. .false.) .or. &
+        (checkNear(manager%networks(1)%nodes(3)%values%v, manager%circuit%nodes%values(3), 0.01) .eqv. .false.) .or. &
+        (checkNear(manager%networks(2)%nodes(1)%values%v, manager%circuit%nodes%values(4), 0.01) .eqv. .false.) .or. &
+        (checkNear(manager%networks(2)%nodes(2)%values%v, manager%circuit%nodes%values(5), 0.01) .eqv. .false.) .or. &
+        (checkNear(manager%networks(2)%nodes(3)%values%v, manager%circuit%nodes%values(6), 0.01) .eqv. .false.)) then 
         error_cnt = error_cnt + 1
     end if
 

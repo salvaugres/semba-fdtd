@@ -55,7 +55,7 @@ contains
         res%probes = pre%probes
         call res%updateBundlesTimeStep(res%dt)
         call res%updatePULTerms(res%getTimeRange(pre%final_time))
-        call res%initNodes()
+        ! call res%initNodes()
     end function
 
     subroutine initNodes(this)
@@ -63,8 +63,8 @@ contains
         integer :: i,j
         do i = 1, size(this%network_manager%networks)
             do j = 1, size(this%network_manager%networks(i)%nodes)
-                this%network_manager%networks(i)%nodes(j)%v = 0.0
-                this%network_manager%networks(i)%nodes(j)%i = 0.0
+                this%network_manager%networks(i)%nodes(j)%values%v = 0.0
+                this%network_manager%networks(i)%nodes(j)%values%i = 0.0
             end do
         end do
     end subroutine
