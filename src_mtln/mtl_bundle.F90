@@ -22,6 +22,8 @@ module mtl_bundle_mod
         real, dimension(:,:,:), allocatable :: v_term, i_term
         real, dimension(:,:,:), allocatable :: v_diff, i_diff
 
+        ! real, pointer, dimension(:) :: v_initial, v_end
+        ! real, pointer, dimension(:) :: i_initial, i_end
 
     contains
         procedure :: mergePULMatrices
@@ -80,6 +82,13 @@ contains
         
         allocate(this%v(this%number_of_conductors, this%number_of_divisions + 1), source = 0.0)
         allocate(this%i(this%number_of_conductors, this%number_of_divisions), source = 0.0)
+
+        ! allocate(this%v_initial(this%number_of_conductors), source = 0.0)
+        ! allocate(this%v_end(this%number_of_conductors), source = 0.0)
+
+        ! allocate(this%i_initial(this%number_of_conductors), source = 0.0)
+        ! allocate(this%i_end(this%number_of_conductors), source = 0.0)
+
 
         allocate(this%i_term(this%number_of_divisions,this%number_of_conductors,this%number_of_conductors), source = 0.0)
         allocate(this%v_diff(this%number_of_divisions,this%number_of_conductors,this%number_of_conductors), source = 0.0)

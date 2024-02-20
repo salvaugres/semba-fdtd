@@ -17,6 +17,7 @@ module mtln_solver_mod
 
         procedure :: updateBundlesTimeStep
         procedure :: updatePULTerms
+        procedure :: initNodes
         procedure :: getTimeRange
         procedure :: updateProbes
         procedure :: advanceNWVoltage
@@ -54,8 +55,19 @@ contains
         res%probes = pre%probes
         call res%updateBundlesTimeStep(res%dt)
         call res%updatePULTerms(res%getTimeRange(pre%final_time))
-
+        call res%initNodes()
     end function
+
+    subroutine initNodes(this)
+        class(mtln_t) :: this
+        integer :: i,j
+        do i = 1, size(this%network_manager%networks)
+            do j = 1, size(this%network_manager%networks(i)%nodes)
+                this%network_manager%networks(i)%nodes(j)%v = 0.0
+                this%network_manager%networks(i)%nodes(j)%i = 0.0
+            end do
+        end do
+    end subroutine
 
     subroutine mtln_step(this, currents, voltages)
         class(mtln_t) :: this
@@ -118,12 +130,31 @@ contains
         do i = 1, this%number_of_bundles
             call this%bundles(i)%updateSources(this%time, this%dt)
             call this%bundles(i)%advanceVoltage()
+
+            ! this%bundles(i)%v_initial(:) = this%bundles(i)%v(:,1)
+            ! this%bundles(i)%v_end(:)     = this%bundles(i)%v(:,ubound(this%bundles(i)%v, 2))
+
+            ! this%bundles(i)%i_initial(:) = this%bundles(i)%i(:,1)
+            ! this%bundles(i)%i_end(:)     = this%bundles(i)%i(:,ubound(this%bundles(i)%i, 2))
+
         end do
     end subroutine
 
     subroutine advanceNWVoltage(this)
         class(mtln_t) :: this
+        integer :: i
         call this%network_manager%advanceVoltage()
+        do i = 1, this%number_of_bundles
+
+            ! this%bundles(i)%v(:,1) = this%bundles(i)%v_initial(:)
+            ! this%bundles(i)%v(:,ubound(this%bundles(i)%v, 2)) = this%bundles(i)%v_end(:)
+
+            ! this%bundles(i)%i(:,1) = this%bundles(i)%i_initial(:)
+            ! this%bundles(i)%i(:,ubound(this%bundles(i)%i, 2)) = this%bundles(i)%i_end(:)
+
+        end do
+
+
     end subroutine
 
     subroutine advanceBundlesCurrent(this)
@@ -131,6 +162,7 @@ contains
         integer :: i
         do i = 1, this%number_of_bundles
             call this%bundles(i)%advanceCurrent()
+
         end do
     end subroutine
 
@@ -144,7 +176,7 @@ contains
         integer :: i, j
         do i = 1, this%number_of_bundles
             do j = 1, size(this%bundles(i)%probes)
-                call this%bundles(i)%probes(i)%update(this%time, this%bundles(i)%v, this%bundles(i)%i)
+                call this%bundles(i)%probes(j)%update(this%time, this%bundles(i)%v, this%bundles(i)%i)
             end do 
         end do
     end subroutine

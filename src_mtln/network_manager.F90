@@ -89,24 +89,33 @@ contains
     subroutine updateNetworkVoltages(this)
         class(network_manager_t) :: this
         integer :: i, j
-        real :: is_now, is_prev, I1, c
+        real :: is_now, is_prev, I1, c, step
+        real :: tmp
         do i = 1, size(this%networks)
             do j = 1, this%networks(i)%number_of_nodes
                 this%networks(i)%nodes(j)%is_now = this%circuit%getNodeCurrent(this%networks(i)%nodes(j)%name)
-                is_now = this%networks(i)%nodes(j)%is_now
-                is_prev = this%networks(i)%nodes(j)%is_prev
-                I1 = this%networks(i)%nodes(j)%i
                 c = this%networks(i)%nodes(j)%line_c_per_meter
+                step = this%networks(i)%nodes(j)%step
+                ! is_prev = this%networks(i)%nodes(j)%is_prev
                 if (index(this%networks(i)%nodes(j)%name, "initial") /= 0) then 
-                    this%networks(i)%nodes(j)%v = this%networks(i)%nodes(j)%v - 2*this%dt/(4.0*c)*I1 + &
-                                                  this%dt * (is_now + is_prev)/(4.0*c)
+                    is_now = this%networks(i)%nodes(j)%is_now
+                    I1 = this%networks(i)%nodes(j)%i
+                    tmp = (this%dt/(step*c))*(I1-is_now)
+                    this%networks(i)%nodes(j)%v = this%networks(i)%nodes(j)%v - tmp
+                    ! this%networks(i)%nodes(j)%v = this%networks(i)%nodes(j)%v - 2*this%dt*I1/(step*c) + &
+                                                !   this%dt * (is_now + is_prev)/(step*c)
                 else 
-                    this%networks(i)%nodes(j)%v = this%networks(i)%nodes(j)%v + 2*this%dt/(4.0*c)*I1 - &
-                                                  this%dt * (is_now + is_prev)/(4.0*c)
+                    is_now = this%networks(i)%nodes(j)%is_now
+                    I1 = this%networks(i)%nodes(j)%i
+                    tmp = (this%dt/(step*c))*(I1-is_now)
+                    this%networks(i)%nodes(j)%v = this%networks(i)%nodes(j)%v + tmp
+                    ! this%networks(i)%nodes(j)%v = this%networks(i)%nodes(j)%v + 2*this%dt*I1/(step*c) - &
+                                                !   this%dt * (is_now + is_prev)/(step*c)
 
                 end if
-                
-                this%networks(i)%nodes(j)%is_prev = is_now
+                write(*,*) this%networks(i)%nodes(j)%name, " - V: ", this%networks(i)%nodes(j)%v
+                write(*,*) this%networks(i)%nodes(j)%name, " - I: ", this%networks(i)%nodes(j)%i
+                ! this%networks(i)%nodes(j)%is_prev = is_now
             end do
         end do
     end subroutine

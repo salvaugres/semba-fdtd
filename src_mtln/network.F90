@@ -15,6 +15,7 @@ module network_mod
         character(len=:), allocatable :: source
         real :: line_c_per_meter
         real :: r_from_line
+        real :: step
     end type
 
 

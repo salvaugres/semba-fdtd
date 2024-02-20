@@ -49,13 +49,18 @@ module circuit_mod
 
 contains
 
-    real function interpolate(this, time) result(res)
+    real function interpolate(this, time, dt) result(res)
         class(source_t) :: this
-        real :: time
+        real :: time, dt
         integer :: index
         real, dimension(:), allocatable :: timediff
+        ! timediff = this%time - time - 0.5*dt
+        ! if (time == 0.0) then 
+        !     res = 0.0
+        !     return
+        ! end if
         timediff = this%time - time
-        index = maxloc(this%time - time, 1, (this%time - time) <= 0)
+        index = maxloc(timediff, 1, (timediff) <= 0)
         res = 0.5*(this%voltage(index+1) + this%voltage(index))
     end function
 
@@ -132,8 +137,11 @@ contains
     subroutine setStopTimes(this, finalTime, dt)
         class(circuit_t) :: this
         real, intent(in) :: finalTime, dt
-        real :: time = 0.0
         character(20) :: charTime
+        real :: time
+
+        ! time = 0.0
+        time = 0.5*dt
         do while (time < finalTime)
             time = time + dt
             write(charTime, '(E10.2)') time
@@ -188,11 +196,14 @@ contains
     subroutine updateVoltageSources(this, time)
         class(circuit_t) :: this
         real, intent(in) :: time
+        real :: interp
         character(20) :: sVoltage
         integer :: i, index
         do i = 1, size(this%nodes%values)
-            if (this%nodes%sources(i)%has_source) then 
-                write(sVoltage, '(E10.2)') this%nodes%sources(i)%interpolate(time)
+            if (this%nodes%sources(i)%has_source) then
+                interp = this%nodes%sources(i)%interpolate(time, this%dt) 
+                ! write(*,*) interp
+                write(sVoltage, '(E10.2)') interp
                 call command("alter @V"//trim(this%nodes%names(i)%name)//"[dc] = "//trim(sVoltage) // c_null_char)
             end if
         end do
@@ -216,7 +227,7 @@ contains
             write(sVoltage, '(E10.2)') voltage
             call command("alter @V1"//trim(node_name)//"[dc] = "//trim(sVoltage) // c_null_char)
         else
-            write(sVoltage, '(E10.2)') -voltage
+            write(sVoltage, '(E10.2)') voltage
             call command("alter @V1"//trim(node_name)//"[dc] = "//trim(sVoltage) // c_null_char)
         end if
     end subroutine
