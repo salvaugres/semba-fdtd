@@ -337,8 +337,8 @@ contains
         write(charC, *) termination%capacitance
         write(charR, *) termination%resistance
         write(charL, *) termination%inductance
-        write(sr_from_line, *) node%r_from_line
-        write(lineC, *) node%line_c_per_meter
+        ! write(sr_from_line, *) node%r_from_line
+        ! write(lineC, *) node%line_c_per_meter
 
         allocate(res(0))
 
@@ -354,7 +354,7 @@ contains
         ! res = [res, trim("RC" // node%name // " " // node%name //" "//node%name//"_t " // sr_from_line)]
         ! res = [res, trim("I" // node%name // " " // node%name// "_t 0 " // " dc 0")]
 
-        res = [res, trim("RC" // node%name // " " // node%name // " 0 " // sr_from_line)]
+        ! res = [res, trim("RC" // node%name // " " // node%name // " 0 " // sr_from_line)]
         ! res = [res, trim("CL" // node%name // " " // node%name // " 0 " // lineC)]
         res = [res, trim("I" // node%name // " " // node%name// " 0 " // " dc 0")]
         ! res = [res, trim("I" // node%name // " " // " 0 " // node%name // " dc 0")]
@@ -442,7 +442,7 @@ contains
         character(len=256), allocatable :: res(:)
         character(20) :: short_R
 
-        write(short_r, *) 1e-10
+        write(short_r, *) 0.0
 
         allocate(res(0))
         select type(termination)
@@ -468,8 +468,8 @@ contains
         write(sR, '(E10.2)') termination%resistance
         write(sL, '(E10.2)') termination%inductance
         write(sC, '(E10.2)') termination%capacitance
-        write(lineC, '(E10.2)') node%line_c_per_meter
-        write(sr_from_line, '(E10.2)') node%r_from_line
+        ! write(lineC, '(E10.2)') node%line_c_per_meter
+        ! write(sr_from_line, '(E10.2)') node%r_from_line
         
         allocate(res(0))
         res = [res, trim("R" // node%name // " " // node%name // " "   // node%name //"_p " // sR)]
@@ -485,7 +485,7 @@ contains
         ! res = [res, trim("RC" // node%name // " " // node%name //" "//node%name//"_t " // sr_from_line)]
         ! res = [res, trim("I" // node%name // " " // node%name// "_t 0 " // " dc 0")]
 
-        res = [res, trim("RC" // node%name // " " // node%name // " 0 " // sr_from_line)]
+        ! res = [res, trim("RC" // node%name // " " // node%name // " 0 " // sr_from_line)]
         ! res = [res, trim("CL" // node%name // " " // node%name // " 0 " // lineC)]
         res = [res, trim("I" // node%name // " " // node%name// " 0 " // " dc 0")]
         ! res = [res, trim("I" // node%name // " " // " 0 " // node%name // " dc 0")]
@@ -572,31 +572,26 @@ contains
         call this%cable_name_to_bundle_id%get(key(node%belongs_to_cable%name), d, stat)
         if (stat /= 0) return
         tbundle = this%bundles(d)
+
         write(sConductor,'(I0)') node%conductor_in_cable
         res%name = trim(node%belongs_to_cable%name)//"_"//trim(sConductor)//"_"//trim(node%side)
+
+        res%v = 0.0
+        res%i = 0.0
+        res%bundle_number = d
+        res%conductor_number = conductor_number
+
         if (node%side == "initial") then 
-            res%values%v => tbundle%v(conductor_number, lbound(tbundle%v,2))
-            res%values%i => tbundle%i(conductor_number, lbound(tbundle%i,2))
+            res%v_index = lbound(tbundle%v,2)
+            res%i_index = lbound(tbundle%i,2)
             res%line_c_per_meter = tbundle%cpul(lbound(tbundle%cpul,1), conductor_number, conductor_number)
             res%step = tbundle%du(lbound(tbundle%du,1), conductor_number, conductor_number)
-
-            ! res%v => this%bundles(d)%v_initial(conductor_number)
-            ! res%i => this%bundles(d)%i_initial(conductor_number)
-            ! res%line_c_per_meter = this%bundles(d)%cpul(lbound(this%bundles(d)%cpul,1), conductor_number, conductor_number)
-            ! res%step = this%bundles(d)%du(lbound(this%bundles(d)%du,1), conductor_number, conductor_number)
         else if (node%side == "end") then 
-            write(*,*) ubound(tbundle%v,2)
-            res%values%v => tbundle%v(conductor_number, ubound(tbundle%v,2))
-            res%values%i => tbundle%i(conductor_number, ubound(tbundle%i,2))
+            res%v_index = ubound(tbundle%v,2)
+            res%i_index = ubound(tbundle%i,2)
             res%line_c_per_meter = tbundle%cpul(ubound(tbundle%cpul,1), conductor_number, conductor_number)
             res%step = tbundle%du(ubound(tbundle%du,1), conductor_number, conductor_number)
-
-            ! res%v => this%bundles(d)%v_end(conductor_number)
-            ! res%i => this%bundles(d)%i_end(conductor_number)
-            ! res%line_c_per_meter = this%bundles(d)%cpul(ubound(this%bundles(d)%cpul,1), conductor_number, conductor_number)
-            ! res%step = this%bundles(d)%du(ubound(this%bundles(d)%du,1), conductor_number, conductor_number)
         end if
-
 
         res%source = ""
         select type(termination => node%termination)

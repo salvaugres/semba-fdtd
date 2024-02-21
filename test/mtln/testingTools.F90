@@ -18,36 +18,36 @@ contains
         type(node_t) :: node_int, node_out, node_in
         real, dimension(:),intent(in), target :: target_v_nodes, target_i_nodes
 
-        node_int%values%v => target_v_nodes(1)
-        node_int%values%i => target_i_nodes(1)
-        node_in%values%v  => target_v_nodes(2)
-        node_in%values%i  => target_i_nodes(2)
-        node_out%values%v => target_v_nodes(3)
-        node_out%values%i => target_i_nodes(3)
+        ! node_int%values%v => target_v_nodes(1)
+        ! node_int%values%i => target_i_nodes(1)
+        ! node_in%values%v  => target_v_nodes(2)
+        ! node_in%values%i  => target_i_nodes(2)
+        ! node_out%values%v => target_v_nodes(3)
+        ! node_out%values%i => target_i_nodes(3)
 
-        node_int%name = name//"_int"
-        node_int%values%v = 0.0
-        node_int%values%i = 0.0
-        node_int%line_c_per_meter = 0.0
+        ! node_int%name = name//"_int"
+        ! node_int%values%v = 0.0
+        ! node_int%values%i = 0.0
+        ! node_int%line_c_per_meter = 0.0
     
-        node_in%name = name//"_in"
-        node_in%values%v = 0.0
-        node_in%values%i = 0.0
-        node_in%line_c_per_meter = 0.0
+        ! node_in%name = name//"_in"
+        ! node_in%values%v = 0.0
+        ! node_in%values%i = 0.0
+        ! node_in%line_c_per_meter = 0.0
     
-        node_out%name = name//"_out"
-        node_out%values%v = 0.0
-        node_out%values%i = 0.0
-        node_out%line_c_per_meter = 0.0
+        ! node_out%name = name//"_out"
+        ! node_out%values%v = 0.0
+        ! node_out%values%i = 0.0
+        ! node_out%line_c_per_meter = 0.0
 
-        nodes = [node_in, node_int, node_out]
-        allocate(description(0))
-        description = [description, trim("R_"//name//"_1 "//name//"_int "//name//"_in "//r1)]
-        description = [description, trim("V_"//name//"_1 "//name//"_in 0 dc 0 PULSE (0 5 1u 1u 1u 1 1)")]
-        description = [description, trim("R_"//name//"_2 "//name//"_out "//name//"_int "//r2)]
-        description = [description, trim("C_"//name//"_1 "//name//"_int 0 "//c1)]
-        description = [description, trim("C_"//name//"_2 "//name//"_out 0 "//c2)]
-        res = networkCtor(nodes, description)
+        ! nodes = [node_in, node_int, node_out]
+        ! allocate(description(0))
+        ! description = [description, trim("R_"//name//"_1 "//name//"_int "//name//"_in "//r1)]
+        ! description = [description, trim("V_"//name//"_1 "//name//"_in 0 dc 0 PULSE (0 5 1u 1u 1u 1 1)")]
+        ! description = [description, trim("R_"//name//"_2 "//name//"_out "//name//"_int "//r2)]
+        ! description = [description, trim("C_"//name//"_1 "//name//"_int 0 "//c1)]
+        ! description = [description, trim("C_"//name//"_2 "//name//"_out 0 "//c2)]
+        ! res = networkCtor(nodes, description)
     
     end function    
 

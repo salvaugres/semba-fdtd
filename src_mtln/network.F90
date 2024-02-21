@@ -6,22 +6,15 @@ module network_mod
     use circuit_mod, only: string_t
     implicit none
 
-    type values_t
-        real, pointer :: v
-        real, pointer :: i
-    end type
-
     type node_t
-        type(values_t) :: values
         real :: is_now = 0
-        ! real :: is_prev = 0
         character(len=:), allocatable :: name
         character(len=:), allocatable :: source
         real :: line_c_per_meter
-        real :: r_from_line
         real :: step
-        ! real, pointer :: v
-        ! real, pointer :: i
+        real :: v
+        real :: i
+        integer :: bundle_number, conductor_number, v_index, i_index
     end type
 
 

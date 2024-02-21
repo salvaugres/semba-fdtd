@@ -81,7 +81,7 @@ contains
         integer :: i, j
         do i = 1, size(this%networks)
             do j = 1, this%networks(i)%number_of_nodes
-                this%networks(i)%nodes(j)%values%v = this%circuit%getNodeVoltage(this%networks(i)%nodes(j)%name)
+                this%networks(i)%nodes(j)%v = this%circuit%getNodeVoltage(this%networks(i)%nodes(j)%name)
             end do
         end do
     end subroutine
@@ -99,19 +99,19 @@ contains
                 if (index(this%networks(i)%nodes(j)%name, "initial") /= 0) then 
 
                     is_now = this%networks(i)%nodes(j)%is_now
-                    I1 = this%networks(i)%nodes(j)%values%i
+                    I1 = this%networks(i)%nodes(j)%i
                     tmp = (this%dt/(step*c))*(I1-is_now)
-                    this%networks(i)%nodes(j)%values%v = this%networks(i)%nodes(j)%values%v - tmp
+                    this%networks(i)%nodes(j)%v = this%networks(i)%nodes(j)%v - tmp
                 else 
 
                     is_now = this%networks(i)%nodes(j)%is_now
-                    I1 = this%networks(i)%nodes(j)%values%i
+                    I1 = this%networks(i)%nodes(j)%i
                     tmp = (this%dt/(step*c))*(I1-is_now)
-                    this%networks(i)%nodes(j)%values%v = this%networks(i)%nodes(j)%values%v + tmp
+                    this%networks(i)%nodes(j)%v = this%networks(i)%nodes(j)%v + tmp
 
                 end if
-                write(*,*) this%networks(i)%nodes(j)%name, " - V: ", this%networks(i)%nodes(j)%values%v
-                write(*,*) this%networks(i)%nodes(j)%name, " - I: ", this%networks(i)%nodes(j)%values%i
+                write(*,*) this%networks(i)%nodes(j)%name, " - V: ", this%networks(i)%nodes(j)%v
+                write(*,*) this%networks(i)%nodes(j)%name, " - I: ", this%networks(i)%nodes(j)%i
             end do
         end do
     end subroutine
@@ -122,7 +122,7 @@ contains
         integer :: i, j
         do i = 1, size(this%networks)
             do j = 1, this%networks(i)%number_of_nodes
-                call this%circuit%updateNodeCurrent(this%networks(i)%nodes(j)%name, this%networks(i)%nodes(j)%values%i)
+                call this%circuit%updateNodeCurrent(this%networks(i)%nodes(j)%name, this%networks(i)%nodes(j)%i)
                 ! if (index(this%networks(i)%nodes(j)%name, "initial") /= 0) then 
                 !     call this%circuit%updateNodeCurrent(this%networks(i)%nodes(j)%name, this%networks(i)%nodes(j)%i)
                 ! else
@@ -137,7 +137,7 @@ contains
         integer :: i, j
         do i = 1, size(this%networks)
             do j = 1, this%networks(i)%number_of_nodes
-                call this%circuit%updateNodeVoltage(this%networks(i)%nodes(j)%name, this%networks(i)%nodes(j)%values%v)
+                call this%circuit%updateNodeVoltage(this%networks(i)%nodes(j)%name, this%networks(i)%nodes(j)%v)
             end do
         end do
     end subroutine

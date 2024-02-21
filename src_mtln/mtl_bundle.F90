@@ -303,8 +303,8 @@ contains
         class(mtl_bundle_t) ::this
         real, dimension(:,:), allocatable :: i_prev, i_now
         integer :: i
-        call this%transfer_impedance%updateQ3Phi()
-        i_prev = this%i
+        ! call this%transfer_impedance%updateQ3Phi()
+        ! i_prev = this%i
         do i = 1, this%number_of_divisions 
             this%i(:,i) = matmul(this%i_term(i,:,:), this%i(:,i)) - &
                           matmul(this%v_diff(i,:,:), (this%v(:,i+1) - this%v(:,i))) - &
@@ -313,7 +313,7 @@ contains
         enddo
         !TODO - revisar
         i_now = this%i
-        call this%transfer_impedance%updatePhi(i_prev, i_now)
+        ! call this%transfer_impedance%updatePhi(i_prev, i_now)
     end subroutine
 
     subroutine bundle_setExternalCurrent(this, current)
