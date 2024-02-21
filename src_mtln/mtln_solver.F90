@@ -55,7 +55,7 @@ contains
         res%probes = pre%probes
         call res%updateBundlesTimeStep(res%dt)
         call res%updatePULTerms(res%getTimeRange(pre%final_time))
-        ! call res%initNodes()
+        call res%initNodes()
     end function
 
     subroutine initNodes(this)
