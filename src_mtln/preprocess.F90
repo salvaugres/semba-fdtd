@@ -365,10 +365,11 @@ contains
         class(termination_t), intent(in) :: termination
         character(len=*), intent(in) :: end_node
         character(len=256), allocatable :: res(:)
-        character(20) :: charR, charL, sr_from_line, lineC
+        character(20) :: charR, charL, line_z, lineC
 
         write(charR, *) termination%resistance
         write(lineC, *) node%line_c_per_meter
+        write(line_z, *) node%line_z
         write(charL, *) termination%inductance
         ! write(sr_from_line, *) 50.0
         ! write(sr_from_line, *) node%r_from_line
@@ -383,7 +384,10 @@ contains
         type is(termination_t)
             res = [res, trim("L" // node%name // " " // node%name // "_R " // end_node)//" "//trim(charL)]
         end select
+        ! res = [res, trim("R1" // node%name // " " // node%name // " " // node%name//"_R1")// " "//trim(line_z)]
+        ! res = [res, trim("V1" // node%name // " " // node%name // "_R1 0 dc 0" )]
         res = [res, trim("V1" // node%name // " " // node%name // " 0 dc 0" )]
+        ! res = [res, trim("I1" // node%name // " " // node%name // "_I 0 dc 0" )]
 
     end function
 
@@ -440,9 +444,10 @@ contains
         character(len=*), intent(in) :: end_node
         ! character(len=*), intent(in) :: node_name
         character(len=256), allocatable :: res(:)
-        character(20) :: short_R
+        character(20) :: short_R, line_z
 
         write(short_r, *) 0.0
+        write(line_z, *) node%line_z
 
         allocate(res(0))
         select type(termination)
@@ -452,7 +457,10 @@ contains
         type is(termination_t)
             res = [res, trim("R" // node%name // " " // node%name // " " // end_node)//" "//trim(short_R)] !check
         end select
+        ! res = [res, trim("R1" // node%name // " " // node%name // " "//node%name//"_R1")// " "//trim(line_z)]
+        ! res = [res, trim("V1" // node%name // " " // node%name // "_R1 0 dc 0" )]
         res = [res, trim("V1" // node%name // " " // node%name // " 0 dc 0" )]
+        ! res = [res, trim("I1" // node%name // " " // node%name // "_I 0 dc 0" )]
 
         
     end function
@@ -586,11 +594,16 @@ contains
             res%i_index = lbound(tbundle%i,2)
             res%line_c_per_meter = tbundle%cpul(lbound(tbundle%cpul,1), conductor_number, conductor_number)
             res%step = tbundle%du(lbound(tbundle%du,1), conductor_number, conductor_number)
+            res%line_z = sqrt(tbundle%lpul(lbound(tbundle%lpul,1), conductor_number, conductor_number)/&
+                              tbundle%cpul(lbound(tbundle%cpul,1), conductor_number, conductor_number))
+
         else if (node%side == "end") then 
             res%v_index = ubound(tbundle%v,2)
             res%i_index = ubound(tbundle%i,2)
             res%line_c_per_meter = tbundle%cpul(ubound(tbundle%cpul,1), conductor_number, conductor_number)
             res%step = tbundle%du(ubound(tbundle%du,1), conductor_number, conductor_number)
+            res%line_z = sqrt(tbundle%lpul(ubound(tbundle%lpul,1), conductor_number, conductor_number)/&
+                              tbundle%cpul(ubound(tbundle%cpul,1), conductor_number, conductor_number))
         end if
 
         res%source = ""
@@ -692,7 +705,7 @@ contains
         do j = 1, size(networks)
             do i = 1, size(networks(j)%nodes)
                 saved_nodes = saved_nodes // "V1"//trim(networks(j)%nodes(i)%name)//"#branch "
-                ! saved_nodes = saved_nodes // trim(networks(j)%nodes(i)%name) // " "
+                saved_nodes = saved_nodes // trim(networks(j)%nodes(i)%name) // " "
             end do
         end do
         description = [description, trim(saved_nodes)]

@@ -16,8 +16,17 @@ module circuit_mod
         procedure :: interpolate
     end type
 
+    type VI_t
+        real :: voltage
+        real :: current
+        real :: time
+    end type
+
     type nodes_t
-        real, allocatable :: values(:)
+        ! real :: time
+        type(VI_T), allocatable :: values(:)
+        ! real, allocatable :: currents(:)
+        ! real, allocatable :: r_eq(:)
         type(source_t), allocatable :: sources(:)
         type(string_t), allocatable :: names(:)
     end type nodes_t
@@ -39,6 +48,7 @@ module circuit_mod
         procedure :: setStopTimes
         procedure :: getNodeVoltage
         procedure :: getNodeCurrent
+        ! procedure :: getNodeREq
         procedure :: updateNodes
         procedure :: getTime
         procedure :: updateNodeCurrent
@@ -82,6 +92,7 @@ contains
 
         allocate(this%nodes%names(size(names)))
         allocate(this%nodes%values(size(names)))
+        ! allocate(this%nodes%r_eq(size(names)))
         allocate(this%nodes%sources(size(names)))
         do i = 1, size(names)
             this%nodes%names(i) = names(i)
@@ -199,7 +210,7 @@ contains
         real :: interp
         character(20) :: sVoltage
         integer :: i, index
-        do i = 1, size(this%nodes%values)
+        do i = 1, size(this%nodes%sources)
             if (this%nodes%sources(i)%has_source) then
                 interp = this%nodes%sources(i)%interpolate(time, this%dt) 
                 write(*,*) interp
@@ -218,56 +229,102 @@ contains
         call command("alter @I"//trim(node_name)//"[dc] = "//trim(sCurrent) // c_null_char)
     end subroutine
 
-    subroutine updateNodeVoltage(this, node_name, voltage)
+    subroutine updateNodeVoltage(this, node_name, voltage, current)
         class(circuit_t) :: this
-        real :: voltage
-        character(20) :: sVoltage
+        real, intent(in) :: voltage, current
+        character(20) :: sVoltage, sCurrent
         character(*) :: node_name
         if (index(node_name, "initial") /= 0) then
             write(sVoltage, '(E10.4)') voltage
+            write(sCurrent, '(E10.4)') current
             call command("alter @V1"//trim(node_name)//"[dc] = "//trim(sVoltage) // c_null_char)
+            ! call command("alter @I1"//trim(node_name)//"[dc] = "//trim(sCurrent) // c_null_char)
         else
             write(sVoltage, '(E10.4)') voltage
+            write(sCurrent, '(E10.4)') current
             call command("alter @V1"//trim(node_name)//"[dc] = "//trim(sVoltage) // c_null_char)
+            ! call command("alter @I1"//trim(node_name)//"[dc] = "//trim(sCurrent) // c_null_char)
         end if
     end subroutine
 
     subroutine updateNodes(this) 
         class(circuit_t) :: this
         integer :: i
-        type(vectorInfo), pointer :: info
-        real(kind=c_double), pointer :: values(:)
-
+        type(vectorInfo), pointer :: info, info_I, info_V
+        real(kind=c_double), pointer :: values(:), values_I(:), values_V(:)
+        real :: volt, curr
         do i = 1, size(this%nodes%names)
             if (this%nodes%names(i)%name /= "time") then 
-                call c_f_pointer(get_vector_info("V1"//trim(this%nodes%names(i)%name)//"#branch"//c_null_char), info)
+                call c_f_pointer(get_vector_info(trim(this%nodes%names(i)%name)//c_null_char), info_V)
+                call c_f_pointer(info_V%vRealData, values_V,shape=[info_V%vLength])
+                this%nodes%values(i)%voltage = values_V(ubound(values_V,1))
+                call c_f_pointer(get_vector_info("V1"//trim(this%nodes%names(i)%name)//"#branch"//c_null_char), info_I)
+                call c_f_pointer(info_I%vRealData, values_I,shape=[info_I%vLength])
+                this%nodes%values(i)%current = values_I(ubound(values_I,1))
+
+                ! this%nodes%values(i) = volt + 1.0 * curr
+                ! if (volt == 0.0 .and. curr == 0.0) then 
+                !     this%nodes%r_eq(i) = 0.0
+                ! else 
+                !     this%nodes%r_eq(i) = 1.0
+                ! end if
+
+                ! if (index(this%nodes%names(i)%name, "end") /= 0) then 
+                !     this%nodes%values(i) = -this%nodes%values(i)
+                ! end if
             else 
                 call c_f_pointer(get_vector_info(trim(this%nodes%names(i)%name)//c_null_char), info)
+                call c_f_pointer(info%vRealData, values,shape=[info%vLength])
+                this%nodes%values(i)%time = values(ubound(values,1))
             end if
             ! call c_f_pointer(get_vector_info(trim(this%nodes%names(i)%name)//c_null_char), info)
-            call c_f_pointer(info%vRealData, values,shape=[info%vLength])
-            this%nodes%values(i) = values(ubound(values,1))
         end do
     end subroutine
+
+    ! subroutine updateNodes(this) 
+    !     class(circuit_t) :: this
+    !     integer :: i
+    !     type(vectorInfo), pointer :: info
+    !     real(kind=c_double), pointer :: values(:)
+
+    !     do i = 1, size(this%nodes%names)
+    !         if (this%nodes%names(i)%name /= "time") then 
+    !             ! call c_f_pointer(get_vector_info(trim(this%nodes%names(i)%name)//c_null_char), info)
+    !             call c_f_pointer(get_vector_info("V1"//trim(this%nodes%names(i)%name)//"#branch"//c_null_char), info)
+    !         else 
+    !             call c_f_pointer(get_vector_info(trim(this%nodes%names(i)%name)//c_null_char), info)
+    !         end if
+    !         ! call c_f_pointer(get_vector_info(trim(this%nodes%names(i)%name)//c_null_char), info)
+    !         call c_f_pointer(info%vRealData, values,shape=[info%vLength])
+    !         this%nodes%values(i) = values(ubound(values,1))
+    !     end do
+    ! end subroutine
 
     function getNodeVoltage(this, name) result(res)
         class(circuit_t) :: this
         character(len=*), intent(in) :: name
         real :: res
-        res = this%nodes%values(findVoltageIndexByName(this%nodes%names, name))
+        res = this%nodes%values(findVoltageIndexByName(this%nodes%names, name))%voltage
     end function
 
     function getNodeCurrent(this, name) result(res)
         class(circuit_t) :: this
         character(len=*), intent(in) :: name
         real :: res
-        res = this%nodes%values(findVoltageIndexByName(this%nodes%names, name))
+        res = this%nodes%values(findVoltageIndexByName(this%nodes%names, name))%current
     end function
+
+    ! function getNodeREq(this, name) result(res)
+    !     class(circuit_t) :: this
+    !     character(len=*), intent(in) :: name
+    !     real :: res
+    !     res = this%nodes%r_eq(findVoltageIndexByName(this%nodes%names, name))
+    ! end function
 
     function getTime(this) result(res)
         class(circuit_t) :: this
         real :: res
-        res = this%nodes%values(findIndexByName(this%nodes%names, "time"))
+        res = this%nodes%values(findIndexByName(this%nodes%names, "time"))%time
     end function
 
     function findIndexByName(names, name) result(res)

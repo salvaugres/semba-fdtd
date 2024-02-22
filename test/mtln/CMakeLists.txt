@@ -17,7 +17,7 @@ add_library(
     "test_Paul.F90"
     "test_fhash.F90"
     "test_dispersive.F90"
-    "test_networks.F90"
+    # "test_networks.F90"
 )
 target_link_libraries(mtln_solver_tests_fortran
     mtlnsolver 

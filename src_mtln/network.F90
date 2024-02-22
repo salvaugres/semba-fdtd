@@ -7,7 +7,14 @@ module network_mod
     implicit none
 
     type node_t
-        real :: is_now = 0
+        real :: is_now = 0.0
+        real :: is_prev = 0.0
+        real :: vs_now = 0.0
+        real :: vs_prev = 0.0
+        real :: line_z = 0.0
+        real :: v_eq = 0.0
+        ! real :: z_eq = 1.0
+
         character(len=:), allocatable :: name
         character(len=:), allocatable :: source
         real :: line_c_per_meter

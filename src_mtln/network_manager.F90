@@ -82,34 +82,118 @@ contains
         do i = 1, size(this%networks)
             do j = 1, this%networks(i)%number_of_nodes
                 this%networks(i)%nodes(j)%v = this%circuit%getNodeVoltage(this%networks(i)%nodes(j)%name)
+                write(*,*) this%networks(i)%nodes(j)%name, " - V: ", this%networks(i)%nodes(j)%v
+
             end do
         end do
     end subroutine
 
-    subroutine updateNetworkVoltages(this)
+    ! subroutine updateNetworkVoltages(this)
+    !     class(network_manager_t) :: this
+    !     integer :: i, j
+    !     real :: is_now, I1, c, step, is_prev, vs_now, vs_prev,r_eq
+    !     real :: k
+    !     do i = 1, size(this%networks)
+    !         do j = 1, this%networks(i)%number_of_nodes
+    !             this%networks(i)%nodes(j)%vs_now = this%circuit%getNodeCurrent(this%networks(i)%nodes(j)%name)
+    !             r_eq = this%circuit%getNodeREq(this%networks(i)%nodes(j)%name)
+    !             c = this%networks(i)%nodes(j)%line_c_per_meter
+    !             step = this%networks(i)%nodes(j)%step
+    !             ! is_now = this%networks(i)%nodes(j)%is_now
+    !             ! is_prev = this%networks(i)%nodes(j)%is_prev
+    !             I1 = this%networks(i)%nodes(j)%i
+    !             k = this%dt/(step*c)
+    !             vs_now = this%networks(i)%nodes(j)%vs_now
+    !             vs_prev = this%networks(i)%nodes(j)%vs_prev
+    !             ! tmp = (this%dt/(step*c))*(2*I1-is_now-is_prev)
+    !             if (index(this%networks(i)%nodes(j)%name, "initial") /= 0) then 
+
+    !                 this%networks(i)%nodes(j)%v = ((r_eq/k-1.0)*this%networks(i)%nodes(j)%v - &
+    !                                               2*r_eq*I1 + &
+    !                                               (vs_now+vs_prev))/(r_eq/k+1.0)
+    !             else 
+    !                 ! I1 = - this%networks(i)%nodes(j)%i
+
+    !                 this%networks(i)%nodes(j)%v = ((r_eq/k-1.0)*this%networks(i)%nodes(j)%v + &
+    !                                               2*r_eq*I1 + &
+    !                                               (vs_now+vs_prev))/(r_eq/k+1.0)
+
+    !             end if
+    !             this%networks(i)%nodes(j)%vs_prev = vs_now
+    !             write(*,*) this%networks(i)%nodes(j)%name, " - V: ", this%networks(i)%nodes(j)%v
+    !             write(*,*) this%networks(i)%nodes(j)%name, " - I: ", this%networks(i)%nodes(j)%i
+    !         end do
+    !     end do
+    ! end subroutine
+
+    ! subroutine updateNetworkVoltages(this)
+    !     class(network_manager_t) :: this
+    !     integer :: i, j
+    !     real :: is_now, I1, c, step, is_prev
+    !     real :: tmp
+    !     do i = 1, size(this%networks)
+    !         do j = 1, this%networks(i)%number_of_nodes
+    !             this%networks(i)%nodes(j)%is_now = this%circuit%getNodeCurrent(this%networks(i)%nodes(j)%name)
+    !             c = this%networks(i)%nodes(j)%line_c_per_meter
+    !             step = this%networks(i)%nodes(j)%step
+    !             is_now = this%networks(i)%nodes(j)%is_now
+    !             is_prev = this%networks(i)%nodes(j)%is_prev
+    !             I1 = this%networks(i)%nodes(j)%i
+    !             tmp = (this%dt/(step*c))*(2*I1-is_now-is_prev)
+    !             if (index(this%networks(i)%nodes(j)%name, "initial") /= 0) then 
+
+    !                 ! is_now = this%networks(i)%nodes(j)%is_now
+    !                 ! I1 = this%networks(i)%nodes(j)%i
+    !                 ! tmp = (this%dt/(step*c))*(I1-is_now)
+    !                 ! tmp = (this%dt/(step*c))*(2*I1-is_now-is_prev)
+    !                 this%networks(i)%nodes(j)%v = this%networks(i)%nodes(j)%v - tmp
+    !             else 
+
+    !                 ! is_now = this%networks(i)%nodes(j)%is_now
+    !                 ! I1 = this%networks(i)%nodes(j)%i
+    !                 ! tmp = (this%dt/(step*c))*(I1-is_now)
+    !                 ! tmp = (this%dt/(step*c))*(2*I1-is_now-is_prev)
+    !                 this%networks(i)%nodes(j)%v = this%networks(i)%nodes(j)%v + tmp
+
+    !             end if
+    !             this%networks(i)%nodes(j)%is_prev = is_now
+    !             write(*,*) this%networks(i)%nodes(j)%name, " - V: ", this%networks(i)%nodes(j)%v
+    !             write(*,*) this%networks(i)%nodes(j)%name, " - I: ", this%networks(i)%nodes(j)%i
+    !         end do
+    !     end do
+    ! end subroutine
+
+        subroutine updateNetworkVoltages(this)
         class(network_manager_t) :: this
         integer :: i, j
-        real :: is_now, I1, c, step
+        real :: is_now, I1, c, step, is_prev
         real :: tmp
         do i = 1, size(this%networks)
             do j = 1, this%networks(i)%number_of_nodes
                 this%networks(i)%nodes(j)%is_now = this%circuit%getNodeCurrent(this%networks(i)%nodes(j)%name)
                 c = this%networks(i)%nodes(j)%line_c_per_meter
                 step = this%networks(i)%nodes(j)%step
+                is_now = this%networks(i)%nodes(j)%is_now
+                ! is_prev = this%networks(i)%nodes(j)%is_prev
+                I1 = this%networks(i)%nodes(j)%i
+                tmp = 2*(I1-is_now)*(this%dt/(step*c))
                 if (index(this%networks(i)%nodes(j)%name, "initial") /= 0) then 
 
-                    is_now = this%networks(i)%nodes(j)%is_now
-                    I1 = this%networks(i)%nodes(j)%i
-                    tmp = (this%dt/(step*c))*(I1-is_now)
+                    ! is_now = this%networks(i)%nodes(j)%is_now
+                    ! I1 = this%networks(i)%nodes(j)%i
+                    ! tmp = (this%dt/(step*c))*(I1-is_now)
+                    ! tmp = (this%dt/(step*c))*(2*I1-is_now-is_prev)
                     this%networks(i)%nodes(j)%v = this%networks(i)%nodes(j)%v - tmp
                 else 
 
-                    is_now = this%networks(i)%nodes(j)%is_now
-                    I1 = this%networks(i)%nodes(j)%i
-                    tmp = (this%dt/(step*c))*(I1-is_now)
+                    ! is_now = this%networks(i)%nodes(j)%is_now
+                    ! I1 = this%networks(i)%nodes(j)%i
+                    ! tmp = (this%dt/(step*c))*(I1-is_now)
+                    ! tmp = (this%dt/(step*c))*(2*I1-is_now-is_prev)
                     this%networks(i)%nodes(j)%v = this%networks(i)%nodes(j)%v + tmp
 
                 end if
+                this%networks(i)%nodes(j)%is_prev = is_now
                 write(*,*) this%networks(i)%nodes(j)%name, " - V: ", this%networks(i)%nodes(j)%v
                 write(*,*) this%networks(i)%nodes(j)%name, " - I: ", this%networks(i)%nodes(j)%i
             end do
@@ -137,7 +221,9 @@ contains
         integer :: i, j
         do i = 1, size(this%networks)
             do j = 1, this%networks(i)%number_of_nodes
-                call this%circuit%updateNodeVoltage(this%networks(i)%nodes(j)%name, this%networks(i)%nodes(j)%v)
+                call this%circuit%updateNodeVoltage(this%networks(i)%nodes(j)%name, &
+                                                    this%networks(i)%nodes(j)%v, & 
+                                                    this%networks(i)%nodes(j)%i)
             end do
         end do
     end subroutine
@@ -146,7 +232,7 @@ contains
         class(network_manager_t) :: this
 
         ! call this%updateCircuitCurrentsFromNetwork()
-        call this%updateCircuitVoltagesFromNetwork()
+        ! call this%updateCircuitVoltagesFromNetwork()
         call this%circuit%step()
         this%circuit%time = this%circuit%time + this%circuit%dt
         ! call this%updateNetworkVoltagesFromCircuit()

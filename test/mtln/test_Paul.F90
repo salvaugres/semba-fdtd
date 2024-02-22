@@ -89,7 +89,7 @@ integer function test_coaxial_line_paul_8_6_square() bind(C) result(error_cnt)
     ! p.run(finalTime = 18e-6)
     block
         integer :: i
-        open(unit = 1, file =  'probes_8.6_square_id.txt')
+        open(unit = 1, file =  'probes_8.6_square.txt')
         do i = 1, size(solver%bundles(1)%probes(1)%t)
             write(1,*) solver%bundles(1)%probes(1)%t(i)," ", &
                        solver%bundles(1)%probes(1)%val(i,1) ," ", &
