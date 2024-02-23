@@ -28,7 +28,8 @@ extern "C" int test_preprocess_zt_conductor_ranges();
 extern "C" int test_coaxial_line_paul_8_6_square();
 extern "C" int test_coaxial_line_paul_8_6_triangle();
 extern "C" int test_2_conductor_line_paul_9_6();
-
+extern "C" int test_2_conductor_line_paul_9_11_20ns();
+extern "C" int test_2_conductor_line_paul_9_11_1ns();
 int main(int argc, char **argv) 
 {
     ::testing::InitGoogleTest(&argc, argv);
@@ -63,3 +64,5 @@ TEST(mtln, spice_read_message) { EXPECT_EQ(0, test_spice_read_message()); }
 TEST(mtln, coaxial_line_paul_8_6_square) { EXPECT_EQ(0, test_coaxial_line_paul_8_6_square()); }
 TEST(mtln, coaxial_line_paul_8_6_triangle) { EXPECT_EQ(0, test_coaxial_line_paul_8_6_triangle()); }
 TEST(mtln, 2_conductor_line_paul_9_6) { EXPECT_EQ(0, test_2_conductor_line_paul_9_6()); }
+TEST(mtln, 2_conductor_line_paul_9_11_20ns) { EXPECT_EQ(0, test_2_conductor_line_paul_9_11_20ns()); }
+TEST(mtln, 2_conductor_line_paul_9_11_1ns) { EXPECT_EQ(0, test_2_conductor_line_paul_9_11_1ns()); }

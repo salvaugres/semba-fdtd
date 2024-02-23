@@ -17,6 +17,8 @@ module circuit_mod
     end type
 
     type VI_t
+        real :: v_th
+        real :: r_th
         real :: voltage
         real :: current
         real :: time
@@ -54,6 +56,15 @@ module circuit_mod
         procedure :: updateNodeCurrent
         procedure :: updateNodeVoltage
         procedure :: updateVoltageSources
+        procedure :: zeroVoltageSources
+        procedure :: computeTheveninEquivalent
+        procedure, private :: computeTheveninR
+        procedure, private :: computeTheveninV
+        procedure, private :: UpdateTheveninR
+        procedure, private :: UpdateTheveninV
+
+        procedure :: getNodeTheveninR
+        procedure :: getNodeTheveninV
 
     end type circuit_t
 
@@ -130,7 +141,7 @@ contains
 
     subroutine step(this)
         class(circuit_t) :: this
-        call this%updateVoltageSources(this%time)
+        ! call this%updateVoltageSources(this%time) ! done when thevenin
         if (this%time == 0) then
             call this%run()
         else
@@ -156,6 +167,10 @@ contains
         do while (time < finalTime)
             time = time + dt
             write(charTime, '(E10.4)') time
+            call command('stop when time = '//charTime // c_null_char)
+            write(charTime, '(E10.4)') time + 0.1*dt
+            call command('stop when time = '//charTime // c_null_char)
+            write(charTime, '(E10.4)') time + 0.1*dt
             call command('stop when time = '//charTime // c_null_char)
         end do
     end subroutine
@@ -213,8 +228,20 @@ contains
         do i = 1, size(this%nodes%sources)
             if (this%nodes%sources(i)%has_source) then
                 interp = this%nodes%sources(i)%interpolate(time, this%dt) 
-                write(*,*) interp
+                write(*,*) 'source: ', interp
                 write(sVoltage, '(E10.4)') interp
+                call command("alter @V"//trim(this%nodes%names(i)%name)//"[dc] = "//trim(sVoltage) // c_null_char)
+            end if
+        end do
+    end subroutine
+
+    subroutine zeroVoltageSources(this)
+        class(circuit_t) :: this
+        character(20) :: sVoltage
+        integer :: i
+        do i = 1, size(this%nodes%sources)
+            if (this%nodes%sources(i)%has_source) then
+                write(sVoltage, '(E10.4)') 0.0
                 call command("alter @V"//trim(this%nodes%names(i)%name)//"[dc] = "//trim(sVoltage) // c_null_char)
             end if
         end do
@@ -252,7 +279,6 @@ contains
         integer :: i
         type(vectorInfo), pointer :: info, info_I, info_V
         real(kind=c_double), pointer :: values(:), values_I(:), values_V(:)
-        real :: volt, curr
         do i = 1, size(this%nodes%names)
             if (this%nodes%names(i)%name /= "time") then 
                 call c_f_pointer(get_vector_info(trim(this%nodes%names(i)%name)//c_null_char), info_V)
@@ -262,43 +288,127 @@ contains
                 call c_f_pointer(info_I%vRealData, values_I,shape=[info_I%vLength])
                 this%nodes%values(i)%current = values_I(ubound(values_I,1))
 
-                ! this%nodes%values(i) = volt + 1.0 * curr
-                ! if (volt == 0.0 .and. curr == 0.0) then 
-                !     this%nodes%r_eq(i) = 0.0
-                ! else 
-                !     this%nodes%r_eq(i) = 1.0
-                ! end if
-
-                ! if (index(this%nodes%names(i)%name, "end") /= 0) then 
-                !     this%nodes%values(i) = -this%nodes%values(i)
-                ! end if
             else 
                 call c_f_pointer(get_vector_info(trim(this%nodes%names(i)%name)//c_null_char), info)
                 call c_f_pointer(info%vRealData, values,shape=[info%vLength])
                 this%nodes%values(i)%time = values(ubound(values,1))
             end if
-            ! call c_f_pointer(get_vector_info(trim(this%nodes%names(i)%name)//c_null_char), info)
         end do
     end subroutine
 
-    ! subroutine updateNodes(this) 
-    !     class(circuit_t) :: this
-    !     integer :: i
-    !     type(vectorInfo), pointer :: info
-    !     real(kind=c_double), pointer :: values(:)
+    subroutine computeTheveninEquivalent(this)
+        class(circuit_t) :: this
+        call this%computeTheveninR()
+        call this%computeTheveninV()
+    end subroutine
 
-    !     do i = 1, size(this%nodes%names)
-    !         if (this%nodes%names(i)%name /= "time") then 
-    !             ! call c_f_pointer(get_vector_info(trim(this%nodes%names(i)%name)//c_null_char), info)
-    !             call c_f_pointer(get_vector_info("V1"//trim(this%nodes%names(i)%name)//"#branch"//c_null_char), info)
-    !         else 
-    !             call c_f_pointer(get_vector_info(trim(this%nodes%names(i)%name)//c_null_char), info)
-    !         end if
-    !         ! call c_f_pointer(get_vector_info(trim(this%nodes%names(i)%name)//c_null_char), info)
-    !         call c_f_pointer(info%vRealData, values,shape=[info%vLength])
-    !         this%nodes%values(i) = values(ubound(values,1))
-    !     end do
-    ! end subroutine
+    subroutine computeTheveninR(this)
+        class(circuit_t) :: this
+        integer :: i
+        character(20) :: s_r_short, s_v_test
+
+        ! set voltage sources in circuit to 0
+        call this%zeroVoltageSources()
+        write(s_r_short, '(E10.4)') 0.0
+        ! change open to short
+        do i = 1, size(this%nodes%names)
+            if (this%nodes%names(i)%name /= "time") then
+                call command("alter @Ropen"//trim(this%nodes%names(i)%name)//" = "//trim(s_r_short) // c_null_char)
+            end if
+        end do
+        ! set test sources with 1V
+        write(s_v_test, '(E10.4)') 1.0
+        do i = 1, size(this%nodes%names)
+            if (this%nodes%names(i)%name /= "time") then
+                ! call command("alter @V1"//trim(node_name)//"[dc] = "//trim(sVoltage) // c_null_char)
+
+                call command("alter @V1"//trim(this%nodes%names(i)%name)//"[dc] = "//trim(s_v_test) // c_null_char)
+            end if
+        end do
+        call this%resume()
+        call this%updateTheveninR()
+    end subroutine
+
+    subroutine updateTheveninR(this) 
+        class(circuit_t) :: this
+        integer :: i
+        type(vectorInfo), pointer :: info, info_I, info_V
+        real(kind=c_double), pointer :: values(:), values_I(:), values_V(:)
+        do i = 1, size(this%nodes%names)
+            if (this%nodes%names(i)%name /= "time") then 
+                call c_f_pointer(get_vector_info(trim(this%nodes%names(i)%name)//c_null_char), info_V)
+                call c_f_pointer(info_V%vRealData, values_V,shape=[info_V%vLength])
+                this%nodes%values(i)%voltage = values_V(ubound(values_V,1))
+                call c_f_pointer(get_vector_info("V1"//trim(this%nodes%names(i)%name)//"#branch"//c_null_char), info_I)
+                call c_f_pointer(info_I%vRealData, values_I,shape=[info_I%vLength])
+                this%nodes%values(i)%current = values_I(ubound(values_I,1))
+
+                this%nodes%values(i)%r_th = abs(this%nodes%values(i)%voltage/this%nodes%values(i)%current)
+
+            else 
+                call c_f_pointer(get_vector_info(trim(this%nodes%names(i)%name)//c_null_char), info)
+                call c_f_pointer(info%vRealData, values,shape=[info%vLength])
+                this%nodes%values(i)%time = values(ubound(values,1))
+            end if
+        end do
+    end subroutine
+
+    subroutine computeTheveninV(this)
+        class(circuit_t) :: this
+        integer :: i
+        character(20) :: s_r_short, s_voltage
+
+        ! set voltage sources in circuit to their value at time
+        call this%updateVoltageSources(this%time)
+        write(s_r_short, '(E10.4)') 1e20
+        ! change short to open
+        do i = 1, size(this%nodes%names)
+            if (this%nodes%names(i)%name /= "time") then
+                call command("alter @Ropen"//trim(this%nodes%names(i)%name)//" = "//trim(s_r_short) // c_null_char)
+            end if
+        end do
+        call this%resume()
+        call this%updateTheveninV()
+        ! change open to short
+        do i = 1, size(this%nodes%names)
+            if (this%nodes%names(i)%name /= "time") then
+                call command("alter @Ropen"//trim(this%nodes%names(i)%name)//" = "//trim(s_r_short) // c_null_char)
+            end if
+        end do
+    end subroutine
+
+    subroutine updateTheveninV(this) 
+        class(circuit_t) :: this
+        integer :: i
+        type(vectorInfo), pointer :: info, info_V
+        real(kind=c_double), pointer :: values(:), values_V(:)
+        do i = 1, size(this%nodes%names)
+            if (this%nodes%names(i)%name /= "time") then 
+                call c_f_pointer(get_vector_info(trim(this%nodes%names(i)%name)//c_null_char), info_V)
+                call c_f_pointer(info_V%vRealData, values_V,shape=[info_V%vLength])
+                this%nodes%values(i)%v_th = values_V(ubound(values_V,1))
+            else 
+                call c_f_pointer(get_vector_info(trim(this%nodes%names(i)%name)//c_null_char), info)
+                call c_f_pointer(info%vRealData, values,shape=[info%vLength])
+                this%nodes%values(i)%time = values(ubound(values,1))
+            end if
+        end do
+    end subroutine
+
+
+    function getNodeTheveninR(this, name) result(res)
+        class(circuit_t) :: this
+        character(len=*), intent(in) :: name
+        real :: res
+        res = this%nodes%values(findVoltageIndexByName(this%nodes%names, name))%r_th
+    end function
+
+    function getNodeTheveninV(this, name) result(res)
+        class(circuit_t) :: this
+        character(len=*), intent(in) :: name
+        real :: res
+        res = this%nodes%values(findVoltageIndexByName(this%nodes%names, name))%v_th
+    end function
 
     function getNodeVoltage(this, name) result(res)
         class(circuit_t) :: this
@@ -313,13 +423,6 @@ contains
         real :: res
         res = this%nodes%values(findVoltageIndexByName(this%nodes%names, name))%current
     end function
-
-    ! function getNodeREq(this, name) result(res)
-    !     class(circuit_t) :: this
-    !     character(len=*), intent(in) :: name
-    !     real :: res
-    !     res = this%nodes%r_eq(findVoltageIndexByName(this%nodes%names, name))
-    ! end function
 
     function getTime(this) result(res)
         class(circuit_t) :: this

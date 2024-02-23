@@ -365,14 +365,10 @@ contains
         class(termination_t), intent(in) :: termination
         character(len=*), intent(in) :: end_node
         character(len=256), allocatable :: res(:)
-        character(20) :: charR, charL, line_z, lineC
+        character(20) :: charR, charL
 
         write(charR, *) termination%resistance
-        write(lineC, *) node%line_c_per_meter
-        write(line_z, *) node%line_z
         write(charL, *) termination%inductance
-        ! write(sr_from_line, *) 50.0
-        ! write(sr_from_line, *) node%r_from_line
 
         allocate(res(0))
 
@@ -384,10 +380,8 @@ contains
         type is(termination_t)
             res = [res, trim("L" // node%name // " " // node%name // "_R " // end_node)//" "//trim(charL)]
         end select
-        ! res = [res, trim("R1" // node%name // " " // node%name // " " // node%name//"_R1")// " "//trim(line_z)]
-        ! res = [res, trim("V1" // node%name // " " // node%name // "_R1 0 dc 0" )]
-        res = [res, trim("V1" // node%name // " " // node%name // " 0 dc 0" )]
-        ! res = [res, trim("I1" // node%name // " " // node%name // "_I 0 dc 0" )]
+        res = [res, trim("Ropen" // node%name // " " // node%name //" "//node%name// "_open 0" )]
+        res = [res, trim("V1" // node%name // " " // node%name // "_open 0 dc 0" )]
 
     end function
 
@@ -396,14 +390,11 @@ contains
         class(termination_t), intent(in) :: termination
         character(len=*), intent(in) :: end_node
         character(len=256), allocatable :: res(:)
-        character(20) :: charR, charL, charC, sr_from_line, lineC
+        character(20) :: charR, charL, charC
 
         write(charR, *) termination%resistance
         write(charC, *) termination%capacitance
-        write(lineC, *) node%line_c_per_meter
         write(charL, *) termination%inductance
-        write(sr_from_line, *) 50.0
-        ! write(sr_from_line, *) node%r_from_line
 
         allocate(res(0))
 
@@ -417,7 +408,9 @@ contains
             res = [res, trim("L" // node%name // " " // node%name // "_R " // end_node //" "// charL)]
             res = [res, trim("C" // node%name // " " // node%name // " " // end_node //" "// charC)]
         end select
-        res = [res, trim("V1" // node%name // " " // node%name // " 0 dc 0" )]
+        res = [res, trim("Ropen" // node%name // " " // node%name //" "//node%name// "_open 0" )]
+        res = [res, trim("V1" // node%name // " " // node%name // "_open 0 dc 0" )]
+        ! res = [res, trim("V1" // node%name // " " // node%name // " 0 dc 0" )]
 
     end function
 
@@ -437,17 +430,14 @@ contains
 
     end function
 
-    ! function writeShortNode(node_name, termination, end_node) result(res)
     function writeShortNode(node, termination, end_node) result(res)
         type(node_t), intent(in) :: node
         class(termination_t), intent(in) :: termination
         character(len=*), intent(in) :: end_node
-        ! character(len=*), intent(in) :: node_name
         character(len=256), allocatable :: res(:)
         character(20) :: short_R, line_z
 
-        write(short_r, *) 0.0
-        write(line_z, *) node%line_z
+        write(short_r, *) 1e-10
 
         allocate(res(0))
         select type(termination)
@@ -457,10 +447,8 @@ contains
         type is(termination_t)
             res = [res, trim("R" // node%name // " " // node%name // " " // end_node)//" "//trim(short_R)] !check
         end select
-        ! res = [res, trim("R1" // node%name // " " // node%name // " "//node%name//"_R1")// " "//trim(line_z)]
-        ! res = [res, trim("V1" // node%name // " " // node%name // "_R1 0 dc 0" )]
-        res = [res, trim("V1" // node%name // " " // node%name // " 0 dc 0" )]
-        ! res = [res, trim("I1" // node%name // " " // node%name // "_I 0 dc 0" )]
+        res = [res, trim("Ropen" // node%name // " " // node%name //" "//node%name// "_open 0" )]
+        res = [res, trim("V1" // node%name // " " // node%name // "_open 0 dc 0" )]
 
         
     end function

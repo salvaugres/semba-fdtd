@@ -13,7 +13,7 @@ module network_mod
         real :: vs_prev = 0.0
         real :: line_z = 0.0
         real :: v_eq = 0.0
-        ! real :: z_eq = 1.0
+        real :: r_eq = 1.0
 
         character(len=:), allocatable :: name
         character(len=:), allocatable :: source
