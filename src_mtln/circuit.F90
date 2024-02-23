@@ -17,6 +17,7 @@ module circuit_mod
     end type
 
     type VI_t
+        real :: v1,v2,i1,i2
         real :: v_th
         real :: r_th
         real :: voltage
@@ -60,8 +61,16 @@ module circuit_mod
         procedure :: computeTheveninEquivalent
         procedure, private :: computeTheveninR
         procedure, private :: computeTheveninV
-        procedure, private :: UpdateTheveninR
-        procedure, private :: UpdateTheveninV
+        procedure, private :: updateTheveninR
+        procedure, private :: updateTheveninV
+
+        procedure :: getNodeV1
+        procedure :: getNodeV2
+        procedure :: getNodeI1
+        procedure :: getNodeI2
+        procedure :: updateNodesVI1
+        procedure :: updateNodesVI2
+        procedure, private :: updateTheveninR12
 
         procedure :: getNodeTheveninR
         procedure :: getNodeTheveninV
@@ -274,6 +283,50 @@ contains
         end if
     end subroutine
 
+    subroutine updateNodesVI2(this) 
+        class(circuit_t) :: this
+        integer :: i
+        type(vectorInfo), pointer :: info, info_I, info_V
+        real(kind=c_double), pointer :: values(:), values_I(:), values_V(:)
+        do i = 1, size(this%nodes%names)
+            if (this%nodes%names(i)%name /= "time") then 
+                call c_f_pointer(get_vector_info(trim(this%nodes%names(i)%name)//c_null_char), info_V)
+                call c_f_pointer(info_V%vRealData, values_V,shape=[info_V%vLength])
+                this%nodes%values(i)%v2 = values_V(ubound(values_V,1))
+                call c_f_pointer(get_vector_info("V1"//trim(this%nodes%names(i)%name)//"#branch"//c_null_char), info_I)
+                call c_f_pointer(info_I%vRealData, values_I,shape=[info_I%vLength])
+                this%nodes%values(i)%i2 = values_I(ubound(values_I,1))
+
+            else 
+                call c_f_pointer(get_vector_info(trim(this%nodes%names(i)%name)//c_null_char), info)
+                call c_f_pointer(info%vRealData, values,shape=[info%vLength])
+                this%nodes%values(i)%time = values(ubound(values,1))
+            end if
+        end do
+    end subroutine
+
+    subroutine updateNodesVI1(this) 
+        class(circuit_t) :: this
+        integer :: i
+        type(vectorInfo), pointer :: info, info_I, info_V
+        real(kind=c_double), pointer :: values(:), values_I(:), values_V(:)
+        do i = 1, size(this%nodes%names)
+            if (this%nodes%names(i)%name /= "time") then 
+                call c_f_pointer(get_vector_info(trim(this%nodes%names(i)%name)//c_null_char), info_V)
+                call c_f_pointer(info_V%vRealData, values_V,shape=[info_V%vLength])
+                this%nodes%values(i)%v1 = values_V(ubound(values_V,1))
+                call c_f_pointer(get_vector_info("V1"//trim(this%nodes%names(i)%name)//"#branch"//c_null_char), info_I)
+                call c_f_pointer(info_I%vRealData, values_I,shape=[info_I%vLength])
+                this%nodes%values(i)%i1 = values_I(ubound(values_I,1))
+
+            else 
+                call c_f_pointer(get_vector_info(trim(this%nodes%names(i)%name)//c_null_char), info)
+                call c_f_pointer(info%vRealData, values,shape=[info%vLength])
+                this%nodes%values(i)%time = values(ubound(values,1))
+            end if
+        end do
+    end subroutine
+
     subroutine updateNodes(this) 
         class(circuit_t) :: this
         integer :: i
@@ -296,11 +349,67 @@ contains
         end do
     end subroutine
 
+    ! subroutine computeTheveninEquivalent(this)
+    !     class(circuit_t) :: this
+    !     call this%computeTheveninR()
+    !     call this%computeTheveninV()
+    ! end subroutine
+
     subroutine computeTheveninEquivalent(this)
         class(circuit_t) :: this
-        call this%computeTheveninR()
-        call this%computeTheveninV()
+        integer :: i
+        real :: v, kp, km, f, v_0
+        character(20) :: s_v
+        
+        f = 0.1
+        kp = 1.0+f
+        km = 1.0-f
+        v_0 = 1.0
+
+        call this%updateVoltageSources(this%time)
+
+        do i = 1, size(this%nodes%names)
+            if (this%nodes%names(i)%name /= "time") then
+                ! v = this%getNodeVoltage(trim(this%nodes%names(i)%name))
+                ! write(s_v, '(E10.4)') v*kp
+                write(s_v, '(E10.4)') v_0*kp
+                call command("alter @V1"//trim(this%nodes%names(i)%name)//"[dc] = "//trim(s_v) // c_null_char)
+            end if
+        end do
+        call this%resume()
+        call this%updateNodesVI1()
+
+        do i = 1, size(this%nodes%names)
+            if (this%nodes%names(i)%name /= "time") then
+                ! v = this%getNodeVoltage(trim(this%nodes%names(i)%name))
+                ! write(s_v, '(E10.4)') v*km/kp
+                write(s_v, '(E10.4)') v_0*km
+                call command("alter @V1"//trim(this%nodes%names(i)%name)//"[dc] = "//trim(s_v) // c_null_char)
+            end if
+        end do
+        call this%resume()
+        call this%updateNodesVI2()
+        
+        call this%updateTheveninR12()
+
     end subroutine
+
+    subroutine updateTheveninR12(this) 
+        class(circuit_t) :: this
+        integer :: i
+        real :: v1,v2,i1,i2
+        do i = 1, size(this%nodes%names)
+            if (this%nodes%names(i)%name /= "time") then 
+                v1 = this%getNodeV1(this%nodes%names(i)%name)
+                v2 = this%getNodeV2(this%nodes%names(i)%name)
+                i1 = this%getNodeI1(this%nodes%names(i)%name)
+                i2 = this%getNodeI2(this%nodes%names(i)%name)
+                this%nodes%values(i)%r_th = abs((v1-v2)/(i1-i2))
+                this%nodes%values(i)%v_th = ((i2*v1-i1*v2)/(i2-i1))
+            end if
+        end do
+    end subroutine
+
 
     subroutine computeTheveninR(this)
         class(circuit_t) :: this
@@ -317,6 +426,7 @@ contains
             end if
         end do
         ! set test sources with 1V
+        ! write(s_v_test, '(E10.4)') 0.0
         write(s_v_test, '(E10.4)') 1.0
         do i = 1, size(this%nodes%names)
             if (this%nodes%names(i)%name /= "time") then
@@ -338,12 +448,12 @@ contains
             if (this%nodes%names(i)%name /= "time") then 
                 call c_f_pointer(get_vector_info(trim(this%nodes%names(i)%name)//c_null_char), info_V)
                 call c_f_pointer(info_V%vRealData, values_V,shape=[info_V%vLength])
-                this%nodes%values(i)%voltage = values_V(ubound(values_V,1))
+                ! this%nodes%values(i)%voltage = values_V(ubound(values_V,1))
                 call c_f_pointer(get_vector_info("V1"//trim(this%nodes%names(i)%name)//"#branch"//c_null_char), info_I)
                 call c_f_pointer(info_I%vRealData, values_I,shape=[info_I%vLength])
                 this%nodes%values(i)%current = values_I(ubound(values_I,1))
 
-                this%nodes%values(i)%r_th = abs(this%nodes%values(i)%voltage/this%nodes%values(i)%current)
+                ! this%nodes%values(i)%r_th = abs(this%nodes%values(i)%voltage/this%nodes%values(i)%current)
 
             else 
                 call c_f_pointer(get_vector_info(trim(this%nodes%names(i)%name)//c_null_char), info)
@@ -370,6 +480,7 @@ contains
         call this%resume()
         call this%updateTheveninV()
         ! change open to short
+        write(s_r_short, '(E10.4)') 0.0
         do i = 1, size(this%nodes%names)
             if (this%nodes%names(i)%name /= "time") then
                 call command("alter @Ropen"//trim(this%nodes%names(i)%name)//" = "//trim(s_r_short) // c_null_char)
@@ -387,6 +498,7 @@ contains
                 call c_f_pointer(get_vector_info(trim(this%nodes%names(i)%name)//c_null_char), info_V)
                 call c_f_pointer(info_V%vRealData, values_V,shape=[info_V%vLength])
                 this%nodes%values(i)%v_th = values_V(ubound(values_V,1))
+                this%nodes%values(i)%r_th = values_V(ubound(values_V,1))/this%nodes%values(i)%current
             else 
                 call c_f_pointer(get_vector_info(trim(this%nodes%names(i)%name)//c_null_char), info)
                 call c_f_pointer(info%vRealData, values,shape=[info%vLength])
@@ -415,6 +527,33 @@ contains
         character(len=*), intent(in) :: name
         real :: res
         res = this%nodes%values(findVoltageIndexByName(this%nodes%names, name))%voltage
+    end function
+
+    function getNodeV1(this, name) result(res)
+        class(circuit_t) :: this
+        character(len=*), intent(in) :: name
+        real :: res
+        res = this%nodes%values(findVoltageIndexByName(this%nodes%names, name))%v1
+    end function
+    function getNodeV2(this, name) result(res)
+        class(circuit_t) :: this
+        character(len=*), intent(in) :: name
+        real :: res
+        res = this%nodes%values(findVoltageIndexByName(this%nodes%names, name))%v2
+    end function
+
+    function getNodeI1(this, name) result(res)
+        class(circuit_t) :: this
+        character(len=*), intent(in) :: name
+        real :: res
+        res = this%nodes%values(findVoltageIndexByName(this%nodes%names, name))%i1
+    end function
+
+    function getNodeI2(this, name) result(res)
+        class(circuit_t) :: this
+        character(len=*), intent(in) :: name
+        real :: res
+        res = this%nodes%values(findVoltageIndexByName(this%nodes%names, name))%i2
     end function
 
     function getNodeCurrent(this, name) result(res)

@@ -98,6 +98,7 @@ contains
         do i = 1, size(this%networks)
             do j = 1, this%networks(i)%number_of_nodes
                 r_eq = this%circuit%getNodeTheveninR(this%networks(i)%nodes(j)%name)
+                ! vs_now = this%circuit%getNodeCurrent(this%networks(i)%nodes(j)%name)*r_eq
                 vs_now = this%circuit%getNodeTheveninV(this%networks(i)%nodes(j)%name)
                 vs_prev = this%networks(i)%nodes(j)%vs_prev
 
@@ -170,8 +171,10 @@ contains
         class(network_manager_t) :: this
 
         
+        ! call this%updateCircuitVoltagesFromNetwork()
         call this%circuit%computeTheveninEquivalent()
         call this%updateCircuitVoltagesFromNetwork()
+
         ! call this%updateCircuitCurrentsFromNetwork()
         call this%circuit%step()
         this%circuit%time = this%circuit%time + this%circuit%dt

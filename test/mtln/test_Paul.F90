@@ -89,7 +89,7 @@ integer function test_coaxial_line_paul_8_6_square() bind(C) result(error_cnt)
     ! p.run(finalTime = 18e-6)
     block
         integer :: i
-        open(unit = 1, file =  'probes_8.6_square.txt')
+        open(unit = 1, file =  'probes_8.6_square_alt.txt')
         do i = 1, size(solver%bundles(1)%probes(1)%t)
             write(1,*) solver%bundles(1)%probes(1)%t(i)," ", &
                        solver%bundles(1)%probes(1)%val(i,1) ," ", &
@@ -202,7 +202,7 @@ integer function test_coaxial_line_paul_8_6_triangle() bind(C) result(error_cnt)
     write(*,*) error_cnt
     block
         integer :: i
-        open(unit = 1, file =  'probes_8.6_triangle.txt')
+        open(unit = 1, file =  'probes_8.6_triangle_alt.txt')
         do i = 1, size(solver%bundles(1)%probes(1)%t)
             write(1,*) solver%bundles(1)%probes(1)%t(i)," ", &
                        solver%bundles(1)%probes(1)%val(i,1) ," ", &
@@ -271,9 +271,9 @@ integer function test_2_conductor_line_paul_9_6() bind(C) result(error_cnt)
         cable%step_size = [(length/ndz, i = 1, ndz)]
     end block
 
-    final_time = 40e-9
+    final_time = 40e-9/5
     ! parsed%time_step = 4.250797024442083e-12
-    parsed%number_of_steps = 10000
+    parsed%number_of_steps = 10000/5
     parsed%time_step = final_time/parsed%number_of_steps
     ! parsed%number_of_steps = 10e-9/parsed%time_step
 
@@ -300,14 +300,14 @@ integer function test_2_conductor_line_paul_9_6() bind(C) result(error_cnt)
     node_right_1%belongs_to_cable => cable
     node_right_1%conductor_in_cable = 1
     node_right_1%side = "end"
-    node_right_1%termination = termination_t(type = "series", &
-                                             resistance = 50, &
-                                             inductance = 0, &
-                                             capacitance = 1e22)
-    ! node_right_1%termination = termination_t(type = "RLsCp", &
+    ! node_right_1%termination = termination_t(type = "series", &
     !                                          resistance = 50, &
-    !                                          inductance = 1e-6, &
-    !                                          capacitance = 100e-12)
+    !                                          inductance = 0, &
+    !                                          capacitance = 1e22)
+    node_right_1%termination = termination_t(type = "RLsCp", &
+                                             resistance = 50, &
+                                             inductance = 1e-6, &
+                                             capacitance = 100e-12)
 
     node_right_2%belongs_to_cable => cable
     node_right_2%conductor_in_cable = 2
@@ -348,7 +348,7 @@ integer function test_2_conductor_line_paul_9_6() bind(C) result(error_cnt)
     ! p.run(finalTime = 18e-6)
     block
         integer :: i
-        open(unit = 1, file =  'probes_9.6.txt')
+        open(unit = 1, file =  'probes_9.6_alt_disp.txt')
         do i = 1, size(solver%bundles(1)%probes(1)%t)
             write(1,*) solver%bundles(1)%probes(1)%t(i)," ", &
                        solver%bundles(1)%probes(1)%val(i,1) ," ", &
@@ -467,7 +467,7 @@ integer function test_2_conductor_line_paul_9_11_20ns() bind(C) result(error_cnt
     ! p.run(finalTime = 18e-6)
     block
         integer :: i
-        open(unit = 1, file =  'probes_9.11_20ns.txt')
+        open(unit = 1, file =  'probes_9.11_20ns_alt.txt')
         do i = 1, size(solver%bundles(1)%probes(1)%t)
             write(1,*) solver%bundles(1)%probes(1)%t(i)," ", &
                        solver%bundles(1)%probes(1)%val(i,1)," ", &
@@ -584,7 +584,7 @@ integer function test_2_conductor_line_paul_9_11_1ns() bind(C) result(error_cnt)
     ! p.run(finalTime = 18e-6)
     block
         integer :: i
-        open(unit = 1, file =  'probes_9.11_1ns.txt')
+        open(unit = 1, file =  'probes_9.11_1ns_alt.txt')
         do i = 1, size(solver%bundles(1)%probes(1)%t)
             write(1,*) solver%bundles(1)%probes(1)%t(i)," ", &
                        solver%bundles(1)%probes(1)%val(i,1)," ", &
