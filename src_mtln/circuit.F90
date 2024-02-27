@@ -38,7 +38,7 @@ module circuit_mod
         character (len=:), allocatable :: name
         real :: time = 0.0, dt = 0.0
         logical :: errorFlag = .false.
-        type(nodes_t) :: nodes   
+        type(nodes_t) :: nodes, saved_nodes   
 
     contains
         procedure :: init
@@ -53,6 +53,8 @@ module circuit_mod
         procedure :: getNodeCurrent
         ! procedure :: getNodeREq
         procedure :: updateNodes
+        procedure :: saveCircuitState
+        procedure :: loadCircuitState
         procedure :: getTime
         procedure :: updateNodeCurrent
         procedure :: updateNodeVoltage
@@ -154,15 +156,45 @@ contains
         if (this%time == 0) then
             call this%run()
         else
+            ! call this%loadCircuitState()
             call this%resume()
         end if
         call this%updateNodes()
+        ! call this%saveCircuitState()
 
     end subroutine
 
     subroutine run(this)
         class(circuit_t) :: this
         call command('run ' // c_null_char)
+    end subroutine
+
+    subroutine loadCircuitState(this)
+        class (circuit_t) :: this
+        integer :: i
+        character(20) :: v
+        do i = 1, size(this%nodes%names)
+            if (this%nodes%names(i)%name /= "time") then 
+                write(v, *) this%saved_nodes%values(i)%voltage
+                call command('set v('//this%nodes%names(i)%name//') = '//v// c_null_char)
+            end if
+        end do
+        ! call this%command(' status.txt'// c_null_char)
+    end subroutine
+
+    subroutine saveCircuitState(this)
+        class (circuit_t) :: this
+        integer :: i
+        type(vectorInfo), pointer :: info, info_I, info_V
+        real(kind=c_double), pointer :: values(:), values_I(:), values_V(:)
+        do i = 1, size(this%nodes%names)
+            if (this%nodes%names(i)%name /= "time") then 
+                call c_f_pointer(get_vector_info(trim(this%nodes%names(i)%name)//c_null_char), info_V)
+                call c_f_pointer(info_V%vRealData, values_V,shape=[info_V%vLength])
+                this%saved_nodes%values(i)%voltage = values_V(ubound(values_V,1))
+            end if
+        end do
+        ! call this%command('wrnodev status.txt'// c_null_char)
     end subroutine
 
     subroutine setStopTimes(this, finalTime, dt)

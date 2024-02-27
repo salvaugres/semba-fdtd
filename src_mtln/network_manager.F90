@@ -93,14 +93,16 @@ contains
     subroutine updateNetworkVoltages(this)
         class(network_manager_t) :: this
         integer :: i, j
-        real :: is_now, I1, c, step, is_prev, vs_now, vs_prev, r_eq
+        real :: is_now, I1, c, step, is_prev, vs_now, vs_prev, r_eq_now, r_eq_prev
         real :: k
         do i = 1, size(this%networks)
             do j = 1, this%networks(i)%number_of_nodes
-                r_eq = this%circuit%getNodeTheveninR(this%networks(i)%nodes(j)%name)
                 ! vs_now = this%circuit%getNodeCurrent(this%networks(i)%nodes(j)%name)*r_eq
+                r_eq_now = this%circuit%getNodeTheveninR(this%networks(i)%nodes(j)%name)
                 vs_now = this%circuit%getNodeTheveninV(this%networks(i)%nodes(j)%name)
+
                 vs_prev = this%networks(i)%nodes(j)%vs_prev
+                r_eq_prev = this%networks(i)%nodes(j)%r_eq_prev
 
                 c = this%networks(i)%nodes(j)%line_c_per_meter
                 step = this%networks(i)%nodes(j)%step
@@ -113,17 +115,24 @@ contains
                 ! end if
                 if (index(this%networks(i)%nodes(j)%name, "initial") /= 0) then 
 
-                    this%networks(i)%nodes(j)%v = ((r_eq/k-1.0)*this%networks(i)%nodes(j)%v - &
-                                                  2*r_eq*I1 + &
-                                                  (vs_now+vs_prev))/(r_eq/k+1.0)
+                    this%networks(i)%nodes(j)%v = ((1.0/k-1.0/r_eq_prev)*this%networks(i)%nodes(j)%v - &
+                                                  2*I1 + &
+                                                  (vs_now/r_eq_now + vs_prev/r_eq_prev))/(1.0/k+1.0/r_eq_now)
+                    ! this%networks(i)%nodes(j)%v = ((r_eq/k-1.0)*this%networks(i)%nodes(j)%v - &
+                    !                               2*r_eq*I1 + &
+                    !                               (vs_now+vs_prev))/(r_eq/k+1.0)
                 else 
 
-                    this%networks(i)%nodes(j)%v = ((r_eq/k-1.0)*this%networks(i)%nodes(j)%v + &
-                                                  2*r_eq*I1 + &
-                                                  (vs_now+vs_prev))/(r_eq/k+1.0)
+                    this%networks(i)%nodes(j)%v = ((1.0/k-1.0/r_eq_prev)*this%networks(i)%nodes(j)%v + &
+                                                  2*I1 + &
+                                                  (vs_now/r_eq_now + vs_prev/r_eq_prev))/(1.0/k+1.0/r_eq_now)
+                    ! this%networks(i)%nodes(j)%v = ((r_eq/k-1.0)*this%networks(i)%nodes(j)%v + &
+                    !                               2*r_eq*I1 + &
+                    !                               (vs_now+vs_prev))/(r_eq/k+1.0)
 
                 end if
                 this%networks(i)%nodes(j)%vs_prev = vs_now
+                this%networks(i)%nodes(j)%r_eq_prev = r_eq_now
                 ! write(*,*) this%networks(i)%nodes(j)%name, " - V: ", this%networks(i)%nodes(j)%v
                 ! write(*,*) this%networks(i)%nodes(j)%name, " - I: ", this%networks(i)%nodes(j)%i
             end do
