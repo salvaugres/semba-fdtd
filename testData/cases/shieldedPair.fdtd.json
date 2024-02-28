@@ -79,13 +79,13 @@
 	
 	"probes": [
 		{
-			"name": "v",
+			"name": "voltage_at_wire_end",
 			"type": "wire",
 			"field": "voltage",
 			"elementIds": [4]
 		},
 		{
-			"name": "i",
+			"name": "current_at_wire_end",
 			"type": "wire",
 			"field": "current",
 			"elementIds": [4]

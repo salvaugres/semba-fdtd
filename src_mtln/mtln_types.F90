@@ -4,10 +4,10 @@ module mtln_types_mod
 
     
     type :: termination_t
-    character(len=:), allocatable :: type
-    real :: resistance = 1e-10
-    real :: inductance = 1e-12
-    real :: capacitance = 1e22
+        character(len=:), allocatable :: type
+        real :: resistance = 1e-10
+        real :: inductance = 1e-12
+        real :: capacitance = 1e22
     end type
     
     type, extends(termination_t) :: source_termination_t
