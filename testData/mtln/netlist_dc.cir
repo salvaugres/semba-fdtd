@@ -6,4 +6,5 @@ rn2 node2 node3 8.1k
 rn3 node2 0 4.7k 
 .dc vn1 24 24 1 
 .save v(node3) v(node2) v(node1)
+* .save v(node3) v(node2) v(node1) vn1#branch
 .end 

@@ -32,13 +32,11 @@ integer function test_mtl_init_homogeneous() bind(C) result(error_cnt)
         source = [ 0.0, 0.0, 0.0, 0.0 ], shape = [ 2,2 ] )
     real,dimension(2,2) :: gpul = reshape( &
         source = [ 0.0, 0.0, 0.0, 0.0 ], shape = [ 2,2 ] )
-    real, dimension(2,3) :: node_positions = reshape( &
-        source = [ 0.0, 0.0, 0.0, 100.0, 0.0, 0.0], shape = [2,3], order=(/2,1/) )
-    integer, dimension(1) :: ndiv = (/5/)
+    real, dimension(5) :: step_size = [20.0, 20.0, 20.0, 20.0, 20.0]
 
     type(mtl_t) :: line 
     error_cnt = 0
-    line = mtl_t(lpul, cpul, rpul, gpul, node_positions, ndiv, name)
+    line = mtl_t(lpul, cpul, rpul, gpul, step_size, name)
     call comparePULMatrices(error_cnt, line%lpul, lpul)
     call comparePULMatrices(error_cnt, line%cpul, cpul)
     call comparePULMatrices(error_cnt, line%rpul, rpul)
@@ -78,9 +76,7 @@ integer function test_mtl_init_inhomogeneous() bind(C) result(error_cnt)
     real,dimension(2,2) :: gpul0 = reshape( source = [ 0.0, 0.0, 0.0, 0.0 ], shape = [ 2,2 ] )
     real,dimension(3,2,2) :: gpul
     
-    real, dimension(2,3) :: node_positions = reshape( &
-        source = [ 0.0, 0.0, 0.0, 100.0, 0.0, 0.0], shape = [2,3], order=(/2,1/) )
-    integer, dimension(1) :: ndiv = (/2/)
+    real, dimension(2) :: step_size = [50.0, 50.0]
     type(mtl_t) :: line 
     
     lpul(1,:,:) = lpul1
@@ -95,7 +91,7 @@ integer function test_mtl_init_inhomogeneous() bind(C) result(error_cnt)
     gpul(3,:,:) = gpul0
 
     error_cnt = 0
-    line = mtl_t(lpul, cpul, rpul, gpul, node_positions, ndiv, name)
+    line = mtl_t(lpul, cpul, rpul, gpul, step_size, name)
     call comparePULMatricesIH(error_cnt, line%lpul, lpul)
     call comparePULMatricesIH(error_cnt, line%cpul, cpul)
     call comparePULMatricesIH(error_cnt, line%rpul, rpul)

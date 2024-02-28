@@ -1,12 +1,9 @@
 module mtl_bundle_mod
 
-    ! use mtlnsolver_mod
     use utils_mod
     use probes_mod
     use dispersive_mod
-    ! use mtln_types_mod
     use mtl_mod
-    ! use fhash, only: fhash_tbl_t
 
     implicit none
 
@@ -14,9 +11,9 @@ module mtl_bundle_mod
         character (len=:), allocatable :: name
         real, allocatable, dimension(:,:,:) :: lpul, cpul, rpul, gpul
         integer  :: number_of_conductors = 0, number_of_divisions = 0
-        real, allocatable, dimension(:,:) :: u, du
+        real, dimension(:), allocatable :: step_size
         real, allocatable, dimension(:,:) :: v, i
-        real, allocatable, dimension(:,:,:) :: du_length(:,:,:)
+        real, allocatable, dimension(:,:,:) :: du(:,:,:)
         real :: time = 0.0, dt = 1e10
         type(probe_t), allocatable, dimension(:) :: probes
         type(transfer_impedance_t) :: transfer_impedance
@@ -25,6 +22,8 @@ module mtl_bundle_mod
         real, dimension(:,:,:), allocatable :: v_term, i_term
         real, dimension(:,:,:), allocatable :: v_diff, i_diff
 
+        ! real, pointer, dimension(:) :: v_initial, v_end
+        ! real, pointer, dimension(:) :: i_initial, i_end
 
     contains
         procedure :: mergePULMatrices
@@ -39,8 +38,8 @@ module mtl_bundle_mod
         procedure :: advanceCurrent => bundle_advanceCurrent
         procedure :: addTransferImpedance => bundle_addTransferImpedance
         ! procedure :: setConnectorTransferImpedance
-        procedure :: isProbeInLine        
         procedure :: setExternalCurrent => bundle_setExternalCurrent
+        procedure :: setExternalVoltage => bundle_setExternalVoltage
         procedure :: updateExternalCurrent => bundle_updateExternalCurrent
 
     end type mtl_bundle_t
@@ -54,9 +53,7 @@ contains
     function mtldCtor(levels, name) result(res)
         type(mtl_bundle_t) :: res
         type(mtl_array_t), dimension(:), intent(in) :: levels
-        ! type(fhash_tbl_t), intent(in) :: levels
         character(len=*), intent(in), optional :: name
-        ! real, allocatable, dimension(:,:) :: v, i
         
         res%name = ""
         if (present(name)) then
@@ -66,10 +63,8 @@ contains
 
         res%number_of_conductors = countNumberOfConductors(levels)
         res%dt = levels(1)%lines(1)%dt
-        res%u = levels(1)%lines(1)%u !? tiene que ser n x n ?
-        res%du = levels(1)%lines(1)%du !?
-        res%number_of_divisions = size(res%du,1)
-
+        res%step_size = levels(1)%lines(1)%step_size
+        res%number_of_divisions = size(res%step_size,1)
         call res%initialAllocation()
         call res%mergePULMatrices(levels)
         call res%mergeDispersiveMatrices(levels)
@@ -83,10 +78,17 @@ contains
         allocate(this%cpul(this%number_of_divisions + 1, this%number_of_conductors, this%number_of_conductors), source = 0.0)
         allocate(this%gpul(this%number_of_divisions + 1, this%number_of_conductors, this%number_of_conductors), source = 0.0)
         allocate(this%rpul(this%number_of_divisions, this%number_of_conductors, this%number_of_conductors), source = 0.0)
-        allocate(this%du_length(this%number_of_divisions, this%number_of_conductors, this%number_of_conductors), source = 0.0)
+        allocate(this%du(this%number_of_divisions, this%number_of_conductors, this%number_of_conductors), source = 0.0)
         
         allocate(this%v(this%number_of_conductors, this%number_of_divisions + 1), source = 0.0)
         allocate(this%i(this%number_of_conductors, this%number_of_divisions), source = 0.0)
+
+        ! allocate(this%v_initial(this%number_of_conductors), source = 0.0)
+        ! allocate(this%v_end(this%number_of_conductors), source = 0.0)
+
+        ! allocate(this%i_initial(this%number_of_conductors), source = 0.0)
+        ! allocate(this%i_end(this%number_of_conductors), source = 0.0)
+
 
         allocate(this%i_term(this%number_of_divisions,this%number_of_conductors,this%number_of_conductors), source = 0.0)
         allocate(this%v_diff(this%number_of_divisions,this%number_of_conductors,this%number_of_conductors), source = 0.0)
@@ -118,7 +120,7 @@ contains
                 this%cpul(:, n_sum + 1: n_sum+n , n_sum +1 : n_sum+n) = levels(i)%lines(j)%cpul(:,:,:)
                 this%rpul(:, n_sum + 1: n_sum+n , n_sum +1 : n_sum+n) = levels(i)%lines(j)%rpul(:,:,:)
                 this%gpul(:, n_sum + 1: n_sum+n , n_sum +1 : n_sum+n) = levels(i)%lines(j)%gpul(:,:,:)
-                this%du_length(:, n_sum + 1: n_sum+n , n_sum +1 : n_sum+n) = levels(i)%lines(j)%du_length(:,:,:)
+                this%du(:, n_sum + 1: n_sum+n , n_sum +1 : n_sum+n) = levels(i)%lines(j)%du(:,:,:)
                 n_sum = n_sum+n
             end do
         end do
@@ -135,7 +137,8 @@ contains
                 number_of_poles = max(number_of_poles, levels(i)%lines(j)%lumped_elements%number_of_poles)
             end do
         end do
-        this%transfer_impedance = transfer_impedance_t(this%number_of_conductors, number_of_poles, this%u, this%dt)
+        this%transfer_impedance = &
+            transfer_impedance_t(this%number_of_conductors, number_of_poles, this%number_of_divisions, this%dt)
         do i = 1, size(levels)
             do j = 1, size(levels(i)%lines)
                 n = levels(i)%lines(j)%number_of_conductors
@@ -173,29 +176,13 @@ contains
 
     end subroutine
 
-    subroutine addProbe(this, position, probe_type, probe)
+    type(probe_t) function addProbe(this, index, probe_type) result(res)
         class(mtl_bundle_t) :: this
-        real, intent(in), dimension(3) :: position
-        character (len=*), intent(in), allocatable :: probe_type
-        type(probe_t), intent(inout) :: probe
-
-        if (.not.(this%isProbeInLine(position))) then
-            error stop 'Probe position is out of MTL line'
-        end if  
-
-        probe = probe_t(position, probe_type, this%dt, this%u)
-        this%probes = [this%probes, probe]
-
-    end subroutine 
-
-    function isProbeinLine(this, position) result(res)
-        class(mtl_bundle_t) this
-        real, intent(in), dimension(3) :: position
-        logical :: res
-        !TODO
-        res = .true.
-        
-    end function isProbeinLine
+        integer, intent(in) :: index
+        character (len=*), intent(in) :: probe_type
+        res = probeCtor(index, probe_type, this%dt)
+        this%probes = [this%probes, res]
+    end function
 
     subroutine bundle_addTransferImpedance(this, conductor_out, range_in, transfer_impedance)
         class(mtl_bundle_t) :: this
@@ -223,7 +210,7 @@ contains
         ! enddo
 
         F1 = reshape(source=[(matmul( &
-            this%du_length(i,:,:), &
+            this%du(i,:,:), &
             this%lpul(i,:,:)/this%dt + &
                 0.5*this%transfer_impedance%d(i,:,:) + &
                 this%transfer_impedance%e(i,:,:)/this%dt + &
@@ -233,7 +220,7 @@ contains
             shape=[this%number_of_divisions,this%number_of_conductors, this%number_of_conductors], &
             order=[2,3,1])
         F2 = reshape(source=[(matmul( &
-            this%du_length(i,:,:), &
+            this%du(i,:,:), &
             this%lpul(i,:,:)/this%dt - &
             0.5*this%transfer_impedance%d(i,:,:) + &
             this%transfer_impedance%e(i,:,:)/this%dt - &
@@ -257,22 +244,22 @@ contains
     subroutine updateCGTerms(this)
         class(mtl_bundle_t) ::this
         real, dimension(this%number_of_divisions + 1,this%number_of_conductors,this%number_of_conductors) :: F1, F2, IF1
-        real, dimension(this%number_of_divisions + 1, this%number_of_conductors,this%number_of_conductors) :: extended_du_length
+        real, dimension(this%number_of_divisions + 1, this%number_of_conductors,this%number_of_conductors) :: extended_du
         integer :: i
         
-        extended_du_length(1,:,:) = this%du_length(1,:,:)
+        extended_du(1,:,:) = this%du(1,:,:)
         do i = 2, this%number_of_divisions
-            extended_du_length(i,:,:)= 0.5*(this%du_length(i,:,:)+this%du_length(i-1,:,:))
+            extended_du(i,:,:)= 0.5*(this%du(i,:,:)+this%du(i-1,:,:))
         end do
-        extended_du_length(this%number_of_divisions + 1,:,:) = this%du_length(this%number_of_divisions,:,:)
+        extended_du(this%number_of_divisions + 1,:,:) = this%du(this%number_of_divisions,:,:)
 
         F1 = reshape(&
-            source=[(matmul(extended_du_length(i,:,:), &
+            source=[(matmul(extended_du(i,:,:), &
             this%cpul(i,:,:)/this%dt) + 0.5*this%gpul(i,:,:), i = 1, this%number_of_divisions + 1)], &
             shape=[this%number_of_divisions + 1,this%number_of_conductors, this%number_of_conductors], &
             order=[2,3,1])
         F2 = reshape(&
-            source=[(matmul(extended_du_length(i,:,:), &
+            source=[(matmul(extended_du(i,:,:), &
             this%cpul(i,:,:)/this%dt) - 0.5*this%gpul(i,:,:), i = 1, this%number_of_divisions + 1)], &
             shape=[this%number_of_divisions + 1,this%number_of_conductors, this%number_of_conductors], &
             order=[2,3,1])
@@ -300,39 +287,45 @@ contains
         class(mtl_bundle_t) ::this
         integer :: i
 
-        ! do i = 2, this%number_of_divisions
-        !     this%v(:, i) = matmul(this%v_term(i,:,:), this%v(:,i)) - &
-        !                    matmul(this%i_diff(i,:,:), this%i(:,i) - this%i(:,i-1)  )
-        !                    ! + eT?
-        ! end do
+        do i = 2, this%number_of_divisions
+            this%v(:, i) = matmul(this%v_term(i,:,:), this%v(:,i)) - &
+                           matmul(this%i_diff(i,:,:), this%i(:,i) - this%i(:,i-1)  )
+        end do
 
 
-        !? this%v = reshape(source=[(matmul(this%v_term(i,:,:), this%v(:,i)), i = 2, this%number_of_divisions - 1)], &
-        !                  shape = [this%number_of_divisions + 1,this%number_of_conductors, this%number_of_conductors], &
-        !                  order = [2,3,1])
+        ! this%v(:,2:this%number_of_divisions) = &
+        !          reshape(source=[(matmul(this%v_term(i,:,:), this%v(:,i)), i = 2, this%number_of_divisions - 1)], &
+        !                  shape = [this%number_of_divisions -1,this%number_of_conductors], &
+        !                  order = [2,1])
     end subroutine
 
     subroutine bundle_advanceCurrent(this)
         class(mtl_bundle_t) ::this
         real, dimension(:,:), allocatable :: i_prev, i_now
         integer :: i
-        ! call this%transfer_impedance%updateQ3Phi()
-        ! i_prev = this%i
-        ! do i = 1, this%number_of_divisions 
-        !     this%i(:,i) = matmul(this%i_term(i,:,:), this%i(:,i)) - &
-        !                   matmul(this%v_diff(i,:,:), (this%v(:,i+1) - this%v(:,i))) - &
-        !                         !  matmul(0.5*this%du_length(i,:,:), this%el))
-        !                   matmul(this%v_diff(i,:,:), matmul(this%du_length(i,:,:), this%transfer_impedance%q3_phi(i,:)))
-        ! enddo
-        ! !TODO - revisar
-        ! i_now = this%i
-        ! call this%transfer_impedance%updatePhi(i_prev, i_now)
+        call this%transfer_impedance%updateQ3Phi()
+        i_prev = this%i
+        do i = 1, this%number_of_divisions 
+            this%i(:,i) = matmul(this%i_term(i,:,:), this%i(:,i)) - &
+                          matmul(this%v_diff(i,:,:), (this%v(:,i+1) - this%v(:,i))) - &
+                                !  matmul(0.5*this%du_length(i,:,:), this%el))
+                          matmul(this%v_diff(i,:,:), matmul(this%du(i,:,:), this%transfer_impedance%q3_phi(i,:)))
+        enddo
+        !TODO - revisar
+        i_now = this%i
+        call this%transfer_impedance%updatePhi(i_prev, i_now)
     end subroutine
 
     subroutine bundle_setExternalCurrent(this, current)
         class(mtl_bundle_t) :: this
         real, dimension(:), intent(in) :: current
         this%i(1,:) = current(:)
+    end subroutine
+
+    subroutine bundle_setExternalVoltage(this, voltage)
+        class(mtl_bundle_t) :: this
+        real, dimension(:), intent(in) :: voltage
+        this%v(1,:) = voltage(:)
     end subroutine
 
     subroutine bundle_updateExternalCurrent(this, current)

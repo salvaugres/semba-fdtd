@@ -1,6 +1,7 @@
 module testingTools_mod
     use iso_c_binding
     use mtl_mod, only: mtl_t
+    use network_mod
     ! use mtl_bundle_mod
     implicit none
     
@@ -8,7 +9,47 @@ module testingTools_mod
 
 contains
     
-    ! type(mtl_bundle_t) function buildBundleFromLines()
+    
+
+    type(network_t) function buildNetwork(name, r1, c1, r2, c2, target_v_nodes, target_i_nodes) result(res)
+        character(len=*), intent(in) :: name, r1, c1, r2, c2
+        character(100), dimension(:), allocatable :: description
+        type(node_t), dimension(3) :: nodes
+        type(node_t) :: node_int, node_out, node_in
+        real, dimension(:),intent(in), target :: target_v_nodes, target_i_nodes
+
+        node_int%v => target_v_nodes(1)
+        node_int%i => target_i_nodes(1)
+        node_in%v  => target_v_nodes(2)
+        node_in%i  => target_i_nodes(2)
+        node_out%v => target_v_nodes(3)
+        node_out%i => target_i_nodes(3)
+
+        node_int%name = name//"_int"
+        node_int%v = 0.0
+        node_int%i = 0.0
+        node_int%line_c_per_meter = 0.0
+    
+        node_in%name = name//"_in"
+        node_in%v = 0.0
+        node_in%i = 0.0
+        node_in%line_c_per_meter = 0.0
+    
+        node_out%name = name//"_out"
+        node_out%v = 0.0
+        node_out%i = 0.0
+        node_out%line_c_per_meter = 0.0
+
+        nodes = [node_in, node_int, node_out]
+        allocate(description(0))
+        description = [description, trim("R_"//name//"_1 "//name//"_int "//name//"_in "//r1)]
+        description = [description, trim("V_"//name//"_1 "//name//"_in 0 dc 0 PULSE (0 5 1u 1u 1u 1 1)")]
+        description = [description, trim("R_"//name//"_2 "//name//"_out "//name//"_int "//r2)]
+        description = [description, trim("C_"//name//"_1 "//name//"_int 0 "//c1)]
+        description = [description, trim("C_"//name//"_2 "//name//"_out 0 "//c2)]
+        res = networkCtor(nodes, description)
+    
+    end function    
 
     type(mtl_t) function buildLineWithNConductors(n,name, parent_name, conductor_in_parent, dt) result(res)
     
@@ -17,11 +58,8 @@ contains
         real, intent(in), optional :: dt
         character(len=*), intent(in), optional :: parent_name
         integer, intent(in), optional :: conductor_in_parent
-        ! type(mtl_t) :: res
         real, allocatable, dimension(:,:) :: lpul, cpul, rpul, gpul
-        real, dimension(2,3) :: node_positions = reshape( &
-        source = [ 0.0, 0.0, 0.0, 100.0, 0.0, 0.0], shape = [2,3], order=(/2,1/) )
-        integer, dimension(1) :: ndiv = (/5/)
+        real, dimension(5) :: step_size = [20.0, 20.0, 20.0, 20.0, 20.0]
         integer :: i,j
 
         allocate(lpul(n,n), source = 0.0)
@@ -43,40 +81,21 @@ contains
             end do
         end do
         if (present(dt) .and. .not.present(parent_name)) then
-            res = mtl_t(lpul, cpul, rpul, gpul, node_positions, ndiv, name, & 
-                        dt = dt)
+            res = mtl_t(lpul, cpul, rpul, gpul, step_size, name, dt = dt)
         else if (.not.present(dt) .and. present(parent_name) ) then
-            res = mtl_t(lpul, cpul, rpul, gpul, node_positions, ndiv, name, & 
+            res = mtl_t(lpul, cpul, rpul, gpul, step_size, name, & 
                         parent_name= parent_name, &
                         conductor_in_parent=conductor_in_parent)
         else if (present(dt) .and. present(parent_name) ) then
-            res = mtl_t(lpul, cpul, rpul, gpul, node_positions, ndiv, name, & 
+            res = mtl_t(lpul, cpul, rpul, gpul, step_size, name, & 
                         parent_name= parent_name, &
                         conductor_in_parent=conductor_in_parent, &
                         dt = dt)
         else 
-            res = mtl_t(lpul, cpul, rpul, gpul, node_positions, ndiv, name)
+            res = mtl_t(lpul, cpul, rpul, gpul, step_size, name)
         end if
     end function    
 
-
-    ! function dotmatrixmul(a,b) result(res)
-    !     real, dimension(:,:,:), intent(in) :: a
-    !     real, dimension(:,:), intent(in) :: b
-    !     real, dimension(:), allocatable :: res
-    !     integer :: i,j
-        
-  
-    !     allocate(res(size(a,1)))
-    !     do i = 1, size(a,1)
-    !        res(i) = 0.0
-    !        do j = 1, size(a,2)
-    !           res(i) = res(i) + dot_product(a(i,j,:),b(j,:))
-    !        end do
-    !     end do
-    !  end function
-  
-  
     subroutine comparePULMatrices(error_cnt, m_line, m_input)
         integer, intent(inout) :: error_cnt
         real, intent(in), dimension(:,:,:) :: m_line

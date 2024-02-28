@@ -1,9 +1,8 @@
 module mtln_solver_mod 
 
-    ! use fhash, only: fhash_tbl_t, key=>fhash_key, fhash_key_t
     use types_mod, only: bundle_iter_t
     use mtl_bundle_mod
-    use network_mod
+    use network_manager_mod
     use preprocess_mod
     implicit none
 
@@ -11,13 +10,14 @@ module mtln_solver_mod
     type, public :: mtln_t
         real :: time, dt
         type(mtl_bundle_t), allocatable, dimension(:) :: bundles
-        type(network_t), allocatable, dimension(:) :: networks
-        integer :: number_of_bundles, number_of_networks
-
+        type(network_manager_t) :: network_manager
+        type(probe_t), allocatable, dimension(:) :: probes
+        integer :: number_of_bundles
     contains
 
         procedure :: updateBundlesTimeStep
         procedure :: updatePULTerms
+        procedure :: initNodes
         procedure :: getTimeRange
         procedure :: updateProbes
         procedure :: advanceNWVoltage
@@ -25,7 +25,8 @@ module mtln_solver_mod
         procedure :: advanceBundlesCurrent
         procedure :: advanceTime
         procedure :: step => mtln_step
-        procedure :: setExternalCurrent
+        procedure :: step_alone
+        procedure :: setExternalVoltage
         procedure :: updateExternalCurrent
         
         procedure :: runUntil
@@ -47,22 +48,34 @@ contains
         pre = preprocess(parsed)
         res%dt = pre%dt
         res%time  = 0.0
-
+        
         res%bundles = pre%bundles
-        res%networks = pre%networks
+        res%network_manager = pre%network_manager
         res%number_of_bundles = size(res%bundles)
-        res%number_of_networks = size(res%networks)
-
+        res%probes = pre%probes
         call res%updateBundlesTimeStep(res%dt)
         call res%updatePULTerms(res%getTimeRange(pre%final_time))
-
+        call res%initNodes()
     end function
 
-    subroutine mtln_step(this, currents)
+    subroutine initNodes(this)
         class(mtln_t) :: this
-        real, dimension(:,:), intent(inout) :: currents
+        integer :: i,j
+        do i = 1, size(this%network_manager%networks)
+            do j = 1, size(this%network_manager%networks(i)%nodes)
+                this%network_manager%networks(i)%nodes(j)%v = 0.0
+                this%network_manager%networks(i)%nodes(j)%i = 0.0
+            end do
+        end do
+    end subroutine
 
-        call this%setExternalCurrent(currents)
+    subroutine mtln_step(this, currents, voltages)
+        class(mtln_t) :: this
+        real, dimension(:,:), intent(in out) :: currents
+        real, dimension(:,:), intent(in) :: voltages
+        integer :: i 
+
+        call this%setExternalVoltage(voltages)
 
         call this%advanceBundlesVoltage()
         call this%advanceNWVoltage()
@@ -73,15 +86,29 @@ contains
         call this%updateProbes()
 
         call this%updateExternalCurrent(currents)
+    end subroutine
+
+    subroutine step_alone(this)
+        class(mtln_t) :: this
+        integer :: i 
+
+
+        call this%advanceBundlesVoltage()
+        call this%advanceNWVoltage()
+        call this%advanceBundlesCurrent()
+        ! call this%updateNWCurrent()
+
+        call this%advanceTime()
+        call this%updateProbes()
 
     end subroutine
 
-    subroutine setExternalCurrent(this, currents)
+    subroutine setExternalVoltage(this, voltages)
         class(mtln_t) :: this
-        real, dimension(:,:), intent(in) :: currents
+        real, dimension(:,:), intent(in) :: voltages
         integer :: i
         do i = 1, this%number_of_bundles
-            call this%bundles(i)%setExternalCurrent(currents(i,:))
+            call this%bundles(i)%setExternalVoltage(voltages(i,:))
         end do
 
     end subroutine
@@ -103,15 +130,31 @@ contains
         do i = 1, this%number_of_bundles
             call this%bundles(i)%updateSources(this%time, this%dt)
             call this%bundles(i)%advanceVoltage()
+
+            ! this%bundles(i)%v_initial(:) = this%bundles(i)%v(:,1)
+            ! this%bundles(i)%v_end(:)     = this%bundles(i)%v(:,ubound(this%bundles(i)%v, 2))
+
+            ! this%bundles(i)%i_initial(:) = this%bundles(i)%i(:,1)
+            ! this%bundles(i)%i_end(:)     = this%bundles(i)%i(:,ubound(this%bundles(i)%i, 2))
+
         end do
     end subroutine
 
     subroutine advanceNWVoltage(this)
         class(mtln_t) :: this
         integer :: i
-        do i = 1, this%number_of_networks
-            call this%networks(i)%advanceVoltage(this%dt)
+        call this%network_manager%advanceVoltage()
+        do i = 1, this%number_of_bundles
+
+            ! this%bundles(i)%v(:,1) = this%bundles(i)%v_initial(:)
+            ! this%bundles(i)%v(:,ubound(this%bundles(i)%v, 2)) = this%bundles(i)%v_end(:)
+
+            ! this%bundles(i)%i(:,1) = this%bundles(i)%i_initial(:)
+            ! this%bundles(i)%i(:,ubound(this%bundles(i)%i, 2)) = this%bundles(i)%i_end(:)
+
         end do
+
+
     end subroutine
 
     subroutine advanceBundlesCurrent(this)
@@ -119,6 +162,7 @@ contains
         integer :: i
         do i = 1, this%number_of_bundles
             call this%bundles(i)%advanceCurrent()
+
         end do
     end subroutine
 
@@ -132,7 +176,7 @@ contains
         integer :: i, j
         do i = 1, this%number_of_bundles
             do j = 1, size(this%bundles(i)%probes)
-                call this%bundles(i)%probes(i)%update(this%time, this%bundles(i)%v, this%bundles(i)%i)
+                call this%bundles(i)%probes(j)%update(this%time, this%bundles(i)%v, this%bundles(i)%i)
             end do 
         end do
     end subroutine
@@ -148,7 +192,7 @@ contains
         class(mtln_t) :: this
         real :: dt
         integer :: i
-        do i = 1, this%number_of_networks
+        do i = 1, this%number_of_bundles
             this%bundles(i)%dt = dt
         end do
     end subroutine
@@ -182,6 +226,6 @@ contains
         end do
 
     end subroutine
-    
+
 
 end module mtln_solver_mod
