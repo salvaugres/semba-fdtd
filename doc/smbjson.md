@@ -8,28 +8,22 @@ This module allows to read the [FDTD-JSON format](#the-fdtd-json-format) and par
 
 Assuming `gfortran` and `cmake` are accessible from path, this module can be compiled from the project main directory run
 
-    cmake -S . -B <BUILD_DIR> -DCompileWithJSON=YES
+    cmake -S . -B <BUILD_DIR> -G Ninja -DCompileWithJSON=YES
     cmake --build <BUILD_DIR> -j
 
-### Compilation with Intel Fortran Classic (Windows)
+### Compilation with Intel compilers (Windows)
 
-Assuming `ifort` and `cmake` are accessible. Use same command as for `gfortran`
-
-### Compilation with Intel LLVM
-
-Planned.
+Use the Intel provided scripts to set environment variables and use same command as for `gfortran`.
 
 ### Compilation with NVIDIA Fortran compiler
 
-Tested to work with `-O0` optimizations. Higher optimizations produce SEGFAULTs.
+Not supported. Tested to work with `-O0` optimizations. Higher optimizations produce SEGFAULTs.
 
 ### Testing
 
-This project uses the ctest tool available within cmake. Once build, in Linux you can run 
+This project uses the googletest. Once build, from project root folder run,
 
-    ctest --test-dir <BUILD_DIR>/src_json_parser/test/ --output-on-failure
-
-in Windows, add `-C Debug` or `-C Release` accordingly.
+    <PATH_TO_BUILD>/bin/smbjson_tests
 
 # The FDTD-JSON format
 
@@ -344,12 +338,10 @@ Materials of this type must contain:
 
 #### `multiwire`
 
-A `multiwire`, models $N+1$ electrical wires inside a bundled. The voltages and currents on these wires are solved by a multiconductor transmission lines (MTLN) solver:
-```
-Paul, C. R. (2007). 
-Analysis of multiconductor transmission lines. 
-John Wiley & Sons.
-```
+A `multiwire`, models $N+1$ electrical wires inside a bundled. The voltages and currents on these wires are solved by a multiconductor transmission lines (MTLN) solver described in:
+
+    Paul, C. R. (2007). Analysis of multiconductor transmission lines. John Wiley & Sons.
+
 `multiwire` materials are assumed to be contained within a `wire` or another `multiwire` (see the [cable](#cable) `materialAssociation`) which is the external domain and is used as voltage reference. 
 They must contain the following entries:
 
@@ -359,10 +351,10 @@ They must contain the following entries:
 
 `transferImpedancePerMeter` can contain:
 
-+ `[resistiveTerm]` TODO REVIEW
-+ `[inductiveTerm]` TODO REVIEW
++ `[resistiveTerm]` defined by a real representing transfer impedance resistance. Defaults to `0.0`
++ `[inductiveTerm]` defined by a real representing transfer impedance inductance. Defaults to `0.0`.
 + `[pole-residues]` TODO REVIEW
-+ `[direction]` which can be `inwards`, `outwards` or `both`. Indicating the type of coupling considered.
++ `[direction]` which can be `both`, `inwards`, or `outwards`. Indicating the type of coupling considered. Defaults to `both` meaning that fields can couple from the exterior to interior and the other way round.
 
 **Example:**
 
@@ -396,10 +388,12 @@ A `terminal` models a lumped circuit which is assumed to located at one end of a
 
 Each entry in `terminations` is specified by a `type`
 
-+ `short` if the wire is short-circuited with another wire or with any surface which might be present. TODO REVIEW
-+ `open` if the wire does not end in an ohmic contact with any other structure. TODO REVIEW
-+ `series` represents the impedance a single resistor. It must include a `<resistance>` entry followed by a real. TODO REVIEW
-+ `LCpRs` represents a parallel of an inductor and a capacitor in series with a resistor. It must contain: `<resistance>`, `<inductance>`, and `<capacitance>`.
++ `short` if the wire is short-circuited with another wire or with any surface which might be present.
++ `open` if the wire does not end in an ohmic contact with any other structure.
++ `series` and `LCpRs` represent, respectively, the impedance of an RLC series circuit and LC parallel in series with a resistance. The are defined as follows:
+  + `[resistance]` which defaults to `0.0`,
+  + `[inductance]` which defaults to `0.0`,
+  + `[capacitance>]` which defaults to `1e22`.
 
 **Example:**
 
@@ -470,7 +464,7 @@ This object establishes the relationship between the physical models described i
 
 + `<initialTerminalId>` and `<endTerminalId>` which must be present within the `materials` list of type. These entries indicate the lumped circuits connected at the ends of the cable.
 + `[initialConnectorId]` and `[endConnectorId]` entries which must point to materials of type `connector` and are assigned to the last segments of the corresponding ends of the cable.
-+ If its `materialId` points to a `multiwire`, it must contain an entry named `<containedWithinElementId>` which indicates the `polyline` in which this `multiwire` is embedded.
++ Its `materialId` must point to a [`wire`](#wire) or a [`multiwire`](#multiwire) material. If it points to a `multiwire`, it must also contain an entry named `<containedWithinElementId>` which indicates the `polyline` in which this `multiwire` is embedded.
 
 **Example:**
 

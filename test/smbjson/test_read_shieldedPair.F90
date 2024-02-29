@@ -104,21 +104,20 @@ contains
       expected%tWires%tw(1)%dispfile = trim(adjustl(" "))
       expected%tWires%tw(1)%dispfile_LeftEnd = trim(adjustl(" "))
       expected%tWires%tw(1)%dispfile_RightEnd = trim(adjustl(" "))
-      expected%tWires%tw(1)%n_twc=10
-      expected%tWires%tw(1)%n_twc_max=10
-      allocate(expected%tWires%tw(1)%twc(10))
-      expected%tWires%tw(1)%twc(1:10)%srcfile = 'None'
-      expected%tWires%tw(1)%twc(1:10)%srctype = 'None'
-      expected%tWires%tw(1)%twc(1:10)%i = 11
-      expected%tWires%tw(1)%twc(1:10)%j = 11
-      expected%tWires%tw(1)%twc(1:10)%k = [(i, i=7, 16)]
-      expected%tWires%tw(1)%twc(1:10)%d = DIR_Z
-      expected%tWires%tw(1)%twc(1:10)%nd = -1
-      expected%tWires%tw(1)%twc(1)%nd  = 1
-      expected%tWires%tw(1)%twc(6)%nd  = 2
-      expected%tWires%tw(1)%twc(10)%nd = 3
+      expected%tWires%tw(1)%n_twc=18
+      expected%tWires%tw(1)%n_twc_max=18
+      allocate(expected%tWires%tw(1)%twc(18))
+      expected%tWires%tw(1)%twc(1:18)%srcfile = 'None'
+      expected%tWires%tw(1)%twc(1:18)%srctype = 'None'
+      expected%tWires%tw(1)%twc(1:18)%i = 11
+      expected%tWires%tw(1)%twc(1:18)%j = 11
+      expected%tWires%tw(1)%twc(1:18)%k = [(i, i=7, 16)]
+      expected%tWires%tw(1)%twc(1:18)%d = DIR_Z
+      expected%tWires%tw(1)%twc(1)%nd  = 4
+      expected%tWires%tw(1)%twc(2:17)%nd = NO_TAG
+      expected%tWires%tw(1)%twc(18)%nd  = 6
       
-      expected%tWires%tw(1)%twc(1:10)%tag = trim(adjustl("2"))   ! The polyline id is used as tag.
+      expected%tWires%tw(1)%twc(1:18)%tag = trim(adjustl("3"))   ! The polyline id is used as tag.
       
       expected%tWires%tw(1)%tl = MATERIAL_CONS
       expected%tWires%tw(1)%R_LeftEnd = 50
@@ -128,7 +127,8 @@ contains
       expected%tWires%n_tw = 1
       expected%tWires%n_tw_max = 1
 
-      ! Expected mtln types
+      ! Expected mtln type
+      
    end function
 end function
 
