@@ -27,12 +27,17 @@ module mtln_types_mod
       real :: inductance = 0.0
       real :: capacitance = 1e22
    contains
-      generic :: operator(==) => termination_eq
+      private
       procedure :: termination_eq
+      generic, public :: operator(==) => termination_eq
    end type
 
    type, extends(termination_t) :: termination_with_source_t
       character(len=:), allocatable :: path_to_excitation
+   contains
+      private
+      procedure :: termination_with_source_eq
+      generic, public :: operator(==) => termination_with_source_eq
    end type
 
    type :: terminal_node_t
@@ -91,7 +96,7 @@ module mtln_types_mod
    end type
 
    interface operator(==)
-    !   module procedure termination_eq
+      !   module procedure termination_eq
       !   module procedure termination_with_source_eq
       !   module procedure terminal_node_eq
       !   module procedure terminal_connection_eq
@@ -105,7 +110,8 @@ module mtln_types_mod
 
 contains
    elemental logical function termination_eq(a, b)
-      class(termination_t), intent(in) :: a, b
+      class(termination_t), intent(in) :: a
+      type(termination_t), intent(in) :: b
       termination_eq = &
          (a%termination_type == b%termination_type) .and. &
          (a%resistance == b%resistance) .and. &
@@ -114,27 +120,28 @@ contains
    end function
 
    elemental logical function termination_with_source_eq(a, b)
-      type(termination_with_source_t), intent(in) :: a, b
-      termination_with_source_eq = &
-         termination_eq(a, b) .and. &
-         a%path_to_excitation == b%path_to_excitation
+      class(termination_with_source_t), intent(in) :: a
+      type(termination_with_source_t), intent(in) :: b
+        termination_with_source_eq = &
+           a%termination_t == b%termination_t .and. &
+           a%path_to_excitation == b%path_to_excitation
    end function
 
    elemental logical function terminal_node_eq(a, b) result (res)
       type(terminal_node_t), intent(in) :: a, b
 
-      !   res = .true.
-      !   if (associated(a%belongs_to_cable, b%belongs_to_cable)) then
-      !      res = res .and. (a%conductor_in_cable == b%conductor_in_cable)
-      !      res = res .and. (a%side == b%side)
-      !      if (allocated(a%termination) .and. allocated(b%termination)) then
-      !         res = res .and. are_terminations_equal(a%termination, b%termination)
-      !      else
-      !         res = res .and. (.not. allocated(a%termination) .and. .not. allocated(b%termination))
-      !      endif
-      !   else
-      !      res = .false.
-      !   endif
+        res = .true.
+        if (associated(a%belongs_to_cable, b%belongs_to_cable)) then
+           res = res .and. (a%conductor_in_cable == b%conductor_in_cable)
+           res = res .and. (a%side == b%side)
+           if (allocated(a%termination) .and. allocated(b%termination)) then
+              res = res .and. are_terminations_equal(a%termination, b%termination)
+           else
+              res = res .and. (.not. allocated(a%termination) .and. .not. allocated(b%termination))
+           endif
+        else
+           res = .false.
+        endif
    end function
 
 
