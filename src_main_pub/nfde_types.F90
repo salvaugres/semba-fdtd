@@ -25,7 +25,7 @@
 MODULE NFDETypes
    !
    USE FDETYPES
-   USE mtln_types_mod, MTLN_t => parsed_t
+   USE mtln_types_mod
    !
    IMPLICIT NONE
    INTEGER (KIND=4), PARAMETER :: RK = RKIND

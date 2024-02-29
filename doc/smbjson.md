@@ -390,7 +390,7 @@ Each entry in `terminations` is specified by a `type`
 
 + `short` if the wire is short-circuited with another wire or with any surface which might be present.
 + `open` if the wire does not end in an ohmic contact with any other structure.
-+ `series` and `LCpRs` represent, respectively, the impedance of an RLC series circuit and LC parallel in series with a resistance. The are defined as follows:
++ Different configurations of passive circuit elements R, L, and C can be defined with `series` (for RLC series circuits), `LCpRs` (LC parallel in series with a resistance) and `RLsCp` (for series RL in parallel with C). The are defined as follows:
   + `[resistance]` which defaults to `0.0`,
   + `[inductance]` which defaults to `0.0`,
   + `[capacitance>]` which defaults to `1e22`.

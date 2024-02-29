@@ -27,7 +27,7 @@ integer function test_dispersive_init_1_pole() bind(C) result(error_cnt)
     ! poles(2)%re = -1e6
     ! poles(2)%im = -1e1
     
-    zt%direction = "both"
+    zt%direction = TRANSFER_IMPEDANCE_DIRECTION_BOTH
     zt%resistive_term = 1e-2
     zt%inductive_term = 1e-6
     zt%poles = poles
@@ -122,7 +122,7 @@ integer function test_dispersive_init_1_pole_lines_with_lumped() bind(C) result(
     ! poles(2)%re = -1e6
     ! poles(2)%im = -1e1
     
-    zt%direction = "both"
+    zt%direction = TRANSFER_IMPEDANCE_DIRECTION_BOTH
     zt%resistive_term = 1e-2
     zt%inductive_term = 1e-6
     zt%poles = poles
@@ -236,7 +236,7 @@ integer function test_dispersive_init_2_poles() bind(C) result(error_cnt)
     poles(2)%re = -1e6
     poles(2)%im = -1e1
     
-    zt%direction = "both"
+    zt%direction = TRANSFER_IMPEDANCE_DIRECTION_BOTH
     zt%resistive_term = 1e-2
     zt%inductive_term = 1e-6
     zt%poles = poles
@@ -323,7 +323,7 @@ integer function test_dispersive_init_1_pole_3_levels() bind(C) result(error_cnt
     poles(1)%re = -1e6
     poles(1)%im = 1e1
     
-    zt%direction = "inwards"
+    zt%direction = TRANSFER_IMPEDANCE_DIRECTION_INWARDS
     zt%resistive_term = 1e-2
     zt%inductive_term = 1e-6
     zt%poles = poles

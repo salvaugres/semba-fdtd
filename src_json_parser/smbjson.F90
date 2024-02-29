@@ -62,7 +62,7 @@ module smbjson
       module procedure parser_ctor
    end interface
 
-   type, private :: termination_t
+   type, private :: thinwiretermination_t
       integer :: terminationType
       real :: r, l, c
    end type
@@ -837,10 +837,10 @@ contains
 
          block
             type(json_value_ptr) :: mat
-            type(termination_t) :: term
+            type(thinwiretermination_t) :: term
             character (len=:), allocatable :: label
             mat = this%matTable%getId(this%getIntAt(cable, J_MAT_ASS_CAB_INI_TERM_ID))
-            term = readTermination(mat%p)
+            term = readThinWireTermination(mat%p)
             res%tl = term%terminationType
             res%R_LeftEnd = term%r
             res%L_LeftEnd = term%l
@@ -850,9 +850,9 @@ contains
 
          block
             type(json_value_ptr) :: terminal
-            type(termination_t) :: term
+            type(thinwiretermination_t) :: term
             terminal = this%matTable%getId(this%getIntAt(cable, J_MAT_ASS_CAB_END_TERM_ID))
-            term = readTermination(terminal%p)
+            term = readThinWireTermination(terminal%p)
             res%tr = term%terminationType
             res%R_RightEnd = term%r
             res%L_RightEnd = term%l
@@ -894,8 +894,8 @@ contains
 
       end function
 
-      function readTermination(terminal) result(res)
-         type(termination_t) :: res
+      function readThinWireTermination(terminal) result(res)
+         type(thinwiretermination_t) :: res
          type(json_value), pointer :: terminal, tms, tm
          character (len=:), allocatable :: label
          logical :: found

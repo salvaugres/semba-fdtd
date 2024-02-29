@@ -10,7 +10,7 @@ integer function test_coaxial_line_paul_8_6_square() bind(C) result(error_cnt)
     type(cable_t), target :: cable
     type(terminal_node_t) :: node_left, node_right
     type(terminal_network_t) :: nw_left, nw_right
-    type(parsed_t) :: parsed
+    type(parsed_mtln_t) :: parsed
     type(terminal_connection_t) :: connection_left, connection_right
     type(terminal_network_t) :: network_left, network_right
 
@@ -45,10 +45,10 @@ integer function test_coaxial_line_paul_8_6_square() bind(C) result(error_cnt)
 
     node_left%belongs_to_cable => cable
     node_left%conductor_in_cable = 1
-    node_left%side = "initial"
+    node_left%side = TERMINAL_NODE_SIDE_INI
 
-    node_left%termination = source_termination_t(path_to_excitation=square_excitation, & 
-                                                 type = "series", &
+    node_left%termination = termination_with_source_t(path_to_excitation=square_excitation, & 
+                                                 termination_type = TERMINATION_SERIES, &
                                                  resistance = 150, &
                                                  inductance = 0.0, &
                                                  capacitance = 1e22)
@@ -60,8 +60,8 @@ integer function test_coaxial_line_paul_8_6_square() bind(C) result(error_cnt)
 
     node_right%belongs_to_cable => cable
     node_right%conductor_in_cable = 1
-    node_right%side = "end"
-    node_right%termination = termination_t(type="short")
+    node_right%side = TERMINAL_NODE_SIDE_END
+    node_right%termination = termination_t(termination_type=TERMINATION_SHORT)
 
     connection_right%nodes = [node_right]
     
@@ -70,11 +70,11 @@ integer function test_coaxial_line_paul_8_6_square() bind(C) result(error_cnt)
 
     probe_v%attached_to_cable => cable
     probe_v%index = 1 
-    probe_v%type = "voltage"
+    probe_v%probe_type = PROBE_TYPE_VOLTAGE
 
     probe_i%attached_to_cable => cable
     probe_i%index = 100
-    probe_i%type = "current"
+    probe_i%probe_type = PROBE_TYPE_CURRENT
 
 
     ! parsed%networks = [network_left]
@@ -128,7 +128,7 @@ integer function test_coaxial_line_paul_8_6_triangle() bind(C) result(error_cnt)
     type(cable_t), target :: cable
     type(terminal_node_t) :: node_left, node_right
     type(terminal_network_t) :: nw_left, nw_right
-    type(parsed_t) :: parsed
+    type(parsed_mtln_t) :: parsed
     type(terminal_connection_t) :: connection_left, connection_right
     type(terminal_network_t) :: network_left, network_right
 
@@ -161,10 +161,10 @@ integer function test_coaxial_line_paul_8_6_triangle() bind(C) result(error_cnt)
 
     node_left%belongs_to_cable => cable
     node_left%conductor_in_cable = 1
-    node_left%side = "initial"
+    node_left%side = TERMINAL_NODE_SIDE_INI
 
-    node_left%termination = source_termination_t(path_to_excitation=square_excitation, & 
-                                                 type = "series", &
+    node_left%termination = termination_with_source_t(path_to_excitation=square_excitation, & 
+                                                 termination_type = TERMINATION_SERIES, &
                                                  resistance = 150, &
                                                  inductance = 0.0, &
                                                  capacitance = 1e22)
@@ -176,8 +176,8 @@ integer function test_coaxial_line_paul_8_6_triangle() bind(C) result(error_cnt)
 
     node_right%belongs_to_cable => cable
     node_right%conductor_in_cable = 1
-    node_right%side = "end"
-    node_right%termination = termination_t(type="short")
+    node_right%side = TERMINAL_NODE_SIDE_END
+    node_right%termination = termination_t(termination_type=TERMINATION_SHORT)
 
     connection_right%nodes = [node_right]
     
@@ -186,11 +186,11 @@ integer function test_coaxial_line_paul_8_6_triangle() bind(C) result(error_cnt)
 
     probe_v%attached_to_cable => cable
     probe_v%index = 1 
-    probe_v%type = "voltage"
+    probe_v%probe_type = PROBE_TYPE_VOLTAGE
 
     probe_i%attached_to_cable => cable
     probe_i%index = 100
-    probe_i%type = "current"
+    probe_i%probe_type = PROBE_TYPE_CURRENT
 
 
     parsed%networks = [network_left, network_right]
@@ -242,7 +242,7 @@ integer function test_2_conductor_line_paul_9_6() bind(C) result(error_cnt)
     type(cable_t), target :: cable
     type(terminal_node_t) :: node_left_1, node_right_1, node_left_2, node_right_2
     type(terminal_network_t) :: nw_left, nw_right
-    type(parsed_t) :: parsed
+    type(parsed_mtln_t) :: parsed
     type(terminal_connection_t) :: connection_left_1, connection_right_1, connection_left_2, connection_right_2
     type(terminal_network_t) :: network_left, network_right
 
@@ -277,8 +277,8 @@ integer function test_2_conductor_line_paul_9_6() bind(C) result(error_cnt)
 
     node_left_1%belongs_to_cable => cable
     node_left_1%conductor_in_cable = 1
-    node_left_1%side = "initial"
-    node_left_1%termination = termination_t(type = "series", &
+    node_left_1%side = TERMINAL_NODE_SIDE_INI
+    node_left_1%termination = termination_t(termination_type = TERMINATION_SERIES, &
                                             resistance = 50, &
                                             inductance = 0.0, &
                                             capacitance = 1e22)
@@ -286,9 +286,9 @@ integer function test_2_conductor_line_paul_9_6() bind(C) result(error_cnt)
 
     node_left_2%belongs_to_cable => cable
     node_left_2%conductor_in_cable = 2
-    node_left_2%side = "initial"
-    node_left_2%termination = source_termination_t(path_to_excitation=pulse_excitation, & 
-                                                 type = "series", &
+    node_left_2%side = TERMINAL_NODE_SIDE_INI
+    node_left_2%termination = termination_with_source_t(path_to_excitation=pulse_excitation, & 
+                                                 termination_type = TERMINATION_SERIES, &
                                                  resistance = 50, &
                                                  inductance = 0.0, &
                                                  capacitance = 1e22)
@@ -296,16 +296,16 @@ integer function test_2_conductor_line_paul_9_6() bind(C) result(error_cnt)
 
     node_right_1%belongs_to_cable => cable
     node_right_1%conductor_in_cable = 1
-    node_right_1%side = "end"
-    node_right_1%termination = termination_t(type = "RLsCp", &
+    node_right_1%side = TERMINAL_NODE_SIDE_END
+    node_right_1%termination = termination_t(termination_type = TERMINATION_RLsCp, &
                                              resistance = 50, &
                                              inductance = 1e-6, &
                                              capacitance = 1e-12)
 
     node_right_2%belongs_to_cable => cable
     node_right_2%conductor_in_cable = 2
-    node_right_2%side = "end"
-    node_right_2%termination = termination_t(type = "series", &
+    node_right_2%side = TERMINAL_NODE_SIDE_END
+    node_right_2%termination = termination_t(termination_type = TERMINATION_SERIES, &
                                              resistance = 50, &
                                              inductance = 0.0, &
                                              capacitance = 1e22)
@@ -322,11 +322,11 @@ integer function test_2_conductor_line_paul_9_6() bind(C) result(error_cnt)
 
     probe_v_101%attached_to_cable => cable
     probe_v_101%index = 1 
-    probe_v_101%type = "voltage"
+    probe_v_101%probe_type = PROBE_TYPE_VOLTAGE
 
     probe_v_201%attached_to_cable => cable
     probe_v_201%index = 796
-    probe_v_201%type = "voltage"
+    probe_v_201%probe_type = PROBE_TYPE_VOLTAGE
 
 
     ! parsed%networks = [network_left]

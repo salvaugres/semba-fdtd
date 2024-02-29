@@ -7,6 +7,7 @@ module mtln_types_mod
    integer, parameter :: TERMINATION_OPEN       =  2
    integer, parameter :: TERMINATION_SERIES     =  3
    integer, parameter :: TERMINATION_LCpRs      =  4
+   integer, parameter :: TERMINATION_RLsCp      =  5
 
    integer, parameter :: TERMINAL_NODE_SIDE_UNDEFINED = -1
    integer, parameter :: TERMINAL_NODE_SIDE_INI       =  1
@@ -22,12 +23,15 @@ module mtln_types_mod
 
    type :: termination_t
       integer :: termination_type = TERMINATION_UNDEFINED
-      real :: resistance = 1e-10
-      real :: inductance = 1e-12
+      real :: resistance = 0.0
+      real :: inductance = 0.0
       real :: capacitance = 1e22
+   contains
+      generic :: operator(==) => termination_eq
+      procedure :: termination_eq
    end type
 
-   type, extends(termination_t) :: source_termination_t
+   type, extends(termination_t) :: termination_with_source_t
       character(len=:), allocatable :: path_to_excitation
    end type
 
@@ -85,5 +89,53 @@ module mtln_types_mod
       real :: time_step
       integer :: number_of_steps
    end type
+
+   interface operator(==)
+    !   module procedure termination_eq
+      !   module procedure termination_with_source_eq
+      !   module procedure terminal_node_eq
+      !   module procedure terminal_connection_eq
+      !   module procedure terminal_network_eq
+      !   module procedure transfer_impedance_per_meter_eq
+      !   module procedure connector_eq
+      !   module procedure cable_eq
+      !   module procedure probe_eq
+      !   module procedure mtln_eq
+   end interface
+
+contains
+   elemental logical function termination_eq(a, b)
+      class(termination_t), intent(in) :: a, b
+      termination_eq = &
+         (a%termination_type == b%termination_type) .and. &
+         (a%resistance == b%resistance) .and. &
+         (a%inductance == b%inductance) .and. &
+         (a%capacitance == b%capacitance)
+   end function
+
+   elemental logical function termination_with_source_eq(a, b)
+      type(termination_with_source_t), intent(in) :: a, b
+      termination_with_source_eq = &
+         termination_eq(a, b) .and. &
+         a%path_to_excitation == b%path_to_excitation
+   end function
+
+   elemental logical function terminal_node_eq(a, b) result (res)
+      type(terminal_node_t), intent(in) :: a, b
+
+      !   res = .true.
+      !   if (associated(a%belongs_to_cable, b%belongs_to_cable)) then
+      !      res = res .and. (a%conductor_in_cable == b%conductor_in_cable)
+      !      res = res .and. (a%side == b%side)
+      !      if (allocated(a%termination) .and. allocated(b%termination)) then
+      !         res = res .and. are_terminations_equal(a%termination, b%termination)
+      !      else
+      !         res = res .and. (.not. allocated(a%termination) .and. .not. allocated(b%termination))
+      !      endif
+      !   else
+      !      res = .false.
+      !   endif
+   end function
+
 
 end module
