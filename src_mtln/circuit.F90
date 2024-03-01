@@ -152,7 +152,7 @@ contains
 
     subroutine step(this)
         class(circuit_t) :: this
-        ! call this%updateVoltageSources(this%time) ! done when thevenin
+        call this%updateVoltageSources(this%time) ! done when thevenin
         if (this%time == 0) then
             call this%run()
         else
@@ -209,10 +209,10 @@ contains
             time = time + dt
             write(charTime, '(E10.4)') time
             call command('stop when time = '//charTime // c_null_char)
-            write(charTime, '(E10.4)') time + 0.1*dt
-            call command('stop when time = '//charTime // c_null_char)
-            write(charTime, '(E10.4)') time + 0.1*dt
-            call command('stop when time = '//charTime // c_null_char)
+            ! write(charTime, '(E10.4)') time + 0.1*dt
+            ! call command('stop when time = '//charTime // c_null_char)
+            ! write(charTime, '(E10.4)') time + 0.1*dt
+            ! call command('stop when time = '//charTime // c_null_char)
         end do
     end subroutine
 
@@ -293,25 +293,26 @@ contains
         real :: current
         character(20) :: sCurrent
         character(*) :: node_name
-        write(sCurrent, '(E10.4)') current
+        if (index(node_name, "initial") /= 0) then
+            write(sCurrent, '(E10.4)') current
+        else if (index(node_name, "end") /= 0) then
+            write(sCurrent, '(E10.4)') -1.0*current
+        end if
         call command("alter @I"//trim(node_name)//"[dc] = "//trim(sCurrent) // c_null_char)
     end subroutine
 
-    subroutine updateNodeVoltage(this, node_name, voltage, current)
+    subroutine updateNodeVoltage(this, node_name, voltage)
         class(circuit_t) :: this
-        real, intent(in) :: voltage, current
-        character(20) :: sVoltage, sCurrent
+        real, intent(in) :: voltage
+        character(20) :: sVoltage
         character(*) :: node_name
         if (index(node_name, "initial") /= 0) then
             write(sVoltage, '(E10.4)') voltage
-            write(sCurrent, '(E10.4)') current
             call command("alter @V1"//trim(node_name)//"[dc] = "//trim(sVoltage) // c_null_char)
-            ! call command("alter @I1"//trim(node_name)//"[dc] = "//trim(sCurrent) // c_null_char)
         else
             write(sVoltage, '(E10.4)') voltage
             write(sCurrent, '(E10.4)') current
             call command("alter @V1"//trim(node_name)//"[dc] = "//trim(sVoltage) // c_null_char)
-            ! call command("alter @I1"//trim(node_name)//"[dc] = "//trim(sCurrent) // c_null_char)
         end if
     end subroutine
 
@@ -369,9 +370,9 @@ contains
                 call c_f_pointer(get_vector_info(trim(this%nodes%names(i)%name)//c_null_char), info_V)
                 call c_f_pointer(info_V%vRealData, values_V,shape=[info_V%vLength])
                 this%nodes%values(i)%voltage = values_V(ubound(values_V,1))
-                call c_f_pointer(get_vector_info("V1"//trim(this%nodes%names(i)%name)//"#branch"//c_null_char), info_I)
-                call c_f_pointer(info_I%vRealData, values_I,shape=[info_I%vLength])
-                this%nodes%values(i)%current = values_I(ubound(values_I,1))
+                ! call c_f_pointer(get_vector_info("V1"//trim(this%nodes%names(i)%name)//"#branch"//c_null_char), info_I)
+                ! call c_f_pointer(info_I%vRealData, values_I,shape=[info_I%vLength])
+                ! this%nodes%values(i)%current = values_I(ubound(values_I,1))
 
             else 
                 call c_f_pointer(get_vector_info(trim(this%nodes%names(i)%name)//c_null_char), info)

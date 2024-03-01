@@ -16,13 +16,17 @@ module network_mod
         real :: line_z = 0.0
         real :: v_eq = 0.0
 
+        real, dimension(3) :: v_filter = [0.0,0.0,0.0]
+
         character(len=:), allocatable :: name
         character(len=:), allocatable :: source
         real :: line_c_per_meter
+        real :: line_l_per_meter
         real :: step
         real :: v
         real :: i
-        integer :: bundle_number, conductor_number, v_index, i_index
+        integer :: bundle_number, conductor_number, v_index, i_index, v_index_2
+        integer :: side
     end type
 
 

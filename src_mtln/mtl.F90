@@ -105,8 +105,8 @@ contains
 
         if (present(dt)) then
             if (dt > res%getMaxTimeStep()) then
-                return
-                ! error stop 'time step is larger than maximum permitted'
+                error stop 'time step is larger than maximum permitted'
+                ! return
             end if
             res%dt = dt
         else

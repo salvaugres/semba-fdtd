@@ -1,11 +1,734 @@
+integer function test_termination_resistive() bind(C) result(error_cnt)
+    use mtln_solver_mod
+    use testingTools_mod
+    use preprocess_mod
+    implicit none
+
+    character(len=*), parameter :: square_excitation = PATH_TO_TEST_DATA//'mtln/termination_resistive_pulse.exc'
+
+    type(cable_t), target :: cable
+    type(terminal_node_t) :: node_left, node_right
+    type(terminal_network_t) :: nw_left, nw_right
+    type(parsed_t) :: parsed
+    type(terminal_connection_t) :: connection_left, connection_right
+    type(terminal_network_t) :: network_left, network_right
+
+    type(parsed_probe_t) :: probe_v, probe_i, probe_v_r
+
+    type(preprocess_t) :: pre
+    type(mtln_t) :: solver
+    real,dimension(1,1) :: lpul = 0.25e-6
+    real,dimension(1,1) :: gpul = 0.0
+    real,dimension(1,1) :: rpul = 0.0
+    real,dimension(1,1) :: cpul = 100.0e-12
+
+    error_cnt = 0
+
+    cable%name = "wire0"
+    cable%inductance_per_meter = lpul
+    cable%conductance_per_meter = gpul
+    cable%resistance_per_meter = rpul
+    cable%capacitance_per_meter = cpul
+    block
+        integer :: i
+        cable%step_size = [(4, i = 1, 50)]
+    end block
+
+    parsed%time_step = 1.0e-8
+    parsed%number_of_steps = 40e-6/parsed%time_step
+
+
+    node_left%belongs_to_cable => cable
+    node_left%conductor_in_cable = 1
+    node_left%side = "initial"
+
+    node_left%termination = source_termination_t(path_to_excitation=square_excitation, & 
+                                                type = "series", &
+                                                resistance = 150, &
+                                                inductance = 0.0, &
+                                                capacitance = 1e22)
+
+    connection_left%nodes = [node_left]
+
+    node_right%belongs_to_cable => cable
+    node_right%conductor_in_cable = 1
+    node_right%side = "end"
+    node_right%termination = source_termination_t(type = "series", &
+                                                  resistance = 50, &
+                                                  inductance = 0.0, &
+                                                  capacitance = 1e22)
+
+    connection_right%nodes = [node_right]
+
+    network_left%connections = [connection_left]
+    network_right%connections = [connection_right]
+
+    probe_v%attached_to_cable => cable
+    probe_v%index = 1 
+    probe_v%type = "voltage"
+
+    probe_i%attached_to_cable => cable
+    probe_i%index = 50
+    probe_i%type = "current"
+
+    probe_v_r%attached_to_cable => cable
+    probe_v_r%index = 50
+    probe_v_r%type = "voltage"
+
+
+    ! parsed%networks = [network_left]
+    parsed%networks = [network_left, network_right]
+    parsed%cables = [cable]
+    parsed%probes = [probe_v, probe_i, probe_v_r]    ! pre = preprocess(parsed)
+
+    solver = mtlnCtor(parsed)
+    call solver%runUntil(parsed%time_step * parsed%number_of_steps)
+    write(*,*) error_cnt
+    ! p = Parser(file)
+    ! p.run(finalTime = 18e-6)
+    block
+        integer :: i
+        open(unit = 1, file =  './probes/probes_R_termination.txt')
+        do i = 1, size(solver%bundles(1)%probes(1)%t)
+            write(1,*) solver%bundles(1)%probes(1)%t(i)," ", &
+                    solver%bundles(1)%probes(1)%val(i,1) ," ", &
+                    solver%bundles(1)%probes(2)%val(i,1) ," ", &
+                    solver%bundles(1)%probes(3)%val(i,1)
+        end do
+
+    end block
+
+end function
+
+integer function test_termination_resistive_inductive() bind(C) result(error_cnt)
+    use mtln_solver_mod
+    use testingTools_mod
+    use preprocess_mod
+    implicit none
+
+    character(len=*), parameter :: square_excitation = PATH_TO_TEST_DATA//'mtln/termination_resistive_pulse.exc'
+
+    type(cable_t), target :: cable
+    type(terminal_node_t) :: node_left, node_right
+    type(terminal_network_t) :: nw_left, nw_right
+    type(parsed_t) :: parsed
+    type(terminal_connection_t) :: connection_left, connection_right
+    type(terminal_network_t) :: network_left, network_right
+
+    type(parsed_probe_t) :: probe_v, probe_i, probe_v_R
+
+    type(preprocess_t) :: pre
+    type(mtln_t) :: solver
+    real,dimension(1,1) :: lpul = 0.25e-6
+    real,dimension(1,1) :: gpul = 0.0
+    real,dimension(1,1) :: rpul = 0.0
+    real,dimension(1,1) :: cpul = 100.0e-12
+
+    error_cnt = 0
+
+    cable%name = "wire0"
+    cable%inductance_per_meter = lpul
+    cable%conductance_per_meter = gpul
+    cable%resistance_per_meter = rpul
+    cable%capacitance_per_meter = cpul
+    block
+        integer :: i
+        cable%step_size = [(4, i = 1, 50)]
+    end block
+
+    parsed%time_step = 1.5e-8
+    parsed%number_of_steps = 40e-6/parsed%time_step
+
+
+    node_left%belongs_to_cable => cable
+    node_left%conductor_in_cable = 1
+    node_left%side = "initial"
+
+    node_left%termination = source_termination_t(path_to_excitation=square_excitation, & 
+                                                type = "series", &
+                                                resistance = 150, &
+                                                inductance = 0.0, &
+                                                capacitance = 1e22)
+
+    connection_left%nodes = [node_left]
+
+    node_right%belongs_to_cable => cable
+    node_right%conductor_in_cable = 1
+    node_right%side = "end"
+    node_right%termination = source_termination_t(type = "series", &
+                                                  resistance = 50, &
+                                                  inductance = 1e-5, &
+                                                  capacitance = 1e22)
+
+    connection_right%nodes = [node_right]
+
+    network_left%connections = [connection_left]
+    network_right%connections = [connection_right]
+
+    probe_v%attached_to_cable => cable
+    probe_v%index = 1 
+    probe_v%type = "voltage"
+
+    probe_i%attached_to_cable => cable
+    probe_i%index = 50
+    probe_i%type = "current"
+
+    probe_v_R%attached_to_cable => cable
+    probe_v_R%index = 50
+    probe_v_R%type = "voltage"
+
+
+    ! parsed%networks = [network_left]
+    parsed%networks = [network_left, network_right]
+    parsed%cables = [cable]
+    parsed%probes = [probe_v, probe_i, probe_v_R]    ! pre = preprocess(parsed)
+
+    solver = mtlnCtor(parsed)
+    call solver%runUntil(parsed%time_step * parsed%number_of_steps)
+    write(*,*) error_cnt
+    ! p = Parser(file)
+    ! p.run(finalTime = 18e-6)
+    block
+        integer :: i
+        open(unit = 1, file =  './probes/probes_RL_termination.txt')
+        do i = 1, size(solver%bundles(1)%probes(1)%t)
+            write(1,*) solver%bundles(1)%probes(1)%t(i)," ", &
+                    solver%bundles(1)%probes(1)%val(i,1) ," ", &
+                    solver%bundles(1)%probes(2)%val(i,1) ," ", &
+                    solver%bundles(1)%probes(3)%val(i,1)
+        end do
+
+    end block
+
+end function
+
+integer function test_termination_resistive_capacitive_parallel() bind(C) result(error_cnt)
+    use mtln_solver_mod
+    use testingTools_mod
+    use preprocess_mod
+    implicit none
+
+    character(len=*), parameter :: square_excitation = &
+        PATH_TO_TEST_DATA//'mtln/termination_resistive_pulse.exc'
+
+    type(cable_t), target :: cable
+    type(terminal_node_t) :: node_left, node_right
+    type(terminal_network_t) :: nw_left, nw_right
+    type(parsed_t) :: parsed
+    type(terminal_connection_t) :: connection_left, connection_right
+    type(terminal_network_t) :: network_left, network_right
+
+    type(parsed_probe_t) :: probe_v, probe_i, probe_v_r
+
+    type(preprocess_t) :: pre
+    type(mtln_t) :: solver
+    real,dimension(1,1) :: lpul = 0.25e-6
+    real,dimension(1,1) :: gpul = 0.0
+    real,dimension(1,1) :: rpul = 0.0
+    real,dimension(1,1) :: cpul = 100.0e-12
+
+    error_cnt = 0
+
+    cable%name = "wire0"
+    cable%inductance_per_meter = lpul
+    cable%conductance_per_meter = gpul
+    cable%resistance_per_meter = rpul
+    cable%capacitance_per_meter = cpul
+    block
+        integer :: i
+        cable%step_size = [(4, i = 1, 50)]
+    end block
+
+    parsed%time_step = 2.0e-8
+    parsed%number_of_steps = 40e-6/parsed%time_step
+
+
+    node_left%belongs_to_cable => cable
+    node_left%conductor_in_cable = 1
+    node_left%side = "initial"
+
+    node_left%termination = source_termination_t(path_to_excitation=square_excitation, & 
+                                                type = "series", &
+                                                resistance = 150, &
+                                                inductance = 0.0, &
+                                                capacitance = 1e22)
+
+    connection_left%nodes = [node_left]
+
+    node_right%belongs_to_cable => cable
+    node_right%conductor_in_cable = 1
+    node_right%side = "end"
+    node_right%termination = source_termination_t(type = "RCp", &
+                                                  resistance = 0.1, &
+                                                  inductance = 0.0, &
+                                                  capacitance = 100e-12)
+
+    connection_right%nodes = [node_right]
+
+    network_left%connections = [connection_left]
+    network_right%connections = [connection_right]
+
+    probe_v%attached_to_cable => cable
+    probe_v%index = 1 
+    probe_v%type = "voltage"
+
+    probe_i%attached_to_cable => cable
+    probe_i%index = 50
+    probe_i%type = "current"
+
+    probe_v_r%attached_to_cable => cable
+    probe_v_r%index = 50
+    probe_v_r%type = "voltage"
+
+
+    ! parsed%networks = [network_left]
+    parsed%networks = [network_left, network_right]
+    parsed%cables = [cable]
+    parsed%probes = [probe_v, probe_i, probe_v_r]    ! pre = preprocess(parsed)
+
+    solver = mtlnCtor(parsed)
+    call solver%runUntil(parsed%time_step * parsed%number_of_steps)
+    write(*,*) error_cnt
+    ! p = Parser(file)
+    ! p.run(finalTime = 18e-6)
+    block
+        integer :: i
+        open(unit = 1, file =  './probes/probes_RCp_termination_2.txt')
+        do i = 1, size(solver%bundles(1)%probes(1)%t)
+            write(1,*) solver%bundles(1)%probes(1)%t(i)," ", &
+                    solver%bundles(1)%probes(1)%val(i,1) ," ", &
+                    solver%bundles(1)%probes(2)%val(i,1) ," ", &
+                    solver%bundles(1)%probes(3)%val(i,1)
+        end do
+
+    end block
+
+end function
+
+integer function test_termination_rls_cp() bind(C) result(error_cnt)
+    use mtln_solver_mod
+    use testingTools_mod
+    use preprocess_mod
+    implicit none
+
+    character(len=*), parameter :: square_excitation = &
+        PATH_TO_TEST_DATA//'mtln/termination_resistive_pulse.exc'
+
+    type(cable_t), target :: cable
+    type(terminal_node_t) :: node_left, node_right
+    type(terminal_network_t) :: nw_left, nw_right
+    type(parsed_t) :: parsed
+    type(terminal_connection_t) :: connection_left, connection_right
+    type(terminal_network_t) :: network_left, network_right
+
+    type(parsed_probe_t) :: probe_v, probe_i, probe_v_r
+
+    type(preprocess_t) :: pre
+    type(mtln_t) :: solver
+    real,dimension(1,1) :: lpul = 0.25e-6
+    real,dimension(1,1) :: gpul = 0.0
+    real,dimension(1,1) :: rpul = 0.0
+    real,dimension(1,1) :: cpul = 100.0e-12
+
+    error_cnt = 0
+
+    cable%name = "wire0"
+    cable%inductance_per_meter = lpul
+    cable%conductance_per_meter = gpul
+    cable%resistance_per_meter = rpul
+    cable%capacitance_per_meter = cpul
+    block
+        integer :: i
+        cable%step_size = [(4, i = 1, 50)]
+    end block
+
+    parsed%time_step = 2.0e-8
+    parsed%number_of_steps = 40e-6/parsed%time_step
+
+
+    node_left%belongs_to_cable => cable
+    node_left%conductor_in_cable = 1
+    node_left%side = "initial"
+
+    node_left%termination = source_termination_t(path_to_excitation=square_excitation, & 
+                                                type = "series", &
+                                                resistance = 150, &
+                                                inductance = 0.0, &
+                                                capacitance = 1e22)
+
+    connection_left%nodes = [node_left]
+
+    node_right%belongs_to_cable => cable
+    node_right%conductor_in_cable = 1
+    node_right%side = "end"
+    node_right%termination = source_termination_t(type = "RLsCp", &
+                                                  resistance = 10, &
+                                                  inductance = 10e-6, &
+                                                  capacitance = 100e-12)
+
+    connection_right%nodes = [node_right]
+
+    network_left%connections = [connection_left]
+    network_right%connections = [connection_right]
+
+    probe_v%attached_to_cable => cable
+    probe_v%index = 1 
+    probe_v%type = "voltage"
+
+    probe_i%attached_to_cable => cable
+    probe_i%index = 50
+    probe_i%type = "current"
+
+    probe_v_r%attached_to_cable => cable
+    probe_v_r%index = 50
+    probe_v_r%type = "voltage"
+
+
+    ! parsed%networks = [network_left]
+    parsed%networks = [network_left, network_right]
+    parsed%cables = [cable]
+    parsed%probes = [probe_v, probe_i, probe_v_r]    ! pre = preprocess(parsed)
+
+    solver = mtlnCtor(parsed)
+    call solver%runUntil(parsed%time_step * parsed%number_of_steps)
+    write(*,*) error_cnt
+    ! p = Parser(file)
+    ! p.run(finalTime = 18e-6)
+    block
+        integer :: i
+        open(unit = 1, file =  './probes/probes_RLsCp_termination.txt')
+        do i = 1, size(solver%bundles(1)%probes(1)%t)
+            write(1,*) solver%bundles(1)%probes(1)%t(i)," ", &
+                    solver%bundles(1)%probes(1)%val(i,1) ," ", &
+                    solver%bundles(1)%probes(2)%val(i,1) ," ", &
+                    solver%bundles(1)%probes(3)%val(i,1)
+        end do
+
+    end block
+
+end function
+
+integer function test_termination_rls_cp_ns() bind(C) result(error_cnt)
+    use mtln_solver_mod
+    use testingTools_mod
+    use preprocess_mod
+    implicit none
+
+    character(len=*), parameter :: pulse_excitation = PATH_TO_TEST_DATA//'mtln/2_conductor_line_paul_9_6_gauss.exc'
+
+    type(cable_t), target :: cable
+    type(terminal_node_t) :: node_left, node_right
+    type(terminal_network_t) :: nw_left, nw_right
+    type(parsed_t) :: parsed
+    type(terminal_connection_t) :: connection_left, connection_right
+    type(terminal_network_t) :: network_left, network_right
+
+    type(parsed_probe_t) :: probe_v, probe_i, probe_v_r
+
+    type(preprocess_t) :: pre
+    type(mtln_t) :: solver
+    real,dimension(1,1) :: lpul = 0.25e-6
+    real,dimension(1,1) :: gpul = 0.0
+    real,dimension(1,1) :: rpul = 0.0
+    real,dimension(1,1) :: cpul = 100.0e-12
+
+    real :: final_time
+
+    error_cnt = 0
+
+    cable%name = "wire0"
+    cable%inductance_per_meter = lpul
+    cable%conductance_per_meter = gpul
+    cable%resistance_per_meter = rpul
+    cable%capacitance_per_meter = cpul
+    block
+        integer :: i
+        real :: length = 0.5
+        ! integer :: ndz = 1000
+        integer :: ndz = 795
+        cable%step_size = [(length/ndz, i = 1, ndz)]
+    end block
+
+    final_time = 40e-9
+    parsed%number_of_steps = 9410
+    parsed%time_step = final_time/parsed%number_of_steps
+
+
+    node_left%belongs_to_cable => cable
+    node_left%conductor_in_cable = 1
+    node_left%side = "initial"
+
+    node_left%termination = source_termination_t(path_to_excitation=pulse_excitation, & 
+                                                type = "series", &
+                                                resistance = 150, &
+                                                inductance = 0.0, &
+                                                capacitance = 1e22)
+
+    connection_left%nodes = [node_left]
+
+    node_right%belongs_to_cable => cable
+    node_right%conductor_in_cable = 1
+    node_right%side = "end"
+    node_right%termination = source_termination_t(type = "RLsCp", &
+                                                  resistance = 10, &
+                                                  inductance = 10e-6, &
+                                                  capacitance = 100e-12)
+
+    connection_right%nodes = [node_right]
+
+    network_left%connections = [connection_left]
+    network_right%connections = [connection_right]
+
+    probe_v%attached_to_cable => cable
+    probe_v%index = 1 
+    probe_v%type = "voltage"
+
+    probe_i%attached_to_cable => cable
+    probe_i%index = 50
+    probe_i%type = "current"
+
+    probe_v_r%attached_to_cable => cable
+    probe_v_r%index = 50
+    probe_v_r%type = "voltage"
+
+
+    ! parsed%networks = [network_left]
+    parsed%networks = [network_left, network_right]
+    parsed%cables = [cable]
+    parsed%probes = [probe_v, probe_i, probe_v_r]    ! pre = preprocess(parsed)
+
+    solver = mtlnCtor(parsed)
+    call solver%runUntil(parsed%time_step * parsed%number_of_steps)
+    write(*,*) error_cnt
+    ! p = Parser(file)
+    ! p.run(finalTime = 18e-6)
+    block
+        integer :: i
+        open(unit = 1, file =  './probes/probes_RLsCp_termination_ns.txt')
+        do i = 1, size(solver%bundles(1)%probes(1)%t)
+            write(1,*) solver%bundles(1)%probes(1)%t(i)," ", &
+                    solver%bundles(1)%probes(1)%val(i,1) ," ", &
+                    solver%bundles(1)%probes(2)%val(i,1) ," ", &
+                    solver%bundles(1)%probes(3)%val(i,1)
+        end do
+
+    end block
+
+end function
+
+integer function test_termination_rcp() bind(C) result(error_cnt)
+    use mtln_solver_mod
+    use testingTools_mod
+    use preprocess_mod
+    implicit none
+
+    character(len=*), parameter :: square_excitation = &
+        PATH_TO_TEST_DATA//'mtln/termination_resistive_pulse.exc'
+
+    type(cable_t), target :: cable
+    type(terminal_node_t) :: node_left, node_right
+    type(terminal_network_t) :: nw_left, nw_right
+    type(parsed_t) :: parsed
+    type(terminal_connection_t) :: connection_left, connection_right
+    type(terminal_network_t) :: network_left, network_right
+
+    type(parsed_probe_t) :: probe_v, probe_i, probe_v_r
+
+    type(preprocess_t) :: pre
+    type(mtln_t) :: solver
+    real,dimension(1,1) :: lpul = 0.25e-6
+    real,dimension(1,1) :: gpul = 0.0
+    real,dimension(1,1) :: rpul = 0.0
+    real,dimension(1,1) :: cpul = 100.0e-12
+
+    error_cnt = 0
+
+    cable%name = "wire0"
+    cable%inductance_per_meter = lpul
+    cable%conductance_per_meter = gpul
+    cable%resistance_per_meter = rpul
+    cable%capacitance_per_meter = cpul
+    block
+        integer :: i
+        cable%step_size = [(4, i = 1, 50)]
+    end block
+
+    parsed%time_step = 2.0e-8
+    parsed%number_of_steps = 40e-6/parsed%time_step
+
+
+    node_left%belongs_to_cable => cable
+    node_left%conductor_in_cable = 1
+    node_left%side = "initial"
+
+    node_left%termination = source_termination_t(path_to_excitation=square_excitation, & 
+                                                type = "series", &
+                                                resistance = 150, &
+                                                inductance = 0.0, &
+                                                capacitance = 1e22)
+
+    connection_left%nodes = [node_left]
+
+    node_right%belongs_to_cable => cable
+    node_right%conductor_in_cable = 1
+    node_right%side = "end"
+    node_right%termination = source_termination_t(type = "RCp", &
+                                                  resistance = 10, &
+                                                  inductance = 0.0, &
+                                                  capacitance = 100e-12)
+
+    connection_right%nodes = [node_right]
+
+    network_left%connections = [connection_left]
+    network_right%connections = [connection_right]
+
+    probe_v%attached_to_cable => cable
+    probe_v%index = 1 
+    probe_v%type = "voltage"
+
+    probe_i%attached_to_cable => cable
+    probe_i%index = 50
+    probe_i%type = "current"
+
+    probe_v_r%attached_to_cable => cable
+    probe_v_r%index = 50
+    probe_v_r%type = "voltage"
+
+
+    ! parsed%networks = [network_left]
+    parsed%networks = [network_left, network_right]
+    parsed%cables = [cable]
+    parsed%probes = [probe_v, probe_i, probe_v_r]    ! pre = preprocess(parsed)
+
+    solver = mtlnCtor(parsed)
+    call solver%runUntil(parsed%time_step * parsed%number_of_steps)
+    write(*,*) error_cnt
+    ! p = Parser(file)
+    ! p.run(finalTime = 18e-6)
+    block
+        integer :: i
+        open(unit = 1, file =  './probes/probes_RCp_termination.txt')
+        do i = 1, size(solver%bundles(1)%probes(1)%t)
+            write(1,*) solver%bundles(1)%probes(1)%t(i)," ", &
+                    solver%bundles(1)%probes(1)%val(i,1) ," ", &
+                    solver%bundles(1)%probes(2)%val(i,1) ," ", &
+                    solver%bundles(1)%probes(3)%val(i,1)
+        end do
+
+    end block
+
+end function
+
+integer function test_termination_resistive_capacitive() bind(C) result(error_cnt)
+    use mtln_solver_mod
+    use testingTools_mod
+    use preprocess_mod
+    implicit none
+
+    character(len=*), parameter :: square_excitation = PATH_TO_TEST_DATA//'mtln/termination_resistive_pulse.exc'
+
+    type(cable_t), target :: cable
+    type(terminal_node_t) :: node_left, node_right
+    type(terminal_network_t) :: nw_left, nw_right
+    type(parsed_t) :: parsed
+    type(terminal_connection_t) :: connection_left, connection_right
+    type(terminal_network_t) :: network_left, network_right
+
+    type(parsed_probe_t) :: probe_v, probe_i, probe_v_r
+
+    type(preprocess_t) :: pre
+    type(mtln_t) :: solver
+    real,dimension(1,1) :: lpul = 0.25e-6
+    real,dimension(1,1) :: gpul = 0.0
+    real,dimension(1,1) :: rpul = 0.0
+    real,dimension(1,1) :: cpul = 100.0e-12
+
+    error_cnt = 0
+
+    cable%name = "wire0"
+    cable%inductance_per_meter = lpul
+    cable%conductance_per_meter = gpul
+    cable%resistance_per_meter = rpul
+    cable%capacitance_per_meter = cpul
+    block
+        integer :: i
+        cable%step_size = [(4, i = 1, 50)]
+    end block
+
+    parsed%time_step = 2.0e-8
+    parsed%number_of_steps = 40e-6/parsed%time_step
+
+
+    node_left%belongs_to_cable => cable
+    node_left%conductor_in_cable = 1
+    node_left%side = "initial"
+
+    node_left%termination = source_termination_t(path_to_excitation=square_excitation, & 
+                                                type = "series", &
+                                                resistance = 150, &
+                                                inductance = 0.0, &
+                                                capacitance = 1e22)
+
+    connection_left%nodes = [node_left]
+
+    node_right%belongs_to_cable => cable
+    node_right%conductor_in_cable = 1
+    node_right%side = "end"
+    node_right%termination = source_termination_t(type = "series", &
+                                                  resistance = 50, &
+                                                  inductance = 0.0, &
+                                                  capacitance = 100e-12)
+
+    connection_right%nodes = [node_right]
+
+    network_left%connections = [connection_left]
+    network_right%connections = [connection_right]
+
+    probe_v%attached_to_cable => cable
+    probe_v%index = 1 
+    probe_v%type = "voltage"
+
+    probe_i%attached_to_cable => cable
+    probe_i%index = 50
+    probe_i%type = "current"
+
+    probe_v_r%attached_to_cable => cable
+    probe_v_r%index = 50
+    probe_v_r%type = "voltage"
+
+
+    ! parsed%networks = [network_left]
+    parsed%networks = [network_left, network_right]
+    parsed%cables = [cable]
+    parsed%probes = [probe_v, probe_i, probe_v_r]    ! pre = preprocess(parsed)
+
+    solver = mtlnCtor(parsed)
+    call solver%runUntil(parsed%time_step * parsed%number_of_steps)
+    write(*,*) error_cnt
+    ! p = Parser(file)
+    ! p.run(finalTime = 18e-6)
+    block
+        integer :: i
+        open(unit = 1, file =  './probes/probes_RC_termination.txt')
+        do i = 1, size(solver%bundles(1)%probes(1)%t)
+            write(1,*) solver%bundles(1)%probes(1)%t(i)," ", &
+                    solver%bundles(1)%probes(1)%val(i,1) ," ", &
+                    solver%bundles(1)%probes(2)%val(i,1) ," ", &
+                    solver%bundles(1)%probes(3)%val(i,1)
+        end do
+
+    end block
+
+end function
+
 integer function test_coaxial_line_paul_8_6_square() bind(C) result(error_cnt)    
     use mtln_solver_mod
     use testingTools_mod
     use preprocess_mod
     implicit none
 
-    ! character(len=*), parameter :: filename = PATH_TO_TEST_DATA//'mtln/coaxial_line_paul_8_6_square.smb.json'
-    character(len=*), parameter :: square_excitation = PATH_TO_TEST_DATA//'mtln/coaxial_line_paul_8_6_block_square.exc'
+    ! character(len=*), parameter :: filename = PATH_TO_TEST_DATA//'mtln/coaxial_line_paul_8_6_0.5_square.smb.json'
+    character(len=*), parameter :: square_excitation = PATH_TO_TEST_DATA//'mtln/coaxial_line_paul_8_6_0.05_square.exc'
     
     type(cable_t), target :: cable
     type(terminal_node_t) :: node_left, node_right
@@ -89,7 +812,7 @@ integer function test_coaxial_line_paul_8_6_square() bind(C) result(error_cnt)
     ! p.run(finalTime = 18e-6)
     block
         integer :: i
-        open(unit = 1, file =  'probes_8.6_square_alt.txt')
+        open(unit = 1, file =  'probes/probes_8.6_square_V2.txt')
         do i = 1, size(solver%bundles(1)%probes(1)%t)
             write(1,*) solver%bundles(1)%probes(1)%t(i)," ", &
                        solver%bundles(1)%probes(1)%val(i,1) ," ", &
@@ -123,7 +846,7 @@ integer function test_coaxial_line_paul_8_6_triangle() bind(C) result(error_cnt)
     use preprocess_mod
     implicit none
 
-    character(len=*), parameter :: square_excitation = PATH_TO_TEST_DATA//'mtln/coaxial_line_paul_8_6_triangle.exc'
+    character(len=*), parameter :: square_excitation = PATH_TO_TEST_DATA//'mtln/coaxial_line_paul_8_6_0.1_triangle.exc'
     
     type(cable_t), target :: cable
     type(terminal_node_t) :: node_left, node_right
@@ -202,7 +925,7 @@ integer function test_coaxial_line_paul_8_6_triangle() bind(C) result(error_cnt)
     write(*,*) error_cnt
     block
         integer :: i
-        open(unit = 1, file =  'probes_8.6_triangle_alt.txt')
+        open(unit = 1, file =  './probes/probes_8.6_triangle_i_source.txt')
         do i = 1, size(solver%bundles(1)%probes(1)%t)
             write(1,*) solver%bundles(1)%probes(1)%t(i)," ", &
                        solver%bundles(1)%probes(1)%val(i,1) ," ", &
@@ -230,6 +953,133 @@ integer function test_coaxial_line_paul_8_6_triangle() bind(C) result(error_cnt)
 
 end function
 
+integer function test_2_conductor_line_paul_9_6_1c() bind(C) result(error_cnt)    
+    use mtln_solver_mod
+    use testingTools_mod
+    use preprocess_mod
+    implicit none
+
+    ! character(len=*), parameter :: filename = PATH_TO_TEST_DATA//'mtln/coaxial_line_paul_8_6_square.smb.json'
+    ! character(len=*), parameter :: pulse_excitation = PATH_TO_TEST_DATA//'mtln/2_conductor_line_paul_9_6_pulse.exc'
+    character(len=*), parameter :: pulse_excitation = PATH_TO_TEST_DATA//'mtln/2_conductor_line_paul_9_6_gauss.exc'
+    
+    type(cable_t), target :: cable
+    type(terminal_node_t) :: node_left_1, node_right_1
+    type(terminal_network_t) :: nw_left, nw_right
+    type(parsed_t) :: parsed
+    type(terminal_connection_t) :: connection_left_1, connection_right_1
+    type(terminal_network_t) :: network_left, network_right
+
+    type(parsed_probe_t) :: probe_v_left, probe_v_right, probe_v_mid, probe_i_left, probe_i_right, probe_i_mid
+    type(preprocess_t) :: pre
+    type(mtln_t) :: solver
+    real,dimension(1,1) :: lpul = 0.805756e-6
+    real,dimension(1,1) :: gpul = 0.0
+    real,dimension(1,1) :: rpul = 0.0
+    real,dimension(1,1) :: cpul = 117.791e-12
+
+
+    character(20) :: charR, charL, charC, lineC
+    real :: final_time
+    error_cnt = 0
+
+    cable%name = "wire0"
+    cable%inductance_per_meter = lpul
+    cable%conductance_per_meter = gpul
+    cable%resistance_per_meter = rpul
+    cable%capacitance_per_meter = cpul
+    block
+        integer :: i
+        real :: length = 0.5
+        ! integer :: ndz = 1000
+        integer :: ndz = 795
+        cable%step_size = [(length/ndz, i = 1, ndz)]
+    end block
+
+    final_time = 40e-9
+    ! parsed%time_step = 4.250797024442083e-12
+    parsed%number_of_steps = 9410
+    parsed%time_step = final_time/parsed%number_of_steps
+    ! parsed%number_of_steps = 10e-9/parsed%time_step
+
+
+                                                   
+
+    node_left_1%belongs_to_cable => cable
+    node_left_1%conductor_in_cable = 1
+    node_left_1%side = "initial"
+    node_left_1%termination = source_termination_t(path_to_excitation=pulse_excitation, & 
+                                                 type = "series", &
+                                                 resistance = 50, &
+                                                 inductance = 0.0, &
+                                                 capacitance = 1e22)
+
+
+    node_right_1%belongs_to_cable => cable
+    node_right_1%conductor_in_cable = 1
+    node_right_1%side = "end"
+    ! node_right_1%termination = termination_t(type = "series", &
+    !                                          resistance = 50, &
+    !                                          inductance = 0, &
+    !                                          capacitance = 1e22)
+    node_right_1%termination = termination_t(type = "RCp", &
+                                             resistance = 100, &
+                                             inductance = 1e-6, &
+                                             capacitance = 100e-12)
+
+
+    
+
+    connection_left_1%nodes = [node_left_1]
+    connection_right_1%nodes = [node_right_1]
+    
+    network_left%connections = [connection_left_1]
+    network_right%connections = [connection_right_1]
+
+    probe_v_left%attached_to_cable => cable
+    probe_v_left%index = 1 
+    probe_v_left%type = "voltage"
+
+    probe_v_right%attached_to_cable => cable
+    probe_v_right%index = 796
+    probe_v_right%type = "voltage"
+
+    probe_i_left%attached_to_cable => cable
+    probe_i_left%index = 1 
+    probe_i_left%type = "current"
+
+    probe_i_right%attached_to_cable => cable
+    probe_i_right%index = 795
+    probe_i_right%type = "current"
+
+
+    ! parsed%networks = [network_left]
+    parsed%networks = [network_left, network_right]
+    parsed%cables = [cable]
+    parsed%probes = [probe_v_left, probe_v_right, & 
+                     probe_i_left, probe_i_right]    ! pre = preprocess(parsed)
+
+    solver = mtlnCtor(parsed)
+    call solver%runUntil(parsed%time_step * parsed%number_of_steps)
+    write(*,*) error_cnt
+    ! p = Parser(file)
+    ! p.run(finalTime = 18e-6)
+    block
+        integer :: i
+        open(unit = 1, file =  './probes/probes_9.6_gauss_1c_RCp.txt')
+        do i = 1, size(solver%bundles(1)%probes(1)%t)
+            write(1,*) solver%bundles(1)%probes(1)%t(i)," ", &
+                       solver%bundles(1)%probes(1)%val(i,1) ," ", &
+                       solver%bundles(1)%probes(2)%val(i,1) ," ", &
+                       solver%bundles(1)%probes(3)%val(i,1) ," ", &
+                       solver%bundles(1)%probes(4)%val(i,1)
+        end do
+
+    end block
+
+
+end function 
+
 integer function test_2_conductor_line_paul_9_6() bind(C) result(error_cnt)    
     use mtln_solver_mod
     use testingTools_mod
@@ -237,7 +1087,8 @@ integer function test_2_conductor_line_paul_9_6() bind(C) result(error_cnt)
     implicit none
 
     ! character(len=*), parameter :: filename = PATH_TO_TEST_DATA//'mtln/coaxial_line_paul_8_6_square.smb.json'
-    character(len=*), parameter :: pulse_excitation = PATH_TO_TEST_DATA//'mtln/2_conductor_line_paul_9_6_pulse.exc'
+    ! character(len=*), parameter :: pulse_excitation = PATH_TO_TEST_DATA//'mtln/2_conductor_line_paul_9_6_pulse.exc'
+    character(len=*), parameter :: pulse_excitation = PATH_TO_TEST_DATA//'mtln/2_conductor_line_paul_9_6_gauss.exc'
     
     type(cable_t), target :: cable
     type(terminal_node_t) :: node_left_1, node_right_1, node_left_2, node_right_2
@@ -246,7 +1097,7 @@ integer function test_2_conductor_line_paul_9_6() bind(C) result(error_cnt)
     type(terminal_connection_t) :: connection_left_1, connection_right_1, connection_left_2, connection_right_2
     type(terminal_network_t) :: network_left, network_right
 
-    type(parsed_probe_t) :: probe_v_101, probe_v_201
+    type(parsed_probe_t) :: probe_v_left, probe_v_right, probe_v_mid, probe_i_left, probe_i_right, probe_i_mid
     type(preprocess_t) :: pre
     type(mtln_t) :: solver
     real,dimension(2,2) :: lpul = reshape( source = [0.805756e-6, 0.538771e-6, 0.538771e-6, 1.07754e-6], shape = [2,2])
@@ -267,13 +1118,14 @@ integer function test_2_conductor_line_paul_9_6() bind(C) result(error_cnt)
     block
         integer :: i
         real :: length = 0.5
+        ! integer :: ndz = 1000
         integer :: ndz = 795
         cable%step_size = [(length/ndz, i = 1, ndz)]
     end block
 
-    final_time = 40e-9/10
+    final_time = 40e-9
     ! parsed%time_step = 4.250797024442083e-12
-    parsed%number_of_steps = 10000/10
+    parsed%number_of_steps = 9410
     parsed%time_step = final_time/parsed%number_of_steps
     ! parsed%number_of_steps = 10e-9/parsed%time_step
 
@@ -282,7 +1134,7 @@ integer function test_2_conductor_line_paul_9_6() bind(C) result(error_cnt)
     node_left_1%conductor_in_cable = 1
     node_left_1%side = "initial"
     node_left_1%termination = termination_t(type = "series", &
-                                            resistance = 50, &
+                                            resistance = 5, &
                                             inductance = 0.0, &
                                             capacitance = 1e22)
                                                    
@@ -305,7 +1157,7 @@ integer function test_2_conductor_line_paul_9_6() bind(C) result(error_cnt)
                                              inductance = 0, &
                                              capacitance = 1e22)
     ! node_right_1%termination = termination_t(type = "RLsCp", &
-    !                                          resistance = 50, &
+    !                                          resistance = 10, &
     !                                          inductance = 1e-6, &
     !                                          capacitance = 100e-12)
 
@@ -327,19 +1179,36 @@ integer function test_2_conductor_line_paul_9_6() bind(C) result(error_cnt)
     network_left%connections = [connection_left_1,connection_left_2]
     network_right%connections = [connection_right_1, connection_right_2]
 
-    probe_v_101%attached_to_cable => cable
-    probe_v_101%index = 1 
-    probe_v_101%type = "voltage"
+    probe_v_left%attached_to_cable => cable
+    probe_v_left%index = 1 
+    probe_v_left%type = "voltage"
 
-    probe_v_201%attached_to_cable => cable
-    probe_v_201%index = 796
-    probe_v_201%type = "voltage"
+    probe_v_mid%attached_to_cable => cable
+    probe_v_mid%index = 398
+    probe_v_mid%type = "voltage"
+
+    probe_v_right%attached_to_cable => cable
+    probe_v_right%index = 796
+    probe_v_right%type = "voltage"
+
+    probe_i_left%attached_to_cable => cable
+    probe_i_left%index = 1 
+    probe_i_left%type = "current"
+
+    probe_i_mid%attached_to_cable => cable
+    probe_i_mid%index = 398
+    probe_i_mid%type = "current"
+
+    probe_i_right%attached_to_cable => cable
+    probe_i_right%index = 795
+    probe_i_right%type = "current"
 
 
     ! parsed%networks = [network_left]
     parsed%networks = [network_left, network_right]
     parsed%cables = [cable]
-    parsed%probes = [probe_v_101, probe_v_201]    ! pre = preprocess(parsed)
+    parsed%probes = [probe_v_left, probe_v_mid, probe_v_right, & 
+                     probe_i_left, probe_i_mid, probe_i_right]    ! pre = preprocess(parsed)
 
     solver = mtlnCtor(parsed)
     call solver%runUntil(parsed%time_step * parsed%number_of_steps)
@@ -348,13 +1217,21 @@ integer function test_2_conductor_line_paul_9_6() bind(C) result(error_cnt)
     ! p.run(finalTime = 18e-6)
     block
         integer :: i
-        open(unit = 1, file =  'probes_9.6_alt_disp.txt')
+        open(unit = 1, file =  './probes/probes_9.6_gauss_R.txt')
         do i = 1, size(solver%bundles(1)%probes(1)%t)
             write(1,*) solver%bundles(1)%probes(1)%t(i)," ", &
                        solver%bundles(1)%probes(1)%val(i,1) ," ", &
                        solver%bundles(1)%probes(1)%val(i,2) ," ", &
                        solver%bundles(1)%probes(2)%val(i,1) ," ", &
-                       solver%bundles(1)%probes(2)%val(i,2)
+                       solver%bundles(1)%probes(2)%val(i,2) ," ", &
+                       solver%bundles(1)%probes(3)%val(i,1) ," ", &
+                       solver%bundles(1)%probes(3)%val(i,2) ," ", &
+                       solver%bundles(1)%probes(4)%val(i,1) ," ", &
+                       solver%bundles(1)%probes(4)%val(i,2) ," ", &
+                       solver%bundles(1)%probes(5)%val(i,1) ," ", &
+                       solver%bundles(1)%probes(5)%val(i,2) ," ", &
+                       solver%bundles(1)%probes(6)%val(i,1) ," ", &
+                       solver%bundles(1)%probes(6)%val(i,2)
         end do
 
     end block
@@ -460,14 +1337,14 @@ integer function test_2_conductor_line_paul_9_11_20ns() bind(C) result(error_cnt
     parsed%cables = [cable]
     parsed%probes = [probe_v_101]
 
-    solver = mtlnCtor(parsed)
+       solver = mtlnCtor(parsed)
     call solver%runUntil(parsed%time_step * parsed%number_of_steps)
     write(*,*) error_cnt
     ! p = Parser(file)
     ! p.run(finalTime = 18e-6)
     block
         integer :: i
-        open(unit = 1, file =  'probes_9.11_20ns_alt.txt')
+        open(unit = 1, file =  './probes/probes_9.11_20ns_i_source_2.txt')
         do i = 1, size(solver%bundles(1)%probes(1)%t)
             write(1,*) solver%bundles(1)%probes(1)%t(i)," ", &
                        solver%bundles(1)%probes(1)%val(i,1)," ", &
@@ -584,7 +1461,7 @@ integer function test_2_conductor_line_paul_9_11_1ns() bind(C) result(error_cnt)
     ! p.run(finalTime = 18e-6)
     block
         integer :: i
-        open(unit = 1, file =  'probes_9.11_1ns_alt.txt')
+        open(unit = 1, file =  './probes/probes_9.11_1ns_i_source_2.txt')
         do i = 1, size(solver%bundles(1)%probes(1)%t)
             write(1,*) solver%bundles(1)%probes(1)%t(i)," ", &
                        solver%bundles(1)%probes(1)%val(i,1)," ", &

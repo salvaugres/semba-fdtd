@@ -130,13 +130,6 @@ contains
         do i = 1, this%number_of_bundles
             call this%bundles(i)%updateSources(this%time, this%dt)
             call this%bundles(i)%advanceVoltage()
-
-            ! this%bundles(i)%v_initial(:) = this%bundles(i)%v(:,1)
-            ! this%bundles(i)%v_end(:)     = this%bundles(i)%v(:,ubound(this%bundles(i)%v, 2))
-
-            ! this%bundles(i)%i_initial(:) = this%bundles(i)%i(:,1)
-            ! this%bundles(i)%i_end(:)     = this%bundles(i)%i(:,ubound(this%bundles(i)%i, 2))
-
         end do
 
     end subroutine
@@ -153,12 +146,7 @@ contains
                 v_idx = this%network_manager%networks(i)%nodes(j)%v_index
                 i_idx = this%network_manager%networks(i)%nodes(j)%i_index
 
-                this%network_manager%networks(i)%nodes(j)%v = this%bundles(b)%v(c, v_idx)
-                ! if (i_idx /= 1) then 
-                !     this%network_manager%networks(i)%nodes(j)%i = -this%bundles(b)%i(c, i_idx)
-                ! else
                 this%network_manager%networks(i)%nodes(j)%i = this%bundles(b)%i(c, i_idx)
-                ! end if
             end do
         end do
 
@@ -172,16 +160,8 @@ contains
                 i_idx = this%network_manager%networks(i)%nodes(j)%i_index
 
                 this%bundles(b)%v(c, v_idx) = this%network_manager%networks(i)%nodes(j)%v
-                ! this%bundles(b)%i(c, i_idx) = this%network_manager%networks(i)%nodes(j)%i
             end do
         end do
-
-            ! this%bundles(i)%v(:,1) = this%bundles(i)%v_initial(:)
-            ! this%bundles(i)%v(:,ubound(this%bundles(i)%v, 2)) = this%bundles(i)%v_end(:)
-
-            ! this%bundles(i)%i(:,1) = this%bundles(i)%i_initial(:)
-            ! this%bundles(i)%i(:,ubound(this%bundles(i)%i, 2)) = this%bundles(i)%i_end(:)
-
 
     end subroutine
 

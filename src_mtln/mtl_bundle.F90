@@ -307,12 +307,12 @@ contains
         ! i_prev = this%i
         do i = 1, this%number_of_divisions 
             this%i(:,i) = matmul(this%i_term(i,:,:), this%i(:,i)) - &
-                          matmul(this%v_diff(i,:,:), (this%v(:,i+1) - this%v(:,i))) - &
+                          matmul(this%v_diff(i,:,:), (this%v(:,i+1) - this%v(:,i))) !- &
                                 !  matmul(0.5*this%du_length(i,:,:), this%el))
-                          matmul(this%v_diff(i,:,:), matmul(this%du(i,:,:), this%transfer_impedance%q3_phi(i,:)))
+                        !   matmul(this%v_diff(i,:,:), matmul(this%du(i,:,:), this%transfer_impedance%q3_phi(i,:)))
         enddo
         !TODO - revisar
-        i_now = this%i
+        ! i_now = this%i
         ! call this%transfer_impedance%updatePhi(i_prev, i_now)
     end subroutine
 
