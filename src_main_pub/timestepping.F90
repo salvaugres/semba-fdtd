@@ -89,7 +89,7 @@ module Solver
 #endif
 #ifdef CompileWithWires  
    use HollandWires
-   use HollandWires_mtln
+!   use HollandWires_mtln
 #endif
 #ifdef CompileWithBerengerWires
    use WiresBerenger
@@ -704,7 +704,7 @@ contains
          l_auxinput=thereare%Wires
          l_auxoutput=l_auxinput
 !!
-         call InitWires_mtln()
+!         call InitWires_mtln()
 !!
 #ifdef CompileWithMPI
       call MPI_Barrier(SUBCOMM_MPI,ierr)
