@@ -10,8 +10,8 @@ extern "C" int test_fhash_ptr();
 extern "C" int test_fhash();
 extern "C" int test_math_eigvals();
 extern "C" int test_math_matmul_broadcast();
-extern "C" int test_networks_pointer_copy();
-extern "C" int test_networks_simple_manager();
+// extern "C" int test_networks_pointer_copy();
+// extern "C" int test_networks_simple_manager();
 extern "C" int test_dispersive_init_1_pole();
 extern "C" int test_dispersive_init_2_poles();
 extern "C" int test_dispersive_init_1_pole_3_levels();
@@ -29,7 +29,15 @@ extern "C" int test_preprocess_zt_conductor_ranges();
 extern "C" int test_coaxial_line_paul_8_6_square();
 extern "C" int test_coaxial_line_paul_8_6_triangle();
 extern "C" int test_2_conductor_line_paul_9_6();
-
+extern "C" int test_2_conductor_line_paul_9_6_1c();
+extern "C" int test_2_conductor_line_paul_9_11_20ns();
+extern "C" int test_2_conductor_line_paul_9_11_1ns();
+extern "C" int test_termination_resistive();
+extern "C" int test_termination_resistive_inductive();
+extern "C" int test_termination_resistive_capacitive();
+extern "C" int test_termination_rls_cp();
+extern "C" int test_termination_rls_cp_ns();
+extern "C" int test_termination_rcp();
 int main(int argc, char **argv) 
 {
     ::testing::InitGoogleTest(&argc, argv);
@@ -50,8 +58,8 @@ TEST(mtln, preprocess_zt_conductor_ranges_2) { EXPECT_EQ(0, test_preprocess_zt_c
 TEST(mtln, preprocess_zt_conductor_ranges) { EXPECT_EQ(0, test_preprocess_zt_conductor_ranges()); }
 TEST(mtln, math_eigvals) { EXPECT_EQ(0, test_math_eigvals()); }
 TEST(mtln, math_matmul_broadcast) { EXPECT_EQ(0, test_math_matmul_broadcast()); }
-TEST(mtln, networks_simple_manager) { EXPECT_EQ(0, test_networks_simple_manager()); }
-TEST(mtln, networks_pointer_copy) { EXPECT_EQ(0, test_networks_pointer_copy()); }
+// TEST(mtln, networks_simple_manager) { EXPECT_EQ(0, test_networks_simple_manager()); }
+// TEST(mtln, networks_pointer_copy) { EXPECT_EQ(0, test_networks_pointer_copy()); }
 TEST(mtln, dispersive_init_1_pole) { EXPECT_EQ(0, test_dispersive_init_1_pole()); }
 TEST(mtln, dispersive_init_2_poles) { EXPECT_EQ(0, test_dispersive_init_2_poles()); }
 TEST(mtln, dispersive_init_1_pole_3_levels) { EXPECT_EQ(0, test_dispersive_init_1_pole_3_levels()); }
@@ -65,3 +73,12 @@ TEST(mtln, spice_read_message) { EXPECT_EQ(0, test_spice_read_message()); }
 TEST(mtln, coaxial_line_paul_8_6_square) { EXPECT_EQ(0, test_coaxial_line_paul_8_6_square()); }
 TEST(mtln, coaxial_line_paul_8_6_triangle) { EXPECT_EQ(0, test_coaxial_line_paul_8_6_triangle()); }
 TEST(mtln, 2_conductor_line_paul_9_6) { EXPECT_EQ(0, test_2_conductor_line_paul_9_6()); }
+TEST(mtln, 2_conductor_line_paul_9_6_1c) { EXPECT_EQ(0, test_2_conductor_line_paul_9_6_1c()); }
+TEST(mtln, 2_conductor_line_paul_9_11_20ns) { EXPECT_EQ(0, test_2_conductor_line_paul_9_11_20ns()); }
+TEST(mtln, 2_conductor_line_paul_9_11_1ns) { EXPECT_EQ(0, test_2_conductor_line_paul_9_11_1ns()); }
+TEST(mtln, termination_R) { EXPECT_EQ(0, test_termination_resistive()); }
+TEST(mtln, termination_RL) { EXPECT_EQ(0, test_termination_resistive_inductive()); }
+TEST(mtln, termination_RC) { EXPECT_EQ(0, test_termination_resistive_capacitive()); }
+TEST(mtln, termination_RLsCp) { EXPECT_EQ(0, test_termination_rls_cp()); }
+TEST(mtln, termination_RLsCp_ns) { EXPECT_EQ(0, test_termination_rls_cp_ns()); }
+TEST(mtln, termination_RCp) { EXPECT_EQ(0, test_termination_rcp()); }

@@ -22,9 +22,6 @@ module mtl_bundle_mod
         real, dimension(:,:,:), allocatable :: v_term, i_term
         real, dimension(:,:,:), allocatable :: v_diff, i_diff
 
-        ! real, pointer, dimension(:) :: v_initial, v_end
-        ! real, pointer, dimension(:) :: i_initial, i_end
-
     contains
         procedure :: mergePULMatrices
         procedure :: mergeDispersiveMatrices
@@ -82,13 +79,6 @@ contains
         
         allocate(this%v(this%number_of_conductors, this%number_of_divisions + 1), source = 0.0)
         allocate(this%i(this%number_of_conductors, this%number_of_divisions), source = 0.0)
-
-        ! allocate(this%v_initial(this%number_of_conductors), source = 0.0)
-        ! allocate(this%v_end(this%number_of_conductors), source = 0.0)
-
-        ! allocate(this%i_initial(this%number_of_conductors), source = 0.0)
-        ! allocate(this%i_end(this%number_of_conductors), source = 0.0)
-
 
         allocate(this%i_term(this%number_of_divisions,this%number_of_conductors,this%number_of_conductors), source = 0.0)
         allocate(this%v_diff(this%number_of_divisions,this%number_of_conductors,this%number_of_conductors), source = 0.0)
@@ -303,17 +293,17 @@ contains
         class(mtl_bundle_t) ::this
         real, dimension(:,:), allocatable :: i_prev, i_now
         integer :: i
-        call this%transfer_impedance%updateQ3Phi()
-        i_prev = this%i
+        ! call this%transfer_impedance%updateQ3Phi()
+        ! i_prev = this%i
         do i = 1, this%number_of_divisions 
             this%i(:,i) = matmul(this%i_term(i,:,:), this%i(:,i)) - &
-                          matmul(this%v_diff(i,:,:), (this%v(:,i+1) - this%v(:,i))) - &
+                          matmul(this%v_diff(i,:,:), (this%v(:,i+1) - this%v(:,i))) !- &
                                 !  matmul(0.5*this%du_length(i,:,:), this%el))
-                          matmul(this%v_diff(i,:,:), matmul(this%du(i,:,:), this%transfer_impedance%q3_phi(i,:)))
+                        !   matmul(this%v_diff(i,:,:), matmul(this%du(i,:,:), this%transfer_impedance%q3_phi(i,:)))
         enddo
         !TODO - revisar
-        i_now = this%i
-        call this%transfer_impedance%updatePhi(i_prev, i_now)
+        ! i_now = this%i
+        ! call this%transfer_impedance%updatePhi(i_prev, i_now)
     end subroutine
 
     subroutine bundle_setExternalCurrent(this, current)

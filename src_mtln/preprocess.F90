@@ -17,7 +17,6 @@ module preprocess_mod
         type(probe_t), dimension(:), allocatable :: probes
         type(fhash_tbl_t) :: conductors_before_cable
         type(fhash_tbl_t) :: cable_name_to_bundle_id
-        ! type(fhash_tbl_t) :: cable_name_to_bundle
         real :: final_time, dt
     
     contains
@@ -26,8 +25,6 @@ module preprocess_mod
         procedure :: buildNetwork
         procedure :: connectNodeToGround
         procedure :: connectNodes
-        ! procedure :: addNode
-        ! procedure :: addProbes
         procedure :: addNodeWithId
         procedure :: addProbesWithId
     end type
@@ -51,7 +48,6 @@ contains
         type(parsed_mtln_t), intent(in):: parsed
         type(preprocess_t) :: res
         type(fhash_tbl_t) :: cable_name_to_bundle_id
-        ! type(fhash_tbl_t) :: cable_name_to_bundle
         type(line_bundle_t), dimension(:), allocatable :: line_bundles
         type(cable_bundle_t), dimension(:), allocatable :: cable_bundles
 
@@ -62,7 +58,6 @@ contains
         line_bundles = buildLineBundles(cable_bundles)
         res%bundles = res%buildMTLBundles(line_bundles)
         res%cable_name_to_bundle_id = mapCablesToBundlesId(line_bundles, res%bundles)
-        ! res%cable_name_to_bundle = mapCablesToBundles(line_bundles, res%bundles)
         if (size(parsed%probes) /= 0) then
             res%probes = res%addProbesWithId(parsed%probes)
         end if
@@ -170,7 +165,6 @@ contains
                     call conductors_before_cable%set(key(line%levels(i)%lines(j)%name), range_in(1) - 1)
                 else
                     error stop 'range in cannot be empty'
-                    ! call conductors_before_cable%set(key(line%levels(i)%lines(j)%name), range_in(0))
                 end if
             end do
         end do  
@@ -340,32 +334,27 @@ contains
         class(termination_t), intent(in) :: termination
         character(len=*), intent(in) :: end_node
         character(len=256), allocatable :: res(:)
-        character(20) :: charR, charL, charC, sr_from_line, lineC
+        character(20) :: termination_r, termination_l, termination_c, line_c
 
-        write(charC, *) termination%capacitance
-        write(charR, *) termination%resistance
-        write(charL, *) termination%inductance
-        write(sr_from_line, *) node%r_from_line
-        write(lineC, *) node%line_c_per_meter
-
+        write(termination_c, *) termination%capacitance
+        write(termination_r, *) termination%resistance
+        write(termination_l, *) termination%inductance
+        write(line_c, *) node%line_c_per_meter * node%step*2 ! /2?
+        
         allocate(res(0))
 
-        res = [res, trim("R" // node%name // " " // node%name // " "   // node%name //"_R " // charR)]
-        res = [res, trim("L" // node%name // " " // node%name // "_R " // node%name //"_L " // charL)]
+        res = [res, trim("R" // node%name // " " // node%name // " "   // node%name //"_R " // termination_r)]
+        res = [res, trim("L" // node%name // " " // node%name // "_R " // node%name //"_L " // termination_l)]
         select type(termination)
         type is(termination_with_source_t)
-            res = [res, trim("C" // node%name // " " // node%name // "_L " // node%name //"_V "// charC)]
+            res = [res, trim("C" // node%name // " " // node%name // "_L " // node%name //"_V "// termination_c)]
             res = [res, trim("V" // node%name // " " // node%name // "_V " // end_node //" dc 0" )]
         type is(termination_t)
-            res = [res, trim("C" // node%name // " " // node%name // "_L " // end_node //" "// charC)]
+            res = [res, trim("C" // node%name // " " // node%name // "_L " // end_node //" "// termination_c)]
         end select
-        ! res = [res, trim("RC" // node%name // " " // node%name //" "//node%name//"_t " // sr_from_line)]
-        ! res = [res, trim("I" // node%name // " " // node%name// "_t 0 " // " dc 0")]
-
-        res = [res, trim("RC" // node%name // " " // node%name // " 0 " // sr_from_line)]
-        ! res = [res, trim("CL" // node%name // " " // node%name // " 0 " // lineC)]
         res = [res, trim("I" // node%name // " " // node%name// " 0 " // " dc 0")]
-        ! res = [res, trim("I" // node%name // " " // " 0 " // node%name // " dc 0")]
+        res = [res, trim("CL" // node%name // " " // node%name // " 0 " // line_c)]
+
     end function
 
     function writeSeriesRLnode(node, termination, end_node) result(res)
@@ -373,26 +362,25 @@ contains
         class(termination_t), intent(in) :: termination
         character(len=*), intent(in) :: end_node
         character(len=256), allocatable :: res(:)
-        character(20) :: charR, charL, sr_from_line, lineC
+        character(20) :: termination_r, termination_l, line_c
 
-        write(charR, *) termination%resistance
-        write(lineC, *) node%line_c_per_meter
-        write(charL, *) termination%inductance
-        ! write(sr_from_line, *) 50.0
-        ! write(sr_from_line, *) node%r_from_line
+        write(termination_r, *) termination%resistance
+        write(termination_l, *) termination%inductance
+        write(line_c, *) node%line_c_per_meter * node%step*2
 
         allocate(res(0))
 
-        res = [res, trim("R" // node%name // " " // node%name // "_R "   // node%name //" ")//" "//trim(charR)]
+        res = [res, trim("R" // node%name // " " // node%name // "_R "   // node%name //" ")//" "//trim(termination_r)]
         select type(termination)
         type is(termination_with_source_t)
-            res = [res, trim("L" // node%name // " " // node%name // "_R " // node%name //"_L " // charL)]
+            res = [res, trim("L" // node%name // " " // node%name // "_R " // node%name //"_L")//" "//trim(termination_l)]
             res = [res, trim("V" // node%name // " " // node%name // "_L " // end_node //" dc 0" )]
         type is(termination_t)
-            res = [res, trim("L" // node%name // " " // node%name // "_R " // end_node)//" "//trim(charL)]
+            res = [res, trim("L" // node%name // " " // node%name // "_R " // end_node)//" "//trim(termination_l)]
         end select
-        res = [res, trim("V1" // node%name // " " // node%name // " 0 dc 0" )]
-
+        res = [res, trim("I" // node%name // " " // node%name// " 0 " // " dc 0")]
+        res = [res, trim("CL" // node%name // " " // node%name // " 0 " // line_c)]
+        
     end function
 
     function writeRLsCpnode(node, termination, end_node) result(res)
@@ -400,32 +388,30 @@ contains
         class(termination_t), intent(in) :: termination
         character(len=*), intent(in) :: end_node
         character(len=256), allocatable :: res(:)
-        character(20) :: charR, charL, charC, sr_from_line, lineC
+        character(20) :: termination_r, termination_l, termination_c, line_c
 
-        write(charR, *) termination%resistance
-        write(charC, *) termination%capacitance
-        write(lineC, *) node%line_c_per_meter
-        write(charL, *) termination%inductance
-        write(sr_from_line, *) 50.0
-        ! write(sr_from_line, *) node%r_from_line
+        write(termination_r, *) termination%resistance
+        write(termination_c, *) termination%capacitance
+        write(termination_l, *) termination%inductance
+        write(line_c, *) node%line_c_per_meter * node%step*2
 
         allocate(res(0))
 
-        res = [res, trim("R" // node%name // " " // node%name // " "   // node%name //"_R " // charR)]
+        res = [res, trim("R" // node%name // " " // node%name // " "   // node%name //"_R " // termination_r)]
         select type(termination)
         type is(termination_with_source_t)
-            res = [res, trim("L" // node%name // " " // node%name // "_R " // node%name //"_V " // charL)]
-            res = [res, trim("C" // node%name // " " // node%name // " " // node%name //"_V " // charC)]
+            res = [res, trim("L" // node%name // " " // node%name // "_R " // node%name //"_V " // termination_l)]
+            res = [res, trim("C" // node%name // " " // node%name // " " // node%name //"_V " // termination_c)]
             res = [res, trim("V" // node%name // " " // node%name // "_V " // end_node //" dc 0" )]
         type is(termination_t)
-            res = [res, trim("L" // node%name // " " // node%name // "_R " // end_node //" "// charL)]
-            res = [res, trim("C" // node%name // " " // node%name // " " // end_node //" "// charC)]
+            res = [res, trim("L" // node%name // " " // node%name // "_R " // end_node //" "// termination_l)]
+            res = [res, trim("C" // node%name // " " // node%name // " " // end_node //" "// termination_c)]
         end select
-        res = [res, trim("V1" // node%name // " " // node%name // " 0 dc 0" )]
+        res = [res, trim("I" // node%name // " " // node%name// " 0 " // " dc 0")]
+        res = [res, trim("CL" // node%name // " " // node%name // " 0 " // line_c)]
+
 
     end function
-
-
 
     function writeSeriesNode(node, termination, end_node) result(res)
         type(node_t), intent(in) :: node
@@ -441,27 +427,41 @@ contains
 
     end function
 
-    ! function writeShortNode(node_name, termination, end_node) result(res)
     function writeShortNode(node, termination, end_node) result(res)
         type(node_t), intent(in) :: node
         class(termination_t), intent(in) :: termination
         character(len=*), intent(in) :: end_node
-        ! character(len=*), intent(in) :: node_name
         character(len=256), allocatable :: res(:)
-        character(20) :: short_R
+        character(20) :: short_R, line_c
 
         write(short_r, *) 1e-10
+        write(line_c, *) node%line_c_per_meter*node%step*2
 
         allocate(res(0))
         select type(termination)
         type is(termination_with_source_t)
-            res = [res, trim("R" // node%name // " " // node%name // " " // node%name //"_R 1")] !check
+            res = [res, trim("R" // node%name // " " // node%name // " " // node%name //"_R")//" "//trim(short_R)] !check
             res = [res, trim("V" // node%name // " " // node%name // "_R " // end_node//" dc 0")]
         type is(termination_t)
             res = [res, trim("R" // node%name // " " // node%name // " " // end_node)//" "//trim(short_R)] !check
         end select
-        res = [res, trim("V1" // node%name // " " // node%name // " 0 dc 0" )]
+        res = [res, trim("I" // node%name // " " // node%name// " 0 " // " dc 0")]
+        res = [res, trim("CL" // node%name // " " // node%name // " 0 " // line_c)]
+        
+    end function
 
+    function writeOpenNode(node, termination, end_node) result(res)
+        type(node_t), intent(in) :: node
+        class(termination_t), intent(in) :: termination
+        character(len=*), intent(in) :: end_node
+        character(len=256), allocatable :: res(:)
+        character(20) :: line_c
+
+        write(line_c, *) node%line_c_per_meter*node%step*2
+
+        allocate(res(0))
+        res = [res, trim("I" // node%name // " " // node%name// " 0 " // " dc 0")]
+        res = [res, trim("CL" // node%name // " " // node%name // " 0 " // line_c)]
         
     end function
 
@@ -471,32 +471,26 @@ contains
         character(len=*), intent(in) :: end_node
         character(len=256), allocatable :: res(:)
         character(len=:), allocatable :: node_name
-        character(20) :: sR, sL, sC, lineC, sr_from_line
+        character(20) :: termination_r, termination_l, termination_c, line_c
         
-        write(sR, '(E10.2)') termination%resistance
-        write(sL, '(E10.2)') termination%inductance
-        write(sC, '(E10.2)') termination%capacitance
-        write(lineC, '(E10.2)') node%line_c_per_meter
-        write(sr_from_line, '(E10.2)') node%r_from_line
-        
+        write(termination_r, *) termination%resistance
+        write(termination_l, *) termination%inductance
+        write(termination_c, *) termination%capacitance
+        write(line_c, *) node%line_c_per_meter * node%step*2
+       
         allocate(res(0))
-        res = [res, trim("R" // node%name // " " // node%name // " "   // node%name //"_p " // sR)]
+        res = [res, trim("R" // node%name // " " // node%name // " "   // node%name //"_p " // termination_r)]
         select type(termination)
         type is(termination_with_source_t)
-            res = [res, trim("L" // node%name // " " // node%name // "_p " // node%name //"_V "// sL)]
-            res = [res, trim("C" // node%name // " " // node%name // "_p " // node%name //"_V "// sC)]
+            res = [res, trim("L" // node%name // " " // node%name // "_p " // node%name //"_V "// termination_l)]
+            res = [res, trim("C" // node%name // " " // node%name // "_p " // node%name //"_V "// termination_c)]
             res = [res, trim("V" // node%name // " " // node%name // "_V " // end_node //" dc 0" )]
         type is(termination_t)
-            res = [res, trim("L" // node%name // " " // node%name // "_p " // end_node //" "// sL)]
-            res = [res, trim("C" // node%name // " " // node%name // "_p " // end_node //" "// sC)]
+            res = [res, trim("L" // node%name // " " // node%name // "_p " // end_node //" "// termination_l)]
+            res = [res, trim("C" // node%name // " " // node%name // "_p " // end_node //" "// termination_c)]
         end select
-        ! res = [res, trim("RC" // node%name // " " // node%name //" "//node%name//"_t " // sr_from_line)]
-        ! res = [res, trim("I" // node%name // " " // node%name// "_t 0 " // " dc 0")]
-
-        res = [res, trim("RC" // node%name // " " // node%name // " 0 " // sr_from_line)]
-        ! res = [res, trim("CL" // node%name // " " // node%name // " 0 " // lineC)]
         res = [res, trim("I" // node%name // " " // node%name// " 0 " // " dc 0")]
-        ! res = [res, trim("I" // node%name // " " // " 0 " // node%name // " dc 0")]
+        res = [res, trim("CL" // node%name // " " // node%name // " 0 " // line_c)]
 
     end function
 
@@ -512,55 +506,13 @@ contains
             res = writeLCpRsNode(node, termination, end_node)
         else if (termination%termination_type == TERMINATION_RLsCp) then 
             res = writeRLsCpNode(node, termination, end_node)
-        else if (termination%termination_type == TERMINATION_OPEN) then 
+        else if (termination%termination_type == TERMINATION_SHORT) then 
             res = writeShortNode(node, termination , end_node)
+        else if (termination%termination_type == TERMINATION_OPEN) then 
+            res = writeOpenNode(node, termination , end_node)
         end if
 
     end function    
-
-    ! function addNode(this, node) result(res)
-    !     class(preprocess_t) :: this
-    !     type(terminal_node_t) :: node
-    !     integer :: stat
-    !     class(*), pointer :: d
-    !     type(node_t) :: res
-    !     character(len=4) :: sConductor
-    !     integer :: conductor_number
-    !     real :: step
-    !     class(termination_t), allocatable :: termination
-    !     call this%conductors_before_cable%get(key(node%belongs_to_cable%name), conductor_number)
-    !     conductor_number = conductor_number + node%conductor_in_cable
-
-    !     call this%cable_name_to_bundle%get_raw_ptr(key(node%belongs_to_cable%name), d, stat)
-
-    !     if (stat /= 0) return
-
-    !     write(sConductor,'(I0)') node%conductor_in_cable
-    !     res%name = trim(node%belongs_to_cable%name)//"_"//trim(sConductor)//"_"//trim(node%side)
-
-    !     select type(d)
-    !     type is (mtl_bundle_t)
-    !         if (node%side == "initial") then 
-    !             res%v => d%v(conductor_number, lbound(d%v,2))
-    !             res%i => d%i(conductor_number, lbound(d%i,2))
-    !             res%line_c_per_meter = d%cpul(lbound(d%cpul,1), conductor_number, conductor_number)
-    !             res%step = d%du(lbound(d%du,1), conductor_number, conductor_number)
-    !         else if (node%side == "end") then 
-    !             res%v => d%v(conductor_number, ubound(d%v,2))
-    !             res%i => d%i(conductor_number, ubound(d%i,2))
-    !             res%line_c_per_meter = d%cpul(ubound(d%cpul,1), conductor_number, conductor_number)
-    !             res%step = d%du(ubound(d%du,1), conductor_number, conductor_number)
-    !         end if
-    !     end select
-    !     ! res%r_from_line = 1.0
-    !     res%r_from_line = this%dt/(step * res%line_c_per_meter)
-    !     res%source = ""
-    !     select type(termination => node%termination)
-    !     type is(termination_with_source_t)
-    !         res%source = termination%path_to_excitation
-    !     end select
-
-    ! end function
 
     function addNodeWithId(this, node) result(res)
         class(preprocess_t) :: this
@@ -581,29 +533,26 @@ contains
         tbundle = this%bundles(d)
         write(sConductor,'(I0)') node%conductor_in_cable
         res%name = trim(node%belongs_to_cable%name)//"_"//trim(sConductor)//"_"//nodeSideToString(node%side)
+
+        res%v = 0.0
+        res%i = 0.0
+        res%bundle_number = d
+        res%conductor_number = conductor_number
+
         if (node%side == TERMINAL_NODE_SIDE_INI) then 
-            res%v => tbundle%v(conductor_number, lbound(tbundle%v,2))
-            res%i => tbundle%i(conductor_number, lbound(tbundle%i,2))
+            res%v_index = lbound(tbundle%v,2)
+            res%i_index = lbound(tbundle%i,2)
             res%line_c_per_meter = tbundle%cpul(lbound(tbundle%cpul,1), conductor_number, conductor_number)
             res%step = tbundle%du(lbound(tbundle%du,1), conductor_number, conductor_number)
+            res%side = TERMINAL_NODE_SIDE_INI
 
-            ! res%v => this%bundles(d)%v_initial(conductor_number)
-            ! res%i => this%bundles(d)%i_initial(conductor_number)
-            ! res%line_c_per_meter = this%bundles(d)%cpul(lbound(this%bundles(d)%cpul,1), conductor_number, conductor_number)
-            ! res%step = this%bundles(d)%du(lbound(this%bundles(d)%du,1), conductor_number, conductor_number)
         else if (node%side == TERMINAL_NODE_SIDE_END) then 
-            write(*,*) ubound(tbundle%v,2)
-            res%values%v => tbundle%v(conductor_number, ubound(tbundle%v,2))
-            res%values%i => tbundle%i(conductor_number, ubound(tbundle%i,2))
+            res%v_index = ubound(tbundle%v,2)
+            res%i_index = ubound(tbundle%i,2)
             res%line_c_per_meter = tbundle%cpul(ubound(tbundle%cpul,1), conductor_number, conductor_number)
             res%step = tbundle%du(ubound(tbundle%du,1), conductor_number, conductor_number)
-
-            ! res%v => this%bundles(d)%v_end(conductor_number)
-            ! res%i => this%bundles(d)%i_end(conductor_number)
-            ! res%line_c_per_meter = this%bundles(d)%cpul(ubound(this%bundles(d)%cpul,1), conductor_number, conductor_number)
-            ! res%step = this%bundles(d)%du(ubound(this%bundles(d)%du,1), conductor_number, conductor_number)
+            res%side = TERMINAL_NODE_SIDE_END
         end if
-
 
         res%source = ""
         select type(termination => node%termination)
@@ -611,14 +560,14 @@ contains
             res%source = termination%path_to_excitation
         end select
     contains
-        function nodeSideToString(side) result(res)
-            character (len=:), allocatable :: res
+        function nodeSideToString(side) result(cSide)
+            character (len=:), allocatable :: cSide
             integer, intent(in) :: side
             select case (side)
             case (TERMINAL_NODE_SIDE_INI)
-                res = "initial"
+                cSide = "initial"
             case (TERMINAL_NODE_SIDE_END)
-                res = "end"
+                cSide = "end"
             end select
         end function
 
@@ -646,14 +595,12 @@ contains
         character(256), dimension(:), intent(inout) :: description
         type(node_t) :: new_node
         integer :: i, stat
-        ! class(*), pointer :: d
         character(len=:), allocatable :: interior_node
 
         interior_node = trim(terminal_nodes(1)%belongs_to_cable%name)//"_"//&
                         trim(terminal_nodes(2)%belongs_to_cable%name)//"_inter"
         do i = 1, 2
             new_node =this%addNodeWithId(terminal_nodes(i))
-            ! new_node = addNode(terminal_nodes(i), this%cable_name_to_bundle, this%conductors_before_cable)
             nodes = [nodes, new_node]
             description = [description, writeNodeDescription(new_node, terminal_nodes(i)%termination, interior_node)]
         end do
@@ -715,7 +662,7 @@ contains
         do j = 1, size(networks)
             do i = 1, size(networks(j)%nodes)
                 saved_nodes = saved_nodes // "V1"//trim(networks(j)%nodes(i)%name)//"#branch "
-                ! saved_nodes = saved_nodes // trim(networks(j)%nodes(i)%name) // " "
+                saved_nodes = saved_nodes // trim(networks(j)%nodes(i)%name) // " "
             end do
         end do
         description = [description, trim(saved_nodes)]
@@ -766,9 +713,7 @@ contains
                                                stat=stat)
 
             if (stat /= 0) return
-            ! tbundle = this%bundles(d)
             res(i) =  this%bundles(d)%addProbe(index = parsed_probes(i)%index, probe_type = parsed_probes(i)%probe_type)
-            ! deallocate(d)
         end do
     end function
 

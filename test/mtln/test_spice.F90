@@ -38,7 +38,7 @@ integer function test_spice_read_message() bind(C) result(error_cnt)
     end if
 
     do i = 1, 4                      
-        if (checkNear(circuit%nodes%values(i), result(i), 0.01) .eqv. .false. ) then 
+        if (checkNear(circuit%nodes%values(i)%voltage, result(i), 0.01) .eqv. .false. ) then 
             error_cnt = error_cnt + 1
         end if
     end do
@@ -73,7 +73,7 @@ integer function test_spice_dc() bind(C) result(error_cnt)
     end if
 
     do i = 1, 4                      
-        if (checkNear(circuit%nodes%values(i), result(i), 0.01) .eqv. .false. ) then 
+        if (checkNear(circuit%nodes%values(i)%voltage, result(i), 0.01) .eqv. .false. ) then 
             error_cnt = error_cnt + 1
         end if
     end do
