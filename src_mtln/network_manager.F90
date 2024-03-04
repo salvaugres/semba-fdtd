@@ -15,7 +15,6 @@ module network_manager_mod
         procedure :: updateNetworkVoltagesFromCircuit
         procedure :: updateNetworkVoltages
         procedure :: getIsCurrents
-        ! procedure :: computeTheveninEquivalent
 
     end type
 
@@ -125,18 +124,6 @@ contains
         end do
     end subroutine
 
-    ! subroutine computeTheveninEquivalent(this)
-    !     class(network_manager_t) :: this
-    !     integer :: i, j
-    !     do i = 1, size(this%networks)
-    !         do j = 1, this%networks(i)%number_of_nodes
-    !             call this%circuit%computeTheveninEquivalent(this%networks(i)%nodes(j)%node_name, &
-    !                                                         this%networks(i)%nodes(j)%v, &
-    !                                                         this%networks(i)%nodes(j)%v_eq, &
-    !                                                         this%networks(i)%nodes(j)%r_eq)
-    !         end do
-    !     end do
-    ! end subroutine
 
     subroutine network_advanceVoltage(this)
         class(network_manager_t) :: this

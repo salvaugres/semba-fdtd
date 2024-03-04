@@ -1,13 +1,17 @@
 module rational_approximation_mod
     ! use fhash, only: fhash_tbl_t, key=>fhash_key, fhash_iter_t, fhash_key_t
-    use mtln_types_mod
+    use mtln_types_mod, only: &
+        transfer_impedance_per_meter_t, &
+        TRANSFER_IMPEDANCE_DIRECTION_BOTH, &
+        TRANSFER_IMPEDANCE_DIRECTION_INWARDS, &
+        TRANSFER_IMPEDANCE_DIRECTION_OUTWARDS
     implicit none
 
     type :: pol_res_t
         complex, allocatable, dimension(:) :: q1,q2,q3
         real :: r, l
         integer :: number_of_poles
-        character(len=:), allocatable :: direction
+        integer :: direction
     end type
 
     interface pol_res_t

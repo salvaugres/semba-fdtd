@@ -293,7 +293,7 @@ integer function test_termination_resistive_capacitive_parallel() bind(C) result
     ! p.run(finalTime = 18e-6)
     block
         integer :: i
-        open(unit = 1, file =  './probes/probes_RCp_termination_2.txt')
+        open(unit = 1, file =  './probes/probes_RCp_termination.txt')
         do i = 1, size(solver%bundles(1)%probes(1)%t)
             write(1,*) solver%bundles(1)%probes(1)%t(i)," ", &
                     solver%bundles(1)%probes(1)%val(i,1) ," ", &
@@ -625,7 +625,8 @@ integer function test_termination_resistive_capacitive() bind(C) result(error_cn
     use preprocess_mod
     implicit none
 
-    character(len=*), parameter :: square_excitation = PATH_TO_TEST_DATA//'mtln/termination_resistive_pulse.exc'
+    ! character(len=*), parameter :: square_excitation = PATH_TO_TEST_DATA//'mtln/termination_resistive_pulse.exc'
+    character(len=*), parameter :: pulse_excitation = PATH_TO_TEST_DATA//'mtln/5u_1u_gauss.exc'
 
     type(cable_t), target :: cable
     type(terminal_node_t) :: node_left, node_right
@@ -663,7 +664,7 @@ integer function test_termination_resistive_capacitive() bind(C) result(error_cn
     node_left%conductor_in_cable = 1
     node_left%side = "initial"
 
-    node_left%termination = source_termination_t(path_to_excitation=square_excitation, & 
+    node_left%termination = source_termination_t(path_to_excitation=pulse_excitation, & 
                                                 type = "series", &
                                                 resistance = 150, &
                                                 inductance = 0.0, &
@@ -709,7 +710,7 @@ integer function test_termination_resistive_capacitive() bind(C) result(error_cn
     ! p.run(finalTime = 18e-6)
     block
         integer :: i
-        open(unit = 1, file =  './probes/probes_RC_termination.txt')
+        open(unit = 1, file =  './probes/probes_RC_termination_gauss.txt')
         do i = 1, size(solver%bundles(1)%probes(1)%t)
             write(1,*) solver%bundles(1)%probes(1)%t(i)," ", &
                     solver%bundles(1)%probes(1)%val(i,1) ," ", &
@@ -812,7 +813,7 @@ integer function test_coaxial_line_paul_8_6_square() bind(C) result(error_cnt)
     ! p.run(finalTime = 18e-6)
     block
         integer :: i
-        open(unit = 1, file =  'probes/probes_8.6_square_V2.txt')
+        open(unit = 1, file =  'probes/probes_8.6_square.txt')
         do i = 1, size(solver%bundles(1)%probes(1)%t)
             write(1,*) solver%bundles(1)%probes(1)%t(i)," ", &
                        solver%bundles(1)%probes(1)%val(i,1) ," ", &
@@ -1019,13 +1020,17 @@ integer function test_2_conductor_line_paul_9_6_1c() bind(C) result(error_cnt)
     node_right_1%conductor_in_cable = 1
     node_right_1%side = "end"
     ! node_right_1%termination = termination_t(type = "series", &
-    !                                          resistance = 50, &
-    !                                          inductance = 0, &
-    !                                          capacitance = 1e22)
-    node_right_1%termination = termination_t(type = "RCp", &
+    !                                          resistance = 100, &
+    !                                          inductance = 1e-6, &
+    !                                          capacitance = 100e22)
+    ! node_right_1%termination = termination_t(type = "RCp", &
+    !                                          resistance = 100, &
+    !                                          inductance = 0.0, &
+    !                                          capacitance = 100e-12)
+    node_right_1%termination = termination_t(type = "RLsCp", &
                                              resistance = 100, &
-                                             inductance = 1e-6, &
-                                             capacitance = 100e-12)
+                                             inductance = 100e-6, &
+                                             capacitance = 10e-12)
 
 
     
@@ -1066,7 +1071,7 @@ integer function test_2_conductor_line_paul_9_6_1c() bind(C) result(error_cnt)
     ! p.run(finalTime = 18e-6)
     block
         integer :: i
-        open(unit = 1, file =  './probes/probes_9.6_gauss_1c_RCp.txt')
+        open(unit = 1, file =  './probes/probes_9.6_gauss_1c_RLsCp_R_100_L_100u_C_10p.txt')
         do i = 1, size(solver%bundles(1)%probes(1)%t)
             write(1,*) solver%bundles(1)%probes(1)%t(i)," ", &
                        solver%bundles(1)%probes(1)%val(i,1) ," ", &
@@ -1087,8 +1092,8 @@ integer function test_2_conductor_line_paul_9_6() bind(C) result(error_cnt)
     implicit none
 
     ! character(len=*), parameter :: filename = PATH_TO_TEST_DATA//'mtln/coaxial_line_paul_8_6_square.smb.json'
-    ! character(len=*), parameter :: pulse_excitation = PATH_TO_TEST_DATA//'mtln/2_conductor_line_paul_9_6_pulse.exc'
-    character(len=*), parameter :: pulse_excitation = PATH_TO_TEST_DATA//'mtln/2_conductor_line_paul_9_6_gauss.exc'
+    character(len=*), parameter :: pulse_excitation = PATH_TO_TEST_DATA//'mtln/2_conductor_line_paul_9_6_pulse.exc'
+    ! character(len=*), parameter :: pulse_excitation = PATH_TO_TEST_DATA//'mtln/2_conductor_line_paul_9_6_gauss.exc'
     
     type(cable_t), target :: cable
     type(terminal_node_t) :: node_left_1, node_right_1, node_left_2, node_right_2
@@ -1152,14 +1157,14 @@ integer function test_2_conductor_line_paul_9_6() bind(C) result(error_cnt)
     node_right_1%belongs_to_cable => cable
     node_right_1%conductor_in_cable = 1
     node_right_1%side = "end"
-    node_right_1%termination = termination_t(type = "series", &
-                                             resistance = 50, &
-                                             inductance = 0, &
-                                             capacitance = 1e22)
-    ! node_right_1%termination = termination_t(type = "RLsCp", &
-    !                                          resistance = 10, &
-    !                                          inductance = 1e-6, &
-    !                                          capacitance = 100e-12)
+    ! node_right_1%termination = termination_t(type = "series", &
+    !                                          resistance = 50, &
+    !                                          inductance = 0, &
+    !                                          capacitance = 1e22)
+    node_right_1%termination = termination_t(type = "RLsCp", &
+                                             resistance = 10, &
+                                             inductance = 1e-6, &
+                                             capacitance = 100e-12)
 
     node_right_2%belongs_to_cable => cable
     node_right_2%conductor_in_cable = 2
@@ -1217,7 +1222,7 @@ integer function test_2_conductor_line_paul_9_6() bind(C) result(error_cnt)
     ! p.run(finalTime = 18e-6)
     block
         integer :: i
-        open(unit = 1, file =  './probes/probes_9.6_gauss_R.txt')
+        open(unit = 1, file =  './probes/probes_9.6_pulse_C.txt')
         do i = 1, size(solver%bundles(1)%probes(1)%t)
             write(1,*) solver%bundles(1)%probes(1)%t(i)," ", &
                        solver%bundles(1)%probes(1)%val(i,1) ," ", &

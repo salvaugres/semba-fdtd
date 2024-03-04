@@ -182,19 +182,21 @@ contains
     end function 
 
     function isCouplingInwards(direction) result(res)
-        character(len=*), intent(in) :: direction
+        integer, intent(in) :: direction
         logical :: res
         res = .false.
-        if (direction == "inwards" .or. direction == "both") res = .true.
+        if (direction == TRANSFER_IMPEDANCE_DIRECTION_INWARDS &
+            .or. direction == TRANSFER_IMPEDANCE_DIRECTION_BOTH) res = .true.
     end function
 
     function isCouplingOutWards(direction) result(res)
-        character(len=*), intent(in) :: direction
+        integer, intent(in) :: direction
         logical :: res
         res = .false.
-        if (direction == "outwards" .or. direction == "both") res = .true.
+        if (direction == TRANSFER_IMPEDANCE_DIRECTION_OUTWARDS &
+            .or. direction == TRANSFER_IMPEDANCE_DIRECTION_BOTH) res = .true.
     end function
-
+    
     subroutine addTransferImpedance(this, conductor_out, range_in, model)
         class(transfer_impedance_t) :: this
         integer, intent(in) :: conductor_out
