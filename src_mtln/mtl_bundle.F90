@@ -179,7 +179,7 @@ contains
     type(probe_t) function addProbe(this, index, probe_type) result(res)
         class(mtl_bundle_t) :: this
         integer, intent(in) :: index
-        character (len=*), intent(in) :: probe_type
+        integer, intent(in) :: probe_type
         res = probeCtor(index, probe_type, this%dt)
         this%probes = [this%probes, res]
     end function

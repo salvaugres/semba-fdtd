@@ -2,7 +2,7 @@ module network_mod
 
     use fhash, only: fhash_tbl_t, key=>fhash_key, fhash_key_t
     use mtl_bundle_mod
-    use mtln_types_mod
+    use mtln_types_mod, parsed_probe_t => probe_t, parsed_mtln_t => mtln_t
     use circuit_mod, only: string_t
     implicit none
 

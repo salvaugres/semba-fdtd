@@ -9,6 +9,7 @@ set(CMAKE_Fortran_MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/mod)
 add_library(
     mtln_solver_tests_fortran
     "testingTools.F90"
+    "test_mtln_types.F90"
     "test_preprocess.F90"
     "test_spice.F90"
     "test_math.F90"
@@ -16,6 +17,7 @@ add_library(
     "test_mtl_bundle.F90"
     "test_Paul.F90"
     "test_fhash.F90"
+
     "test_dispersive.F90"
     "test_networks.F90"
 )

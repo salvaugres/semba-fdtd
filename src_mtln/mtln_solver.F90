@@ -40,7 +40,7 @@ module mtln_solver_mod
 contains
 
     function mtlnCtor(parsed) result(res)
-        type(parsed_t) :: parsed
+        type(parsed_mtln_t) :: parsed
         type(mtln_t) :: res
         integer :: i
         type(preprocess_t) :: pre

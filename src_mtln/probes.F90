@@ -1,9 +1,11 @@
 module probes_mod
 
+    use mtln_types_mod, only: PROBE_TYPE_CURRENT, PROBE_TYPE_VOLTAGE
+
     implicit none
 
     type, public :: probe_t
-        character (len=:), allocatable :: type
+        integer :: type
         real, allocatable, dimension(:) :: t
         real, allocatable, dimension(:,:) :: val
         real :: dt
@@ -27,7 +29,7 @@ contains
     function probeCtor(index, probe_type, dt) result(res)
         type(probe_t) :: res
         integer, intent(in) :: index
-        character (len=*), intent(in) :: probe_type
+        integer, intent(in) :: probe_type
         real, intent(in) :: dt
         
         res%type = probe_type
@@ -55,9 +57,9 @@ contains
         real, dimension(:,:), intent(in) :: v
         real, dimension(:,:), intent(in) :: i
         
-        if (this%type == "voltage") then
+        if (this%type == PROBE_TYPE_VOLTAGE) then
             call this%saveFrame(t, v(:,this%index))
-        else if (this%type == "current") then
+        else if (this%type == PROBE_TYPE_CURRENT) then
             if (this%index == size(i,2)) then
                 call this%saveFrame(t + 0.5*this%dt, i(:,this%index - 1))
             else 

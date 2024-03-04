@@ -1,0 +1,76 @@
+name: ubuntu-intel
+
+env:
+  LINUX_CPP_COMPONENTS: intel-oneapi-compiler-dpcpp-cpp-and-cpp-classic-2023.2.3
+  LINUX_FORTRAN_COMPONENTS: intel-oneapi-compiler-fortran-2023.2.3
+  LINUX_MKL_COMPONENTS: "intel-oneapi-mkl intel-oneapi-mkl-devel"
+  LINUX_MPI_COMPONENTS: "intel-oneapi-mpi intel-oneapi-mpi-devel"
+# https://github.com/oneapi-src/oneapi-ci/blob/master/.github/workflows/build_all.yml
+  CTEST_NO_TESTS_ACTION: error
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+  pull_request:
+    branches:
+      - main
+
+jobs:
+
+  builds-and-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+    
+    - uses: actions/checkout@v4
+      with:
+        submodules: 'recursive'
+
+    - name: cache install oneAPI
+      id: cache-install
+      uses: actions/cache@v3
+      with:
+        path: |
+          /opt/intel/oneapi
+        key: install-apt
+
+    - name: non-cache install oneAPI
+      if: steps.cache-install.outputs.cache-hit != 'true'
+      timeout-minutes: 10
+      run: |
+        sh -c .github/workflows/oneapi_setup_apt_repo_linux.sh
+        sudo apt install ${{ env.LINUX_CPP_COMPONENTS }} ${{ env.LINUX_FORTRAN_COMPONENTS }}
+
+    - name: Setup ninja
+      uses: seanmiddleditch/gha-setup-ninja@master
+
+    - name: Setup Intel oneAPI environment
+      run: |
+        LATEST_VERSION=$(ls -1 /opt/intel/oneapi/compiler/ | grep -v latest | sort | tail -1)
+        source /opt/intel/oneapi/compiler/"$LATEST_VERSION"/env/vars.sh
+        printenv >> $GITHUB_ENV
+
+    - name: print config log
+      if: ${{ failure() }}
+      run: cat build/CMakeFiles/CMakeConfigureLog.yaml
+    
+    # - name: Setup upterm session
+    #   uses: lhotari/action-upterm@v1
+    
+    - name: CMake build
+      run: |
+        # export FC=ifort
+        # export CC=icc
+        # export CXX=icpc
+        cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+        cmake --build build -j
+
+    - name: Run json-parser tests 
+      run: |
+        ctest --test-dir build/src_json_parser/test/ --output-on-failure
+
+    - name: exclude unused files from cache
+      if: steps.cache-install.outputs.cache-hit != 'true'
+      run: sh -c .github/workflows/oneapi_cache_exclude_linux.sh
