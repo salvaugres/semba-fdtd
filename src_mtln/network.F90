@@ -7,25 +7,13 @@ module network_mod
     implicit none
 
     type node_t
-        real :: is_now = 0.0
-        real :: is_prev = 0.0
-        real :: vs_now = 0.0
-        real :: vs_prev = 0.0
-        real :: r_eq_now = 1.0
-        real :: r_eq_prev = 1.0
-        real :: line_z = 0.0
-        real :: v_eq = 0.0
-
-        real, dimension(3) :: v_filter = [0.0,0.0,0.0]
-
         character(len=:), allocatable :: name
         character(len=:), allocatable :: source
         real :: line_c_per_meter
-        real :: line_l_per_meter
         real :: step
         real :: v
         real :: i
-        integer :: bundle_number, conductor_number, v_index, i_index, v_index_2
+        integer :: bundle_number, conductor_number, v_index, i_index
         integer :: side
     end type
 
@@ -34,7 +22,6 @@ module network_mod
         integer :: number_of_nodes = 0
         type(node_t), dimension(:), allocatable :: nodes
         character(256), dimension(:), allocatable :: description
-        ! type(circuit_t), pointer :: circuit
     contains
 
     end type network_t
@@ -76,4 +63,4 @@ contains
 
 
 
-end module network_mod
+end module

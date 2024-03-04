@@ -29,7 +29,7 @@ add_subdirectory(test/smbjson)
 
 if (CompileWithMTLN)
 	add_subdirectory(src_mtln)
-	# add_subdirectory(test/mtln)
+	add_subdirectory(test/mtln)
 endif()
 
 if (CompileExecutable)

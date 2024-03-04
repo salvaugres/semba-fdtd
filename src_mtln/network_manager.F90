@@ -11,10 +11,7 @@ module network_manager_mod
     contains
         procedure :: advanceVoltage => network_advanceVoltage
         procedure :: updateCircuitCurrentsFromNetwork
-        procedure :: updateCircuitvoltagesFromNetwork
-        procedure :: updateNetworkVoltagesFromCircuit
         procedure :: updateNetworkVoltages
-        procedure :: getIsCurrents
 
     end type
 
@@ -67,28 +64,6 @@ contains
 
     end function
 
-    subroutine getIsCurrents(this)
-        class(network_manager_t) :: this
-        integer :: i,j
-        do i = 1, size(this%networks)
-            do j = 1, this%networks(i)%number_of_nodes
-                this%networks(i)%nodes(j)%is_now = this%circuit%getNodeCurrent(this%networks(i)%nodes(j)%name)
-            end do
-        end do
-    end subroutine
-
-    subroutine updateNetworkVoltagesFromCircuit(this)
-        class(network_manager_t) :: this
-        integer :: i, j
-        do i = 1, size(this%networks)
-            do j = 1, this%networks(i)%number_of_nodes
-                this%networks(i)%nodes(j)%v = this%circuit%getNodeVoltage(this%networks(i)%nodes(j)%name)
-                write(*,*) this%networks(i)%nodes(j)%name, " - V: ", this%networks(i)%nodes(j)%v
-
-            end do
-        end do
-    end subroutine
-
     subroutine updateNetworkVoltages(this)
         class(network_manager_t) :: this
         integer :: i, j
@@ -105,35 +80,17 @@ contains
         integer :: i, j
         do i = 1, size(this%networks)
             do j = 1, this%networks(i)%number_of_nodes
-                ! call this%circuit%updateNodeCurrent(this%networks(i)%nodes(j)%name, & 
-                !                                     0.5*(this%networks(i)%nodes(j)%i+this%networks(i)%nodes(j)%is_prev))
-                ! this%networks(i)%nodes(j)%is_prev = this%networks(i)%nodes(j)%i                                                     
                 call this%circuit%updateNodeCurrent(this%networks(i)%nodes(j)%name, this%networks(i)%nodes(j)%i)
             end do
         end do
     end subroutine
 
-    subroutine updateCircuitVoltagesFromNetwork(this)
-        class(network_manager_t) :: this
-        integer :: i, j
-        do i = 1, size(this%networks)
-            do j = 1, this%networks(i)%number_of_nodes
-                call this%circuit%updateNodeVoltage(this%networks(i)%nodes(j)%name, &
-                                                    this%networks(i)%nodes(j)%v)
-            end do
-        end do
-    end subroutine
-
-
     subroutine network_advanceVoltage(this)
         class(network_manager_t) :: this
 
-        
-        ! call this%updateCircuitVoltagesFromNetwork()
         call this%updateCircuitCurrentsFromNetwork()
         call this%circuit%step()
         this%circuit%time = this%circuit%time + this%circuit%dt
-        ! call this%updateNetworkVoltagesFromCircuit()
         call this%updateNetworkVoltages()
     end subroutine
 

@@ -29,7 +29,6 @@ module mtl_mod
         procedure :: initRGInhomogeneous
         procedure :: initDirections
         procedure :: getMaxTimeStep
-        ! procedure :: get_time_range
         procedure :: getPhaseVelocities
         !TODO
         ! procedure :: setResistanceInRegion
@@ -227,7 +226,9 @@ contains
             ev = getEigenValues(dble(matmul(this%lpul(k,:,:), this%cpul(k+1,:,:))))
             res(k,:) = 1.0/sqrt(ev(1:this%number_of_conductors))
         enddo
-        ! test = reshape(source = [(1.0/sqrt(getEigenValues(dble(matmul(this%lpul(k,:,:), this%cpul(k+1,:,:)))))(1:this%number_of_conductors) , k = 1, size(this%u, 1) -1)],shape = [size(this%u,1) - 1, this%number_of_conductors])
+        ! test = reshape(source = [(1.0/sqrt(getEigenValues(dble(matmul(this%lpul(k,:,:), &
+        ! this%cpul(k+1,:,:)))))(1:this%number_of_conductors) , k = 1, size(this%u, 1) -1)],&
+        ! shape = [size(this%u,1) - 1, this%number_of_conductors])
 
     end function
 
@@ -270,4 +271,4 @@ contains
     end subroutine
 
 
-end module mtl_mod
+end module
