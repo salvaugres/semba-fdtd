@@ -131,17 +131,17 @@ contains
       type(terminal_node_t), intent(in) :: a, b
 
         res = .true.
-        if (associated(a%belongs_to_cable, b%belongs_to_cable)) then
-           res = res .and. (a%conductor_in_cable == b%conductor_in_cable)
-           res = res .and. (a%side == b%side)
-           if (allocated(a%termination) .and. allocated(b%termination)) then
-              res = res .and. are_terminations_equal(a%termination, b%termination)
-           else
-              res = res .and. (.not. allocated(a%termination) .and. .not. allocated(b%termination))
-           endif
-        else
-           res = .false.
-        endif
+      !   if (associated(a%belongs_to_cable, b%belongs_to_cable)) then
+      !      res = res .and. (a%conductor_in_cable == b%conductor_in_cable)
+      !      res = res .and. (a%side == b%side)
+      !      if (allocated(a%termination) .and. allocated(b%termination)) then
+      !         res = res .and. are_terminations_equal(a%termination, b%termination)
+      !      else
+      !         res = res .and. (.not. allocated(a%termination) .and. .not. allocated(b%termination))
+      !      endif
+      !   else
+      !      res = .false.
+      !   endif
    end function
 
 
