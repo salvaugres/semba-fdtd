@@ -127,51 +127,51 @@ integer function test_spice_tran() bind(C) result(error_cnt)
 
 end function
 
-! integer function test_spice_tran_2() bind(C) result(error_cnt)    
+integer function test_spice_tran_2() bind(C) result(error_cnt)    
 
-!     use circuit_mod
-!     use testingTools_mod
-!     implicit none
+    use circuit_mod
+    use testingTools_mod
+    implicit none
 
-!     type(circuit_t) :: circuit
-!     character(len=*, kind=c_char), parameter :: netlist= PATH_TO_TEST_DATA//c_char_'mtln/netlist_tran_2.cir'
-!     real :: finalTime
-!     integer :: i
-!     real :: result(3)
-!     type(string_t), dimension(4) :: names
-!     names(1) = string_t("in", 2)
-!     names(2) = string_t("int", 3)
-!     names(3) = string_t("out", 3)
-!     names(4) = string_t("time", 4)
+    type(circuit_t) :: circuit
+    character(len=*, kind=c_char), parameter :: netlist= PATH_TO_TEST_DATA//c_char_'mtln/netlist_tran_2.cir'
+    real :: finalTime
+    integer :: i
+    real :: result(3)
+    type(string_t), dimension(4) :: names
+    names(1) = string_t("in", 2)
+    names(2) = string_t("int", 3)
+    names(3) = string_t("out", 3)
+    names(4) = string_t("time", 4)
     
-!     result = [5.0,0.0039656539400000001,0.00069279532199999997]
+    result = [5.0,0.0039656539400000001,0.00069279532199999997]
     
-!     circuit%time = 0.0
-!     circuit%dt = 50e-6
-!     finalTime = 200e-6
+    circuit%time = 0.0
+    circuit%dt = 50e-6
+    finalTime = 200e-6
 
-!     error_cnt = 0
-!     call circuit%init(names=names,netlist=netlist)
-!     call circuit%setStopTimes(finalTime, circuit%dt)
-!     do while (circuit%time < finalTime)
-!         call circuit%step()
-!         circuit%time = circuit%time + circuit%dt
-!         if (checkNear(circuit%getTime(), circuit%time, 0.01) .eqv. .false. ) then 
-!             error_cnt = error_cnt + 1
-!         end if
-!     end do
-!     if (checkNear(circuit%getNodeVoltage("in"), result(1), 0.01) .eqv. .false. ) then 
-!         error_cnt = error_cnt + 1
-!     end if
-!     if (checkNear(circuit%getNodeVoltage("int"), result(2), 0.01) .eqv. .false. ) then 
-!         error_cnt = error_cnt + 1
-!     end if
-!     if (checkNear(circuit%getNodeVoltage("out"), result(3), 0.01) .eqv. .false. ) then 
-!         error_cnt = error_cnt + 1
-!     end if
+    error_cnt = 0
+    call circuit%init(names=names,netlist=netlist)
+    call circuit%setStopTimes(finalTime, circuit%dt)
+    do while (circuit%time < finalTime)
+        call circuit%step()
+        circuit%time = circuit%time + circuit%dt
+        if (checkNear(circuit%getTime(), circuit%time, 0.01) .eqv. .false. ) then 
+            error_cnt = error_cnt + 1
+        end if
+    end do
+    if (checkNear(circuit%getNodeVoltage("in"), result(1), 0.01) .eqv. .false. ) then 
+        error_cnt = error_cnt + 1
+    end if
+    if (checkNear(circuit%getNodeVoltage("int"), result(2), 0.01) .eqv. .false. ) then 
+        error_cnt = error_cnt + 1
+    end if
+    if (checkNear(circuit%getNodeVoltage("out"), result(3), 0.01) .eqv. .false. ) then 
+        error_cnt = error_cnt + 1
+    end if
 
     ! call circuit%quit()
-! end function
+end function
 
 integer function test_spice_current_source() bind(C) result(error_cnt)    
 
@@ -185,7 +185,7 @@ integer function test_spice_current_source() bind(C) result(error_cnt)
     integer :: i
     real :: current
     type(string_t), dimension(1) :: names
-    names(1) = string_t("in", 2)
+    names(1) = string_t("1_initial", 9)
 
     circuit%time = 0.0
     circuit%dt = 50e-6
@@ -199,10 +199,10 @@ integer function test_spice_current_source() bind(C) result(error_cnt)
     call circuit%init(names = names, netlist = netlist)
     call circuit%setStopTimes(finalTime, circuit%dt)
     do while (circuit%time < finalTime)
-        call circuit%updateNodeCurrent("1", current)
+        call circuit%updateNodeCurrent("1_initial", current)
         call circuit%step()
         circuit%time = circuit%time + circuit%dt
-        if (checkNear(circuit%getNodeVoltage("in"), current*resistance, 0.01) .eqv. .false. ) then 
+        if (checkNear(circuit%getNodeVoltage("1_initial"), current*resistance, 0.01) .eqv. .false. ) then 
             error_cnt = error_cnt + 1
         end if
         current = 2.0*current

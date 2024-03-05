@@ -760,12 +760,9 @@ integer function test_coaxial_line_paul_8_6_square() bind(C) result(error_cnt)
         integer :: i
         cable%step_size = [(4.0, i = 1, 100)]
     end block
-    ! cable%step_size = [20.0, 20.0, 20.0, 20.0, 20.0]
 
     parsed%time_step = 2e-8
-    ! parsed%number_of_steps = 35
     parsed%number_of_steps = 20e-6/parsed%time_step
-
 
     node_left%belongs_to_cable => cable
     node_left%conductor_in_cable = 1
@@ -801,16 +798,14 @@ integer function test_coaxial_line_paul_8_6_square() bind(C) result(error_cnt)
     probe_i%probe_type = PROBE_TYPE_CURRENT
 
 
-    ! parsed%networks = [network_left]
     parsed%networks = [network_left, network_right]
     parsed%cables = [cable]
-    parsed%probes = [probe_v, probe_i]    ! pre = preprocess(parsed)
+    parsed%probes = [probe_v, probe_i]
 
     solver = mtlnCtor(parsed)
     call solver%runUntil(parsed%time_step * parsed%number_of_steps)
     write(*,*) error_cnt
-    ! p = Parser(file)
-    ! p.run(finalTime = 18e-6)
+
     block
         integer :: i
         open(unit = 1, file =  'probes/probes_8.6_square.txt')
@@ -926,7 +921,7 @@ integer function test_coaxial_line_paul_8_6_triangle() bind(C) result(error_cnt)
     write(*,*) error_cnt
     block
         integer :: i
-        open(unit = 1, file =  './probes/probes_8.6_triangle_i_source.txt')
+        open(unit = 1, file =  './probes/probes_8.6_triangle.txt')
         do i = 1, size(solver%bundles(1)%probes(1)%t)
             write(1,*) solver%bundles(1)%probes(1)%t(i)," ", &
                        solver%bundles(1)%probes(1)%val(i,1) ," ", &
@@ -992,16 +987,13 @@ integer function test_2_conductor_line_paul_9_6_1c() bind(C) result(error_cnt)
     block
         integer :: i
         real :: length = 0.5
-        ! integer :: ndz = 1000
         integer :: ndz = 795
         cable%step_size = [(length/ndz, i = 1, ndz)]
     end block
 
     final_time = 40e-9
-    ! parsed%time_step = 4.250797024442083e-12
     parsed%number_of_steps = 9410
     parsed%time_step = final_time/parsed%number_of_steps
-    ! parsed%number_of_steps = 10e-9/parsed%time_step
 
 
                                                    
@@ -1054,17 +1046,15 @@ integer function test_2_conductor_line_paul_9_6_1c() bind(C) result(error_cnt)
     probe_i_right%probe_type = PROBE_TYPE_CURRENT
 
 
-    ! parsed%networks = [network_left]
     parsed%networks = [network_left, network_right]
     parsed%cables = [cable]
     parsed%probes = [probe_v_left, probe_v_right, & 
-                     probe_i_left, probe_i_right]    ! pre = preprocess(parsed)
+                     probe_i_left, probe_i_right]
 
     solver = mtlnCtor(parsed)
     call solver%runUntil(parsed%time_step * parsed%number_of_steps)
     write(*,*) error_cnt
-    ! p = Parser(file)
-    ! p.run(finalTime = 18e-6)
+
     block
         integer :: i
         open(unit = 1, file =  './probes/probes_9.6_gauss_1c_R_50_L_0_C_50p_par.txt')
@@ -1088,9 +1078,7 @@ integer function test_2_conductor_line_paul_9_6() bind(C) result(error_cnt)
     use preprocess_mod
     implicit none
 
-    ! character(len=*), parameter :: filename = PATH_TO_TEST_DATA//'mtln/coaxial_line_paul_8_6_square.smb.json'
     character(len=*), parameter :: pulse_excitation = PATH_TO_TEST_DATA//'mtln/2_conductor_line_paul_9_6_pulse.exc'
-    ! character(len=*), parameter :: pulse_excitation = PATH_TO_TEST_DATA//'mtln/2_conductor_line_paul_9_6_gauss.exc'
     
     type(cable_t), target :: cable
     type(terminal_node_t) :: node_left_1, node_right_1, node_left_2, node_right_2
@@ -1120,16 +1108,13 @@ integer function test_2_conductor_line_paul_9_6() bind(C) result(error_cnt)
     block
         integer :: i
         real :: length = 0.5
-        ! integer :: ndz = 1000
         integer :: ndz = 795
         cable%step_size = [(length/ndz, i = 1, ndz)]
     end block
 
     final_time = 40e-9
-    ! parsed%time_step = 4.250797024442083e-12
     parsed%number_of_steps = 9410
     parsed%time_step = final_time/parsed%number_of_steps
-    ! parsed%number_of_steps = 10e-9/parsed%time_step
 
 
     node_left_1%belongs_to_cable => cable
@@ -1219,7 +1204,7 @@ integer function test_2_conductor_line_paul_9_6() bind(C) result(error_cnt)
     ! p.run(finalTime = 18e-6)
     block
         integer :: i
-        open(unit = 1, file =  './probes/probes_9.6_pulse_lv.txt')
+        open(unit = 1, file =  './probes/probes_9.6_pulse.txt')
         do i = 1, size(solver%bundles(1)%probes(1)%t)
             write(1,*) solver%bundles(1)%probes(1)%t(i)," ", &
                        solver%bundles(1)%probes(1)%val(i,1) ," ", &
@@ -1247,7 +1232,6 @@ integer function test_2_conductor_line_paul_9_11_20ns() bind(C) result(error_cnt
     use preprocess_mod
     implicit none
 
-    ! character(len=*), parameter :: filename = PATH_TO_TEST_DATA//'mtln/coaxial_line_paul_8_6_square.smb.json'
     character(len=*), parameter :: pulse_excitation = PATH_TO_TEST_DATA//'mtln/2_conductor_line_paul_9_11_20ns.exc'
     
     type(cable_t), target :: cable
@@ -1282,7 +1266,7 @@ integer function test_2_conductor_line_paul_9_11_20ns() bind(C) result(error_cnt
     end block
 
     final_time = 200e-9
-    parsed%number_of_steps = 54 ! with 53 is unstable
+    parsed%number_of_steps = 54
     parsed%time_step = final_time/parsed%number_of_steps
 
 
@@ -1342,11 +1326,10 @@ integer function test_2_conductor_line_paul_9_11_20ns() bind(C) result(error_cnt
        solver = mtlnCtor(parsed)
     call solver%runUntil(parsed%time_step * parsed%number_of_steps)
     write(*,*) error_cnt
-    ! p = Parser(file)
-    ! p.run(finalTime = 18e-6)
+
     block
         integer :: i
-        open(unit = 1, file =  './probes/probes_9.11_20ns_i_source_2.txt')
+        open(unit = 1, file =  './probes/probes_9.11_20ns.txt')
         do i = 1, size(solver%bundles(1)%probes(1)%t)
             write(1,*) solver%bundles(1)%probes(1)%t(i)," ", &
                        solver%bundles(1)%probes(1)%val(i,1)," ", &
@@ -1364,7 +1347,6 @@ integer function test_2_conductor_line_paul_9_11_1ns() bind(C) result(error_cnt)
     use preprocess_mod
     implicit none
 
-    ! character(len=*), parameter :: filename = PATH_TO_TEST_DATA//'mtln/coaxial_line_paul_8_6_square.smb.json'
     character(len=*), parameter :: pulse_excitation = PATH_TO_TEST_DATA//'mtln/2_conductor_line_paul_9_11_1ns.exc'
     
     type(cable_t), target :: cable
@@ -1459,11 +1441,10 @@ integer function test_2_conductor_line_paul_9_11_1ns() bind(C) result(error_cnt)
     solver = mtlnCtor(parsed)
     call solver%runUntil(parsed%time_step * parsed%number_of_steps)
     write(*,*) error_cnt
-    ! p = Parser(file)
-    ! p.run(finalTime = 18e-6)
+
     block
         integer :: i
-        open(unit = 1, file =  './probes/probes_9.11_1ns_i_source_2.txt')
+        open(unit = 1, file =  './probes/probes_9.11_1ns.txt')
         do i = 1, size(solver%bundles(1)%probes(1)%t)
             write(1,*) solver%bundles(1)%probes(1)%t(i)," ", &
                        solver%bundles(1)%probes(1)%val(i,1)," ", &

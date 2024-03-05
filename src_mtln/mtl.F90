@@ -89,9 +89,11 @@ contains
         character(len=*), intent(in) :: name
 
         real, intent(in), optional :: dt
+        real :: max_dt
         character(len=*), intent(in), optional :: parent_name
         integer, intent(in), optional :: conductor_in_parent
         type(transfer_impedance_per_meter_t), intent(in), optional :: transfer_impedance
+
         res%name = name
         res%step_size =  step_size
         call checkPULDimensionsHomogeneous(lpul, cpul, rpul, gpul)
@@ -102,14 +104,16 @@ contains
         call res%initRGHomogeneous(rpul, gpul)
 
 
+        max_dt = res%getMaxTimeStep()
         if (present(dt)) then
-            if (dt > res%getMaxTimeStep()) then
-                error stop 'time step is larger than maximum permitted'
-                ! return
+            if (dt > max_dt) then
+                res%dt = max_dt
+                write(*,*) 'dt larger than maximum permitted. Changed to dt = ', max_dt 
+            else 
+                res%dt = dt
             end if
-            res%dt = dt
         else
-            res%dt = res%getMaxTimeStep()
+            res%dt = max_dt
         end if
 
         res%lumped_elements = lumped_t(res%number_of_conductors, 0, size(step_size), res%dt)
@@ -127,7 +131,6 @@ contains
 
     function mtlInhomogeneous(lpul, cpul, rpul, gpul, &
                             step_size, name, &
-                            ! node_positions, divisions, name, &
                             dt, parent_name, conductor_in_parent, &
                             transfer_impedance) result(res)
         type(mtl_t) :: res
@@ -135,6 +138,7 @@ contains
         real, intent(in), dimension(:) :: step_size
         character(len=*), intent(in) :: name
         real, intent(in), optional :: dt
+        real :: max_dt
         character(len=*), intent(in), optional :: parent_name
         integer, intent(in), optional :: conductor_in_parent
         type(transfer_impedance_per_meter_t), intent(in), optional :: transfer_impedance
@@ -148,14 +152,16 @@ contains
         call res%initLCInhomogeneous(lpul, cpul)
         call res%initRGInhomogeneous(rpul, gpul)
 
+        max_dt = res%getMaxTimeStep()
         if (present(dt)) then
-            if (dt > res%getMaxTimeStep()) then
-                return
-                ! error stop 'time step is larger than maximum permitted'
+            if (dt > max_dt) then
+                res%dt = max_dt
+                write(*,*) 'dt larger than maximum permitted. Changed to dt = ', max_dt 
+            else 
+                res%dt = dt
             end if
-            res%dt = dt
         else
-            res%dt = res%getMaxTimeStep()
+            res%dt = max_dt
         end if
 
         res%lumped_elements = lumped_t(res%number_of_conductors, 0, size(step_size), res%dt)
