@@ -1,5 +1,4 @@
 module rational_approximation_mod
-    ! use fhash, only: fhash_tbl_t, key=>fhash_key, fhash_iter_t, fhash_key_t
     use mtln_types_mod, only: &
         transfer_impedance_per_meter_t, &
         TRANSFER_IMPEDANCE_DIRECTION_BOTH, &
