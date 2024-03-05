@@ -88,9 +88,11 @@ module Solver
    use Anisotropic
 #endif
 #ifdef CompileWithWires  
-   use HollandWires
-!   use HollandWires_mtln
-#endif
+   use HollandWires        
+#endif       
+#ifdef CompileWithWires_mtln  
+   use HollandWires_mtln             
+#endif       
 #ifdef CompileWithBerengerWires
    use WiresBerenger
 #ifdef CompileWithMPI
@@ -703,8 +705,10 @@ contains
                                inductance_model,wirethickness,groundwires,strictOLD,TAPARRABOS,g2,wiresflavor,SINPML_fullsize,fullsize,wirecrank,dtcritico,eps0,mu0,simu_devia,stochastic,verbose,factorradius,factordelta)
          l_auxinput=thereare%Wires
          l_auxoutput=l_auxinput
-!!
-!         call InitWires_mtln()
+!! 
+#ifdef CompileWithWires_mtln  
+         call InitWires_mtln()
+#endif
 !!
 #ifdef CompileWithMPI
       call MPI_Barrier(SUBCOMM_MPI,ierr)
@@ -1338,6 +1342,9 @@ contains
                   call AdvanceWiresEcrank(sgg,n, layoutnumber,wiresflavor,simu_devia,stochastic)
                else
                   call AdvanceWiresE(sgg,n, layoutnumber,wiresflavor,simu_devia,stochastic,experimentalVideal,wirethickness,eps0,mu0)
+#ifdef CompileWithWires_mtln  
+                  call AdvanceWiresE_mtln()
+#endif                  
                endif
             endif
          endif

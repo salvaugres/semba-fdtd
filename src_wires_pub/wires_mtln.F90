@@ -38,7 +38,7 @@ contains
 !      end do
         
         !!!call mtln_wir%mtln_step(currents, voltages)
-        call mtln_step(mtln_wir, currents, voltages)
+!        call mtln_step(mtln_wir, currents, voltages)
         
     return
 
