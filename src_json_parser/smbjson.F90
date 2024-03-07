@@ -48,9 +48,13 @@ module smbjson
       !
       procedure :: readMesh
       !
+      procedure :: readMTLN
+      !
       procedure :: getIntAt
       procedure :: getIntsAt
       procedure :: getRealAt
+      procedure :: getRealsAt
+      ! procedure :: getMatrixAt
       procedure :: getStrAt
       procedure :: existsAt
       procedure :: getCellRegionsWithMaterialType
@@ -134,6 +138,9 @@ contains
       res%tWires = this%readThinWires()
       res%sWires = this%readSlantedWires()
       res%tSlots = this%readThinSlots()
+
+      ! mtln
+      res%mtln = this%readMTLN()
 
       ! Cleanup
       call this%core%destroy()
@@ -950,7 +957,7 @@ contains
          if (.not. found) return
          if (this%getStrAt(mat%p, J_TYPE) /= J_MAT_TYPE_TERMINAL) return
 
-         mat = this%matTable%getId(this%getIntAt(cable, J_MAT_ASS_CAB_INI_TERM_ID, found=found))
+         mat = this%matTable%getId(this%getIntAt(cable, J_MAT_ASS_CAB_END_TERM_ID, found=found))
          if (.not. found) return
          if (this%getStrAt(mat%p, J_TYPE) /= J_MAT_TYPE_TERMINAL) return
 
@@ -1067,6 +1074,184 @@ contains
       ! TODO
    end function
 
+   function readMTLN(this) result (res)
+      class(parser_t) :: this
+      type(mtln_t) :: res
+      type(json_value_ptr), dimension(:), allocatable :: cables
+      type(fhash_tbl_t) :: elemIdToCable, elemIdToPosition
+      
+      block
+         type(json_value), pointer :: matAss
+         logical :: found
+         call this%core%get(this%root, J_MATERIAL_ASSOCIATIONS, matAss, found)
+         if (.not. found) then
+            allocate(cables(0))
+            return
+         end if
+         cables = this%jsonValueFilterByKeyValue(matAss, J_TYPE, J_MAT_ASS_TYPE_CABLE)
+      end block
+
+
+      ! Pre-allocates cables
+      allocate (res%cables(0))
+      block
+         integer :: i, j,  nC = 0
+         if (size(cables) /= 0) then
+            do i = 1, size(cables)
+               ! if (isWireOrMultiwire(cables(i)%p)) nC = nC+1
+               if (isWireOrMultiwire(cables(i)%p)) then
+                  res%cables = [res%cables, readMTLNCable(cables(i)%p)]
+                  elemIdToCable = buildElemIdToCableMap(cables(i)%p, res%cables(ubound(res%cables,1)))
+                  elemIdToPosition = buildElemIdToPositionMap(cables(i)%p)
+               end if
+            end do
+         end if
+         ! allocate (res%cables(nC))
+      end block
+
+      
+
+      block
+         integer :: i, j, parentId
+         j = 1
+         if (size(cables) /= 0) then
+            do i = 1, size(cables)
+               if (isWireOrMultiwire(cables(i)%p)) then 
+                  parentId = this%getIntAt(cables(i)%p, J_MAT_ASS_CAB_CONTAINED_WITHIN_ID)
+                  res%cables(j)%parent_cable => getCableContainingElemId(elemIdToCable, parentId)
+                  res%cables(j)%conductor_in_parent = getParentPositionInMultiwire(elemIdToPosition, parentId)
+                  j = j + 1
+               end if
+            end do
+         end if
+      end block
+
+   contains
+      
+      function findConductorInParent(id, parent) result(res)
+         integer, intent(in) :: id 
+         type(cable_t), pointer :: parent
+         integer :: res
+
+
+      end function
+
+      function getCableContainingElemId(map, id) result(res)
+         type(fhash_tbl_t), intent(in) :: map
+         integer, intent(in) :: id
+         integer :: mStat
+         class(*), allocatable :: d
+         type(cable_t), pointer :: res
+
+         nullify(res)
+         call map%check_key(key(id), mStat)
+         if (mStat /= 0) then
+            return
+         end if
+   
+         call map%get_raw(key(id), d)
+         select type(d)
+          type is (cable_t)
+            res = d
+         end select
+      end function
+
+      function getParentPositionInMultiwire(map, id) result(res)
+         type(fhash_tbl_t), intent(in) :: map
+         integer, intent(in) :: id
+         integer :: mStat
+         integer :: res
+
+         call map%check_key(key(id), mStat)
+         if (mStat /= 0) then
+            return
+         end if
+         call map%get(key(id), value=res)
+      end function
+
+      function buildElemIdToCableMap(j_cable, cable) result(res)
+         type(json_value), pointer :: j_cable 
+         type(cable_t), intent(in) :: cable
+         integer, dimension(:), allocatable :: elemIds
+         type(fhash_tbl_t) :: res
+         integer :: i
+         elemIds = getCablesElemIds(j_cable)
+         do i = 1, size(elemIds)
+            call res%set(key(elemIds(i)), cable)
+         end do
+      end function
+
+      function buildElemIdToPositionMap(j_cable) result(res)
+         type(json_value), pointer :: j_cable 
+         integer, dimension(:), allocatable :: elemIds
+         type(fhash_tbl_t) :: res
+         integer :: i
+         elemIds = getCablesElemIds(j_cable)
+         do i = 1, size(elemIds)
+            call res%set(key(elemIds(i)), i)
+         end do
+      end function
+
+      function getCablesElemIds(cable) result(res)
+         type(json_value), pointer :: cable
+         integer, dimension(:), allocatable :: res
+         res = this%getIntsAt(cable, J_ELEMENTIDS)
+      end function
+
+      function readMTLNCable(j_cable) result(res)
+         type(json_value), pointer :: j_cable
+         type(cable_t) :: res
+         type(json_value_ptr) :: m
+         integer :: nConductors
+
+         res%name = trim(adjustl(this%getStrAt(j_cable,J_NAME)))
+         nConductors = size(getCablesElemIds(j_cable),1)
+         ! m = this%matTable%getId(this%getIntAt(j_cable, J_MATERIAL_ID))
+         ! call this%core%get(m%p, J_MAT_WIRE_RADIUS,     res%rad, default = 0.0)
+         ! call this%core%get(m%p, J_MAT_WIRE_RESISTANCE, res%res, default = 0.0)
+         ! call this%core%get(m%p, J_MAT_WIRE_INDUCTANCE, res%ind, default = 0.0)
+         ! res%dispfile = trim(adjustl(" "))
+
+
+      end function
+
+      
+      logical function isWireOrMultiwire(cable)
+            type(json_value), pointer :: cable
+            type(json_value_ptr) :: mat
+            integer, dimension(:), allocatable :: eIds
+            logical :: found
+            isWireOrMultiwire = .false.
+
+            ! materialId is wire or multiwire
+            mat = this%matTable%getId(this%getIntAt(cable, J_MATERIAL_ID, found=found))
+            if (.not. found) return
+            if (this%getStrAt(mat%p, J_TYPE) /= J_MAT_TYPE_WIRE .and. &
+                this%getStrAt(mat%p, J_TYPE) /= J_MAT_TYPE_MULTIWIRE) return
+   
+            ! has terminal on initial side
+            mat = this%matTable%getId(this%getIntAt(cable, J_MAT_ASS_CAB_INI_TERM_ID, found=found))
+            if (.not. found) return
+            if (this%getStrAt(mat%p, J_TYPE) /= J_MAT_TYPE_TERMINAL) return
+
+            ! has terminal on end side
+            mat = this%matTable%getId(this%getIntAt(cable, J_MAT_ASS_CAB_END_TERM_ID, found=found))
+            if (.not. found) return
+            if (this%getStrAt(mat%p, J_TYPE) /= J_MAT_TYPE_TERMINAL) return
+
+            ! has elementIds
+            eIds = this%getIntsAt(cable, J_ELEMENTIDS, found=found)
+            if (.not. found) return
+
+            isWireOrMultiwire = .true.
+
+         end function
+
+   end function
+
+
+
+
    function getIntAt(this, place, path, found) result(res)
       integer :: res
       class(parser_t) :: this
@@ -1093,6 +1278,27 @@ contains
       logical, intent(out), optional :: found
       call this%core%get(place, path, res, found)
    end function
+
+   function getRealsAt(this, place, path, found) result(res)
+      real, dimension(:), allocatable :: res
+      class(parser_t) :: this
+      type(json_value), pointer :: place
+      character(len=*) :: path
+      logical, intent(out), optional :: found
+      call this%core%get(place, path, res, found)
+   end function
+
+   ! function getMatrixAt(this, place, path, found) result(res)
+   !    real, dimension(:,:), allocatable :: res
+   !    class(parser_t) :: this
+   !    type(json_value), pointer :: place
+   !    character(len=*) :: path
+   !    logical, intent(out), optional :: found
+   !    call this%core%get(place, path, res, found)
+   ! end function
+
+
+
 
    function getStrAt(this, place, path, found) result(res)
       character (len=:), allocatable :: res

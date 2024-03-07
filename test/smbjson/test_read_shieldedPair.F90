@@ -14,7 +14,7 @@ integer function test_read_shieldedPair() bind (C) result(err)
    parser = parser_t(filename)
    problem = parser%readProblemDescription()
    call expect_eq(err, expected, problem)
-
+   call expect_eq_mtln(err, expected, problem)
 contains
    function expectedProblemDescription() result (expected)
       type(Parseador) :: expected
@@ -128,7 +128,39 @@ contains
       expected%tWires%n_tw_max = 1
 
       ! Expected mtln type
-      
+      allocate(expected%cables(2))
+      expected%mtln%cables(1)%name = "line_1"
+      expected%mtln%cables(1)%inductance_per_meter = & 
+         reshape( source = [ 3.13182309e-07, 7.45674981e-08, 7.45674981e-08, 3.13182309e-07 ], shape = [ 2,2 ] )
+      expected%mtln%cables(1)%capacitance_per_meter = &
+         reshape( source = [85.0e-12, -20.5e-12, -20.5e-12, 85.0e-12 ], shape = [ 2,2 ] )
+      expected%mtln%cables(1)%resistance_per_meter = [0.0, 0.0]
+      expected%mtln%cables(1)%conductance_per_meter = [0.0, 0.0]
+      expected%mtln%cables(1)%step_size = [(0.00540, i = 1, 20)]
+
+      expected%mtln%cables(1)%transfer_impedance%direction = "inwards"
+      expected%mtln%cables(1)%transfer_impedance%resistive_term = 0.0
+      expected%mtln%cables(1)%transfer_impedance%inductive_term = 4.0e-9
+      allocate(expected%mtln%cables(1)%transfer_impedance%poles(0))
+      allocate(expected%mtln%cables(1)%transfer_impedance%residues(0))
+
+      expected%mtln%cables(1)%parent_cable => expected%mtln%cables(2)
+      expected%mtln%cables(1)%conductor_in_parent = 1
+      ! expected%mtln%cables(1)%initial_connector = 
+      ! expected%mtln%cables(1)%end_connector = 
+
+      expected%mtln%cables(2)%name = "line_0"
+      expected%mtln%cables(2)%inductance_per_meter = 5.362505362505362e-07
+      expected%mtln%cables(2)%capacitance_per_meter = 20.72e-12
+      expected%mtln%cables(2)%resistance_per_meter = 22.9e-3
+      expected%mtln%cables(2)%conductance_per_meter = 0.0
+      expected%mtln%cables(2)%step_size =  [(0.00540, i = 1, 20)]
+
+      expected%mtln%cables(2)%parent_cable => null()
+      expected%mtln%cables(2)%conductor_in_parent = 0
+      ! expected%mtln%cables(2)%initial_connector = 
+      ! expected%mtln%cables(2)%end_connector = 
+
    end function
 end function
 
