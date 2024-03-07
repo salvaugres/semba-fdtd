@@ -339,7 +339,7 @@ contains
         write(termination_c, *) termination%capacitance
         write(termination_r, *) termination%resistance
         write(termination_l, *) termination%inductance
-        write(line_c, *) node%line_c_per_meter * node%step*2 ! /2?
+        write(line_c, *) node%line_c_per_meter * node%step/2
         
         allocate(res(0))
 
@@ -366,7 +366,7 @@ contains
 
         write(termination_r, *) termination%resistance
         write(termination_l, *) termination%inductance
-        write(line_c, *) node%line_c_per_meter * node%step*2
+        write(line_c, *) node%line_c_per_meter * node%step/2
 
         allocate(res(0))
 
@@ -393,7 +393,7 @@ contains
         write(termination_r, *) termination%resistance
         write(termination_c, *) termination%capacitance
         write(termination_l, *) termination%inductance
-        write(line_c, *) node%line_c_per_meter * node%step*2
+        write(line_c, *) node%line_c_per_meter * node%step/2
 
         allocate(res(0))
 
@@ -435,15 +435,15 @@ contains
         character(20) :: short_R, line_c
 
         write(short_r, *) 1e-10
-        write(line_c, *) node%line_c_per_meter*node%step*2
+        write(line_c, *) node%line_c_per_meter*node%step/2
 
         allocate(res(0))
         select type(termination)
         type is(termination_with_source_t)
-            res = [res, trim("R" // node%name // " " // node%name // " " // node%name //"_R")//" "//trim(short_R)] !check
+            res = [res, trim("R" // node%name // " " // node%name // " " // node%name //"_R")//" "//trim(short_R)]
             res = [res, trim("V" // node%name // " " // node%name // "_R " // end_node//" dc 0")]
         type is(termination_t)
-            res = [res, trim("R" // node%name // " " // node%name // " " // end_node)//" "//trim(short_R)] !check
+            res = [res, trim("R" // node%name // " " // node%name // " " // end_node)//" "//trim(short_R)]
         end select
         res = [res, trim("I" // node%name // " " // node%name// " 0 " // " dc 0")]
         res = [res, trim("CL" // node%name // " " // node%name // " 0 " // line_c)]
@@ -457,7 +457,7 @@ contains
         character(len=256), allocatable :: res(:)
         character(20) :: line_c
 
-        write(line_c, *) node%line_c_per_meter*node%step*2
+        write(line_c, *) node%line_c_per_meter*node%step/2
 
         allocate(res(0))
         res = [res, trim("I" // node%name // " " // node%name// " 0 " // " dc 0")]
@@ -476,7 +476,7 @@ contains
         write(termination_r, *) termination%resistance
         write(termination_l, *) termination%inductance
         write(termination_c, *) termination%capacitance
-        write(line_c, *) node%line_c_per_meter * node%step*2
+        write(line_c, *) node%line_c_per_meter * node%step/2
        
         allocate(res(0))
         res = [res, trim("R" // node%name // " " // node%name // " "   // node%name //"_p " // termination_r)]

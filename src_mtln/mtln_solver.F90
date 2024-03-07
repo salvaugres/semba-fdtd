@@ -79,7 +79,6 @@ contains
         call this%advanceBundlesVoltage()
         call this%advanceNWVoltage()
         call this%advanceBundlesCurrent()
-        ! call this%updateNWCurrent()
 
         call this%advanceTime()
         call this%updateProbes()
@@ -95,7 +94,6 @@ contains
         call this%advanceBundlesVoltage()
         call this%advanceNWVoltage()
         call this%advanceBundlesCurrent()
-        ! call this%updateNWCurrent()
 
         call this%advanceTime()
         call this%updateProbes()
