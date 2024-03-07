@@ -512,7 +512,7 @@ Records a vector field a single position referenced by `elementIds` which must c
 
 #### `wire`
 
-Records a scalar field at a single position referenced by `elementIds`. `elementIds` must contain a single `id` referencing an element of type `node`. Additionally, this `node` must point to a `coordinateId` belonging to a single `polyline`. The `[field]` can be `voltage` or `current`. Defaults to `voltage`. When `current` is selected, the orientation of the `polyline` on which the probe is located indicates the direction of the current.
+Records a scalar field at a single position referenced by `elementIds`. `elementIds` must contain a single `id` referencing an element of type `node`. Additionally, this `node` must point to a `coordinateId` belonging to a single `polyline`. The `[field]` can be `voltage` or `current`. Defaults to `current`. When `current` is selected, the orientation of the `polyline` on which the probe is located indicates the direction of the current. Voltages are well defined at polyline points. However, currents are defined over segments so the solver performs an average of the currents on the segments which are contiguous to the selected point.
 
 ```json
 {
