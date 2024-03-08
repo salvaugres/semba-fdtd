@@ -140,7 +140,7 @@ contains
       res%tSlots = this%readThinSlots()
 
       ! mtln
-      res%mtln = this%readMTLN(res%despl)
+      ! res%mtln = this%readMTLN(res%despl)
 
       ! Cleanup
       call this%core%destroy()
