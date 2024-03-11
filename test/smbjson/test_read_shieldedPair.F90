@@ -1,4 +1,4 @@
-integer function test_read_shieldedPair() bind (C) result(err)
+integer function test_read_shieldedpair() bind (C) result(err)
    use smbjson
    use testingTools
 
@@ -89,7 +89,7 @@ contains
       expected%Sonda%collection(2)%fstart = 0.0
       expected%Sonda%collection(2)%fstop = 0.0
       expected%Sonda%collection(2)%fstep = 0.0
-      allocate(expected%Sonda%collection(1)%cordinates(1))
+      allocate(expected%Sonda%collection(2)%cordinates(1))
       expected%Sonda%collection(2)%len_cor = 1
       expected%Sonda%collection(2)%cordinates(1)%tag = "current_at_wire_end"
       expected%Sonda%collection(2)%cordinates(1)%Xi = 2 ! Coord id as tag.
@@ -130,12 +130,19 @@ contains
       ! Expected mtln type
       allocate(expected%mtln%cables(2))
       expected%mtln%cables(1)%name = "line_1"
+      allocate(expected%mtln%cables(1)%inductance_per_meter(2,2))
+      allocate(expected%mtln%cables(1)%capacitance_per_meter(2,2))
+      allocate(expected%mtln%cables(1)%resistance_per_meter(2,1))
+      allocate(expected%mtln%cables(1)%conductance_per_meter(2,1))
+
       expected%mtln%cables(1)%inductance_per_meter = & 
          reshape( source = [ 3.13182309e-07, 7.45674981e-08, 7.45674981e-08, 3.13182309e-07 ], shape = [ 2,2 ] )
       expected%mtln%cables(1)%capacitance_per_meter = &
          reshape( source = [85.0e-12, -20.5e-12, -20.5e-12, 85.0e-12 ], shape = [ 2,2 ] )
       expected%mtln%cables(1)%resistance_per_meter =  reshape(source=[0.0, 0.0], shape=[2,1])
       expected%mtln%cables(1)%conductance_per_meter = reshape(source=[0.0, 0.0], shape=[2,1])
+      
+      allocate(expected%mtln%cables(1)%step_size(20))
       expected%mtln%cables(1)%step_size = [(0.00540, i = 1, 20)]
 
       expected%mtln%cables(1)%transfer_impedance%direction = TRANSFER_IMPEDANCE_DIRECTION_INWARDS
@@ -150,10 +157,15 @@ contains
       ! expected%mtln%cables(1)%end_connector = 
 
       expected%mtln%cables(2)%name = "line_0"
+      allocate(expected%mtln%cables(2)%inductance_per_meter(1,1))
+      allocate(expected%mtln%cables(2)%capacitance_per_meter(1,1))
+      allocate(expected%mtln%cables(2)%resistance_per_meter(1,1))
+      allocate(expected%mtln%cables(2)%conductance_per_meter(1,1))
       expected%mtln%cables(2)%inductance_per_meter = 5.362505362505362e-07
       expected%mtln%cables(2)%capacitance_per_meter = 20.72e-12
       expected%mtln%cables(2)%resistance_per_meter = 22.9e-3
       expected%mtln%cables(2)%conductance_per_meter = 0.0
+      allocate(expected%mtln%cables(2)%step_size(20))
       expected%mtln%cables(2)%step_size =  [(0.00540, i = 1, 20)]
 
       expected%mtln%cables(2)%parent_cable => null()
