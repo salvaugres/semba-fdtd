@@ -111,7 +111,7 @@ contains
       expected%tWires%tw(1)%twc(1:18)%srctype = 'None'
       expected%tWires%tw(1)%twc(1:18)%i = 11
       expected%tWires%tw(1)%twc(1:18)%j = 11
-      expected%tWires%tw(1)%twc(1:18)%k = [(i, i=7, 16)]
+      expected%tWires%tw(1)%twc(1:18)%k = [(i, i=1, 18)]
       expected%tWires%tw(1)%twc(1:18)%d = DIR_Z
       expected%tWires%tw(1)%twc(1)%nd  = 4
       expected%tWires%tw(1)%twc(2:17)%nd = NO_TAG
@@ -128,17 +128,17 @@ contains
       expected%tWires%n_tw_max = 1
 
       ! Expected mtln type
-      allocate(expected%cables(2))
+      allocate(expected%mtln%cables(2))
       expected%mtln%cables(1)%name = "line_1"
       expected%mtln%cables(1)%inductance_per_meter = & 
          reshape( source = [ 3.13182309e-07, 7.45674981e-08, 7.45674981e-08, 3.13182309e-07 ], shape = [ 2,2 ] )
       expected%mtln%cables(1)%capacitance_per_meter = &
          reshape( source = [85.0e-12, -20.5e-12, -20.5e-12, 85.0e-12 ], shape = [ 2,2 ] )
-      expected%mtln%cables(1)%resistance_per_meter = [0.0, 0.0]
-      expected%mtln%cables(1)%conductance_per_meter = [0.0, 0.0]
+      expected%mtln%cables(1)%resistance_per_meter =  reshape(source=[0.0, 0.0], shape=[2,1])
+      expected%mtln%cables(1)%conductance_per_meter = reshape(source=[0.0, 0.0], shape=[2,1])
       expected%mtln%cables(1)%step_size = [(0.00540, i = 1, 20)]
 
-      expected%mtln%cables(1)%transfer_impedance%direction = "inwards"
+      expected%mtln%cables(1)%transfer_impedance%direction = TRANSFER_IMPEDANCE_DIRECTION_INWARDS
       expected%mtln%cables(1)%transfer_impedance%resistive_term = 0.0
       expected%mtln%cables(1)%transfer_impedance%inductive_term = 4.0e-9
       allocate(expected%mtln%cables(1)%transfer_impedance%poles(0))

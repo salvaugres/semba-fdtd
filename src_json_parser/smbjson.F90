@@ -140,7 +140,7 @@ contains
       res%tSlots = this%readThinSlots()
 
       ! mtln
-      ! res%mtln = this%readMTLN(res%despl)
+      res%mtln = this%readMTLN(res%despl)
 
       ! Cleanup
       call this%core%destroy()
@@ -1093,17 +1093,54 @@ contains
       end block
 
 
+      ! check ifrproblem is mtln.
+      ! if there are no multiwires, return
+      block
+         integer :: nW = 0 , nMW = 0
+         integer :: i = 0
+         if (size(cables) /= 0) then
+            do i = 1, size(cables)
+               if (isWire(cables(i)%p)) then
+                  nW = nW + 1
+               else if (isMultiwire(cables(i)%p)) then
+                  nMW = nMW +1
+               end if
+            end do
+         end if
+         if (nMW == 0 .and. nW /= 0) return
+      end block
+
+
       ! Pre-allocates cables
       allocate (res%cables(0))
       block
+         logical :: is_read
          integer :: i, j,  nC = 0
+         type(cable_t) :: read_cable
          if (size(cables) /= 0) then
             do i = 1, size(cables)
                ! if (isWireOrMultiwire(cables(i)%p)) nC = nC+1
-               if (isWireOrMultiwire(cables(i)%p)) then
-                  res%cables = [res%cables, readMTLNCable(cables(i)%p)]
-                  elemIdToCable = buildElemIdToCableMap(cables(i)%p, res%cables(ubound(res%cables,1)))
-                  elemIdToPosition = buildElemIdToPositionMap(cables(i)%p)
+               if (isWire(cables(i)%p) .or. isMultiwire(cables(i)%p)) then
+               ! if (isWireOrMultiwire(cables(i)%p)) then
+                  ! block
+                  !    character(:), allocatable  :: type 
+                  !    integer, dimension(:), allocatable :: elemIds
+                  !    integer :: initTermId, endTermId, matId
+                  !    logical :: found_h = .false.
+                  !    type = this%getStrAt(cables(1)%p, J_TYPE, found_h)
+                  !    elemIds = this%getIntsAt(cables(1)%p, J_ELEMENTIDS, found_h)
+                  !    matId = this%getIntAt(cables(1)%p, J_MATERIAL_ID, found_h)
+                  !    initTermId = this%getIntAt(cables(1)%p, J_MAT_ASS_CAB_INI_TERM_ID, found_h)
+                  !    endTermId = this%getIntAt(cables(1)%p, J_MAT_ASS_CAB_END_TERM_ID, found_h)
+                  !    write(*,*) elemIds
+                  ! end block
+                  is_read = .true.
+                  read_cable = readMTLNCable(cables(i)%p, is_read)
+                  if (is_read) then
+                     res%cables = [res%cables, read_cable]
+                     elemIdToCable = buildElemIdToCableMap(cables(i)%p, res%cables(ubound(res%cables,1)))
+                     elemIdToPosition = buildElemIdToPositionMap(cables(i)%p)
+                  end if
                end if
             end do
          end if
@@ -1115,7 +1152,8 @@ contains
          j = 1
          if (size(cables) /= 0) then
             do i = 1, size(cables)
-               if (isWireOrMultiwire(cables(i)%p)) then 
+               if (isWire(cables(i)%p) .or. isMultiwire(cables(i)%p)) then
+               ! if (isWireOrMultiwire(cables(i)%p)) then 
                   parentId = this%getIntAt(cables(i)%p, J_MAT_ASS_CAB_CONTAINED_WITHIN_ID)
                   res%cables(j)%parent_cable => getCableContainingElemId(parentId)
                   res%cables(j)%conductor_in_parent = getParentPositionInMultiwire(parentId)
@@ -1193,30 +1231,40 @@ contains
       function getCableElemIds(cable) result(res)
          type(json_value), pointer :: cable
          integer, dimension(:), allocatable :: res
+
          res = this%getIntsAt(cable, J_ELEMENTIDS)
       end function
 
-      function readMTLNCable(j_cable) result(res)
+      function readMTLNCable(j_cable, is_read) result(res)
          type(json_value), pointer :: j_cable
          type(cable_t) :: res
-         type(json_value_ptr) :: m
+         type(json_value_ptr) :: material
+         logical, intent(inout) :: is_read
          integer :: nConductors
-         
-         res%name = trim(adjustl(this%getStrAt(j_cable,J_NAME)))
+         logical :: found
+
+         if (this%existsAt(j_cable,J_NAME)) then
+            res%name = trim(adjustl(this%getStrAt(j_cable,J_NAME)))
+         end if
+
          res%step_size = buildStepSize(j_cable)
-         
+         material = this%matTable%getId(this%getIntAt(j_cable, J_MATERIAL_ID, found))
+         if (.not. found) &
+            write(error_unit, *) "Error reading material region: materialId label not found."
+         if (.not. this%existsAt(j_cable, J_MAT_WIRE_REF_CAPACITANCE)) then
+            is_read = .false.
+            return
+         end if
+
          block 
             type(json_value), pointer :: z
-            logical:: found
-            call this%core%get(m%p, J_MAT_MULTIWIRE_TRANSFER_IMPEDANCE,   z, found)
+            call this%core%get(material%p, J_MAT_MULTIWIRE_TRANSFER_IMPEDANCE,  z, found)
             if (found) then 
                res%transfer_impedance = readTransferImpedance(z)
             end if
          end block
 
          block
-            type(json_value_ptr) :: mat
-            logical :: found
             integer :: n_conductors
             real, dimension(:,:), allocatable :: material_matrix
             real, dimension(:), allocatable :: material_vector
@@ -1224,11 +1272,7 @@ contains
             real, dimension(0) :: null_vector
             n_conductors = size(getCableElemIds(j_cable),1)
 
-            mat = this%matTable%getId(this%getIntAt(j_cable, J_MATERIAL_ID, found=found))
-            if (.not. found) &
-               write(error_unit, *) "Error reading material region: materialId label not found."
-            
-            material_matrix = this%getMatrixAt(mat%p, J_MAT_MULTIWIRE_INDUCTANCE,found, n_conductors)
+            material_matrix = this%getMatrixAt(material%p, J_MAT_MULTIWIRE_INDUCTANCE,found, n_conductors)
             if (.not. found) then
                write(error_unit, *) "Error reading material region: capacitancePerMeter label not found."
                res%inductance_per_meter = null_matrix
@@ -1236,7 +1280,7 @@ contains
                res%inductance_per_meter = material_matrix
             end if
       
-            material_matrix = this%getMatrixAt(mat%p, J_MAT_MULTIWIRE_CAPACITANCE,found, n_conductors)
+            material_matrix = this%getMatrixAt(material%p, J_MAT_MULTIWIRE_CAPACITANCE,found, n_conductors)
             if (.not. found) then
                write(error_unit, *) "Error reading material region: inductancePerMeter label not found."
                res%capacitance_per_meter = null_matrix
@@ -1244,7 +1288,7 @@ contains
                res%capacitance_per_meter = material_matrix
             end if
            
-            material_vector = this%getRealsAt(mat%p, J_MAT_MULTIWIRE_RESISTANCE,found)
+            material_vector = this%getRealsAt(material%p, J_MAT_MULTIWIRE_RESISTANCE,found)
             if (.not. found) then
                write(error_unit, *) "Error reading material region: resistancePerMeter label not found."
                res%resistance_per_meter = null_matrix
@@ -1267,9 +1311,13 @@ contains
          integer :: i, j
          integer :: axis
          real :: f1, f2
-         real, pointer, dimension(:) :: displacement
-   
+         real, dimension(:), allocatable :: displacement
+
+         type(Desplazamiento) :: desp
+         desp = this%readGrid()
+
          elemIds = getCableElemIds(j_cable)
+
          p_line = this%mesh%getPolyline(elemIds(1))
          allocate(res(0))
          do j = 2, size(p_line%coordIds)
@@ -1278,7 +1326,7 @@ contains
                axis = findDirection(c2-c1)
                f1 = abs(ceiling(c1%position(axis))-c1%position(axis))
                f2 = abs(c2%position(axis)-floor(c2%position(axis)))
-               displacement = assignDisplacement(axis)
+               displacement = assignDisplacement(desp, axis)
                if (f1 /= 0) then 
                   res = [res, f1*displacement(floor(c1%position(axis)))]
                end if
@@ -1311,15 +1359,17 @@ contains
       end function
 
 
-      function assignDisplacement(axis) result (res)
-         integer :: axis
-         real, pointer, dimension(:) :: res
+      function assignDisplacement(desp, axis) result (res)
+         type(Desplazamiento), intent(in) :: desp
+         integer, intent(in) :: axis
+         real, dimension(:), allocatable :: res
+         
          if (axis == 1) then 
-            res = grid%desX
+            res = desp%desX
          else if (axis == 2) then
-            res = grid%desY
+            res = desp%desY
          else if (axis == 3) then
-            res = grid%desZ
+            res = desp%desZ
          end if
       end function   
 
@@ -1332,18 +1382,17 @@ contains
          end do
       end function  
       
-      logical function isWireOrMultiwire(cable)
+      logical function isMultiwire(cable)
             type(json_value), pointer :: cable
             type(json_value_ptr) :: mat
             integer, dimension(:), allocatable :: eIds
             logical :: found
-            isWireOrMultiwire = .false.
+            isMultiwire = .false.
 
-            ! materialId is wire or multiwire
+            ! materialId is multiwire
             mat = this%matTable%getId(this%getIntAt(cable, J_MATERIAL_ID, found=found))
             if (.not. found) return
-            if (this%getStrAt(mat%p, J_TYPE) /= J_MAT_TYPE_WIRE .and. &
-                this%getStrAt(mat%p, J_TYPE) /= J_MAT_TYPE_MULTIWIRE) return
+            if (this%getStrAt(mat%p, J_TYPE) /= J_MAT_TYPE_MULTIWIRE) return
    
             ! has terminal on initial side
             mat = this%matTable%getId(this%getIntAt(cable, J_MAT_ASS_CAB_INI_TERM_ID, found=found))
@@ -1359,9 +1408,39 @@ contains
             eIds = this%getIntsAt(cable, J_ELEMENTIDS, found=found)
             if (.not. found) return
 
-            isWireOrMultiwire = .true.
+            isMultiwire = .true.
 
-         end function
+      end function
+
+      logical function isWire(cable)
+         type(json_value), pointer :: cable
+         type(json_value_ptr) :: mat
+         integer, dimension(:), allocatable :: eIds
+         logical :: found
+         isWire = .false.
+
+         ! materialId is wire
+         mat = this%matTable%getId(this%getIntAt(cable, J_MATERIAL_ID, found=found))
+         if (.not. found) return
+         if (this%getStrAt(mat%p, J_TYPE) /= J_MAT_TYPE_WIRE) return
+
+         ! has terminal on initial side
+         mat = this%matTable%getId(this%getIntAt(cable, J_MAT_ASS_CAB_INI_TERM_ID, found=found))
+         if (.not. found) return
+         if (this%getStrAt(mat%p, J_TYPE) /= J_MAT_TYPE_TERMINAL) return
+
+         ! has terminal on end side
+         mat = this%matTable%getId(this%getIntAt(cable, J_MAT_ASS_CAB_END_TERM_ID, found=found))
+         if (.not. found) return
+         if (this%getStrAt(mat%p, J_TYPE) /= J_MAT_TYPE_TERMINAL) return
+
+         ! has elementIds
+         eIds = this%getIntsAt(cable, J_ELEMENTIDS, found=found)
+         if (.not. found) return
+
+         isWire = .true.
+
+   end function
 
    end function
 
@@ -1424,13 +1503,15 @@ contains
 
 
 
-   function getStrAt(this, place, path, found) result(res)
+   function getStrAt(this, place, path, found, default) result(res)
       character (len=:), allocatable :: res
       class(parser_t) :: this
       type(json_value), pointer :: place
       character(len=*) :: path
       logical, intent(out), optional :: found
-      call this%core%get(place, path, res, found)
+      character (len=*), optional :: default
+      call this%core%get(place, path, res, found, default)
+      ! if (.not. found) write(*,*) 'not found'
    end function
 
    function existsAt(this, place, path) result(res)

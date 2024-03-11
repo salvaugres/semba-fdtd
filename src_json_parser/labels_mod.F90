@@ -31,6 +31,8 @@ module labels_mod
    character (len=*), parameter :: J_MAT_WIRE_RADIUS = "radius"
    character (len=*), parameter :: J_MAT_WIRE_RESISTANCE = "resistancePerMeter"
    character (len=*), parameter :: J_MAT_WIRE_INDUCTANCE = "inductancePermeter"
+   character (len=*), parameter :: J_MAT_WIRE_REF_CAPACITANCE = "__referenceCapacitancePerMeter"
+   character (len=*), parameter :: J_MAT_WIRE_REF_INDUCTANCE = "__referenceInductancePermeter"
    
    character (len=*), parameter :: J_MAT_TERM_TERMINATIONS = "terminations"
    character (len=*), parameter :: J_MAT_TERM_TYPE_OPEN = "open"
