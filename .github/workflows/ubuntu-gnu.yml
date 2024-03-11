@@ -1,0 +1,40 @@
+name: ubuntu-gnu
+
+permissions:
+  actions: write
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  builds-and-test:
+    runs-on: ubuntu-latest
+    steps:       
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        submodules: 'recursive'
+
+    - name: Setup ninja
+      uses: seanmiddleditch/gha-setup-ninja@master
+      
+    - name: Build application
+      run: |       
+        cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCompileExecutable=YES -DCompileWithMTLN=YES
+        cmake --build build -j
+      
+    - name: Run json-parser tests 
+      run: |
+        build/bin/smbjson_tests
+
+    - name: Run mtln tests 
+      run: |
+        build/bin/mtlnsolver_tests
+        
+      
