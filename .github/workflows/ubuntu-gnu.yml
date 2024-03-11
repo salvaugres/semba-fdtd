@@ -7,19 +7,15 @@ on:
   push:
     branches:
       - main
+      - dev
   pull_request:
     branches:
       - main
-      
-env:
-  FDTDTESTS_TOP_DIR: fdtd-tests
 
 jobs:
-  builds-and-tests:
+  builds-and-test:
     runs-on: ubuntu-latest
-
-    steps:
-        
+    steps:       
     - name: Checkout
       uses: actions/checkout@v4
       with:
@@ -30,11 +26,15 @@ jobs:
       
     - name: Build application
       run: |       
-        cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+        cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCompileExecutable=YES -DCompileWithMTLN=YES
         cmake --build build -j
-          
+      
     - name: Run json-parser tests 
       run: |
-        ctest --test-dir build/src_json_parser/test/ --output-on-failure
+        build/bin/smbjson_tests
+
+    - name: Run mtln tests 
+      run: |
+        build/bin/mtlnsolver_tests
         
       

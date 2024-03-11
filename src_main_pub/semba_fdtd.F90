@@ -45,9 +45,7 @@ PROGRAM SEMBA_FDTD_launcher
 #ifdef CompilePrivateVersion      
    USE ParseadorClass
 #endif
-#ifdef CompileWithJSON
-   USE smbjson, only: fdtdjson_parser_t => parser_t
-#endif 
+   USE smbjson, only: fdtdjson_parser_t => parser_t 
    USE Preprocess
    USE storeData
    
@@ -1136,7 +1134,6 @@ subroutine cargaNFDE
 end subroutine cargaNFDE
 #endif
 
-#ifdef CompileWithJSON
    subroutine cargaFDTDJSON(filename, parsed)
       character(len=1024), intent(in) :: filename
       type(Parseador), pointer :: parsed
@@ -1150,7 +1147,6 @@ end subroutine cargaNFDE
       allocate(parsed)
       parsed = parser%readProblemDescription()
    end subroutine cargaFDTDJSON
-#endif
 
 !!!!!!!!!!!!!!!!!
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

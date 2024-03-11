@@ -1,0 +1,9 @@
+* shorted current sources
+I1 0 1 dc 1e-6
+* C1 1 0 2e-10
+R1 1 2 0
+* C2 2 0 2e-10
+I2 2 0 dc 0
+.tran 50u 200u
+.save v(2) v(1)
+.end 
