@@ -43,13 +43,13 @@ PROGRAM SEMBA_FDTD_launcher
    !nfde parser stuff
    USE NFDETypes                
    use nfde_rotate_m           
-#ifdef CompileWithJSON
-#undef CompilePrivateVersion
-   USE smbjson, only: fdtdjson_parser_t => parser_t
-#endif 
+
+
 #ifdef CompilePrivateVersion  
    USE ParseadorClass
 #endif
+
+   USE smbjson, only: fdtdjson_parser_t => parser_t
    USE Preprocess_m
    USE storeData
 

@@ -13,7 +13,6 @@ extern "C" int test_parser_ctor();
 extern "C" int test_read_planewave();
 extern "C" int test_read_holland1981();
 extern "C" int test_read_currentinjection();
-extern "C" int test_read_shieldedPair();
 
 int main(int argc, char **argv) {
     ::testing::InitGoogleTest(&argc, argv);
@@ -31,6 +30,5 @@ TEST(mesh, polyline_to_linel) { EXPECT_EQ(0, test_mesh_polyline_to_linel()); }
 TEST(parser, ctor)            { EXPECT_EQ(0, test_parser_ctor()); }
 
 TEST(read, planewave)         { EXPECT_EQ(0, test_read_planewave()); }
-TEST(read, holland1981)       { EXPECT_EQ(0, test_read_holland1981()); }
+TEST(read, holland1981)           { EXPECT_EQ(0, test_read_holland1981()); }
 TEST(read, currentinjection)  { EXPECT_EQ(0, test_read_currentinjection()); }
-TEST(read, shieldedpair)      { EXPECT_EQ(0, test_read_shieldedPair()); }
