@@ -1251,7 +1251,7 @@ contains
          material = this%matTable%getId(this%getIntAt(j_cable, J_MATERIAL_ID, found))
          if (.not. found) &
             write(error_unit, *) "Error reading material region: materialId label not found."
-         if (.not. this%existsAt(j_cable, J_MAT_WIRE_REF_CAPACITANCE)) then
+         if (isWire(j_cable) .and. .not. this%existsAt(j_cable, J_MAT_WIRE_REF_CAPACITANCE)) then
             is_read = .false.
             return
          end if
@@ -1288,12 +1288,17 @@ contains
                res%capacitance_per_meter = material_matrix
             end if
            
-            material_vector = this%getRealsAt(material%p, J_MAT_MULTIWIRE_RESISTANCE,found)
-            if (.not. found) then
-               write(error_unit, *) "Error reading material region: resistancePerMeter label not found."
-               res%resistance_per_meter = null_matrix
+            if (this%existsAt(material%p, J_MAT_MULTIWIRE_RESISTANCE)) then
+               material_vector = this%getRealsAt(material%p, J_MAT_MULTIWIRE_RESISTANCE,found)
+               if (.not. found) then
+                  write(error_unit, *) "Error reading material region: resistancePerMeter label not found."
+                  res%resistance_per_meter = null_matrix
+               else
+                  ! res%resistance_per_meter = matmul(eye(n_conductors), material_vector)
+               end if
+
             else
-               ! res%resistance_per_meter = matmul(eye(n_conductors), material_vector)
+               allocate(material_vector(n_conductors), source = 0.0)
             end if
             ! ToDo - conductance
          end block
@@ -1486,16 +1491,23 @@ contains
    function getMatrixAt(this, place, path, found, n) result(res)
       real, dimension(:,:), allocatable :: res
       class(parser_t) :: this
-      type(json_value), pointer :: place, row
+      type(json_value), pointer :: place, matrix, row
       character(len=*) :: path
       logical, intent(out), optional :: found
       integer, intent(in) :: n
       integer :: i
       real, dimension(:), allocatable :: res_row
+      logical :: found_here
+
+      allocate(res(n,n))
+      call this%core%get(place, path,  matrix, found)
+
       do i = 1, n
-         call this%core%get_child(place, i, row)
+
+         call this%core%get_child(matrix, i, row)
          call this%core%get(row, res_row)
-         res(1,:) = res_row
+         ! call this%core%get(row, res_row)
+         res(i,:) = res_row
       end do
       ! need to check if not found
    end function

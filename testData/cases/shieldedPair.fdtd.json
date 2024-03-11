@@ -61,7 +61,7 @@
 			"numberOfCells": [2, 2, 20],
 			"steps": {"x": [1.0], "y": [1.0], "z": [0.00540]}
 		},
-		"relativeCoordinates": [
+		"coordinates": [
 			{"id": 1, "relativePosition": [1, 1,  1] },
 			{"id": 2, "relativePosition": [1, 1, 19] },
 			{"id": 3, "relativePosition": [1, 1,  1] },
@@ -73,8 +73,7 @@
 			{ "id": 1, "type": "polyline", "coordinateIds": [1, 2]},
 			{ "id": 2, "type": "polyline", "coordinateIds": [3, 5]},
 			{ "id": 3, "type": "polyline", "coordinateIds": [4, 6]},
-			{ "id": 4, "type": "node",     "coordinateIds": [2] },
-			{ "id": 5, "type": "node",     "coordinateIds": [5] }
+			{ "id": 4, "type": "node",     "coordinateIds": [2] }
 		]
 	},
 	
@@ -90,7 +89,7 @@
 			"name": "current_at_wire_end",
 			"type": "wire",
 			"field": "current",
-			"elementIds": [5],
+			"elementIds": [4],
             "domain": { "type": "time" }
 		}
 	],
