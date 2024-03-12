@@ -1094,7 +1094,7 @@ contains
       end block
 
 
-      ! check ifrproblem is mtln.
+      ! check if problem type is mtln.
       ! if there are no multiwires, return
       block
          integer :: nW = 0 , nMW = 0
@@ -1120,21 +1120,7 @@ contains
          type(cable_t) :: read_cable
          if (size(cables) /= 0) then
             do i = 1, size(cables)
-               ! if (isWireOrMultiwire(cables(i)%p)) nC = nC+1
                if (isWire(cables(i)%p) .or. isMultiwire(cables(i)%p)) then
-               ! if (isWireOrMultiwire(cables(i)%p)) then
-                  ! block
-                  !    character(:), allocatable  :: type 
-                  !    integer, dimension(:), allocatable :: elemIds
-                  !    integer :: initTermId, endTermId, matId
-                  !    logical :: found_h = .false.
-                  !    type = this%getStrAt(cables(1)%p, J_TYPE, found_h)
-                  !    elemIds = this%getIntsAt(cables(1)%p, J_ELEMENTIDS, found_h)
-                  !    matId = this%getIntAt(cables(1)%p, J_MATERIAL_ID, found_h)
-                  !    initTermId = this%getIntAt(cables(1)%p, J_MAT_ASS_CAB_INI_TERM_ID, found_h)
-                  !    endTermId = this%getIntAt(cables(1)%p, J_MAT_ASS_CAB_END_TERM_ID, found_h)
-                  !    write(*,*) elemIds
-                  ! end block
                   is_read = .true.
                   read_cable = readMTLNCable(cables(i)%p, is_read)
                   if (is_read) then
@@ -1145,7 +1131,6 @@ contains
                end if
             end do
          end if
-         ! allocate (res%cables(nC))
       end block
 
       block
@@ -1168,14 +1153,6 @@ contains
 
    contains
       
-      function findConductorInParent(id, parent) result(res)
-         integer, intent(in) :: id 
-         type(cable_t), pointer :: parent
-         integer :: res
-
-
-      end function
-
       function getCableContainingElemId(id) result(res)
          integer, intent(in) :: id
          integer :: mStat
@@ -1200,7 +1177,6 @@ contains
       end function
 
       function getParentPositionInMultiwire(id) result(res)
-         ! type(fhash_tbl_t), intent(in) :: map
          integer, intent(in) :: id
          integer :: mStat
          integer :: res
@@ -1265,52 +1241,9 @@ contains
             end if
          end if
 
-
          res%initial_connector => buildConnector(j_cable, J_MAT_ASS_CAB_INI_CONN_ID)
          res%end_connector => buildConnector(j_cable, J_MAT_ASS_CAB_END_CONN_ID)
-         ! connectors: initial
-         ! block
-         !    type(json_value_ptr) :: conn
-         !    type(connector_t), pointer :: conn_ptr
-         !    type(json_value), pointer :: z
-         !    if (this%existsAt(j_cable, J_MAT_ASS_CAB_INI_CONN_ID)) then 
-         !       conn = this%matTable%getId(this%getIntAt(j_cable, J_MAT_ASS_CAB_INI_CONN_ID, found))
-         !       conn_ptr%resistances = this%getRealsAt(conn%p, J_MAT_CONN_RESISTANCES)
-         !       call this%core%get(conn%p, J_MAT_MULTIWIRE_TRANSFER_IMPEDANCE,  z, found)
-         !       conn_ptr%transfer_impedance_per_meter = readTransferImpedance(z)
-         !       res%initial_connector => conn_ptr
-         !    else
-         !       res%initial_connector => null()
-         !    end if
-         ! end block
-
-         ! connectors: end
-         ! block
-         !    type(json_value_ptr) :: conn
-         !    type(connector_t), pointer :: conn_ptr
-         !    type(json_value), pointer :: z
-         !    if (this%existsAt(j_cable, J_MAT_ASS_CAB_END_CONN_ID)) then 
-         !       conn = this%matTable%getId(this%getIntAt(j_cable, J_MAT_ASS_CAB_END_CONN_ID, found))
-         !       conn_ptr%resistances = this%getRealsAt(conn%p, J_MAT_CONN_RESISTANCES)
-         !       call this%core%get(conn%p, J_MAT_MULTIWIRE_TRANSFER_IMPEDANCE,  z, found)
-         !       conn_ptr%transfer_impedance_per_meter = readTransferImpedance(z)
-         !       res%end_connector => conn_ptr
-         !    else
-         !       res%end_connector => null()
-         !    end if
-         ! end block
-
-         ! transfer impedance
-         block 
-            type(json_value), pointer :: z
-            call this%core%get(material%p, J_MAT_MULTIWIRE_TRANSFER_IMPEDANCE,  z, found)
-            if (found) then 
-               res%transfer_impedance = readTransferImpedance(z)
-            else 
-               res%transfer_impedance = noTransferImpedance()
-            end if
-         end block
-
+         res%transfer_impedance = buildTransferImpedance(material)
          
          if (isWire(j_cable)) then
             call assignReferenceProperties(res, material)
@@ -1320,6 +1253,18 @@ contains
             write(error_unit, *) "Error reading cable: is neither wire nor multiwire"
          end if
 
+      end function
+
+      function buildTransferImpedance(mat) result(res)
+         type(json_value_ptr):: mat
+         type(transfer_impedance_per_meter_t) :: res
+         type(json_value), pointer :: z
+         if (this%existsAt(mat%p, J_MAT_MULTIWIRE_TRANSFER_IMPEDANCE)) then
+            call this%core%get(mat%p, J_MAT_MULTIWIRE_TRANSFER_IMPEDANCE,  z)
+            res = readTransferImpedance(z)
+         else 
+            res = noTransferImpedance()
+         end if
       end function
 
       function buildConnector(j_cable, side) result(res)
@@ -1372,8 +1317,9 @@ contains
 
          if (this%existsAt(mat%p, J_MAT_WIRE_RESISTANCE)) then 
             res%resistance_per_meter(1,1) = this%getRealAt(mat%p, J_MAT_WIRE_RESISTANCE)
-         ! else  
-         !    write(error_unit, *) "Error reading material region: resistancePerMeter label not found."
+         else  
+            res%resistance_per_meter(1,1) = 0.0
+            ! write(error_unit, *) "Error reading material region: resistancePerMeter label not found."
          end if
 
       end subroutine
@@ -1623,18 +1569,14 @@ contains
       call this%core%get(place, path,  matrix, found)
       call this%core%info(matrix, vartype, nr)
       allocate(res(nr,nr))
-      
+     
       do i = 1, nr
-
          call this%core%get_child(matrix, i, row)
          call this%core%get(row, res_row)
-         ! call this%core%get(row, res_row)
          res(i,:) = res_row
       end do
       ! need to check if not found
    end function
-
-
 
 
    function getStrAt(this, place, path, found, default) result(res)
@@ -1645,7 +1587,6 @@ contains
       logical, intent(out), optional :: found
       character (len=*), optional :: default
       call this%core%get(place, path, res, found, default)
-      ! if (.not. found) write(*,*) 'not found'
    end function
 
    function existsAt(this, place, path) result(res)
