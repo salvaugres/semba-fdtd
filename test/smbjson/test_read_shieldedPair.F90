@@ -185,6 +185,70 @@ contains
       expected%mtln%cables(2)%initial_connector => null()
       expected%mtln%cables(2)%end_connector => null()
 
+      ! probes
+      allocate(expected%mtln%probes(2))
+      expected%mtln%probes(1)%attached_to_cable => expected%mtln%cables(2) ! to which cable is the probe attached in mtln?
+      expected%mtln%probes(1)%index = 18 !19?
+      expected%mtln%probes(1)%probe_type = PROBE_TYPE_VOLTAGE
+
+      expected%mtln%probes(2)%attached_to_cable => expected%mtln%cables(2)
+      expected%mtln%probes(2)%index = 18 !19?
+      expected%mtln%probes(2)%probe_type = PROBE_TYPE_VOLTAGE
+
+      ! networks
+      allocate(expected%mtln%networks(2))
+      allocate(expected%mtln%networks(1)%connections(3))
+      allocate(expected%mtln%networks(1)%connections(1)%nodes(1))
+      expected%mtln%networks(1)%connections(1)%nodes(1)%conductor_in_cable = 1
+      expected%mtln%networks(1)%connections(1)%nodes(1)%side = TERMINAL_NODE_SIDE_INI
+      expected%mtln%networks(1)%connections(1)%nodes(1)%belongs_to_cable =>  expected%mtln%cables(2)
+      allocate(termination_t :: expected%mtln%networks(1)%connections(1)%nodes(1)%termination)
+      expected%mtln%networks(1)%connections(1)%nodes(1)%termination%termination_type = 3
+      expected%mtln%networks(1)%connections(1)%nodes(1)%termination%resistance = 50.0
+
+      allocate(expected%mtln%networks(1)%connections(2)%nodes(1))
+      expected%mtln%networks(1)%connections(2)%nodes(1)%conductor_in_cable = 1
+      expected%mtln%networks(1)%connections(2)%nodes(1)%side = TERMINAL_NODE_SIDE_INI
+      expected%mtln%networks(1)%connections(2)%nodes(1)%belongs_to_cable => expected%mtln%cables(1)
+      allocate(termination_t :: expected%mtln%networks(1)%connections(2)%nodes(1)%termination)
+      expected%mtln%networks(1)%connections(2)%nodes(1)%termination%termination_type = TERMINATION_SERIES
+      expected%mtln%networks(1)%connections(2)%nodes(1)%termination%resistance = 50.0
+
+      allocate(expected%mtln%networks(1)%connections(3)%nodes(1))
+      expected%mtln%networks(1)%connections(3)%nodes(1)%conductor_in_cable = 2
+      expected%mtln%networks(1)%connections(3)%nodes(1)%side = TERMINAL_NODE_SIDE_INI
+      expected%mtln%networks(1)%connections(3)%nodes(1)%belongs_to_cable => expected%mtln%cables(1)
+      allocate(termination_t :: expected%mtln%networks(1)%connections(3)%nodes(1)%termination)
+      expected%mtln%networks(1)%connections(3)%nodes(1)%termination%termination_type = TERMINATION_SERIES
+      expected%mtln%networks(1)%connections(3)%nodes(1)%termination%resistance = 50.0
+
+      allocate(expected%mtln%networks(2)%connections(3))
+      allocate(expected%mtln%networks(2)%connections(1)%nodes(1))
+      expected%mtln%networks(2)%connections(1)%nodes(1)%conductor_in_cable = 1
+      expected%mtln%networks(2)%connections(1)%nodes(1)%side = TERMINAL_NODE_SIDE_END
+      expected%mtln%networks(2)%connections(1)%nodes(1)%belongs_to_cable => expected%mtln%cables(2)
+      allocate(termination_t :: expected%mtln%networks(2)%connections(1)%nodes(1)%termination)
+      expected%mtln%networks(2)%connections(1)%nodes(1)%termination%termination_type = TERMINATION_SERIES
+      expected%mtln%networks(2)%connections(1)%nodes(1)%termination%resistance = 50.0
+
+      allocate(expected%mtln%networks(2)%connections(2)%nodes(1))
+      expected%mtln%networks(2)%connections(2)%nodes(1)%conductor_in_cable = 1
+      expected%mtln%networks(2)%connections(2)%nodes(1)%side = TERMINAL_NODE_SIDE_END
+      expected%mtln%networks(2)%connections(2)%nodes(1)%belongs_to_cable => expected%mtln%cables(1)
+      allocate(termination_t :: expected%mtln%networks(2)%connections(2)%nodes(1)%termination)
+      expected%mtln%networks(2)%connections(2)%nodes(1)%termination%termination_type = TERMINATION_SERIES
+      expected%mtln%networks(2)%connections(2)%nodes(1)%termination%resistance = 50.0
+
+      allocate(expected%mtln%networks(2)%connections(3)%nodes(1))
+      expected%mtln%networks(2)%connections(3)%nodes(1)%conductor_in_cable = 2
+      expected%mtln%networks(2)%connections(3)%nodes(1)%side = TERMINAL_NODE_SIDE_END
+      expected%mtln%networks(2)%connections(3)%nodes(1)%belongs_to_cable => expected%mtln%cables(1)
+      allocate(termination_t :: expected%mtln%networks(2)%connections(3)%nodes(1)%termination)
+      expected%mtln%networks(2)%connections(3)%nodes(1)%termination%termination_type = TERMINATION_SERIES
+      expected%mtln%networks(2)%connections(3)%nodes(1)%termination%resistance = 50.0
+
+      
+
    end function
 end function
 
