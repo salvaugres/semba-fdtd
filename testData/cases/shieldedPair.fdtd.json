@@ -59,7 +59,7 @@
 	"mesh": {
 		"grid": {
 			"numberOfCells": [2, 2, 20],
-			"steps": {"x": [1.0], "y": [1.0], "z": [0.00540]}
+			"steps": {"x": [1.0], "y": [1.0], "z": [0.03]}
 		},
 		"coordinates": [
 			{"id": 1, "relativePosition": [1, 1,  1] },

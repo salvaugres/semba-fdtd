@@ -86,7 +86,7 @@ module mtln_types_mod
        private
        procedure :: connector_eq
        generic, public :: operator(==) => connector_eq
-    end type
+       end type
  
     type, public :: cable_t
        character (len=:), allocatable :: name
@@ -142,37 +142,63 @@ module mtln_types_mod
 
     elemental logical function transfer_impedance_per_meter_eq(a,b)
        class(transfer_impedance_per_meter_t), intent(in) :: a, b
+      !  logical :: l
+      !  l = (a%inductive_term == b%inductive_term)
+      !  l = (a%resistive_term == b%resistive_term)
+      !  l = (a%direction == b%direction)
+      !  l = all(a%poles == b%poles)
+      !  l = all(a%residues == b%residues)
+      !  transfer_impedance_per_meter_eq = l
        transfer_impedance_per_meter_eq = &
           (a%inductive_term == b%inductive_term) .and. &
           (a%resistive_term == b%resistive_term) .and. &
-          (all(a%poles == b%poles)) .and. &
-          (all(a%residues == b%residues)) .and. &
+          (size(a%poles) == 0 .and. size(b%poles) == 0) .and. & ! .or. all(a%poles == b%poles)) .and. &
+          (size(a%residues) == 0 .and. size(b%residues) == 0) .and. &! .or. all(a%residues == b%residues)) .and. &
           (a%direction == b%direction)
     end function
 
-    elemental logical function cable_eq(a,b)    
+    recursive elemental logical function cable_eq(a,b)    
        class(cable_t), intent(in) :: a, b
        cable_eq = &
           (a%name == b%name) .and. &
           all(a%inductance_per_meter == b%inductance_per_meter) .and. &
           all(a%capacitance_per_meter == b%capacitance_per_meter) .and. &
           all(a%resistance_per_meter == b%resistance_per_meter) .and. &
-          all(a%conductance_per_meter == b%conductance_per_meter)  .and. &
+          all(a%conductance_per_meter == b%conductance_per_meter) .and. &
           all(a%step_size == b%step_size) .and. &
-          (a%transfer_impedance == b%transfer_impedance) .and. &
-          (associated(a%parent_cable, b%parent_cable)) .and. &
-          (a%conductor_in_parent == b%conductor_in_parent) .and. &
-          (a%initial_connector == b%initial_connector) .and. &
-          (a%end_connector == b%end_connector)
+         !  (a%transfer_impedance == b%transfer_impedance) .and. &
+          (a%conductor_in_parent == b%conductor_in_parent)! .and. &
+          !  (associated(a%initial_connector, b%initial_connector)) .and. &
+          !  (associated(a%end_connector, b%end_connector))
+          
+          !  (a%parent_cable == b%parent_cable) .and. &
+          if (.not. associated(a%parent_cable) .and. .not. associated(b%parent_cable)) then 
+            cable_eq = cable_eq .and. .true.
+          else 
+            cable_eq = cable_eq .and. (a%conductor_in_parent == b%conductor_in_parent)
+          end if
+
+          if (.not. associated(a%initial_connector) .and. .not. associated(b%initial_connector)) then 
+            cable_eq = cable_eq .and. .true.
+          else 
+            cable_eq = cable_eq .and. (a%initial_connector == b%initial_connector)
+          end if
+
     end function
 
-    elemental logical function connector_eq(a,b)
+   elemental logical function connector_eq(a,b)
       class(connector_t), intent(in) :: a, b
+      logical :: l 
+      ! if (size(a%resistances) == 0 .and. size(b%resistances) == 0) then 
+      !    l = .true.
+      ! else
+      !    l= all(a%resistances == b%resistances)
+      ! end if
+      ! l = a%transfer_impedance_per_meter == b%transfer_impedance_per_meter
       connector_eq = &
-          (all(a%resistances == b%resistances)) .and. &
-          (a%transfer_impedance_per_meter == b%transfer_impedance_per_meter)
+         (all(a%resistances == b%resistances)) .and. &
+         (a%transfer_impedance_per_meter == b%transfer_impedance_per_meter)
     end function
-
 
     elemental logical function termination_eq(a, b)
        class(termination_t), intent(in) :: a

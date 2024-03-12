@@ -32,7 +32,7 @@ module labels_mod
    character (len=*), parameter :: J_MAT_WIRE_RESISTANCE = "resistancePerMeter"
    character (len=*), parameter :: J_MAT_WIRE_INDUCTANCE = "inductancePermeter"
    character (len=*), parameter :: J_MAT_WIRE_REF_CAPACITANCE = "__referenceCapacitancePerMeter"
-   character (len=*), parameter :: J_MAT_WIRE_REF_INDUCTANCE = "__referenceInductancePermeter"
+   character (len=*), parameter :: J_MAT_WIRE_REF_INDUCTANCE = "__referenceInductancePerMeter"
    
    character (len=*), parameter :: J_MAT_TERM_TERMINATIONS = "terminations"
    character (len=*), parameter :: J_MAT_TERM_TYPE_OPEN = "open"
@@ -46,6 +46,7 @@ module labels_mod
    character (len=*), parameter :: J_MAT_MULTIWIRE_CAPACITANCE = "capacitancePerMeter"
    character (len=*), parameter :: J_MAT_MULTIWIRE_INDUCTANCE = "inductancePerMeter"
    character (len=*), parameter :: J_MAT_MULTIWIRE_RESISTANCE = "resistancePerMeter"
+   character (len=*), parameter :: J_MAT_MULTIWIRE_CONDUCTANCE = "conductancePerMeter"
 
    ! -- materialAssociations
    character (len=*), parameter :: J_MATERIAL_ASSOCIATIONS = "materialAssociations"
@@ -61,6 +62,10 @@ module labels_mod
    character (len=*), parameter :: J_MAT_ASS_CAB_END_CONN_ID = "endConnectorId"
    character (len=*), parameter :: J_MAT_ASS_CAB_CONTAINED_WITHIN_ID = "containedWithinElementId"
    
+   ! -- connector
+   character (len=*), parameter :: J_MAT_CONN_RESISTANCES = "resistances"
+   character (len=*), parameter :: J_MAT_CONN_TRANSFER_IMPEDANCE = "transferImpedancePerMeter"
+
    ! -- transferImpedancePerMeter
    character (len=*), parameter :: J_MAT_TRANSFER_IMPEDANCE_RESISTANCE = "resistiveTerm"
    character (len=*), parameter :: J_MAT_TRANSFER_IMPEDANCE_INDUCTANCE = "inductiveTerm"

@@ -156,4 +156,15 @@ contains
 
    end function
 
+   function vectorToDiagonalMatrix(vector) result(res)
+      real, dimension(:), intent(in) :: vector
+      real, dimension(:, :), allocatable :: res
+      integer :: i, n
+      n = size(vector, 1)
+      allocate(res(n,n), source = 0.0)
+      do i = 1, n
+         res(i,i) = vector(i)
+      end do
+   end function
+
 end module

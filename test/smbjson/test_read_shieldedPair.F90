@@ -14,7 +14,7 @@ integer function test_read_shieldedpair() bind (C) result(err)
    parser = parser_t(filename)
    problem = parser%readProblemDescription()
    call expect_eq(err, expected, problem)
-   ! call expect_eq_mtln(err, expected, problem)
+   call expect_eq_mtln(err, expected, problem)
 contains
    function expectedProblemDescription() result (expected)
       type(Parseador) :: expected
@@ -42,7 +42,7 @@ contains
       allocate(expected%despl%desZ(2))
       expected%despl%desX = 1.0
       expected%despl%desY = 1.0
-      expected%despl%desZ = 0.00540
+      expected%despl%desZ = 0.03
       expected%despl%mx1 = 0
       expected%despl%mx2 = 1
       expected%despl%my1 = 0
@@ -56,6 +56,11 @@ contains
       ! Expected sources.
 
       ! Expected probes
+      ! oldSonda
+      expected%oldSONDA%n_probes = 0
+      expected%oldSONDA%n_probes_max = 0
+      allocate(expected%oldSONDA%probes(0))
+
       ! sonda
       expected%Sonda%length = 2
       expected%Sonda%length_max = 2
@@ -109,19 +114,19 @@ contains
       allocate(expected%tWires%tw(1)%twc(18))
       expected%tWires%tw(1)%twc(1:18)%srcfile = 'None'
       expected%tWires%tw(1)%twc(1:18)%srctype = 'None'
-      expected%tWires%tw(1)%twc(1:18)%i = 11
-      expected%tWires%tw(1)%twc(1:18)%j = 11
+      expected%tWires%tw(1)%twc(1:18)%i = 1
+      expected%tWires%tw(1)%twc(1:18)%j = 1
       expected%tWires%tw(1)%twc(1:18)%k = [(i, i=1, 18)]
       expected%tWires%tw(1)%twc(1:18)%d = DIR_Z
-      expected%tWires%tw(1)%twc(1)%nd  = 4
+      expected%tWires%tw(1)%twc(1)%nd  = 1
       expected%tWires%tw(1)%twc(2:17)%nd = NO_TAG
-      expected%tWires%tw(1)%twc(18)%nd  = 6
+      expected%tWires%tw(1)%twc(18)%nd  = 2
       
-      expected%tWires%tw(1)%twc(1:18)%tag = trim(adjustl("3"))   ! The polyline id is used as tag.
+      expected%tWires%tw(1)%twc(1:18)%tag = trim(adjustl("1"))   ! The polyline id is used as tag.
       
-      expected%tWires%tw(1)%tl = MATERIAL_CONS
+      expected%tWires%tw(1)%tl = SERIES_CONS
       expected%tWires%tw(1)%R_LeftEnd = 50
-      expected%tWires%tw(1)%tr = MATERIAL_CONS
+      expected%tWires%tw(1)%tr = SERIES_CONS
       expected%tWires%tw(1)%R_RightEnd = 50
       
       expected%tWires%n_tw = 1
@@ -132,18 +137,18 @@ contains
       expected%mtln%cables(1)%name = "line_1"
       allocate(expected%mtln%cables(1)%inductance_per_meter(2,2))
       allocate(expected%mtln%cables(1)%capacitance_per_meter(2,2))
-      allocate(expected%mtln%cables(1)%resistance_per_meter(2,1))
-      allocate(expected%mtln%cables(1)%conductance_per_meter(2,1))
+      allocate(expected%mtln%cables(1)%resistance_per_meter(2,2))
+      allocate(expected%mtln%cables(1)%conductance_per_meter(2,2))
 
       expected%mtln%cables(1)%inductance_per_meter = & 
          reshape( source = [ 3.13182309e-07, 7.45674981e-08, 7.45674981e-08, 3.13182309e-07 ], shape = [ 2,2 ] )
       expected%mtln%cables(1)%capacitance_per_meter = &
          reshape( source = [85.0e-12, -20.5e-12, -20.5e-12, 85.0e-12 ], shape = [ 2,2 ] )
-      expected%mtln%cables(1)%resistance_per_meter =  reshape(source=[0.0, 0.0], shape=[2,1])
-      expected%mtln%cables(1)%conductance_per_meter = reshape(source=[0.0, 0.0], shape=[2,1])
+      expected%mtln%cables(1)%resistance_per_meter =  reshape(source=[0.0, 0.0, 0.0, 0.0], shape=[2,2])
+      expected%mtln%cables(1)%conductance_per_meter = reshape(source=[0.0, 0.0, 0.0, 0.0], shape=[2,2])
       
-      allocate(expected%mtln%cables(1)%step_size(20))
-      expected%mtln%cables(1)%step_size = [(0.00540, i = 1, 20)]
+      allocate(expected%mtln%cables(1)%step_size(18))
+      expected%mtln%cables(1)%step_size = [(0.03, i = 1, 18)]
 
       expected%mtln%cables(1)%transfer_impedance%direction = TRANSFER_IMPEDANCE_DIRECTION_INWARDS
       expected%mtln%cables(1)%transfer_impedance%resistive_term = 0.0
@@ -151,27 +156,28 @@ contains
       allocate(expected%mtln%cables(1)%transfer_impedance%poles(0))
       allocate(expected%mtln%cables(1)%transfer_impedance%residues(0))
 
-      expected%mtln%cables(1)%parent_cable => expected%mtln%cables(2)
+      expected%mtln%cables(1)%parent_cable => null()
+      ! expected%mtln%cables(1)%parent_cable => expected%mtln%cables(2)
       expected%mtln%cables(1)%conductor_in_parent = 1
-      ! expected%mtln%cables(1)%initial_connector = 
-      ! expected%mtln%cables(1)%end_connector = 
-
+      expected%mtln%cables(1)%initial_connector => null()
+      expected%mtln%cables(1)%end_connector => null()
+   !!!!
       expected%mtln%cables(2)%name = "line_0"
       allocate(expected%mtln%cables(2)%inductance_per_meter(1,1))
       allocate(expected%mtln%cables(2)%capacitance_per_meter(1,1))
       allocate(expected%mtln%cables(2)%resistance_per_meter(1,1))
       allocate(expected%mtln%cables(2)%conductance_per_meter(1,1))
-      expected%mtln%cables(2)%inductance_per_meter = 5.362505362505362e-07
-      expected%mtln%cables(2)%capacitance_per_meter = 20.72e-12
-      expected%mtln%cables(2)%resistance_per_meter = 22.9e-3
-      expected%mtln%cables(2)%conductance_per_meter = 0.0
-      allocate(expected%mtln%cables(2)%step_size(20))
-      expected%mtln%cables(2)%step_size =  [(0.00540, i = 1, 20)]
+      expected%mtln%cables(2)%inductance_per_meter = reshape(source=[5.362505362505362e-07], shape=[1,1])
+      expected%mtln%cables(2)%capacitance_per_meter = reshape(source=[20.72e-12], shape=[1,1])
+      expected%mtln%cables(2)%resistance_per_meter = reshape(source=[22.9e-3], shape=[1,1])
+      expected%mtln%cables(2)%conductance_per_meter = reshape(source=[0.0], shape=[1,1])
+      allocate(expected%mtln%cables(2)%step_size(18))
+      expected%mtln%cables(2)%step_size =  [(0.03, i = 1, 18)]
 
       expected%mtln%cables(2)%parent_cable => null()
       expected%mtln%cables(2)%conductor_in_parent = 0
-      ! expected%mtln%cables(2)%initial_connector = 
-      ! expected%mtln%cables(2)%end_connector = 
+      expected%mtln%cables(2)%initial_connector => null()
+      expected%mtln%cables(2)%end_connector => null()
 
    end function
 end function
