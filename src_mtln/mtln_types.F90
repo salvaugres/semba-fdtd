@@ -142,18 +142,11 @@ module mtln_types_mod
 
     elemental logical function transfer_impedance_per_meter_eq(a,b)
        class(transfer_impedance_per_meter_t), intent(in) :: a, b
-      !  logical :: l
-      !  l = (a%inductive_term == b%inductive_term)
-      !  l = (a%resistive_term == b%resistive_term)
-      !  l = (a%direction == b%direction)
-      !  l = all(a%poles == b%poles)
-      !  l = all(a%residues == b%residues)
-      !  transfer_impedance_per_meter_eq = l
        transfer_impedance_per_meter_eq = &
           (a%inductive_term == b%inductive_term) .and. &
           (a%resistive_term == b%resistive_term) .and. &
-          (size(a%poles) == 0 .and. size(b%poles) == 0) .and. & ! .or. all(a%poles == b%poles)) .and. &
-          (size(a%residues) == 0 .and. size(b%residues) == 0) .and. &! .or. all(a%residues == b%residues)) .and. &
+          all(a%poles == b%poles) .and. &
+          all(a%residues == b%residues) .and. &
           (a%direction == b%direction)
     end function
 
@@ -166,35 +159,41 @@ module mtln_types_mod
           all(a%resistance_per_meter == b%resistance_per_meter) .and. &
           all(a%conductance_per_meter == b%conductance_per_meter) .and. &
           all(a%step_size == b%step_size) .and. &
-         !  (a%transfer_impedance == b%transfer_impedance) .and. &
+          (a%transfer_impedance == b%transfer_impedance) .and. &
           (a%conductor_in_parent == b%conductor_in_parent)! .and. &
-          !  (associated(a%initial_connector, b%initial_connector)) .and. &
-          !  (associated(a%end_connector, b%end_connector))
-          
-          !  (a%parent_cable == b%parent_cable) .and. &
-          if (.not. associated(a%parent_cable) .and. .not. associated(b%parent_cable)) then 
-            cable_eq = cable_eq .and. .true.
-          else 
-            cable_eq = cable_eq .and. (a%conductor_in_parent == b%conductor_in_parent)
-          end if
 
-          if (.not. associated(a%initial_connector) .and. .not. associated(b%initial_connector)) then 
+         if (.not. associated(a%parent_cable) .and. .not. associated(b%parent_cable)) then 
             cable_eq = cable_eq .and. .true.
-          else 
+         else if ((associated(a%parent_cable) .and. .not. associated(b%parent_cable)) .or. &
+                  (.not. associated(a%parent_cable) .and. associated(b%parent_cable))) then 
+            cable_eq = cable_eq .and. .false.
+         else
+            cable_eq = cable_eq .and. (a%parent_cable == b%parent_cable)
+         end if
+
+         if (.not. associated(a%initial_connector) .and. .not. associated(b%initial_connector)) then 
+            cable_eq = cable_eq .and. .true.
+         else if ((associated(a%initial_connector) .and. .not. associated(b%initial_connector)) .or. &
+                  (.not. associated(a%initial_connector) .and. associated(b%initial_connector))) then 
+            cable_eq = cable_eq .and. .false.
+         else
             cable_eq = cable_eq .and. (a%initial_connector == b%initial_connector)
-          end if
+         end if
+
+         if (.not. associated(a%end_connector) .and. .not. associated(b%end_connector)) then 
+            cable_eq = cable_eq .and. .true.
+         else if ((associated(a%end_connector) .and. .not. associated(b%end_connector)) .or. &
+                  (.not. associated(a%end_connector) .and. associated(b%end_connector))) then 
+            cable_eq = cable_eq .and. .false.
+         else 
+            cable_eq = cable_eq .and. (a%end_connector == b%end_connector)
+         end if
 
     end function
 
    elemental logical function connector_eq(a,b)
       class(connector_t), intent(in) :: a, b
       logical :: l 
-      ! if (size(a%resistances) == 0 .and. size(b%resistances) == 0) then 
-      !    l = .true.
-      ! else
-      !    l= all(a%resistances == b%resistances)
-      ! end if
-      ! l = a%transfer_impedance_per_meter == b%transfer_impedance_per_meter
       connector_eq = &
          (all(a%resistances == b%resistances)) .and. &
          (a%transfer_impedance_per_meter == b%transfer_impedance_per_meter)

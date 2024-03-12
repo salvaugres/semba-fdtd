@@ -134,6 +134,7 @@ contains
 
       ! Expected mtln type
       allocate(expected%mtln%cables(2))
+      ! cable 1 - multiwire
       expected%mtln%cables(1)%name = "line_1"
       allocate(expected%mtln%cables(1)%inductance_per_meter(2,2))
       allocate(expected%mtln%cables(1)%capacitance_per_meter(2,2))
@@ -156,12 +157,11 @@ contains
       allocate(expected%mtln%cables(1)%transfer_impedance%poles(0))
       allocate(expected%mtln%cables(1)%transfer_impedance%residues(0))
 
-      expected%mtln%cables(1)%parent_cable => null()
-      ! expected%mtln%cables(1)%parent_cable => expected%mtln%cables(2)
+      expected%mtln%cables(1)%parent_cable => expected%mtln%cables(2)
       expected%mtln%cables(1)%conductor_in_parent = 1
       expected%mtln%cables(1)%initial_connector => null()
       expected%mtln%cables(1)%end_connector => null()
-   !!!!
+      ! cable 2 - wire
       expected%mtln%cables(2)%name = "line_0"
       allocate(expected%mtln%cables(2)%inductance_per_meter(1,1))
       allocate(expected%mtln%cables(2)%capacitance_per_meter(1,1))
@@ -173,6 +173,12 @@ contains
       expected%mtln%cables(2)%conductance_per_meter = reshape(source=[0.0], shape=[1,1])
       allocate(expected%mtln%cables(2)%step_size(18))
       expected%mtln%cables(2)%step_size =  [(0.03, i = 1, 18)]
+
+      expected%mtln%cables(2)%transfer_impedance%direction = 0
+      expected%mtln%cables(2)%transfer_impedance%resistive_term = 0.0
+      expected%mtln%cables(2)%transfer_impedance%inductive_term = 0.0
+      allocate(expected%mtln%cables(2)%transfer_impedance%poles(0))
+      allocate(expected%mtln%cables(2)%transfer_impedance%residues(0))
 
       expected%mtln%cables(2)%parent_cable => null()
       expected%mtln%cables(2)%conductor_in_parent = 0

@@ -1153,14 +1153,15 @@ contains
          j = 1
          if (size(cables) /= 0) then
             do i = 1, size(cables)
-               if (isWire(cables(i)%p) .or. isMultiwire(cables(i)%p)) then
-                  if (isMultiwire(cables(i)%p)) then 
-                     parentId = this%getIntAt(cables(i)%p, J_MAT_ASS_CAB_CONTAINED_WITHIN_ID)
-                     res%cables(j)%parent_cable => getCableContainingElemId(parentId)
-                     res%cables(j)%conductor_in_parent = getParentPositionInMultiwire(parentId)
-                  end if
-                  j = j + 1
+               if (isMultiwire(cables(i)%p)) then 
+                  parentId = this%getIntAt(cables(i)%p, J_MAT_ASS_CAB_CONTAINED_WITHIN_ID)
+                  res%cables(j)%parent_cable => getCableContainingElemId(parentId)
+                  res%cables(j)%conductor_in_parent = getParentPositionInMultiwire(parentId)
+               else if (isWire(cables(i)%p)) then 
+                  res%cables(j)%parent_cable => null()
+                  res%cables(j)%conductor_in_parent = 0
                end if
+               j = j + 1
             end do
          end if
       end block
@@ -1264,37 +1265,40 @@ contains
             end if
          end if
 
+
+         res%initial_connector => buildConnector(j_cable, J_MAT_ASS_CAB_INI_CONN_ID)
+         res%end_connector => buildConnector(j_cable, J_MAT_ASS_CAB_END_CONN_ID)
          ! connectors: initial
-         block
-            type(json_value_ptr) :: conn
-            type(connector_t), pointer :: conn_ptr
-            type(json_value), pointer :: z
-            if (this%existsAt(j_cable, J_MAT_ASS_CAB_INI_CONN_ID)) then 
-               conn = this%matTable%getId(this%getIntAt(j_cable, J_MAT_ASS_CAB_INI_CONN_ID, found))
-               conn_ptr%resistances = this%getRealsAt(conn%p, J_MAT_CONN_RESISTANCES)
-               call this%core%get(conn%p, J_MAT_MULTIWIRE_TRANSFER_IMPEDANCE,  z, found)
-               conn_ptr%transfer_impedance_per_meter = readTransferImpedance(z)
-               res%initial_connector => conn_ptr
-            else
-               res%initial_connector => null()
-            end if
-         end block
+         ! block
+         !    type(json_value_ptr) :: conn
+         !    type(connector_t), pointer :: conn_ptr
+         !    type(json_value), pointer :: z
+         !    if (this%existsAt(j_cable, J_MAT_ASS_CAB_INI_CONN_ID)) then 
+         !       conn = this%matTable%getId(this%getIntAt(j_cable, J_MAT_ASS_CAB_INI_CONN_ID, found))
+         !       conn_ptr%resistances = this%getRealsAt(conn%p, J_MAT_CONN_RESISTANCES)
+         !       call this%core%get(conn%p, J_MAT_MULTIWIRE_TRANSFER_IMPEDANCE,  z, found)
+         !       conn_ptr%transfer_impedance_per_meter = readTransferImpedance(z)
+         !       res%initial_connector => conn_ptr
+         !    else
+         !       res%initial_connector => null()
+         !    end if
+         ! end block
 
          ! connectors: end
-         block
-            type(json_value_ptr) :: conn
-            type(connector_t), pointer :: conn_ptr
-            type(json_value), pointer :: z
-            if (this%existsAt(j_cable, J_MAT_ASS_CAB_END_CONN_ID)) then 
-               conn = this%matTable%getId(this%getIntAt(j_cable, J_MAT_ASS_CAB_END_CONN_ID, found))
-               conn_ptr%resistances = this%getRealsAt(conn%p, J_MAT_CONN_RESISTANCES)
-               call this%core%get(conn%p, J_MAT_MULTIWIRE_TRANSFER_IMPEDANCE,  z, found)
-               conn_ptr%transfer_impedance_per_meter = readTransferImpedance(z)
-               res%end_connector => conn_ptr
-            else
-               res%end_connector => null()
-            end if
-         end block
+         ! block
+         !    type(json_value_ptr) :: conn
+         !    type(connector_t), pointer :: conn_ptr
+         !    type(json_value), pointer :: z
+         !    if (this%existsAt(j_cable, J_MAT_ASS_CAB_END_CONN_ID)) then 
+         !       conn = this%matTable%getId(this%getIntAt(j_cable, J_MAT_ASS_CAB_END_CONN_ID, found))
+         !       conn_ptr%resistances = this%getRealsAt(conn%p, J_MAT_CONN_RESISTANCES)
+         !       call this%core%get(conn%p, J_MAT_MULTIWIRE_TRANSFER_IMPEDANCE,  z, found)
+         !       conn_ptr%transfer_impedance_per_meter = readTransferImpedance(z)
+         !       res%end_connector => conn_ptr
+         !    else
+         !       res%end_connector => null()
+         !    end if
+         ! end block
 
          ! transfer impedance
          block 
@@ -1314,6 +1318,33 @@ contains
             call assignPULProperties(res, material, size(getCableElemIds(j_cable)))
          else
             write(error_unit, *) "Error reading cable: is neither wire nor multiwire"
+         end if
+
+      end function
+
+      function buildConnector(j_cable, side) result(res)
+         type(json_value), pointer :: j_cable
+         character(*), intent(in) :: side
+         type(connector_t), pointer :: res
+         type(json_value_ptr) :: conn
+         type(json_value), pointer :: z
+         
+         if (this%existsAt(j_cable, side)) then 
+            conn = this%matTable%getId(this%getIntAt(j_cable, side))
+            if (this%existsAt(conn%p, J_MAT_CONN_RESISTANCES)) then
+               res%resistances = this%getRealsAt(conn%p, J_MAT_CONN_RESISTANCES)
+            else 
+               write(error_unit, *) "Error reading connector: no resistances label found"
+            end if
+            if (this%existsAt(conn%p, J_MAT_MULTIWIRE_TRANSFER_IMPEDANCE)) then
+               call this%core%get(conn%p, J_MAT_MULTIWIRE_TRANSFER_IMPEDANCE,  z)
+               res%transfer_impedance_per_meter = readTransferImpedance(z)
+            else
+               res%transfer_impedance_per_meter = noTransferImpedance()
+               write(error_unit, *) "Error reading connector: no transferImpedancePerMeter label found"
+            end if
+         else
+            res => null()
          end if
 
       end function
