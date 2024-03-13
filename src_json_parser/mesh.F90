@@ -22,6 +22,8 @@ module mesh_mod
       private
       procedure :: coordinate_diff
       generic, public :: operator(-) => coordinate_diff
+      procedure :: coordinate_eq
+      generic, public :: operator(==) => coordinate_eq
    end type
 
    type, public :: mesh_t
@@ -277,6 +279,11 @@ contains
       class(coordinate_t), intent(in) :: a, b
       type(coordinate_t) :: res
       res%position = [(a%position(i) - b%position(i), i = 1, 3)]
+   end function
+
+   logical function coordinate_eq(a, b)
+      class(coordinate_t), intent(in) :: a, b
+      coordinate_eq = all(a%position == b%position)
    end function
 
 end module

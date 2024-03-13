@@ -1079,20 +1079,10 @@ contains
       class(parser_t) :: this
       type(Desplazamiento), intent(in) :: grid
       type(mtln_t) :: res
-      type(json_value_ptr), dimension(:), allocatable :: cables
       type(fhash_tbl_t) :: elemIdToCable, elemIdToPosition
-      
-      block
-         type(json_value), pointer :: matAss
-         logical :: found
-         call this%core%get(this%root, J_MATERIAL_ASSOCIATIONS, matAss, found)
-         if (.not. found) then
-            allocate(cables(0))
-            return
-         end if
-         cables = this%jsonValueFilterByKeyValue(matAss, J_TYPE, J_MAT_ASS_TYPE_CABLE)
-      end block
+      type(json_value_ptr), dimension(:), allocatable :: cables
 
+      cables = readCables()
 
       ! check if problem type is mtln.
       ! if there are no multiwires, return
@@ -1152,16 +1142,191 @@ contains
       end block
 
       res%probes = readWireProbes()
-
+      res%networks = buildNetworks()
 
    contains
       
+      function readCables() result(res)
+         type(json_value), pointer :: matAss
+         type(json_value_ptr), dimension(:), allocatable :: res
+         if (this%existsAt(this%root,  J_MATERIAL_ASSOCIATIONS)) then
+            call this%core%get(this%root, J_MATERIAL_ASSOCIATIONS, matAss)
+            res = this%jsonValueFilterByKeyValue(matAss, J_TYPE, J_MAT_ASS_TYPE_CABLE)
+         else
+            allocate(res(0))
+         end if
+      end function
+
+
+      function buildNetworks() result(res)
+         type(terminal_network_t), dimension(:), allocatable :: res
+
+
+         type(aux_node_t), dimension(:), allocatable :: aux_nodes
+         type(json_value_ptr), dimension(:), allocatable :: cables
+         
+         integer :: i, j, k
+         integer, dimension(:), allocatable :: elemIds
+         type(polyline_t) :: polyline
+         type(coordinate_t) :: first_pos, last_pos
+         type(json_value_ptr) :: terminal_ini, terminal_end
+         type(json_value), pointer :: terminations_ini, terminations_end, row
+         integer :: number_of_conductors
+         integer :: termination_type
+         character(:), allocatable :: type
+         real :: r, l, c
+         type(aux_node_t) :: current_node
+         allocate(aux_nodes(0))
+         cables = readCables()
+
+         do i = 1, size(cables)
+            elemIds = getCableElemIds(cables(i)%p)
+            number_of_conductors = size(elemIds)
+
+            if (.not. this%existsAt(cables(i)%p, J_MAT_ASS_CAB_INI_TERM_ID)) then
+               write(error_unit, *) 'Error: missing terminal on cable initial side'
+            end if
+            terminal_ini = this%matTable%getId(this%getIntAt(cables(i)%p, J_MAT_ASS_CAB_INI_TERM_ID))
+            call this%core%get(terminal_ini%p, J_MAT_TERM_TERMINATIONS, terminations_ini)
+
+            if (.not. this%existsAt(cables(i)%p, J_MAT_ASS_CAB_END_TERM_ID)) then
+               write(error_unit, *) 'Error: missing terminal on cable end side'
+            end if
+            terminal_end = this%matTable%getId(this%getIntAt(cables(i)%p, J_MAT_ASS_CAB_END_TERM_ID))
+            call this%core%get(terminal_end%p, J_MAT_TERM_TERMINATIONS, terminations_end)
+
+            do k = 1, number_of_conductors
+               call this%core%get_child(terminations_ini, k, row)
+               current_node%node%side = TERMINAL_NODE_SIDE_INI
+               current_node%node%termination%termination_type = readTerminationType(row)
+               current_node%node%termination%capacitance = readTerminationRLC(row,J_MAT_TERM_CAPACITANCE, default = 1e22)
+               current_node%node%termination%resistance = readTerminationRLC(row, J_MAT_TERM_RESISTANCE, default = 0.0)
+               current_node%node%termination%inductance = readTerminationRLC(row, J_MAT_TERM_INDUCTANCE, default=0.0)
+               current_node%node%conductor_in_cable = k
+               current_node%node%belongs_to_cable => getCableContainingElemId(elemIds(k))
+               aux_nodes = [aux_nodes, current_node]
+
+               call this%core%get_child(terminations_end, k, row)
+               current_node%node%side = TERMINAL_NODE_SIDE_END
+               current_node%node%termination%termination_type = readTerminationType(row)
+               current_node%node%termination%capacitance = readTerminationRLC(row,J_MAT_TERM_CAPACITANCE, default = 1e22)
+               current_node%node%termination%resistance = readTerminationRLC(row, J_MAT_TERM_RESISTANCE, default = 0.0)
+               current_node%node%termination%inductance = readTerminationRLC(row, J_MAT_TERM_INDUCTANCE, default=0.0)
+               current_node%node%conductor_in_cable = k
+               current_node%node%belongs_to_cable => getCableContainingElemId(elemIds(k))
+               aux_nodes = [aux_nodes, current_node]
+            end do
+
+            ! call this%core%get(terminal_end%p, J_MAT_TERM_TERMINATIONS, terminations_end)
+
+            do j = 1, number_of_conductors
+               polyline = this%mesh%getPolyline(elemIds(j))
+               first_pos = this%mesh%getCoordinate(polyline%coordIds(1))
+               last_pos = this%mesh%getCoordinate(polyline%coordIds(ubound(polyline%coordIds,1)))
+
+            end do
+         end do
+      end function
+
+      function readTerminationType(termination) result(res)
+         type(json_value), pointer :: termination 
+         integer :: res
+         character(:), allocatable :: type
+         type = this%getStrAt(termination, J_TYPE)
+         if (type == J_MAT_TERM_TYPE_OPEN) then 
+            res = TERMINATION_OPEN
+         else if (type == J_MAT_TERM_TYPE_SHORT) then 
+            res = TERMINATION_SHORT
+         else if (type == J_MAT_TERM_TYPE_SERIES) then 
+            res = TERMINATION_SERIES
+         else if (type == J_MAT_TERM_TYPE_LCpRs) then 
+            res = TERMINATION_LCpRs
+         else if (type == J_MAT_TERM_TYPE_RLsCp) then 
+            res = TERMINATION_RLsCp
+         else 
+            res = TERMINATION_UNDEFINED
+         end if
+      end function
+
+      function readTerminationRLC(termination, label, default) result(res)
+         type(json_value), pointer :: termination
+         character(*), intent(in) :: label
+         real, intent(in) :: default
+         real :: res
+         if (this%existsAt(termination, label)) then 
+            res = this%getRealAt(termination, label)
+         else 
+            res = default
+         end if
+
+      end function
+      ! function buildAuxNode() result(res)
+      !    type(aux_node_t) :: res
+      !    res%cId = 
+      !    res%relPos = 
+      !    res%node =          
+      ! end function
+
+      ! function bNW() result(res)
+      !    type :: cable_ptr_t
+      !       type(cable_t), pointer :: p
+      !    end type
+      !    type :: position_network
+      !       type(coordinate_t) :: coordinate
+      !       type(cable_ptr_t), dimension(:), allocatable :: cables
+      !       integer, dimension(:), allocatable :: side
+      !    end type
+         
+      !    type(terminal_network_t), dimension(:), allocatable :: res
+      !    type(position_network), dimension(:), allocatable :: nw
+      !    type(coordinate_t), dimension(:), allocatable :: used_coordinates
+      !    type(json_value_ptr), dimension(:), allocatable :: cables
+
+      !    integer :: i, j, k
+      !    integer, dimension(:), allocatable :: elemIds
+      !    type(polyline_t) :: polyline
+      !    type(coordinate_t) :: first_pos, last_pos
+      !    type(cable_ptr_t) :: ptr
+      !    logical :: found = .false.
+      !    allocate(used_coordinates(0))
+      !    allocate(nw(0))
+      !    cables = readCables()
+      !    do i = 1, size(cables)
+      !       elemIds = getCableElemIds(cables(i)%p)
+      !       do j = 1, size(elemIds)
+      !          polyline = this%mesh%getPolyline(elemIds(j))
+      !          first_pos = this%mesh%getCoordinate(polyline%coordIds(1))
+      !          if (size(nw) /= 0) then
+      !             do k = 1, size(nw)
+      !                if (first_pos == nw(i)%coordinate) then
+      !                   ptr%p => getCableContainingElemId(elemIds(j))
+      !                   nw(i)%cables = [nw(i)%cables, ptr]
+      !                   nw(i)%side = [nw(i)%side, TERMINAL_NODE_SIDE_INI]
+      !                   found = .true.
+      !                   exit
+      !                end if
+      !             end do
+      !             if (.not. found) then 
+      !                ! allocate()
+      !             end if
+      !          end if
+
+      !          last_pos = this%mesh%getCoordinate(polyline%coordIds(ubound(polyline%coordIds,1)))
+               
+      !       end do
+
+      !    end do
+                  
+
+
+      ! end function
+
       function readWireProbes() result(res)
          type(probe_t), dimension(:), allocatable :: res
          type(json_value_ptr), dimension(:), allocatable :: wire_probes, polylines
          type(json_value), pointer :: probes, elements
          integer :: i,j, position
-         integer, dimension(:), allocatable :: elemIds, poly_cIds
+         integer, dimension(:), allocatable :: elemIds, polylinecIds
          type(node_t) :: node
 
          if (this%existsAt(this%root, J_PROBES)) then
@@ -1182,11 +1347,11 @@ contains
                elemIds = this%getIntsAt(wire_probes(i)%p, J_ELEMENTIDS)
                node = this%mesh%getNode(elemIds(1))
                do j = 1, size(polylines)
-                  poly_cIds = this%getIntsAt(polylines(j)%p, J_COORDINATE_IDS)
-                  position = findloc(poly_cIds, node%coordIds(1), dim=1)
+                  polylinecIds = this%getIntsAt(polylines(j)%p, J_COORDINATE_IDS)
+                  position = findloc(polylinecIds, node%coordIds(1), dim=1)
                   if (position /= 0) then ! polyline found
                      res(i)%attached_to_cable => getCableContainingElemId(this%getIntAt(polylines(j)%p, J_ID))
-                     res(i)%index = findProbeIndex(poly_cIds, position)
+                     res(i)%index = findProbeIndex(polylinecIds, position)
                      exit 
                   end if
                end do

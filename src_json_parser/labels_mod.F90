@@ -38,6 +38,9 @@ module labels_mod
    character (len=*), parameter :: J_MAT_TERM_TYPE_OPEN = "open"
    character (len=*), parameter :: J_MAT_TERM_TYPE_SHORT = "short"
    character (len=*), parameter :: J_MAT_TERM_TYPE_SERIES = "series"
+   character (len=*), parameter :: J_MAT_TERM_TYPE_LCpRs = "LCpRs"
+   character (len=*), parameter :: J_MAT_TERM_TYPE_RLsCp = "RLsCp"
+
    character (len=*), parameter :: J_MAT_TERM_RESISTANCE = "resistance"
    character (len=*), parameter :: J_MAT_TERM_INDUCTANCE = "inductance"
    character (len=*), parameter :: J_MAT_TERM_CAPACITANCE = "capacitance"
