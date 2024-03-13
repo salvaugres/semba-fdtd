@@ -188,12 +188,12 @@ contains
       ! probes
       allocate(expected%mtln%probes(2))
       expected%mtln%probes(1)%attached_to_cable => expected%mtln%cables(2) ! to which cable is the probe attached in mtln?
-      expected%mtln%probes(1)%index = 18 !19?
+      expected%mtln%probes(1)%index = 19
       expected%mtln%probes(1)%probe_type = PROBE_TYPE_VOLTAGE
 
       expected%mtln%probes(2)%attached_to_cable => expected%mtln%cables(2)
-      expected%mtln%probes(2)%index = 18 !19?
-      expected%mtln%probes(2)%probe_type = PROBE_TYPE_VOLTAGE
+      expected%mtln%probes(2)%index = 19
+      expected%mtln%probes(2)%probe_type = PROBE_TYPE_CURRENT
 
       ! networks
       allocate(expected%mtln%networks(2))

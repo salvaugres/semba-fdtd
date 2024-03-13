@@ -1151,8 +1151,76 @@ contains
          end if
       end block
 
+      res%probes = readWireProbes()
+
+
    contains
       
+      function readWireProbes() result(res)
+         type(probe_t), dimension(:), allocatable :: res
+         type(json_value), pointer :: probes, elements
+         logical :: found
+         type(json_value_ptr), dimension(:), allocatable :: wire_probes, polylines
+         integer :: i,j,k
+         integer :: position, node_cId, elemId, index
+         integer, dimension(:), allocatable :: elemIds, poly_cIds
+         type(node_t) :: node
+         type(coordinate_t) :: c1,c2, delta
+         character(:), allocatable :: probe_type
+
+         if (this%existsAt(this%root, J_PROBES)) then
+            call this%core%get(this%root, J_PROBES, probes)
+         else 
+            allocate(res(0))
+            return
+         end if
+
+         call this%core%get(this%root, J_MESH//'.'//J_ELEMENTS, elements)
+         polylines = this%jsonValueFilterByKeyValue(elements, J_TYPE, J_ELEM_TYPE_POLYLINE)
+         wire_probes = this%jsonValueFilterByKeyValue(probes, J_TYPE, J_MAT_TYPE_WIRE)
+         allocate(res(size(wire_probes)))
+         if (size(wire_probes) /= 0) then 
+            do i = 1, size(wire_probes)
+               index = 1
+               probe_type = this%getStrAt(wire_probes(i)%p, J_FIELD)
+               if (probe_type == J_FIELD_VOLTAGE) then
+                  res(i)%probe_type = PROBE_TYPE_VOLTAGE
+               else if (probe_type == J_FIELD_CURRENT) then
+                  res(i)%probe_type = PROBE_TYPE_CURRENT
+               else 
+                  write(error_unit,*) 'probe type '//probe_type//' not supported'
+               end if
+
+               elemIds = this%getIntsAt(wire_probes(i)%p, J_ELEMENTIDS)
+
+               node = this%mesh%getNode(elemIds(1))
+               node_cId = node%coordIds(1)
+               ! iterate over elements of type polyline
+               do j = 1, size(polylines)
+                  poly_cIds = this%getIntsAt(polylines(j)%p, J_COORDINATE_IDS)
+                  position = findloc(poly_cIds, node_cId, dim=1)
+                  if (position /= 0) then ! polyline found
+                     elemId = this%getIntAt(polylines(j)%p, J_ID)
+                     res(i)%attached_to_cable => getCableContainingElemId(elemId)
+
+                     do k=2, position
+                        c2 = this%mesh%getCoordinate(poly_cIds(k))
+                        c1 = this%mesh%getCoordinate(poly_cIds(k-1))
+                        delta = c2-c1
+                        index = index + delta%position(findDirection(delta))
+                     end do
+                     res(i)%index = index
+                     exit 
+                  end if
+               end do
+               ! get elemIds
+
+            end do
+         end if
+
+
+      end function 
+
       function getCableContainingElemId(id) result(res)
          integer, intent(in) :: id
          integer :: mStat

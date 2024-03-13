@@ -221,8 +221,18 @@ module mtln_types_mod
       class(probe_t), intent(in) :: a,b
       probe_eq = &
          (a%index == b%index) .and. &
-         (a%probe_type == b%probe_type) .and. &
-         (associated(a%attached_to_cable, b%attached_to_cable))
+         (a%probe_type == b%probe_type)! .and. &
+         ! (associated(a%attached_to_cable, b%attached_to_cable))
+
+         if (.not. associated(a%attached_to_cable) .and. .not. associated(b%attached_to_cable)) then 
+            probe_eq = probe_eq .and. .true.
+         else if ((associated(a%attached_to_cable) .and. .not. associated(b%attached_to_cable)) .or. &
+                  (.not. associated(a%attached_to_cable) .and. associated(b%attached_to_cable))) then 
+            probe_eq = probe_eq .and. .false.
+         else
+            probe_eq = probe_eq .and. (a%attached_to_cable == b%attached_to_cable)
+         end if
+
     end function
 
     elemental logical function terminal_node_eq(a, b)
