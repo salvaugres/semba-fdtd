@@ -241,10 +241,21 @@ module mtln_types_mod
       class(terminal_node_t), intent(in) :: a, b
 
       terminal_node_eq = &
-         (associated(a%belongs_to_cable, b%belongs_to_cable)) .and. &
+         ! (associated(a%belongs_to_cable, b%belongs_to_cable)) .and. &
          (a%conductor_in_cable == b%conductor_in_cable) .and. &
          (a%side == b%side) .and. &
          (a%termination == b%termination)
+
+         if (.not. associated(a%belongs_to_cable) .and. .not. associated(b%belongs_to_cable)) then 
+            terminal_node_eq = terminal_node_eq .and. .true.
+         else if ((associated(a%belongs_to_cable) .and. .not. associated(b%belongs_to_cable)) .or. &
+            (.not. associated(a%belongs_to_cable) .and. associated(b%belongs_to_cable))) then 
+            terminal_node_eq = terminal_node_eq .and. .false.
+         else
+            terminal_node_eq = terminal_node_eq .and. (a%belongs_to_cable == b%belongs_to_cable)
+         end if
+
+         
     end function
 
     elemental logical function terminal_connection_eq(a,b)

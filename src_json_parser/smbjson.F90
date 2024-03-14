@@ -1079,11 +1079,13 @@ contains
       class(parser_t) :: this
       type(Desplazamiento), intent(in) :: grid
       type(mtln_t) :: res
-      type(fhash_tbl_t) :: elemIdToCable, elemIdToPosition
+      type(fhash_tbl_t) :: elemIdToPosition
+      type(cable_ptr_t), dimension(:), pointer :: elemIdToCable
       type(json_value_ptr), dimension(:), allocatable :: cables
-
+      type(cable_t), pointer :: cable_test
+      integer :: maxElemId
       cables = readCables()
-
+      maxElemId = findMaxElemId(cables)
       ! check if problem type is mtln.
       ! if there are no multiwires, return
       block
@@ -1101,6 +1103,7 @@ contains
          if (nMW == 0 .and. nW /= 0) return
       end block
 
+      allocate(elemIdToCable(maxElemId))
 
       ! Pre-allocates cables
       allocate (res%cables(0))
@@ -1110,18 +1113,29 @@ contains
          type(cable_t) :: read_cable
          if (size(cables) /= 0) then
             do i = 1, size(cables)
+               ! if (isMultiwire(cables(i)%p)) then
                if (isWire(cables(i)%p) .or. isMultiwire(cables(i)%p)) then
                   is_read = .true.
                   read_cable = readMTLNCable(cables(i)%p, is_read)
                   if (is_read) then
                      res%cables = [res%cables, read_cable]
-                     elemIdToCable = buildElemIdToCableMap(cables(i)%p, res%cables(ubound(res%cables,1)))
-                     elemIdToPosition = buildElemIdToPositionMap(cables(i)%p)
+                     call addElemIdToCableMap(elemIdToCable, cables(i)%p, res%cables(size(res%cables)))
+                     ! call addElemIdToCableMap(elemIdToCable, cables(i)%p, res%cables(ubound(res%cables,1)))
+                     call addElemIdToPositionMap(elemIdToPosition, cables(i)%p)
+                     ! elemIdToCable = buildElemIdToCableMap(cables(i)%p, res%cables(ubound(res%cables,1)))
+                     ! elemIdToPosition = buildElemIdToPositionMap(cables(i)%p)
                   end if
                end if
             end do
          end if
       end block
+
+      cable_test => getCableContainingElemId(1)
+      cable_test => getCableContainingElemId(2)
+      cable_test => getCableContainingElemId(3)
+      cable_test => getCableContainingElemId(5)
+      cable_test => getCableContainingElemId(6)
+      cable_test => getCableContainingElemId(7)
 
       block
          integer :: i, j, parentId
@@ -1141,11 +1155,36 @@ contains
          end if
       end block
 
+      cable_test => getCableContainingElemId(1)
+      cable_test => getCableContainingElemId(2)
+      cable_test => getCableContainingElemId(3)
+
       res%probes = readWireProbes()
+
+
       res%networks = buildNetworks()
 
    contains
       
+      function findMaxElemId(cables) result(res)
+         type(json_value_ptr), dimension(:), intent(in) :: cables
+         integer :: i, m
+         integer, dimension(:), allocatable :: elemIds
+         integer :: res
+         res = 0
+         
+         if (size(cables) /= 0) then
+            do i = 1, size(cables)
+               elemIds = getCableElemIds(cables(i)%p)
+               m = maxval(elemIds,dim = 1)               
+               if (m > res) then 
+                  res = m
+               end if
+            end do
+         end if
+
+      end function
+
       function readCables() result(res)
          type(json_value), pointer :: matAss
          type(json_value_ptr), dimension(:), allocatable :: res
@@ -1160,54 +1199,41 @@ contains
 
       function buildNetworks() result(res)
          type(terminal_network_t), dimension(:), allocatable :: res
-
-
-         type(aux_node_t), dimension(:), allocatable :: aux_nodes, filtered_aux_nodes
+         type(aux_node_t), dimension(:), allocatable :: aux_nodes
          type(json_value_ptr), dimension(:), allocatable :: cables
-         
-         integer :: i, k
+         integer :: i,j
          integer, dimension(:), allocatable :: elemIds
          type(json_value), pointer :: terminations_ini, terminations_end
          type(coordinate_t), dimension(:), allocatable :: networks_coordinates
-         integer, dimension(:), allocatable :: connection_ids
          allocate(aux_nodes(0))
          allocate(networks_coordinates(0))
          cables = readCables()
-
          do i = 1, size(cables)
             elemIds = getCableElemIds(cables(i)%p)
-            terminations_ini = getTerminationsOnSide(cables(i)%p, J_MAT_ASS_CAB_INI_TERM_ID)
-            terminations_end = getTerminationsOnSide(cables(i)%p, J_MAT_ASS_CAB_END_TERM_ID)
-            do k = 1, size(elemIds)
-               aux_nodes = [aux_nodes, buildNode(terminations_ini, TERMINAL_NODE_SIDE_INI, k, elemIds(k))]
-               aux_nodes = [aux_nodes, buildNode(terminations_end, TERMINAL_NODE_SIDE_END, k, elemIds(k))]
-
-               call updateListOfNetworksCoordinates(networks_coordinates, elemIds(k))
-      
+            terminations_ini => getTerminationsOnSide(cables(i)%p, J_MAT_ASS_CAB_INI_TERM_ID)
+            terminations_end => getTerminationsOnSide(cables(i)%p, J_MAT_ASS_CAB_END_TERM_ID)
+            do j = 1, size(elemIds)
+               aux_nodes = [aux_nodes, buildNode(terminations_ini, TERMINAL_NODE_SIDE_INI, j, elemIds(j))]
+               aux_nodes = [aux_nodes, buildNode(terminations_end, TERMINAL_NODE_SIDE_END, j, elemIds(j))]
+               call updateListOfNetworksCoordinates(networks_coordinates, elemIds(j))
             end do
+
          end do
-         !filter by coordinate. Each coordinate corresponds to a network
          allocate(res(size(networks_coordinates)))
          do i = 1, size(networks_coordinates)
-            ! deallocate(filtered_aux_nodes)
-            ! allocate(filtered_aux_nodes(0))
-
-            ! deallocate(connection_ids)
-            ! allocate(connection_ids(0))
-
-
-            ! do k = 1, size(aux_nodes)
-            !    if (aux_nodes(k)%relPos == networks_coordinates(i)) then 
-            !       filtered_aux_nodes = [filtered_aux_nodes, aux_nodes(k)]
-            !       call updateListOfConnectionIds(connection_ids, aux_nodes(k)%cId)
-            !    end if
-            ! end do
-            !filtered nodes belong to the same network
-            !those with the same cId are connected
-            ! res(i) = buildNetwork(connection_ids, filtered_aux_nodes)
             res(i) = buildNetwork(networks_coordinates(i), aux_nodes)
          end do
 
+      end function
+
+      function buildListOfCoordinates(elemIds) result(res)
+         integer, dimension(:), intent(in) :: elemIds
+         integer :: i
+         type(coordinate_t), dimension(:), allocatable :: res
+         allocate(res(0))
+         do i = 1, size(elemIds)
+            call updateListOfNetworksCoordinates(res, elemIds(i))
+         end do
       end function
 
       function buildNetwork(network_coordinate, aux_nodes) result(res)
@@ -1270,7 +1296,7 @@ contains
       end subroutine
 
       subroutine updateListOfNetworksCoordinates(coordinates, conductor_index)
-         type(coordinate_t), dimension(:), intent(inout) :: coordinates
+         type(coordinate_t), dimension(:), allocatable,  intent(inout) :: coordinates
          integer, intent(in) :: conductor_index
          type (polyline_t) ::polyline
          integer :: i
@@ -1294,8 +1320,13 @@ contains
             end do
          end if
 
-         if (.not. found_ini) coordinates = [coordinates, coord_ini]
-         if (.not. found_end) coordinates = [coordinates, coord_end]
+         if (.not. found_ini) then 
+            coordinates = [coordinates, coord_ini]
+         end if
+
+         if (.not. found_end) then 
+            coordinates = [coordinates, coord_end]
+         end if
 
 
       end subroutine
@@ -1312,6 +1343,11 @@ contains
             return
          end if
          terminal = this%matTable%getId(this%getIntAt(cable, label))
+         if (.not. this%existsAt(terminal%p, J_MAT_TERM_TERMINATIONS)) then 
+            write(error_unit, *) 'Error: missing terminations on terminal'
+            res => null()
+            return
+         end if
          call this%core%get(terminal%p, J_MAT_TERM_TERMINATIONS, res)
 
       end function
@@ -1325,6 +1361,7 @@ contains
          type(polyline_t) :: polyline
          type(aux_node_t) :: res
          call this%core%get_child(termination_list, index, termination)
+         allocate(termination_t :: res%node%termination)
          res%node%side = label
          res%node%termination%termination_type = readTerminationType(termination)
          res%node%termination%capacitance = readTerminationRLC(termination,J_MAT_TERM_CAPACITANCE, default = 1e22)
@@ -1332,8 +1369,10 @@ contains
          res%node%termination%inductance = readTerminationRLC(termination, J_MAT_TERM_INDUCTANCE, default=0.0)
          res%node%conductor_in_cable = index
          res%node%belongs_to_cable => getCableContainingElemId(id)
-
+         
+         ! this%getIntAt(polylines(j)%p, J_ID)
          polyline = this%mesh%getPolyline(id)
+         
          if (label == TERMINAL_NODE_SIDE_INI) then 
             res%cId = polyline%coordIds(1)
             res%relPos = this%mesh%getCoordinate(polyline%coordIds(1))
@@ -1375,66 +1414,6 @@ contains
          end if
 
       end function
-      ! function buildAuxNode() result(res)
-      !    type(aux_node_t) :: res
-      !    res%cId = 
-      !    res%relPos = 
-      !    res%node =          
-      ! end function
-
-      ! function bNW() result(res)
-      !    type :: cable_ptr_t
-      !       type(cable_t), pointer :: p
-      !    end type
-      !    type :: position_network
-      !       type(coordinate_t) :: coordinate
-      !       type(cable_ptr_t), dimension(:), allocatable :: cables
-      !       integer, dimension(:), allocatable :: side
-      !    end type
-         
-      !    type(terminal_network_t), dimension(:), allocatable :: res
-      !    type(position_network), dimension(:), allocatable :: nw
-      !    type(coordinate_t), dimension(:), allocatable :: used_coordinates
-      !    type(json_value_ptr), dimension(:), allocatable :: cables
-
-      !    integer :: i, j, k
-      !    integer, dimension(:), allocatable :: elemIds
-      !    type(polyline_t) :: polyline
-      !    type(coordinate_t) :: first_pos, last_pos
-      !    type(cable_ptr_t) :: ptr
-      !    logical :: found = .false.
-      !    allocate(used_coordinates(0))
-      !    allocate(nw(0))
-      !    cables = readCables()
-      !    do i = 1, size(cables)
-      !       elemIds = getCableElemIds(cables(i)%p)
-      !       do j = 1, size(elemIds)
-      !          polyline = this%mesh%getPolyline(elemIds(j))
-      !          first_pos = this%mesh%getCoordinate(polyline%coordIds(1))
-      !          if (size(nw) /= 0) then
-      !             do k = 1, size(nw)
-      !                if (first_pos == nw(i)%coordinate) then
-      !                   ptr%p => getCableContainingElemId(elemIds(j))
-      !                   nw(i)%cables = [nw(i)%cables, ptr]
-      !                   nw(i)%side = [nw(i)%side, TERMINAL_NODE_SIDE_INI]
-      !                   found = .true.
-      !                   exit
-      !                end if
-      !             end do
-      !             if (.not. found) then 
-      !                ! allocate()
-      !             end if
-      !          end if
-
-      !          last_pos = this%mesh%getCoordinate(polyline%coordIds(ubound(polyline%coordIds,1)))
-               
-      !       end do
-
-      !    end do
-                  
-
-
-      ! end function
 
       function readWireProbes() result(res)
          type(probe_t), dimension(:), allocatable :: res
@@ -1508,26 +1487,31 @@ contains
 
       function getCableContainingElemId(id) result(res)
          integer, intent(in) :: id
-         integer :: mStat
-         class(*), pointer :: d
          type(cable_t), pointer :: res
-         
-         nullify(res)
-         call elemIdToCable%check_key(key(id), mStat)
-         if (mStat /= 0) then
-            return
-         end if
-   
-         call elemIdToCable%get_raw_ptr(key(id), d, mStat)
-         if (mStat /= 0) then
-            return
-         end if
-         select type(d)
-         type is (cable_t)
-
-            res => d
-         end select
+         res => elemIdToCable(id)%p
       end function
+      ! function getCableContainingElemId(id) result(res)
+      !    integer, intent(in) :: id
+      !    integer :: mStat
+      !    class(*), pointer :: d
+      !    type(cable_t), pointer :: res
+         
+      !    nullify(res)
+      !    call elemIdToCable%check_key(key(id), mStat)
+      !    if (mStat /= 0) then
+      !       return
+      !    end if
+   
+      !    call elemIdToCable%get_raw_ptr(key(id), d, mStat)
+      !    if (mStat /= 0) then
+      !       return
+      !    end if
+      !    select type(d)
+      !    type is (cable_t)
+
+      !       res => d
+      !    end select
+      ! end function
 
       function getParentPositionInMultiwire(id) result(res)
          integer, intent(in) :: id
@@ -1541,6 +1525,44 @@ contains
          call elemIdToPosition%get(key(id), value=res)
       end function
 
+      subroutine addElemIdToCableMap(map, j_cable, cable)
+         type(cable_ptr_t), dimension(:), intent(inout) :: map
+         type(json_value), pointer :: j_cable 
+         type(cable_t), target, intent(in) :: cable
+         integer, dimension(:), allocatable :: elemIds
+         integer :: i
+
+         do i = 1, size(elemIds)
+            map(elemIds(i))%p => cable
+         end do
+
+
+         ! elemIds = getCableElemIds(j_cable)
+         ! max = maxval(elemIds,1)
+         ! if (max > size(map)) then 
+         !    allocate(res(max), source = empty)
+         ! else 
+         !    allocate(res(size(map)),   source = empty)
+         ! end if   
+         ! res(1:size(map)) = map(1:size(map))
+         ! do i = 1, size(elemIds)
+         !    res(elemIds(i))%p => cable
+         ! end do
+         ! call move_alloc(from=new_dispersive%phi, to=this%phi)
+
+      end subroutine
+      ! subroutine addElemIdToCableMap(map, j_cable, cable)
+      !    type(fhash_tbl_t), intent(inout) :: map
+      !    type(json_value), pointer :: j_cable 
+      !    type(cable_t), intent(in) :: cable
+      !    integer, dimension(:), allocatable :: elemIds
+      !    integer :: i
+      !    elemIds = getCableElemIds(j_cable)
+      !    do i = 1, size(elemIds)
+      !       call map%set(key(elemIds(i)), cable, pointer=.true.)
+      !    end do
+      ! end subroutine
+
       function buildElemIdToCableMap(j_cable, cable) result(res)
          type(json_value), pointer :: j_cable 
          type(cable_t), intent(in) :: cable
@@ -1552,6 +1574,17 @@ contains
             call res%set(key(elemIds(i)), cable, pointer=.true.)
          end do
       end function
+
+      subroutine addElemIdToPositionMap(map, j_cable)
+         type(fhash_tbl_t), intent(inout) :: map
+         type(json_value), pointer :: j_cable 
+         integer, dimension(:), allocatable :: elemIds
+         integer :: i
+         elemIds = getCableElemIds(j_cable)
+         do i = 1, size(elemIds)
+            call map%set(key(elemIds(i)), i)
+         end do
+      end subroutine
 
       function buildElemIdToPositionMap(j_cable) result(res)
          type(json_value), pointer :: j_cable 

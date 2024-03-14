@@ -21,6 +21,10 @@ module parser_tools_mod
       integer :: cId
       type(coordinate_t) :: relPos
    end type
+
+   type :: cable_ptr_t
+      type(cable_t), pointer :: p
+   end type
    
 contains
 
