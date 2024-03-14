@@ -1169,7 +1169,6 @@ contains
          integer, dimension(:), allocatable :: elemIds
          type(polyline_t) :: polyline
          type(coordinate_t) :: first_pos, last_pos
-         type(json_value_ptr) :: terminal_ini, terminal_end
          type(json_value), pointer :: terminations_ini, terminations_end, row
          integer :: number_of_conductors
          integer :: termination_type
@@ -1182,50 +1181,56 @@ contains
          do i = 1, size(cables)
             elemIds = getCableElemIds(cables(i)%p)
             number_of_conductors = size(elemIds)
-
-            if (.not. this%existsAt(cables(i)%p, J_MAT_ASS_CAB_INI_TERM_ID)) then
-               write(error_unit, *) 'Error: missing terminal on cable initial side'
-            end if
-            terminal_ini = this%matTable%getId(this%getIntAt(cables(i)%p, J_MAT_ASS_CAB_INI_TERM_ID))
-            call this%core%get(terminal_ini%p, J_MAT_TERM_TERMINATIONS, terminations_ini)
-
-            if (.not. this%existsAt(cables(i)%p, J_MAT_ASS_CAB_END_TERM_ID)) then
-               write(error_unit, *) 'Error: missing terminal on cable end side'
-            end if
-            terminal_end = this%matTable%getId(this%getIntAt(cables(i)%p, J_MAT_ASS_CAB_END_TERM_ID))
-            call this%core%get(terminal_end%p, J_MAT_TERM_TERMINATIONS, terminations_end)
-
+            terminations_ini = getTerminationsOnSide(cables(i)%p, J_MAT_ASS_CAB_INI_TERM_ID)
+            terminations_end = getTerminationsOnSide(cables(i)%p, J_MAT_ASS_CAB_END_TERM_ID)
             do k = 1, number_of_conductors
-               call this%core%get_child(terminations_ini, k, row)
-               current_node%node%side = TERMINAL_NODE_SIDE_INI
-               current_node%node%termination%termination_type = readTerminationType(row)
-               current_node%node%termination%capacitance = readTerminationRLC(row,J_MAT_TERM_CAPACITANCE, default = 1e22)
-               current_node%node%termination%resistance = readTerminationRLC(row, J_MAT_TERM_RESISTANCE, default = 0.0)
-               current_node%node%termination%inductance = readTerminationRLC(row, J_MAT_TERM_INDUCTANCE, default=0.0)
-               current_node%node%conductor_in_cable = k
-               current_node%node%belongs_to_cable => getCableContainingElemId(elemIds(k))
-               aux_nodes = [aux_nodes, current_node]
-
-               call this%core%get_child(terminations_end, k, row)
-               current_node%node%side = TERMINAL_NODE_SIDE_END
-               current_node%node%termination%termination_type = readTerminationType(row)
-               current_node%node%termination%capacitance = readTerminationRLC(row,J_MAT_TERM_CAPACITANCE, default = 1e22)
-               current_node%node%termination%resistance = readTerminationRLC(row, J_MAT_TERM_RESISTANCE, default = 0.0)
-               current_node%node%termination%inductance = readTerminationRLC(row, J_MAT_TERM_INDUCTANCE, default=0.0)
-               current_node%node%conductor_in_cable = k
-               current_node%node%belongs_to_cable => getCableContainingElemId(elemIds(k))
-               aux_nodes = [aux_nodes, current_node]
-            end do
-
-            ! call this%core%get(terminal_end%p, J_MAT_TERM_TERMINATIONS, terminations_end)
-
-            do j = 1, number_of_conductors
-               polyline = this%mesh%getPolyline(elemIds(j))
-               first_pos = this%mesh%getCoordinate(polyline%coordIds(1))
-               last_pos = this%mesh%getCoordinate(polyline%coordIds(ubound(polyline%coordIds,1)))
-
+               aux_nodes = [aux_nodes, buildNode(terminations_ini, TERMINAL_NODE_SIDE_INI, k, elemIds(k))]
+               aux_nodes = [aux_nodes, buildNode(terminations_end, TERMINAL_NODE_SIDE_END, k, elemIds(k))]
             end do
          end do
+      end function
+
+      function getTerminationsOnSide(cable, label) result(res)
+         type(json_value), pointer :: cable
+         character(*), intent(in) :: label
+         type(json_value_ptr) :: terminal
+         type(json_value), pointer :: res
+
+         if (.not. this%existsAt(cable, label)) then
+            write(error_unit, *) 'Error: missing terminal on cable side'
+            res => null()
+            return
+         end if
+         terminal = this%matTable%getId(this%getIntAt(cable, label))
+         call this%core%get(terminal%p, J_MAT_TERM_TERMINATIONS, res)
+
+      end function
+
+
+
+      function buildNode(termination_list, label, index, id) result(res)
+         type(json_value), pointer :: termination_list, termination
+         integer, intent(in) :: label
+         integer, intent(in) :: index, id
+         type(polyline_t) :: polyline
+         type(aux_node_t) :: res
+         call this%core%get_child(termination_list, index, termination)
+         res%node%side = label
+         res%node%termination%termination_type = readTerminationType(termination)
+         res%node%termination%capacitance = readTerminationRLC(termination,J_MAT_TERM_CAPACITANCE, default = 1e22)
+         res%node%termination%resistance = readTerminationRLC(termination, J_MAT_TERM_RESISTANCE, default = 0.0)
+         res%node%termination%inductance = readTerminationRLC(termination, J_MAT_TERM_INDUCTANCE, default=0.0)
+         res%node%conductor_in_cable = index
+         res%node%belongs_to_cable => getCableContainingElemId(id)
+
+         polyline = this%mesh%getPolyline(id)
+         if (label == TERMINAL_NODE_SIDE_INI) then 
+            res%cId = polyline%coordIds(1)
+            res%relPos = this%mesh%getCoordinate(polyline%coordIds(1))
+         else if (label == TERMINAL_NODE_SIDE_END) then 
+            res%cId = polyline%coordIds(ubound(polyline%coordIds,1))
+            res%relPos = this%mesh%getCoordinate(polyline%coordIds(ubound(polyline%coordIds,1)))
+         end if
       end function
 
       function readTerminationType(termination) result(res)
