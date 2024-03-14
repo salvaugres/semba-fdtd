@@ -1162,33 +1162,143 @@ contains
          type(terminal_network_t), dimension(:), allocatable :: res
 
 
-         type(aux_node_t), dimension(:), allocatable :: aux_nodes
+         type(aux_node_t), dimension(:), allocatable :: aux_nodes, filtered_aux_nodes
          type(json_value_ptr), dimension(:), allocatable :: cables
          
-         integer :: i, j, k
+         integer :: i, k
          integer, dimension(:), allocatable :: elemIds
-         type(polyline_t) :: polyline
-         type(coordinate_t) :: first_pos, last_pos
-         type(json_value), pointer :: terminations_ini, terminations_end, row
-         integer :: number_of_conductors
-         integer :: termination_type
-         character(:), allocatable :: type
-         real :: r, l, c
-         type(aux_node_t) :: current_node
+         type(json_value), pointer :: terminations_ini, terminations_end
+         type(coordinate_t), dimension(:), allocatable :: networks_coordinates
+         integer, dimension(:), allocatable :: connection_ids
          allocate(aux_nodes(0))
+         allocate(networks_coordinates(0))
          cables = readCables()
 
          do i = 1, size(cables)
             elemIds = getCableElemIds(cables(i)%p)
-            number_of_conductors = size(elemIds)
             terminations_ini = getTerminationsOnSide(cables(i)%p, J_MAT_ASS_CAB_INI_TERM_ID)
             terminations_end = getTerminationsOnSide(cables(i)%p, J_MAT_ASS_CAB_END_TERM_ID)
-            do k = 1, number_of_conductors
+            do k = 1, size(elemIds)
                aux_nodes = [aux_nodes, buildNode(terminations_ini, TERMINAL_NODE_SIDE_INI, k, elemIds(k))]
                aux_nodes = [aux_nodes, buildNode(terminations_end, TERMINAL_NODE_SIDE_END, k, elemIds(k))]
+
+               call updateListOfNetworksCoordinates(networks_coordinates, elemIds(k))
+      
             end do
          end do
+         !filter by coordinate. Each coordinate corresponds to a network
+         allocate(res(size(networks_coordinates)))
+         do i = 1, size(networks_coordinates)
+            ! deallocate(filtered_aux_nodes)
+            ! allocate(filtered_aux_nodes(0))
+
+            ! deallocate(connection_ids)
+            ! allocate(connection_ids(0))
+
+
+            ! do k = 1, size(aux_nodes)
+            !    if (aux_nodes(k)%relPos == networks_coordinates(i)) then 
+            !       filtered_aux_nodes = [filtered_aux_nodes, aux_nodes(k)]
+            !       call updateListOfConnectionIds(connection_ids, aux_nodes(k)%cId)
+            !    end if
+            ! end do
+            !filtered nodes belong to the same network
+            !those with the same cId are connected
+            ! res(i) = buildNetwork(connection_ids, filtered_aux_nodes)
+            res(i) = buildNetwork(networks_coordinates(i), aux_nodes)
+         end do
+
       end function
+
+      function buildNetwork(network_coordinate, aux_nodes) result(res)
+         type(coordinate_t) :: network_coordinate
+         type(aux_node_t), dimension(:), intent(in) :: aux_nodes
+         type(aux_node_t), dimension(:), allocatable :: network_nodes
+         integer, dimension(:), allocatable :: node_ids
+         integer :: i         
+         type(terminal_network_t) :: res
+
+         network_nodes = filterNetworkNodes(network_coordinate, aux_nodes)
+         node_ids = buildListOfNodeIds(network_nodes)
+
+         do i = 1, size(node_ids)
+            call res%add_connection(buildConnection(node_ids(i), network_nodes))
+         end do
+
+
+      end function   
+
+      function buildListOfNodeIds(network_nodes) result(res)
+         type(aux_node_t), dimension(:), intent(in) :: network_nodes
+         integer, dimension(:), allocatable :: res
+         integer :: i
+         allocate(res(0))
+         do i = 1, size(network_nodes) 
+            if (findloc(res, network_nodes(i)%cId, 1) == 0) res = [res, network_nodes(i)%cId]
+         end do
+      end function   
+
+      function filterNetworkNodes(network_coordinate, aux_nodes) result(res)
+         type(coordinate_t), intent(in) :: network_coordinate
+         type(aux_node_t), dimension(:), intent(in) :: aux_nodes
+         type(aux_node_t), dimension(:), allocatable :: res
+         integer :: i
+         allocate(res(0))
+         do i = 1, size(aux_nodes)
+            if (aux_nodes(i)%relPos == network_coordinate) then 
+               res = [res, aux_nodes(i)]
+            end if
+         end do
+      end function
+
+      function buildConnection(node_id, network_nodes) result (res)
+         integer, intent(in) :: node_id
+         type(aux_node_t), dimension(:), intent(in) :: network_nodes
+         type(terminal_connection_t) :: res
+         integer :: i
+         do i = 1, size(network_nodes)
+            if (network_nodes(i)%cId == node_id) then 
+               call res%add_node(network_nodes(i)%node)
+            end if
+         end do
+      end function
+
+      subroutine updateListOfConnectionIds(ids, id)
+         integer, dimension(:), intent(inout) :: ids
+         integer, intent(in) :: id
+         if (findloc(ids, id, 1) == 0) ids = [ids, id]
+      end subroutine
+
+      subroutine updateListOfNetworksCoordinates(coordinates, conductor_index)
+         type(coordinate_t), dimension(:), intent(inout) :: coordinates
+         integer, intent(in) :: conductor_index
+         type (polyline_t) ::polyline
+         integer :: i
+         logical :: found_ini, found_end
+         type(coordinate_t) :: coord_ini, coord_end
+
+         found_ini = .false.
+         found_end = .false.
+         polyline = this%mesh%getPolyline(conductor_index)
+         coord_ini = this%mesh%getCoordinate(polyline%coordIds(1))
+         coord_end = this%mesh%getCoordinate(polyline%coordIds(ubound(polyline%coordIds,1)))
+         
+         if (size(coordinates) /= 0) then 
+            do i = 1, size(coordinates)
+               if (coordinates(i) == coord_ini) then
+                  found_ini = .true.
+               end if
+               if (coordinates(i) == coord_end) then
+                  found_end = .true.
+               end if
+            end do
+         end if
+
+         if (.not. found_ini) coordinates = [coordinates, coord_ini]
+         if (.not. found_end) coordinates = [coordinates, coord_end]
+
+
+      end subroutine
 
       function getTerminationsOnSide(cable, label) result(res)
          type(json_value), pointer :: cable

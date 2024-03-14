@@ -57,6 +57,7 @@ module mtln_types_mod
        private
        procedure :: terminal_connection_eq
        generic, public :: operator(==) => terminal_connection_eq
+       procedure, public :: add_node => terminal_connection_add_node
     end type
  
     type :: terminal_network_t
@@ -65,6 +66,7 @@ module mtln_types_mod
        private
        procedure :: terminal_network_eq
        generic, public :: operator(==) => terminal_network_eq
+       procedure, public :: add_connection => terminal_network_add_connection
     end type
  
     type, public :: transfer_impedance_per_meter_t
@@ -256,5 +258,19 @@ module mtln_types_mod
       terminal_network_eq = &
          all(a%connections == b%connections)
     end function
+
+    subroutine terminal_connection_add_node(this, node)
+      class(terminal_connection_t) :: this
+      type(terminal_node_t) :: node
+      if (.not. allocated(this%nodes))  allocate(this%nodes(0))
+      this%nodes = [this%nodes, node]
+    end subroutine
+
+    subroutine terminal_network_add_connection(this, connection)
+      class(terminal_network_t) :: this
+      type(terminal_connection_t) :: connection
+      if (.not. allocated(this%connections))  allocate(this%connections(0))
+      this%connections = [this%connections, connection]
+    end subroutine
 
  end module
