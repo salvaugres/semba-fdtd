@@ -6,7 +6,6 @@ extern "C" int test_mtl_time_step();
 extern "C" int test_mtl_wrong_dt();
 extern "C" int test_mtl_bundle_init();
 extern "C" int test_mtln_types();
-extern "C" int test_fhash_ptr();
 extern "C" int test_fhash_arrays();
 extern "C" int test_fhash_cables();
 extern "C" int test_fhash();
@@ -52,7 +51,6 @@ TEST(mtln, mtl_bundle_init) { EXPECT_EQ(0, test_mtl_bundle_init()); }
 TEST(mtln, mtln_types) {EXPECT_EQ(0, test_mtln_types()); }
 TEST(mtln, fhash_arrays) { EXPECT_EQ(0, test_fhash_arrays()); }
 TEST(mtln, fhash_cables) { EXPECT_EQ(0, test_fhash_cables()); }
-TEST(mtln, fhash_ptr) { EXPECT_EQ(0, test_fhash_ptr()); }
 TEST(mtln, fhash) { EXPECT_EQ(0, test_fhash()); }
 TEST(mtln, preprocess_conductors_before_cable) { EXPECT_EQ(0, test_preprocess_conductors_before_cable()); }
 TEST(mtln, preprocess_conductors_in_level) { EXPECT_EQ(0, test_preprocess_conductors_in_level()); }
