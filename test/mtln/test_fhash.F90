@@ -2,7 +2,7 @@ integer function test_fhash() bind(C) result(error_cnt)
 
     use mtl_bundle_mod
     use fhash, only: fhash_tbl_t, key=>fhash_key
-    ! , key=>fhash_key, fhash_iter_t, fhash_key_t
+    
 
     implicit none
 

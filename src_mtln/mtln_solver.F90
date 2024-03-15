@@ -1,6 +1,5 @@
 module mtln_solver_mod 
 
-    use types_mod, only: bundle_iter_t
     use mtl_bundle_mod
     use network_manager_mod
     use preprocess_mod
@@ -80,7 +79,6 @@ contains
         call this%advanceBundlesVoltage()
         call this%advanceNWVoltage()
         call this%advanceBundlesCurrent()
-        ! call this%updateNWCurrent()
 
         call this%advanceTime()
         call this%updateProbes()
@@ -96,7 +94,6 @@ contains
         call this%advanceBundlesVoltage()
         call this%advanceNWVoltage()
         call this%advanceBundlesCurrent()
-        ! call this%updateNWCurrent()
 
         call this%advanceTime()
         call this%updateProbes()
