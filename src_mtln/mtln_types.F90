@@ -99,7 +99,7 @@ module mtln_types_mod
        real, allocatable, dimension(:) :: step_size
        type(transfer_impedance_per_meter_t) :: transfer_impedance
        type(cable_t), pointer :: parent_cable => null()
-       integer :: conductor_in_parent
+       integer :: conductor_in_parent = -1
        type(connector_t), pointer :: initial_connector => null()
        type(connector_t), pointer :: end_connector => null()
     contains
@@ -224,7 +224,6 @@ module mtln_types_mod
       probe_eq = &
          (a%index == b%index) .and. &
          (a%probe_type == b%probe_type)! .and. &
-         ! (associated(a%attached_to_cable, b%attached_to_cable))
 
          if (.not. associated(a%attached_to_cable) .and. .not. associated(b%attached_to_cable)) then 
             probe_eq = probe_eq .and. .true.
@@ -241,7 +240,6 @@ module mtln_types_mod
       class(terminal_node_t), intent(in) :: a, b
 
       terminal_node_eq = &
-         ! (associated(a%belongs_to_cable, b%belongs_to_cable)) .and. &
          (a%conductor_in_cable == b%conductor_in_cable) .and. &
          (a%side == b%side) .and. &
          (a%termination == b%termination)

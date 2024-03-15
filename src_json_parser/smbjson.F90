@@ -1079,63 +1079,39 @@ contains
       class(parser_t) :: this
       type(Desplazamiento), intent(in) :: grid
       type(mtln_t) :: res
-      type(fhash_tbl_t) :: elemIdToPosition
-      type(cable_ptr_t), dimension(:), pointer :: elemIdToCable
+      type(fhash_tbl_t) :: elemIdToPosition, elemIdToCable
       type(json_value_ptr), dimension(:), allocatable :: cables
-      type(cable_t), pointer :: cable_test
-      integer :: maxElemId
+      integer :: nWs
+      
       cables = readCables()
-      maxElemId = findMaxElemId(cables)
-      ! check if problem type is mtln.
-      ! if there are no multiwires, return
       block
-         integer :: nW = 0 , nMW = 0
-         integer :: i = 0
-         if (size(cables) /= 0) then
-            do i = 1, size(cables)
-               if (isWire(cables(i)%p)) then
-                  nW = nW + 1
-               else if (isMultiwire(cables(i)%p)) then
-                  nMW = nMW +1
-               end if
-            end do
-         end if
-         if (nMW == 0 .and. nW /= 0) return
+         integer :: nW, nMW
+         nMW = countNumberOfMultiwires(cables)
+         if (nMW == 0) return
+         nW =  countNumberOfWires(cables)
+         nWs = nW + nMW
       end block
 
-      allocate(elemIdToCable(maxElemId))
-
-      ! Pre-allocates cables
-      allocate (res%cables(0))
+      allocate (res%cables(nWs))
       block
          logical :: is_read
          integer :: i, j,  nC = 0
          type(cable_t) :: read_cable
          if (size(cables) /= 0) then
             do i = 1, size(cables)
-               ! if (isMultiwire(cables(i)%p)) then
                if (isWire(cables(i)%p) .or. isMultiwire(cables(i)%p)) then
                   is_read = .true.
                   read_cable = readMTLNCable(cables(i)%p, is_read)
                   if (is_read) then
-                     res%cables = [res%cables, read_cable]
-                     call addElemIdToCableMap(elemIdToCable, cables(i)%p, res%cables(size(res%cables)))
-                     ! call addElemIdToCableMap(elemIdToCable, cables(i)%p, res%cables(ubound(res%cables,1)))
+                     nC = nC + 1
+                     res%cables(nC) = read_cable
+                     call addElemIdToCableMap(elemIdToCable, cables(i)%p, res%cables(nC))
                      call addElemIdToPositionMap(elemIdToPosition, cables(i)%p)
-                     ! elemIdToCable = buildElemIdToCableMap(cables(i)%p, res%cables(ubound(res%cables,1)))
-                     ! elemIdToPosition = buildElemIdToPositionMap(cables(i)%p)
                   end if
                end if
             end do
          end if
       end block
-
-      cable_test => getCableContainingElemId(1)
-      cable_test => getCableContainingElemId(2)
-      cable_test => getCableContainingElemId(3)
-      cable_test => getCableContainingElemId(5)
-      cable_test => getCableContainingElemId(6)
-      cable_test => getCableContainingElemId(7)
 
       block
          integer :: i, j, parentId
@@ -1155,17 +1131,44 @@ contains
          end if
       end block
 
-      cable_test => getCableContainingElemId(1)
-      cable_test => getCableContainingElemId(2)
-      cable_test => getCableContainingElemId(3)
-
       res%probes = readWireProbes()
-
-
       res%networks = buildNetworks()
 
    contains
-      
+               
+      function countNumberOfMultiwires(cables) result (res)
+         type(json_value_ptr), dimension(:), intent(in) :: cables
+         type(json_value_ptr) :: material
+         integer :: i
+         integer :: res
+         res = 0
+         if (size(cables) /= 0) then
+            do i = 1, size(cables)
+               if (isMultiwire(cables(i)%p)) then
+                  res = res + 1
+               end if
+            end do
+         end if
+      end function
+
+      function countNumberOfWires(cables) result (res)
+         type(json_value_ptr), dimension(:), intent(in) :: cables
+         type(json_value_ptr) :: material
+         integer :: i
+         integer :: res
+         res = 0
+         if (size(cables) /= 0) then
+            do i = 1, size(cables)
+               if (isWire(cables(i)%p)) then
+                  material = this%matTable%getId(this%getIntAt(cables(i)%p, J_MATERIAL_ID))
+                  if(this%existsAt(material%p, J_MAT_WIRE_REF_CAPACITANCE)) then
+                     res = res + 1
+                  end if
+               end if
+            end do
+         end if
+      end function
+
       function findMaxElemId(cables) result(res)
          type(json_value_ptr), dimension(:), intent(in) :: cables
          integer :: i, m
@@ -1370,7 +1373,6 @@ contains
          res%node%conductor_in_cable = index
          res%node%belongs_to_cable => getCableContainingElemId(id)
          
-         ! this%getIntAt(polylines(j)%p, J_ID)
          polyline = this%mesh%getPolyline(id)
          
          if (label == TERMINAL_NODE_SIDE_INI) then 
@@ -1487,31 +1489,26 @@ contains
 
       function getCableContainingElemId(id) result(res)
          integer, intent(in) :: id
+         integer :: mStat
+         class(*), pointer :: d
          type(cable_t), pointer :: res
-         res => elemIdToCable(id)%p
-      end function
-      ! function getCableContainingElemId(id) result(res)
-      !    integer, intent(in) :: id
-      !    integer :: mStat
-      !    class(*), pointer :: d
-      !    type(cable_t), pointer :: res
          
-      !    nullify(res)
-      !    call elemIdToCable%check_key(key(id), mStat)
-      !    if (mStat /= 0) then
-      !       return
-      !    end if
+         nullify(res)
+         call elemIdToCable%check_key(key(id), mStat)
+         if (mStat /= 0) then
+            return
+         end if
    
-      !    call elemIdToCable%get_raw_ptr(key(id), d, mStat)
-      !    if (mStat /= 0) then
-      !       return
-      !    end if
-      !    select type(d)
-      !    type is (cable_t)
+         call elemIdToCable%get_raw_ptr(key(id), d, mStat)
+         if (mStat /= 0) then
+            return
+         end if
+         select type(d)
+         type is (cable_t)
 
-      !       res => d
-      !    end select
-      ! end function
+            res => d
+         end select
+      end function
 
       function getParentPositionInMultiwire(id) result(res)
          integer, intent(in) :: id
@@ -1526,54 +1523,16 @@ contains
       end function
 
       subroutine addElemIdToCableMap(map, j_cable, cable)
-         type(cable_ptr_t), dimension(:), intent(inout) :: map
-         type(json_value), pointer :: j_cable 
-         type(cable_t), target, intent(in) :: cable
-         integer, dimension(:), allocatable :: elemIds
-         integer :: i
-
-         do i = 1, size(elemIds)
-            map(elemIds(i))%p => cable
-         end do
-
-
-         ! elemIds = getCableElemIds(j_cable)
-         ! max = maxval(elemIds,1)
-         ! if (max > size(map)) then 
-         !    allocate(res(max), source = empty)
-         ! else 
-         !    allocate(res(size(map)),   source = empty)
-         ! end if   
-         ! res(1:size(map)) = map(1:size(map))
-         ! do i = 1, size(elemIds)
-         !    res(elemIds(i))%p => cable
-         ! end do
-         ! call move_alloc(from=new_dispersive%phi, to=this%phi)
-
-      end subroutine
-      ! subroutine addElemIdToCableMap(map, j_cable, cable)
-      !    type(fhash_tbl_t), intent(inout) :: map
-      !    type(json_value), pointer :: j_cable 
-      !    type(cable_t), intent(in) :: cable
-      !    integer, dimension(:), allocatable :: elemIds
-      !    integer :: i
-      !    elemIds = getCableElemIds(j_cable)
-      !    do i = 1, size(elemIds)
-      !       call map%set(key(elemIds(i)), cable, pointer=.true.)
-      !    end do
-      ! end subroutine
-
-      function buildElemIdToCableMap(j_cable, cable) result(res)
+         type(fhash_tbl_t), intent(inout) :: map
          type(json_value), pointer :: j_cable 
          type(cable_t), intent(in) :: cable
          integer, dimension(:), allocatable :: elemIds
-         type(fhash_tbl_t) :: res
          integer :: i
          elemIds = getCableElemIds(j_cable)
          do i = 1, size(elemIds)
-            call res%set(key(elemIds(i)), cable, pointer=.true.)
+            call map%set(key(elemIds(i)), cable, pointer=.true.)
          end do
-      end function
+      end subroutine
 
       subroutine addElemIdToPositionMap(map, j_cable)
          type(fhash_tbl_t), intent(inout) :: map
@@ -1586,23 +1545,12 @@ contains
          end do
       end subroutine
 
-      function buildElemIdToPositionMap(j_cable) result(res)
-         type(json_value), pointer :: j_cable 
-         integer, dimension(:), allocatable :: elemIds
-         type(fhash_tbl_t) :: res
-         integer :: i
-         elemIds = getCableElemIds(j_cable)
-         do i = 1, size(elemIds)
-            call res%set(key(elemIds(i)), i)
-         end do
-      end function
-
       function getCableElemIds(cable) result(res)
          type(json_value), pointer :: cable
          integer, dimension(:), allocatable :: res
-
          res = this%getIntsAt(cable, J_ELEMENTIDS)
       end function
+
 
       function readMTLNCable(j_cable, is_read) result(res)
          type(json_value), pointer :: j_cable
