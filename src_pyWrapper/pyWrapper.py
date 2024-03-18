@@ -1,7 +1,6 @@
 import subprocess
 import json
 
-
 class pyWrapper():
     def __init__(self, file_name, path_to_exe):
         self.file_name = file_name
@@ -9,7 +8,7 @@ class pyWrapper():
         self.input_file = open(self.file_name)
     
     def run(self):
-        self.output = subprocess.run([self.path_to_exe, "-i",self.file_name])
+        self.output = subprocess.run([self.path_to_exe+"/semba-fdtd", "-i",self.file_name])
     
     
     def createJsonDict(self):
@@ -20,3 +19,6 @@ class pyWrapper():
             return True
         else:
             return False
+        
+    def closeOpenFiles(self):
+        self.input_file.close()
