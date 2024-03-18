@@ -268,9 +268,9 @@ contains
       res%mx1 = 0
       res%my1 = 0
       res%mz1 = 0
-      res%mx2 = res%nX-1
-      res%my2 = res%nY-1
-      res%mz2 = res%nZ-1
+      res%mx2 = res%nX
+      res%my2 = res%nY
+      res%mz2 = res%nZ
 
 
    contains

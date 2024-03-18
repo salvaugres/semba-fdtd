@@ -44,11 +44,11 @@ contains
       expected%despl%desY = 1.0
       expected%despl%desZ = 0.03
       expected%despl%mx1 = 0
-      expected%despl%mx2 = 1
+      expected%despl%mx2 = 2
       expected%despl%my1 = 0
-      expected%despl%my2 = 1
+      expected%despl%my2 = 2
       expected%despl%mz1 = 0
-      expected%despl%mz2 = 19
+      expected%despl%mz2 = 20
 
       ! Expected boundaries.
       expected%front%tipoFrontera(:) = F_MUR
