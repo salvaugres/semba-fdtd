@@ -20,5 +20,5 @@ class pyWrapper():
         else:
             return False
         
-    def closeOpenFiles(self):
-        self.input_file.close()
+    # def closeOpenFiles(self):
+    #     self.input_file.close()
