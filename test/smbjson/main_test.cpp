@@ -14,6 +14,7 @@ extern "C" int test_read_planewave();
 extern "C" int test_read_holland1981();
 extern "C" int test_read_currentinjection();
 extern "C" int test_read_shieldedpair();
+extern "C" int test_read_sphere();
 
 int main(int argc, char **argv) {
     ::testing::InitGoogleTest(&argc, argv);
@@ -34,3 +35,4 @@ TEST(read, planewave)         { EXPECT_EQ(0, test_read_planewave()); }
 TEST(read, holland1981)       { EXPECT_EQ(0, test_read_holland1981()); }
 TEST(read, currentinjection)  { EXPECT_EQ(0, test_read_currentinjection()); }
 TEST(read, shieldedpair)      { EXPECT_EQ(0, test_read_shieldedpair()); }
+TEST(read, sphere)            { EXPECT_EQ(0, test_read_sphere()); }

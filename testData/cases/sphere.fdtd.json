@@ -2,7 +2,7 @@
     "_format": "FDTD Input file",
     "general": {
         "timeStep": 3.85167e-11,
-        "numberOfSteps": 0
+        "numberOfSteps": 100
     },
     "boundary": {
         "all": {
@@ -20,9 +20,9 @@
                 80
             ],
             "steps": {
-                "x": 25.0,
-                "y": 25.0,
-                "z": 25.0
+                "x": 25e-3,
+                "y": 25e-3,
+                "z": 25e-3
             }
         },
         "coordinates": [],
