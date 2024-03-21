@@ -73,10 +73,6 @@ contains
       expected%plnSrc%nC_max = 1
 
       ! Expected probes
-      ! oldSonda
-      expected%oldSONDA%n_probes = 0
-      expected%oldSONDA%n_probes_max = 0
-      allocate(expected%oldSONDA%probes(0))
       ! sonda
       expected%Sonda%length = 1
       expected%Sonda%length_max = 1

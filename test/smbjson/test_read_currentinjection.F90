@@ -111,17 +111,8 @@ contains
       expected%nodSrc%NodalSource(1)%c2P(1)%yc = 1.0
       expected%nodSrc%NodalSource(1)%c2P(1)%zc = 0.0
       ! Expected probes
-      ! oldSonda
-      expected%oldSONDA%n_probes = 0
-      expected%oldSONDA%n_probes_max = 0
-      allocate(expected%oldSONDA%probes(0))
       
-      ! sonda
-      expected%Sonda%len_cor_max = 0
-      expected%Sonda%length = 0
-      expected%Sonda%length_max = 0
-      allocate(expected%Sonda%collection(0))
-      
+      ! sonda      
       ! bloqueprobes
       expected%BloquePrb%n_bp = 2
       expected%BloquePrb%n_bp_max = 2
