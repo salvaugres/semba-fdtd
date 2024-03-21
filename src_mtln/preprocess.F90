@@ -274,11 +274,18 @@ contains
         type(cable_t), dimension(:), intent(in) :: cables
         type(cable_t), dimension(:), allocatable :: res
         integer :: i
-        allocate(res(0))
+        integer, dimension(:), allocatable :: parent_ids
+
+        allocate(parent_ids(0))
         do i = 1, size(cables)
             if (associated(cables(i)%parent_cable) .eqv. .false.) then 
-                res = [res, cables(i)]
+                parent_ids = [parent_ids, i]
             end if
+        end do
+
+        allocate(res(size(parent_ids)))
+        do i = 1, size(parent_ids)
+            res(i) = cables((parent_ids(i)))
         end do
     end function
 
@@ -289,10 +296,10 @@ contains
         type(cable_t), dimension(:), allocatable :: parents
         integer :: i
 
-        allocate(cable_bundles(0))
         parents = findParentCables(cables)
+        allocate(cable_bundles(size(parents)))
         do i = 1, size(parents)
-            cable_bundles = [cable_bundles, buildCableBundleFromParent(parents(i), cables)]
+            cable_bundles(i) = buildCableBundleFromParent(parents(i), cables)
         end do
 
     end function

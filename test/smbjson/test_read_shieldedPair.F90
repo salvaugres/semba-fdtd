@@ -249,7 +249,8 @@ contains
       expected%mtln%networks(2)%connections(2)%nodes(1)%termination%termination_type = TERMINATION_SERIES
       expected%mtln%networks(2)%connections(2)%nodes(1)%termination%resistance = 50.0
 
-      
+      !connectors
+      allocate(expected%mtln%connectors(0))
 
    end function
 end function

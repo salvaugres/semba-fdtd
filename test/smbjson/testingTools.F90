@@ -58,6 +58,7 @@ contains
       if (.not. all(ex%mtln%cables == pr%mtln%cables)) call testFails(err, 'Expected and read mtln "cables" do not match')
       if (.not. all(ex%mtln%probes == pr%mtln%probes)) call testFails(err, 'Expected and read mtln "probes" do not match')
       if (.not. all(ex%mtln%networks == pr%mtln%networks)) call testFails(err, 'Expected and read mtln "networks" do not match')
+      if (.not. all(ex%mtln%connectors == pr%mtln%connectors)) call testFails(err, 'Expected and read mtln "networks" do not match')
       if (err == 0) write(*,*) "Read and expected inputs are equal."      
 
    end subroutine
