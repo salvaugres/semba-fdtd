@@ -1075,18 +1075,21 @@ contains
       ! TODO
    end function
 
-   function readMTLN(this, grid) result (res)
+   function readMTLN(this, grid) result (mtln_res)
       class(parser_t) :: this
       type(Desplazamiento), intent(in) :: grid
-      type(mtln_t) :: res
-      type(fhash_tbl_t) :: elemIdToPosition, elemIdToCable
+      type(mtln_t) :: mtln_res
+      type(fhash_tbl_t) :: elemIdToPosition, elemIdToCable, connIdToConnector
       type(json_value_ptr), dimension(:), allocatable :: cables
       integer :: nWs
       
-      res%time_step = this%getRealAt(this%root, J_GENERAL//'.'//J_GEN_TIME_STEP)
-      res%number_of_steps = this%getRealAt(this%root, J_GENERAL//'.'//J_GEN_NUMBER_OF_STEPS)
+      mtln_res%time_step = this%getRealAt(this%root, J_GENERAL//'.'//J_GEN_TIME_STEP)
+      mtln_res%number_of_steps = this%getRealAt(this%root, J_GENERAL//'.'//J_GEN_NUMBER_OF_STEPS)
 
       cables = readCables()
+      mtln_res%connectors = readConnectors()
+      call addConnIdToConnectorMap(connIdToConnector, mtln_res%connectors)
+
       block
          integer :: nW, nMW
          nMW = countNumberOfMultiwires(cables)
@@ -1095,7 +1098,7 @@ contains
          nWs = nW + nMW
       end block
 
-      allocate (res%cables(nWs))
+      allocate (mtln_res%cables(nWs))
       block
          logical :: is_read
          integer :: i, j,  nC = 0
@@ -1107,8 +1110,8 @@ contains
                   read_cable = readMTLNCable(cables(i)%p, is_read)
                   if (is_read) then
                      nC = nC + 1
-                     res%cables(nC) = read_cable
-                     call addElemIdToCableMap(elemIdToCable, cables(i)%p, res%cables(nC))
+                     mtln_res%cables(nC) = read_cable
+                     call addElemIdToCableMap(elemIdToCable, cables(i)%p, mtln_res%cables(nC))
                      call addElemIdToPositionMap(elemIdToPosition, cables(i)%p)
                   end if
                end if
@@ -1123,22 +1126,53 @@ contains
             do i = 1, size(cables)
                if (isMultiwire(cables(i)%p)) then 
                   parentId = this%getIntAt(cables(i)%p, J_MAT_ASS_CAB_CONTAINED_WITHIN_ID)
-                  res%cables(j)%parent_cable => getCableContainingElemId(parentId)
-                  res%cables(j)%conductor_in_parent = getParentPositionInMultiwire(parentId)
+                  mtln_res%cables(j)%parent_cable => getCableContainingElemId(parentId)
+                  mtln_res%cables(j)%conductor_in_parent = getParentPositionInMultiwire(parentId)
                else if (isWire(cables(i)%p)) then 
-                  res%cables(j)%parent_cable => null()
-                  res%cables(j)%conductor_in_parent = 0
+                  mtln_res%cables(j)%parent_cable => null()
+                  mtln_res%cables(j)%conductor_in_parent = 0
                end if
                j = j + 1
             end do
          end if
       end block
 
-      res%probes = readWireProbes()
-      res%networks = buildNetworks()
+      mtln_res%probes = readWireProbes()
+      mtln_res%networks = buildNetworks()
 
    contains
                
+      function readConnectors() result(res)
+         type(connector_t), target, dimension(:), allocatable :: res
+         type(json_value), pointer :: mat, z
+
+         type(json_value_ptr), dimension(:), allocatable :: connectors
+         integer :: i, id
+         call this%core%get(this%root, J_MATERIALS, mat)
+         connectors = this%jsonValueFilterByKeyValue(mat, J_TYPE, J_MAT_TYPE_CONNECTOR)
+         allocate(res(size(connectors)))
+         if (size(connectors) /= 0) then 
+            do i = 1, size(connectors)
+               ! id = this%getIntAt(connectors(i)%p, J_ID)
+               res(i)%id = this%getIntAt(connectors(i)%p, J_ID)
+               if (this%existsAt(connectors(i)%p, J_MAT_CONN_RESISTANCES)) then 
+                  res(i)%resistances = this%getRealsAt(connectors(i)%p, J_MAT_CONN_RESISTANCES)
+               else 
+                  allocate(res(i)%resistances(0))
+               end if
+
+               if (this%existsAt(connectors(i)%p, J_MAT_CONN_TRANSFER_IMPEDANCE)) then 
+                  call this%core%get(connectors(i)%p, J_MAT_MULTIWIRE_TRANSFER_IMPEDANCE,  z)
+                  res(i)%transfer_impedance_per_meter = readTransferImpedance(z)
+               else 
+                  res(i)%transfer_impedance_per_meter = noTransferImpedance()
+               end if
+
+            end do
+         end if
+
+      end function
+
       function countNumberOfMultiwires(cables) result (res)
          type(json_value_ptr), dimension(:), intent(in) :: cables
          type(json_value_ptr) :: material
@@ -1514,6 +1548,43 @@ contains
          end select
       end function
 
+      function findConnectorWithId(j_cable, side) result(res)
+         type(json_value), pointer :: j_cable
+         character(*), intent(in) :: side
+         integer :: conn_id
+         type(connector_t), pointer :: res
+         if (this%existsAt(j_cable, side)) then 
+            conn_id = this%getIntAt(j_cable, side)
+            res => getConnectorWithIdFromMap(conn_id)
+         else
+            res => null()
+         end if
+      end function
+
+      function getConnectorWithIdFromMap(id) result(res)
+         integer, intent(in) :: id
+         integer :: mStat
+         class(*), pointer :: d
+         type(connector_t), pointer :: res
+
+         nullify(res)
+         call connIdToConnector%check_key(key(id), mStat)
+         if (mStat /= 0) then
+            res => null()
+            return
+         end if
+   
+         call connIdToConnector%get_raw_ptr(key(id), d, mStat)
+         if (mStat /= 0) then
+            res => null()
+            return
+         end if
+         select type(d)
+         type is (connector_t)
+            res => d
+         end select
+      end function
+
       function getParentPositionInMultiwire(id) result(res)
          integer, intent(in) :: id
          integer :: mStat
@@ -1525,6 +1596,17 @@ contains
          end if
          call elemIdToPosition%get(key(id), value=res)
       end function
+
+      subroutine addConnIdToConnectorMap(map, conn)
+         type(fhash_tbl_t), intent(inout) :: map
+         type(connector_t), dimension(:), intent(in) :: conn
+         integer :: i
+         if (size(conn) == 0) return
+         do i = 1, size(conn)
+            call map%set(key(conn(i)%id), conn(i), pointer=.true.)
+         end do
+      end subroutine
+
 
       subroutine addElemIdToCableMap(map, j_cable, cable)
          type(fhash_tbl_t), intent(inout) :: map
@@ -1594,12 +1676,46 @@ contains
             write(error_unit, *) "Error reading cable: is neither wire nor multiwire"
          end if
 
+         ! if (.not.associated(buildConnector(j_cable, J_MAT_ASS_CAB_INI_CONN_ID), null())) then
+         !    mtln_res%connectors         
+         res%initial_connector => findConnectorWithId(j_cable, J_MAT_ASS_CAB_INI_CONN_ID)
+         res%end_connector => findConnectorWithId(j_cable, J_MAT_ASS_CAB_END_CONN_ID)
+
          ! res%initial_connector => buildConnector(j_cable, J_MAT_ASS_CAB_INI_CONN_ID)
          ! res%end_connector => buildConnector(j_cable, J_MAT_ASS_CAB_END_CONN_ID)
          res%transfer_impedance = buildTransferImpedance(material)
          
 
       end function
+
+      ! function findConnectorWithId(j_cable, side) result(res)
+      !    type(json_value), pointer :: j_cable
+      !    character(*), intent(in) :: side
+      !    type(connector_t), pointer :: res
+      !    type(connector_t), target :: conn
+      !    integer :: conn_id
+      !    logical :: found 
+      !    integer :: i
+      !    found = .false.
+      !    if (this%existsAt(j_cable, side)) then 
+      !       conn_id = this%getIntAt(j_cable, side)
+      !       block
+      !          integer :: i
+      !          do i = 1, size(mtln_res%connectors)
+      !             if (mtln_res%connectors(i)%id == conn_id) then 
+      !                allocate(res, mtln_res%connectors(i))
+      !                ! res => mtln_res%connectors(i)
+      !                ! conn = mtln_res%connectors(i)
+      !                ! res => conn
+      !                exit
+      !             end if
+      !          end do
+      !       end block
+      !    else
+      !       res => null()
+      !    end if
+
+      ! end function
 
       function buildTransferImpedance(mat) result(res)
          type(json_value_ptr):: mat
@@ -1633,6 +1749,7 @@ contains
             if (this%existsAt(conn%p, J_MAT_CONN_RESISTANCES)) then
                res_conn%resistances = this%getRealsAt(conn%p, J_MAT_CONN_RESISTANCES)
             else 
+               allocate(res_conn%resistances(0))
                write(error_unit, *) "Error reading connector: no resistances label found"
             end if
 
@@ -1807,9 +1924,9 @@ contains
       function noTransferImpedance() result(res)
          type(transfer_impedance_per_meter_t) :: res
          character(len=:), allocatable :: direction
-         res%resistive_term = 0.0
-         res%inductive_term = 0.0
-         res%direction = 0
+         ! res%resistive_term = 0.0
+         ! res%inductive_term = 0.0
+         ! res%direction = 0
          allocate(res%poles(0), res%residues(0))
       end function
 

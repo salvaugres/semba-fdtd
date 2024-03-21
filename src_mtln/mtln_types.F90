@@ -82,6 +82,7 @@ module mtln_types_mod
     end type
  
     type :: connector_t
+      integer :: id
        real, dimension(:), allocatable :: resistances
        type(transfer_impedance_per_meter_t) :: transfer_impedance_per_meter
     contains
@@ -198,6 +199,7 @@ module mtln_types_mod
       class(connector_t), intent(in) :: a, b
       logical :: l 
       connector_eq = &
+         (a%id == b%id) .and. &
          (all(a%resistances == b%resistances)) .and. &
          (a%transfer_impedance_per_meter == b%transfer_impedance_per_meter)
     end function
