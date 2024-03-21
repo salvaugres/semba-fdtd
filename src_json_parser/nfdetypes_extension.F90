@@ -116,15 +116,15 @@ contains
       allocate(pD%boxSrc)
       !
       allocate(pD%Sonda)
-      expected%Sonda%len_cor_max = 0
-      expected%Sonda%length = 0
-      expected%Sonda%length_max = 0
-      allocate(expected%Sonda%collection(0))
+      pD%Sonda%len_cor_max = 0
+      pD%Sonda%length = 0
+      pD%Sonda%length_max = 0
+      allocate(pD%Sonda%collection(0))
       !
       allocate(pD%oldSONDA)
-      allocate(expected%oldSONDA%probes(0))
-      expected%oldSONDA%n_probes = 0
-      expected%oldSONDA%n_probes_max = 0
+      allocate(pD%oldSONDA%probes(0))
+      pD%oldSONDA%n_probes = 0
+      pD%oldSONDA%n_probes_max = 0
 
       allocate(pD%BloquePrb)
       allocate(pD%BloquePrb%bp(0))
