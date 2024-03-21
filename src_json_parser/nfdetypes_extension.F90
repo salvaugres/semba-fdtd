@@ -129,6 +129,8 @@ contains
       allocate(pD%sWires)
       allocate(pD%tSlots)
 
+      allocate(pD%mtln)
+
    end subroutine
 
    elemental logical function parseador_eq(a, b)

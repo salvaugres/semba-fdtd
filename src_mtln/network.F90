@@ -1,21 +1,19 @@
 module network_mod
 
-    use fhash, only: fhash_tbl_t, key=>fhash_key, fhash_key_t
     use mtl_bundle_mod
     use mtln_types_mod, parsed_probe_t => probe_t, parsed_mtln_t => mtln_t
     use circuit_mod, only: string_t
     implicit none
 
     type node_t
-        real, pointer :: v
-        real, pointer :: i
-        real :: is_now = 0
-        real :: is_prev = 0
         character(len=:), allocatable :: name
         character(len=:), allocatable :: source
         real :: line_c_per_meter
-        real :: r_from_line
         real :: step
+        real :: v
+        real :: i
+        integer :: bundle_number, conductor_number, v_index, i_index
+        integer :: side
     end type
 
 
@@ -23,7 +21,6 @@ module network_mod
         integer :: number_of_nodes = 0
         type(node_t), dimension(:), allocatable :: nodes
         character(256), dimension(:), allocatable :: description
-        ! type(circuit_t), pointer :: circuit
     contains
 
     end type network_t
@@ -65,4 +62,4 @@ contains
 
 
 
-end module network_mod
+end module

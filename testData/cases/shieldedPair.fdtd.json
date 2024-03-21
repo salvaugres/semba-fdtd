@@ -59,9 +59,9 @@
 	"mesh": {
 		"grid": {
 			"numberOfCells": [2, 2, 20],
-			"steps": {"x": [1.0], "y": [1.0], "z": [0.00540]}
+			"steps": {"x": [1.0], "y": [1.0], "z": [0.03]}
 		},
-		"relativeCoordinates": [
+		"coordinates": [
 			{"id": 1, "relativePosition": [1, 1,  1] },
 			{"id": 2, "relativePosition": [1, 1, 19] },
 			{"id": 3, "relativePosition": [1, 1,  1] },
@@ -82,13 +82,15 @@
 			"name": "voltage_at_wire_end",
 			"type": "wire",
 			"field": "voltage",
-			"elementIds": [4]
+			"elementIds": [4],
+            "domain": { "type": "time" }
 		},
 		{
 			"name": "current_at_wire_end",
 			"type": "wire",
 			"field": "current",
-			"elementIds": [4]
+			"elementIds": [4],
+            "domain": { "type": "time" }
 		}
 	],
 

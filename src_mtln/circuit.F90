@@ -4,7 +4,7 @@ module circuit_mod
     implicit none
 
     type string_t
-        character(len=100) :: name
+        character(len=256) :: name
         integer :: length
     end type string_t
 
@@ -16,8 +16,14 @@ module circuit_mod
         procedure :: interpolate
     end type
 
+    type VI_t
+        real :: voltage
+        real :: current
+        real :: time
+    end type
+
     type nodes_t
-        real, allocatable :: values(:)
+        type(VI_T), allocatable :: values(:)
         type(source_t), allocatable :: sources(:)
         type(string_t), allocatable :: names(:)
     end type nodes_t
@@ -26,7 +32,7 @@ module circuit_mod
         character (len=:), allocatable :: name
         real :: time = 0.0, dt = 0.0
         logical :: errorFlag = .false.
-        type(nodes_t) :: nodes   
+        type(nodes_t) :: nodes, saved_nodes   
 
     contains
         procedure :: init
@@ -51,17 +57,16 @@ contains
 
     real function interpolate(this, time, dt) result(res)
         class(source_t) :: this
-        real :: time, dt
+        real :: time, dt, x1,x2, y1, y2
         integer :: index
         real, dimension(:), allocatable :: timediff
-        ! timediff = this%time - time - 0.5*dt
-        ! if (time == 0.0) then 
-        !     res = 0.0
-        !     return
-        ! end if
         timediff = this%time - time
         index = maxloc(timediff, 1, (timediff) <= 0)
-        res = 0.5*(this%voltage(index+1) + this%voltage(index))
+        x1 = this%time(index)
+        x2 = this%time(index+1)
+        y1 = this%voltage(index)
+        y2 = this%voltage(index+1)
+        res = (time*(y2-y1) + x2*y1 - x1*y2)/(x2-x1)
     end function
 
     subroutine init(this, names, sources, netlist)
@@ -82,6 +87,7 @@ contains
 
         allocate(this%nodes%names(size(names)))
         allocate(this%nodes%values(size(names)))
+
         allocate(this%nodes%sources(size(names)))
         do i = 1, size(names)
             this%nodes%names(i) = names(i)
@@ -134,17 +140,17 @@ contains
         call command('run ' // c_null_char)
     end subroutine
 
+
     subroutine setStopTimes(this, finalTime, dt)
         class(circuit_t) :: this
         real, intent(in) :: finalTime, dt
         character(20) :: charTime
         real :: time
 
-        ! time = 0.0
-        time = 0.5*dt
+        time = 0.0
         do while (time < finalTime)
             time = time + dt
-            write(charTime, '(E10.2)') time
+            write(charTime, *) time
             call command('stop when time = '//charTime // c_null_char)
         end do
     end subroutine
@@ -199,35 +205,40 @@ contains
         real :: interp
         character(20) :: sVoltage
         integer :: i, index
-        do i = 1, size(this%nodes%values)
+        do i = 1, size(this%nodes%sources)
             if (this%nodes%sources(i)%has_source) then
                 interp = this%nodes%sources(i)%interpolate(time, this%dt) 
-                ! write(*,*) interp
-                write(sVoltage, '(E10.2)') interp
+                write(*,*) 'source: ', interp
+                write(sVoltage, *) interp
                 call command("alter @V"//trim(this%nodes%names(i)%name)//"[dc] = "//trim(sVoltage) // c_null_char)
             end if
         end do
     end subroutine
+
 
     subroutine updateNodeCurrent(this, node_name, current)
         class(circuit_t) :: this
         real :: current
         character(20) :: sCurrent
         character(*) :: node_name
-        write(sCurrent, '(E10.2)') current
+        if (index(node_name, "initial") /= 0) then
+            write(sCurrent, *) current
+        else if (index(node_name, "end") /= 0) then
+            write(sCurrent, *) -current
+        end if
         call command("alter @I"//trim(node_name)//"[dc] = "//trim(sCurrent) // c_null_char)
     end subroutine
 
     subroutine updateNodeVoltage(this, node_name, voltage)
         class(circuit_t) :: this
-        real :: voltage
+        real, intent(in) :: voltage
         character(20) :: sVoltage
         character(*) :: node_name
         if (index(node_name, "initial") /= 0) then
-            write(sVoltage, '(E10.2)') voltage
+            write(sVoltage, *) voltage
             call command("alter @V1"//trim(node_name)//"[dc] = "//trim(sVoltage) // c_null_char)
         else
-            write(sVoltage, '(E10.2)') voltage
+            write(sVoltage, *) voltage
             call command("alter @V1"//trim(node_name)//"[dc] = "//trim(sVoltage) // c_null_char)
         end if
     end subroutine
@@ -237,16 +248,14 @@ contains
         integer :: i
         type(vectorInfo), pointer :: info
         real(kind=c_double), pointer :: values(:)
-
         do i = 1, size(this%nodes%names)
-            if (this%nodes%names(i)%name /= "time") then 
-                call c_f_pointer(get_vector_info("V1"//trim(this%nodes%names(i)%name)//"#branch"//c_null_char), info)
-            else 
-                call c_f_pointer(get_vector_info(trim(this%nodes%names(i)%name)//c_null_char), info)
-            end if
-            ! call c_f_pointer(get_vector_info(trim(this%nodes%names(i)%name)//c_null_char), info)
+            call c_f_pointer(get_vector_info(trim(this%nodes%names(i)%name)//c_null_char), info)
             call c_f_pointer(info%vRealData, values,shape=[info%vLength])
-            this%nodes%values(i) = values(ubound(values,1))
+            if (this%nodes%names(i)%name /= "time") then 
+                this%nodes%values(i)%voltage = values(ubound(values,1))
+            else 
+                this%nodes%values(i)%time = values(ubound(values,1))
+            end if
         end do
     end subroutine
 
@@ -254,20 +263,20 @@ contains
         class(circuit_t) :: this
         character(len=*), intent(in) :: name
         real :: res
-        res = this%nodes%values(findVoltageIndexByName(this%nodes%names, name))
+        res = this%nodes%values(findVoltageIndexByName(this%nodes%names, name))%voltage
     end function
 
     function getNodeCurrent(this, name) result(res)
         class(circuit_t) :: this
         character(len=*), intent(in) :: name
         real :: res
-        res = this%nodes%values(findVoltageIndexByName(this%nodes%names, name))
+        res = this%nodes%values(findVoltageIndexByName(this%nodes%names, name))%current
     end function
 
     function getTime(this) result(res)
         class(circuit_t) :: this
         real :: res
-        res = this%nodes%values(findIndexByName(this%nodes%names, "time"))
+        res = this%nodes%values(findIndexByName(this%nodes%names, "time"))%time
     end function
 
     function findIndexByName(names, name) result(res)

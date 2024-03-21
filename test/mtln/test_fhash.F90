@@ -2,7 +2,7 @@ integer function test_fhash() bind(C) result(error_cnt)
 
     use mtl_bundle_mod
     use fhash, only: fhash_tbl_t, key=>fhash_key
-    ! , key=>fhash_key, fhash_iter_t, fhash_key_t
+    
 
     implicit none
 
@@ -39,55 +39,130 @@ integer function test_fhash() bind(C) result(error_cnt)
 
 end function
 
-integer function test_fhash_ptr() bind(C) result(error_cnt)
 
-    use mtl_bundle_mod
+integer function test_fhash_arrays() bind(C) result(error_cnt)
+
     use fhash, only: fhash_tbl_t, key=>fhash_key, fhash_key_t
-    use types_mod, only: bundle_iter_t
-
     implicit none
 
-    type(fhash_tbl_t) :: tbl
-    type(bundle_iter_t) :: iter
-    ! type(fhash_iter_t) :: iter
-    type(mtl_bundle_t) :: bundle1, bundle2
-    class(fhash_key_t), allocatable :: name
-    class(*), allocatable :: bundle
-    class(mtl_bundle_t), pointer :: bundle_ptr
-    integer :: stat, n_cond
+    type pul_t 
+        real, dimension(:,:), allocatable :: a
+        real, dimension(:,:), allocatable :: b
+    end type
+
+    type(fhash_tbl_t) :: tbl, tbl_cables
+    type(pul_t), target :: p1, p2
+    type(pul_t), pointer :: p1_ptr, p2_ptr
+
     error_cnt = 0
-
-    bundle1%name = "bundle1"
-    bundle1%number_of_conductors = 5
-    bundle2%name = "bundle2"
-    bundle2%number_of_conductors = 10
-
-
-    call tbl%set(key(bundle1%name), value = bundle1)
-    call tbl%set(key(bundle2%name), value = bundle2)
-
-    iter = bundle_iter_t(tbl)
+    !allocate 1x1 matrices in p1
+    allocate(p1%a(1,1), source = 1.0)
+    allocate(p1%b(1,1), source = 1.0)
     
-    do while(iter%findNext(name,bundle_ptr))
-        bundle_ptr%number_of_conductors = bundle_ptr%number_of_conductors*5
+    !allocate 2x2 matrices in p2
+    allocate(p2%a(2,2), source = 2.0)
+    allocate(p2%b(2,2), source = 2.0)
 
-    end do
+    ! add puls to table
+    call tbl%set(key(1), p1, pointer=.true.)
+    call tbl%set(key(2), p2, pointer=.true.)
 
-    call tbl%get_raw(key(bundle1%name), bundle,stat)
-    select type(bundle)
-    type is (mtl_bundle_t)
-        if (.not.(bundle%number_of_conductors == 25)) then
-            error_cnt = error_cnt + 1
-        endif
-    end select
+    p1_ptr => getPtrFromTable(1)
+    p2_ptr => getPtrFromTable(2)
 
-    call tbl%get_raw(key(bundle2%name), bundle,stat)
-    select type(bundle)
-    type is (mtl_bundle_t)
-    if (.not.(bundle%number_of_conductors == 50)) then
+    if (.not. associated(p1_ptr, p1)) then 
         error_cnt = error_cnt + 1
-    endif
-end select
+    end if
+    if (.not. associated(p2_ptr, p2)) then 
+        error_cnt = error_cnt + 2
+    end if
+
+    contains 
+        function getPtrFromTable(id) result(res)
+            integer, intent(in) :: id
+            integer :: mStat
+            class(*), pointer :: d
+            type(pul_t), pointer :: res
+            
+            nullify(res)
+            call tbl%check_key(key(id), mStat)
+            if (mStat /= 0) then
+                return
+            end if
+
+            call tbl%get_raw_ptr(key(id), d, mStat)
+            if (mStat /= 0) then
+                return
+            end if
+            select type(d)
+                type is (pul_t)
+                    res => d
+            end select
+        end function
+
+
+end function
+
+integer function test_fhash_cables() bind(C) result(error_cnt)
+
+    use fhash, only: fhash_tbl_t, key=>fhash_key, fhash_key_t
+    use mtln_types_mod, only: cable_t
+    implicit none
+
+
+    type(fhash_tbl_t) :: tbl
+    type(cable_t), target :: c1, c2
+    type(cable_t), pointer :: c1_ptr, c2_ptr
+
+    error_cnt = 0
+    !allocate 1x1 matrices in p1
+    allocate(c1%resistance_per_meter(1,1), source = 1.0)
+    allocate(c1%inductance_per_meter(1,1), source = 1.0)
+    allocate(c1%capacitance_per_meter(1,1), source = 1.0)
+    allocate(c1%conductance_per_meter(1,1), source = 1.0)
+    
+    !allocate 2x2 matrices in p2
+    allocate(c2%resistance_per_meter(2,2), source = 2.0)
+    allocate(c2%inductance_per_meter(2,2), source = 2.0)
+    allocate(c2%capacitance_per_meter(2,2), source = 2.0)
+    allocate(c2%conductance_per_meter(2,2), source = 2.0)
+
+    ! add puls to table
+    call tbl%set(key(1), c1, pointer=.true.)
+    call tbl%set(key(2), c2, pointer=.true.)
+
+    c1_ptr => getPtrFromTable(1)
+    c2_ptr => getPtrFromTable(2)
+
+    if (.not. associated(c1_ptr, c1)) then 
+        error_cnt = error_cnt + 1
+    end if
+    if (.not. associated(c2_ptr, c2)) then 
+        error_cnt = error_cnt + 2
+    end if
+
+    contains 
+        function getPtrFromTable(id) result(res)
+            integer, intent(in) :: id
+            integer :: mStat
+            class(*), pointer :: d
+            type(cable_t), pointer :: res
+            
+            nullify(res)
+            call tbl%check_key(key(id), mStat)
+            if (mStat /= 0) then
+                return
+            end if
+
+            call tbl%get_raw_ptr(key(id), d, mStat)
+            if (mStat /= 0) then
+                return
+            end if
+            select type(d)
+                type is (cable_t)
+                    res => d
+            end select
+        end function
 
 
 end function

@@ -1,6 +1,5 @@
 module mtln_solver_mod 
 
-    use types_mod, only: bundle_iter_t
     use mtl_bundle_mod
     use network_manager_mod
     use preprocess_mod
@@ -80,7 +79,6 @@ contains
         call this%advanceBundlesVoltage()
         call this%advanceNWVoltage()
         call this%advanceBundlesCurrent()
-        ! call this%updateNWCurrent()
 
         call this%advanceTime()
         call this%updateProbes()
@@ -96,7 +94,6 @@ contains
         call this%advanceBundlesVoltage()
         call this%advanceNWVoltage()
         call this%advanceBundlesCurrent()
-        ! call this%updateNWCurrent()
 
         call this%advanceTime()
         call this%updateProbes()
@@ -130,30 +127,38 @@ contains
         do i = 1, this%number_of_bundles
             call this%bundles(i)%updateSources(this%time, this%dt)
             call this%bundles(i)%advanceVoltage()
-
-            ! this%bundles(i)%v_initial(:) = this%bundles(i)%v(:,1)
-            ! this%bundles(i)%v_end(:)     = this%bundles(i)%v(:,ubound(this%bundles(i)%v, 2))
-
-            ! this%bundles(i)%i_initial(:) = this%bundles(i)%i(:,1)
-            ! this%bundles(i)%i_end(:)     = this%bundles(i)%i(:,ubound(this%bundles(i)%i, 2))
-
         end do
+
     end subroutine
 
     subroutine advanceNWVoltage(this)
         class(mtln_t) :: this
-        integer :: i
-        call this%network_manager%advanceVoltage()
-        do i = 1, this%number_of_bundles
+        integer :: i,j
+        integer ::b, c, v_idx, i_idx
+            
+        do i = 1, size(this%network_manager%networks)
+            do j = 1, size(this%network_manager%networks(i)%nodes)
+                b = this%network_manager%networks(i)%nodes(j)%bundle_number
+                c = this%network_manager%networks(i)%nodes(j)%conductor_number
+                v_idx = this%network_manager%networks(i)%nodes(j)%v_index
+                i_idx = this%network_manager%networks(i)%nodes(j)%i_index
 
-            ! this%bundles(i)%v(:,1) = this%bundles(i)%v_initial(:)
-            ! this%bundles(i)%v(:,ubound(this%bundles(i)%v, 2)) = this%bundles(i)%v_end(:)
-
-            ! this%bundles(i)%i(:,1) = this%bundles(i)%i_initial(:)
-            ! this%bundles(i)%i(:,ubound(this%bundles(i)%i, 2)) = this%bundles(i)%i_end(:)
-
+                this%network_manager%networks(i)%nodes(j)%i = this%bundles(b)%i(c, i_idx)
+            end do
         end do
 
+        call this%network_manager%advanceVoltage()
+
+        do i = 1, size(this%network_manager%networks)
+            do j = 1, size(this%network_manager%networks(i)%nodes)
+                b = this%network_manager%networks(i)%nodes(j)%bundle_number
+                c = this%network_manager%networks(i)%nodes(j)%conductor_number
+                v_idx = this%network_manager%networks(i)%nodes(j)%v_index
+                i_idx = this%network_manager%networks(i)%nodes(j)%i_index
+
+                this%bundles(b)%v(c, v_idx) = this%network_manager%networks(i)%nodes(j)%v
+            end do
+        end do
 
     end subroutine
 
