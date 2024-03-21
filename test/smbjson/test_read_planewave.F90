@@ -42,11 +42,11 @@ contains
       expected%despl%desY = 0.1
       expected%despl%desZ = 0.1
       expected%despl%mx1 = 0
-      expected%despl%mx2 = 9
+      expected%despl%mx2 = 10
       expected%despl%my1 = 0
-      expected%despl%my2 = 9
+      expected%despl%my2 = 10
       expected%despl%mz1 = 0
-      expected%despl%mz2 = 9
+      expected%despl%mz2 = 10
 
       ! Expected boundaries.
       expected%front%tipoFrontera(:) = F_MUR

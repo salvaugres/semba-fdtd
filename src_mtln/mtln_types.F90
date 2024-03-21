@@ -70,8 +70,8 @@ module mtln_types_mod
     end type
  
     type, public :: transfer_impedance_per_meter_t
-       real :: inductive_term
-       real :: resistive_term
+       real :: inductive_term = 0.0
+       real :: resistive_term = 0.0
        complex, dimension(:), allocatable :: poles, residues ! poles and residues
        integer :: direction = TRANSFER_IMPEDANCE_DIRECTION_INWARDS
     contains
@@ -122,6 +122,7 @@ module mtln_types_mod
        type(cable_t), dimension(:), allocatable :: cables
        type(terminal_network_t), dimension(:), allocatable :: networks
        type(probe_t), dimension(:), allocatable :: probes
+       type(connector_t), dimension(:), allocatable :: connectors
        real :: time_step
        integer :: number_of_steps
     contains

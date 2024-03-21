@@ -268,9 +268,9 @@ contains
       res%mx1 = 0
       res%my1 = 0
       res%mz1 = 0
-      res%mx2 = res%nX-1
-      res%my2 = res%nY-1
-      res%mz2 = res%nZ-1
+      res%mx2 = res%nX
+      res%my2 = res%nY
+      res%mz2 = res%nZ
 
 
    contains
@@ -1083,6 +1083,9 @@ contains
       type(json_value_ptr), dimension(:), allocatable :: cables
       integer :: nWs
       
+      res%time_step = this%getRealAt(this%root, J_GENERAL//'.'//J_GEN_TIME_STEP)
+      res%number_of_steps = this%getRealAt(this%root, J_GENERAL//'.'//J_GEN_NUMBER_OF_STEPS)
+
       cables = readCables()
       block
          integer :: nW, nMW
@@ -1179,6 +1182,7 @@ contains
          if (size(cables) /= 0) then
             do i = 1, size(cables)
                elemIds = getCableElemIds(cables(i)%p)
+               if (size(elemIds) == 0) return
                m = maxval(elemIds,dim = 1)               
                if (m > res) then 
                   res = m
@@ -1548,7 +1552,12 @@ contains
       function getCableElemIds(cable) result(res)
          type(json_value), pointer :: cable
          integer, dimension(:), allocatable :: res
-         res = this%getIntsAt(cable, J_ELEMENTIDS)
+         if (this%existsAt(cable, J_ELEMENTIDS)) then 
+            res = this%getIntsAt(cable, J_ELEMENTIDS)
+         else
+            allocate(res(0))
+            write(error_unit,*) 'Error reading materialAssociation region: elementIds label not found'
+         end if
       end function
 
 
@@ -1562,9 +1571,11 @@ contains
 
          if (this%existsAt(j_cable,J_NAME)) then
             res%name = trim(adjustl(this%getStrAt(j_cable,J_NAME)))
+            ! write(*,*) 'name: ', res%name
          end if
 
          res%step_size = buildStepSize(j_cable)
+         ! write(*,*) 'id: ', this%getIntAt(j_cable, J_MATERIAL_ID, found)
          material = this%matTable%getId(this%getIntAt(j_cable, J_MATERIAL_ID, found))
          if (.not. found) &
             write(error_unit, *) "Error reading material region: materialId label not found."
@@ -1575,10 +1586,6 @@ contains
             end if
          end if
 
-         res%initial_connector => buildConnector(j_cable, J_MAT_ASS_CAB_INI_CONN_ID)
-         res%end_connector => buildConnector(j_cable, J_MAT_ASS_CAB_END_CONN_ID)
-         res%transfer_impedance = buildTransferImpedance(material)
-         
          if (isWire(j_cable)) then
             call assignReferenceProperties(res, material)
          else if (isMultiwire(j_cable)) then
@@ -1586,6 +1593,11 @@ contains
          else
             write(error_unit, *) "Error reading cable: is neither wire nor multiwire"
          end if
+
+         ! res%initial_connector => buildConnector(j_cable, J_MAT_ASS_CAB_INI_CONN_ID)
+         ! res%end_connector => buildConnector(j_cable, J_MAT_ASS_CAB_END_CONN_ID)
+         res%transfer_impedance = buildTransferImpedance(material)
+         
 
       end function
 
@@ -1601,31 +1613,40 @@ contains
          end if
       end function
 
+      !needs correction
       function buildConnector(j_cable, side) result(res)
          type(json_value), pointer :: j_cable
          character(*), intent(in) :: side
          type(connector_t), pointer :: res
+         type(connector_t), target :: res_conn
          type(json_value_ptr) :: conn
          type(json_value), pointer :: z
-         
+         type(json_value), pointer :: c_ptr
+
+         logical :: found
+         character(:), allocatable :: name, type
+         integer :: id
+         real, dimension(:), allocatable :: rs
          if (this%existsAt(j_cable, side)) then 
             conn = this%matTable%getId(this%getIntAt(j_cable, side))
+
             if (this%existsAt(conn%p, J_MAT_CONN_RESISTANCES)) then
-               res%resistances = this%getRealsAt(conn%p, J_MAT_CONN_RESISTANCES)
+               res_conn%resistances = this%getRealsAt(conn%p, J_MAT_CONN_RESISTANCES)
             else 
                write(error_unit, *) "Error reading connector: no resistances label found"
             end if
+
             if (this%existsAt(conn%p, J_MAT_MULTIWIRE_TRANSFER_IMPEDANCE)) then
                call this%core%get(conn%p, J_MAT_MULTIWIRE_TRANSFER_IMPEDANCE,  z)
-               res%transfer_impedance_per_meter = readTransferImpedance(z)
+               res_conn%transfer_impedance_per_meter = readTransferImpedance(z)
             else
-               res%transfer_impedance_per_meter = noTransferImpedance()
+               res_conn%transfer_impedance_per_meter = noTransferImpedance()
                write(error_unit, *) "Error reading connector: no transferImpedancePerMeter label found"
             end if
+            res => res_conn
          else
             res => null()
          end if
-
       end function
 
       subroutine assignReferenceProperties(res, mat)
@@ -1666,28 +1687,44 @@ contains
          logical :: found
          allocate(null_matrix(n,n), source = 0.0)
          if (this%existsAt(mat%p, J_MAT_MULTIWIRE_INDUCTANCE)) then 
-            res%inductance_per_meter = this%getMatrixAt(mat%p, J_MAT_MULTIWIRE_INDUCTANCE,found)
+            if (n /= 1) then
+               res%inductance_per_meter = this%getMatrixAt(mat%p, J_MAT_MULTIWIRE_INDUCTANCE,found)
+            else
+               res%inductance_per_meter = scalarToMatrix(this%getRealAt(mat%p, J_MAT_MULTIWIRE_INDUCTANCE,found))
+            end if
          else
             write(error_unit, *) "Error reading material region: inductancePerMeter label not found."
             res%inductance_per_meter = null_matrix
          end if
    
          if (this%existsAt(mat%p, J_MAT_MULTIWIRE_CAPACITANCE)) then 
-            res%capacitance_per_meter = this%getMatrixAt(mat%p, J_MAT_MULTIWIRE_CAPACITANCE,found)
+            if (n /= 1) then
+               res%capacitance_per_meter = this%getMatrixAt(mat%p, J_MAT_MULTIWIRE_CAPACITANCE,found)
+            else
+               res%capacitance_per_meter = scalarToMatrix(this%getRealAt(mat%p, J_MAT_MULTIWIRE_CAPACITANCE,found))
+            end if
          else
             write(error_unit, *) "Error reading material region: capacitancePerMeter label not found."
             res%capacitance_per_meter = null_matrix
          end if
         
          if (this%existsAt(mat%p, J_MAT_MULTIWIRE_RESISTANCE)) then
-            res%resistance_per_meter = vectorToDiagonalMatrix(this%getRealsAt(mat%p, J_MAT_MULTIWIRE_RESISTANCE,found))
+            if (n /= 1) then
+               res%resistance_per_meter = vectorToDiagonalMatrix(this%getRealsAt(mat%p, J_MAT_MULTIWIRE_RESISTANCE,found))
+            else 
+               res%resistance_per_meter = scalarToMatrix(this%getRealAt(mat%p, J_MAT_MULTIWIRE_RESISTANCE,found))
+            end if
          else
             ! write(error_unit, *) "Error reading material region: resistancePerMeter label not found."
             res%resistance_per_meter = null_matrix
          end if
 
          if (this%existsAt(mat%p, J_MAT_MULTIWIRE_CONDUCTANCE)) then
-            res%conductance_per_meter = vectorToDiagonalMatrix(this%getRealsAt(mat%p, J_MAT_MULTIWIRE_CONDUCTANCE,found))
+            if (n /=1 ) then 
+               res%conductance_per_meter = vectorToDiagonalMatrix(this%getRealsAt(mat%p, J_MAT_MULTIWIRE_CONDUCTANCE,found))
+            else
+               res%conductance_per_meter = scalarToMatrix(this%getRealAt(mat%p, J_MAT_MULTIWIRE_CONDUCTANCE,found))
+            end if
          else
             ! write(error_unit, *) "Error reading material region: conductancePerMeter label not found."
             res%conductance_per_meter = null_matrix
@@ -1712,6 +1749,7 @@ contains
          desp = this%readGrid()
 
          elemIds = getCableElemIds(j_cable)
+         if (size(elemIds) == 0) return
 
          p_line = this%mesh%getPolyline(elemIds(1))
          allocate(res(0))
@@ -1738,9 +1776,21 @@ contains
          type(json_value), pointer :: z
          type(transfer_impedance_per_meter_t) :: res
          character(len=:), allocatable :: direction
-         res%resistive_term = this%getRealAt(z,J_MAT_TRANSFER_IMPEDANCE_RESISTANCE)
-         res%inductive_term = this%getRealAt(z,J_MAT_TRANSFER_IMPEDANCE_INDUCTANCE)
-         direction = trim(adjustl(this%getStrAt(z,J_MAT_TRANSFER_IMPEDANCE_DIRECTION)))
+         
+         if (this%existsAt(z, J_MAT_TRANSFER_IMPEDANCE_RESISTANCE)) then
+            res%resistive_term = this%getRealAt(z,J_MAT_TRANSFER_IMPEDANCE_RESISTANCE)
+         end if
+         
+         if (this%existsAt(z, J_MAT_TRANSFER_IMPEDANCE_INDUCTANCE)) then
+            res%inductive_term = this%getRealAt(z,J_MAT_TRANSFER_IMPEDANCE_INDUCTANCE)
+         end if
+         
+         if (this%existsAt(z, J_MAT_TRANSFER_IMPEDANCE_DIRECTION)) then 
+            direction = trim(adjustl(this%getStrAt(z,J_MAT_TRANSFER_IMPEDANCE_DIRECTION)))
+         else
+            write(error_unit,*) 'Error reading material: direction of transferImpedancePerMeter missing'
+         end if
+
          if (direction == "inwards") then 
             res%direction = TRANSFER_IMPEDANCE_DIRECTION_INWARDS
          else if (direction == "outwards") then 
@@ -1761,9 +1811,6 @@ contains
          res%inductive_term = 0.0
          res%direction = 0
          allocate(res%poles(0), res%residues(0))
-         !ToDo
-         ! res%poles = this%getRealsAt(z,J_MAT_TRANSFER_IMPEDANCE_POLES)
-         ! res%residues = this%getRealsAt(z,J_MAT_TRANSFER_IMPEDANCE_RESIDUES)
       end function
 
 
@@ -1795,11 +1842,13 @@ contains
             type(json_value_ptr) :: mat
             integer, dimension(:), allocatable :: eIds
             logical :: found
+
             isMultiwire = .false.
 
             ! materialId is multiwire
             mat = this%matTable%getId(this%getIntAt(cable, J_MATERIAL_ID, found=found))
             if (.not. found) return
+            ! write(*,*) 'type: ', this%getStrAt(mat%p, J_TYPE)
             if (this%getStrAt(mat%p, J_TYPE) /= J_MAT_TYPE_MULTIWIRE) return
    
             ! has terminal on initial side

@@ -44,11 +44,11 @@ contains
       expected%despl%desY = 1.0
       expected%despl%desZ = 0.03
       expected%despl%mx1 = 0
-      expected%despl%mx2 = 1
+      expected%despl%mx2 = 2
       expected%despl%my1 = 0
-      expected%despl%my2 = 1
+      expected%despl%my2 = 2
       expected%despl%mz1 = 0
-      expected%despl%mz2 = 19
+      expected%despl%mz2 = 20
 
       ! Expected boundaries.
       expected%front%tipoFrontera(:) = F_MUR
@@ -249,7 +249,8 @@ contains
       expected%mtln%networks(2)%connections(2)%nodes(1)%termination%termination_type = TERMINATION_SERIES
       expected%mtln%networks(2)%connections(2)%nodes(1)%termination%resistance = 50.0
 
-      
+      !connectors
+      allocate(expected%mtln%connectors(0))
 
    end function
 end function
