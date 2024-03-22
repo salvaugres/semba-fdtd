@@ -62,6 +62,7 @@ module smbjson
       procedure :: getDomain
       procedure :: jsonValueFilterByKeyValue
       procedure :: jsonValueFilterByKeyValues
+      procedure :: getSingleVolumeInElementsIds
    end type
    interface parser_t
       module procedure parser_ctor
@@ -282,11 +283,13 @@ contains
          logical :: found = .false.
 
          call this%core%get(this%root, path, vec, found)
+         
          if (.not. found) then
             write(error_unit, *) 'Error reading grid: steps not found.'
          endif
          if (size(vec) /= 1 .and. size(vec) /= numberOfCells) then
-            write(error_unit, *) 'Error reading grid: steps must be of size 1 (for regulr grids) or equal to the number of cells.'
+            write(error_unit, *) &
+               'Error reading grid: steps must be arrays of size 1 (for regular grids) or size equal to the number of cells.'
          end if
 
          allocate(dest(0 : numberOfCells-1))
@@ -313,6 +316,7 @@ contains
          return
       else
          ! TODO Check every bound.
+         write(error_unit,*) 'WIP: Boundaries of different types not implemented.'
       end if
    contains
       function readPMLProperties(p) result(res)
@@ -388,20 +392,6 @@ contains
       ! TODO
    end function
 
-   function readAnisotropicMaterials() result (res)
-      type(ANISOTROPICelements_t) :: res
-
-
-      ! TODO
-   end function
-
-   function readBoxSources() result (res)
-      type(Boxes) :: res
-
-
-      ! TODO
-   end function
-
    function readPlanewaves(this) result (res)
       class(parser_t) :: this
       type(PlaneWaves) :: res
@@ -434,37 +424,31 @@ contains
          type(json_value), pointer :: pw
 
          type(cell_region_t) :: cellRegion
-         type(cell_interval_t), dimension(:), allocatable :: voxelIntervals
          character (len=:), allocatable :: label
          integer, dimension(:), allocatable :: elemIds
          logical :: found
-         type(coords), dimension(:), allocatable :: nfdeCoords
-
+         
          res%nombre_fichero = trim(adjustl( &
             this%getStrAt(pw,J_SRC_MAGNITUDE_FILE)))
-
-         call this%core%get(pw, J_SRC_PW_ATTRIBUTE, label, found)
+            
+            call this%core%get(pw, J_SRC_PW_ATTRIBUTE, label, found)
          if (found) then
             res%atributo = trim(adjustl(label))
          else
             res%atributo = ""
          endif
-
+         
          call this%core%get(pw, J_SRC_PW_DIRECTION//'.'//J_SRC_PW_THETA, res%theta)
          call this%core%get(pw, J_SRC_PW_DIRECTION//'.'//J_SRC_PW_PHI, res%phi)
          call this%core%get(pw, J_SRC_PW_POLARIZATION//'.'//J_SRC_PW_THETA, res%alpha)
          call this%core%get(pw, J_SRC_PW_POLARIZATION//'.'//J_SRC_PW_PHI, res%beta)
-
-         call this%core%get(pw, J_ELEMENTIDS, elemIds)
-         if (size(elemIds) /= 1) write(error_unit, *) "Planewave must contain a single elementId."
-         cellRegion = this%mesh%getCellRegion(elemIds(1), found)
-         if (.not. found) write(error_unit, *) "Planewave elementId not found."
-         voxelIntervals = cellRegion%getIntervalsOfType(CELL_TYPE_VOXEL)
-         if (size(voxelIntervals) /= 1) write(error_unit, *) "Planewave must contain a single voxel region."
-
-         nfdeCoords = cellIntervalsToCoords(voxelIntervals)
-         res%coor1 = [nfdeCoords(1)%Xi, nfdeCoords(1)%Yi, nfdeCoords(1)%Zi]
-         res%coor2 = [nfdeCoords(1)%Xe, nfdeCoords(1)%Ye, nfdeCoords(1)%Ze]
+         
+         block
+            type(coords), dimension(:), allocatable :: nfdeCoords
+            nfdeCoords = cellIntervalsToCoords(getSingleVolumeInElementsIds(pw))
+            res%coor1 = [nfdeCoords(1)%Xi, nfdeCoords(1)%Yi, nfdeCoords(1)%Zi]
+            res%coor2 = [nfdeCoords(1)%Xe, nfdeCoords(1)%Ye, nfdeCoords(1)%Ze]
+         end block
 
          res%isRC = .false.
          res%nummodes = 1
@@ -546,9 +530,9 @@ contains
       type(Sondas) :: res
       type(json_value), pointer :: allProbes
       type(json_value_ptr), dimension(:), allocatable :: ps
+      ! The only oldProbe present in the format is the far field.
+      character (len=*), dimension(1), parameter :: validTypes = [J_PR_TYPE_FARFIELD]
       integer :: i
-      character (len=*), dimension(1), parameter :: validTypes = &
-         (/J_PR_TYPE_FARFIELD/)
       logical :: found
 
       call this%core%get(this%root, J_PROBES, allProbes, found)
@@ -561,19 +545,77 @@ contains
 
       ps = this%jsonValueFilterByKeyValues(allProbes, J_TYPE, validTypes)
 
-      allocate(res%probes(size(ps)))
-      do i=1, size(ps)
-         res%probes(i) = readProbe(ps(i)%p)
-      end do
-
       res%n_probes = size(res%probes)
       res%n_probes_max = size(res%probes)
+      allocate(res%probes(size(ps)))
+      do i=1, size(ps)
+         res%probes(i) = readFarFieldProbe(ps(i)%p)
+      end do
+
    contains
-      function readProbe(p) result (res)
+      function readFarFieldProbe(p) result (res)
          type(abstractSonda) :: res
          type(json_value), pointer :: p
+         type(Sonda), pointer :: ff
+         type(domain_t) :: domain
+         
+         res%n_FarField = 1
+         res%n_FarField_max = 1
+         allocate(res%FarField(1))
+         ff => res%FarField(1)%probe
+         
+         call this%core%get(p, J_NAME, outputName)
+         ff%outputrequest = trim(adjustl(outputName))
 
-         write(error_unit, *) 'read abstract sonda is TBD. TODO'
+         ! Far fields only accept frequency domains.
+         domain = this%getDomain(p, J_PR_DOMAIN)
+         if (domain%type2 /= NP_T2_FREQ) &
+            write(error_unit, *) "ERROR at far field probe: Only accepted domain is frequency."
+
+         ff%fstart = domain%fstart
+         ff%fstop = domain%fstop
+         ff%fstep = domain%fstep
+         ff%FileNormalize = domain%filename
+         if (domain%isLogarithmicFrequencySpacing) then
+            res%outputrequest = res%outputrequest // SMBJSON_LOG_SUFFIX
+         end if
+
+         block
+            type(coords), dimension(:), allocatable :: nfdeCoords
+            nfdeCoords = cellIntervalsToCoords(getSingleVolumeInElementsIds(pw))
+            ff%n_cord = 2
+            ff%n_cord_max = 2
+            allocate(ff%i(2))
+            allocate(ff%j(2))
+            allocate(ff%k(2))
+            ff%i(1) = nfdeCoords(1)%Xi
+            ff%i(2) = nfdeCoords(1)%Xe
+            ff%j(1) = nfdeCoords(1)%Yi
+            ff%j(2) = nfdeCoords(1)%Ye
+            ff%k(1) = nfdeCoords(1)%Zi
+            ff%k(2) = nfdeCoords(1)%Ze
+         end block
+
+         block 
+            call readDirection(&
+               J_PR_FAR_FIELD_PHI, ff%phistart, ff%phistop, ff%phistep)
+            call readDirection(&
+               J_PR_FAR_FIELD_THETA, ff%thetastart, ff%thetastop, ff%thetastep)
+         end block
+
+      contains
+         subroutine readDirection(label, initial, final, step)
+            type(json_value), pointer :: dir
+            character (len=*), intent(in) :: label
+            logical :: found
+            real, pointer :: initial, final, step
+            call this%get(p, label, dir, found=found)
+            if (.not. found) &
+               write (error_unit, *) "Error reading far field probe. Direction label not found."
+            initial = this%getRealAt(dir, J_PR_FAR_FIELD_DIR_INITIAL)
+            final   = this%getRealAt(dir, J_PR_FAR_FIELD_DIR_FINAL)
+            step    = this%getRealAt(dir, J_PR_FAR_FIELD_DIR_STEP)
+         end subroutine
 
       end function
    end function
@@ -661,14 +703,14 @@ contains
          type(domain_t), intent(in) :: domain
 
          res%tstart = domain%tstart
-         res%tstep = domain%tstep
-         res%tstop = domain%tstop
+         res%tstep  = domain%tstep
+         res%tstop  = domain%tstop
          res%fstart = domain%fstart
-         res%fstep = domain%fstep
-         res%fstop = domain%fstop
+         res%fstep  = domain%fstep
+         res%fstop  = domain%fstop
          res%filename = domain%filename
-         res%type1 = domain%type1
-         res%type2 = domain%type2
+         res%type1  = domain%type1
+         res%type2  = domain%type2
 
          if (domain%isLogarithmicFrequencySpacing) then
             res%outputrequest = res%outputrequest // SMBJSON_LOG_SUFFIX
@@ -2195,4 +2237,19 @@ contains
       end do
    end function
 
+   function getSingleVolumeInElementsIds(this, pw) result (res)
+      class(parser_t) :: this
+      type(json_value), pointer :: pw
+      type(cell_interval_t), dimension(:), allocatable :: res
+      
+      call this%core%get(pw, J_ELEMENTIDS, elemIds)
+      if (size(elemIds) /= 1) &
+         write(error_unit, *) "Entity must contain a single elementId."
+      cellRegion = this%mesh%getCellRegion(elemIds(1), found)
+      if (.not. found) &
+         write(error_unit, *) "Entity elementId not found."
+      res = cellRegion%getIntervalsOfType(CELL_TYPE_VOXEL)
+      if (size(res) /= 1) &
+         write(error_unit, *) "Entity must contain a single cell region defining a volume."
+   end function 
 end module

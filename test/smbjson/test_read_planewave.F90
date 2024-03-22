@@ -67,13 +67,8 @@ contains
       expected%plnSrc%nc = 1
       expected%plnSrc%nC_max = 1
 
-      allocate(expected%nodSrc%NodalSource(0))
 
       ! Expected probes
-      ! oldSonda
-      expected%oldSONDA%n_probes = 0
-      expected%oldSONDA%n_probes_max = 0
-      allocate(expected%oldSONDA%probes(0))
       ! sonda
       expected%Sonda%len_cor_max = 0
       expected%Sonda%length = 1

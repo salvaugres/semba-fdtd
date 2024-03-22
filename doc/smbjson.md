@@ -512,7 +512,12 @@ Records a vector field a single position referenced by `elementIds` which must c
 
 #### `wire`
 
-Records a scalar field at a single position referenced by `elementIds`. `elementIds` must contain a single `id` referencing an element of type `node`. Additionally, this `node` must point to a `coordinateId` belonging to a single `polyline`. The `[field]` can be `voltage` or `current`. Defaults to `current`. When `current` is selected, the orientation of the `polyline` on which the probe is located indicates the direction of the current. Voltages are well defined at polyline points. However, currents are defined over segments so the solver performs an average of the currents on the segments which are contiguous to the selected point.
+Records a scalar field at a single position referenced by `elementIds`. `elementIds` must contain a single `id` referencing an element of type `node`. Additionally, this `node` must point to a `coordinateId` belonging to at least one `polyline`. 
+If the node's `coordinateId` is shared by more than one `polyline` a probe will be defined for each one of them
+The `[field]` can be `voltage` or `current`. Defaults to `current`. When `current` is selected, the orientation of the `polyline` on which the probe is located indicates the direction of the current. Voltages are well defined at polyline points. However, currents are defined over segments so:
+
+- If the point is in the interior of the wire, the output will be an average on the currents of the segments which are contiguous to it.
+- If the point is at one wire end, the current will be the output of the last segment.
 
 ```json
 {
@@ -525,21 +530,34 @@ Records a scalar field at a single position referenced by `elementIds`. `element
 
 #### `bulkCurrent`
 
-Performs a loop integral along on the contour of the surface reference in the `elementIds` entry. This must point to a single `cell` containing a single `interval` which is used to define one or several surfaces. These surfaces are build by enlarging half grid step in the directions perpendicular to the entry `direction`, depending on the type of `interval` as follows:
+Performs a loop integral along on the contour of the surface reference in the `elementIds` entry. This must point to a single `cell` containing a single `interval` which is used to define one or several surfaces. These surfaces are build by enlarging half grid step in the directions perpendicular to the entry `direction` which can take one of the following values: `x`, `y` or `z`. Depending on the type of `interval`, `direction` can be assumed (and therefore is optional), or not, specifically:
 
 + If it is a point or a volume, `direction` must be present.
 + For an oriented line, `direction` is optional and the orientation of the line will be used as default.
-+ For an oriented surface, `direction` is assumed to be the normal of the surface.
++ For an oriented surface, `direction` is also optional, and if not value is given it is assumed to be the normal of the surface.
 
 Due to Ampere's law, the loop integral of the magnetic field is equal to the total electric current passing through the surfaces. `[field]`, can be `electric` or `magnetic`. Defaults to `electric`, which gives the total current passing through the surface.
 
 TODO REVIEW DO BULK CURRENTS DO AVERAGES OF MAGNETIC FIELDS IN CELLS NEXT TO THE SELECTED?
 
+In the following example `elementId` points an element describing a single oriented surface, therefore `direction` does not need to be stated explicitly.
+
 ```json
 {
-    "name": "bulk_current_at_entry",
+    "name": "bulk_current_at_surface",
     "type": "bulkCurrent",
     "elementIds": [4]
+}
+```
+
+In this example `elementId` points to a volume element, therefore `direction` must be present
+
+```json
+{
+    "name": "bulk_current_at_volume",
+    "type": "bulkCurrent",
+    "elementIds": [8],
+    "direction": "x"
 }
 ```
 
@@ -650,6 +668,7 @@ This object represents a time-varying vector field applied along an oriented lin
     "type": "nodalSource", 
     "magnitudeFile": "gauss.exc", 
     "elementIds": [1],
+    "hardness": "soft",
     "field": "current"
 }
 ```

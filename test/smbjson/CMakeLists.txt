@@ -20,6 +20,7 @@ add_library (smbjson_test_fortran
     "test_read_currentinjection.F90"
     "test_read_shieldedPair.F90"
     "test_read_mtln.F90"
+    "test_read_sphere.F90"
 )
 target_link_libraries(smbjson_test_fortran
     smbjson 
