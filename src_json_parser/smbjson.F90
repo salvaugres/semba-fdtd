@@ -423,9 +423,7 @@ contains
          type(PlaneWave) :: res
          type(json_value), pointer :: pw
 
-         type(cell_region_t) :: cellRegion
          character (len=:), allocatable :: label
-         integer, dimension(:), allocatable :: elemIds
          logical :: found
          
          res%nombre_fichero = trim(adjustl( &
@@ -445,7 +443,8 @@ contains
          
          block
             type(coords), dimension(:), allocatable :: nfdeCoords
-            nfdeCoords = cellIntervalsToCoords(getSingleVolumeInElementsIds(pw))
+            nfdeCoords = &
+               cellIntervalsToCoords(this%getSingleVolumeInElementsIds(pw))
             res%coor1 = [nfdeCoords(1)%Xi, nfdeCoords(1)%Yi, nfdeCoords(1)%Zi]
             res%coor2 = [nfdeCoords(1)%Xe, nfdeCoords(1)%Ye, nfdeCoords(1)%Ze]
          end block
@@ -535,8 +534,8 @@ contains
 
       ps = this%jsonValueFilterByKeyValues(allProbes, J_TYPE, validTypes)
 
-      res%n_probes = size(res%probes)
-      res%n_probes_max = size(res%probes)
+      res%n_probes = size(ps)
+      res%n_probes_max = size(ps)
       allocate(res%probes(size(ps)))
       do i=1, size(ps)
          res%probes(i) = readFarFieldProbe(ps(i)%p)
@@ -547,6 +546,8 @@ contains
          type(abstractSonda) :: res
          type(json_value), pointer :: p
          type(Sonda), pointer :: ff
+         character (len=:), allocatable :: outputName
+         
          type(domain_t) :: domain
          
          res%n_FarField = 1
@@ -567,12 +568,13 @@ contains
          ff%fstep = domain%fstep
          ff%FileNormalize = domain%filename
          if (domain%isLogarithmicFrequencySpacing) then
-            res%outputrequest = res%outputrequest // SMBJSON_LOG_SUFFIX
+            ff%outputrequest = ff%outputrequest // SMBJSON_LOG_SUFFIX
          end if
 
          block
             type(coords), dimension(:), allocatable :: nfdeCoords
-            nfdeCoords = cellIntervalsToCoords(getSingleVolumeInElementsIds(pw))
+            nfdeCoords = &
+               cellIntervalsToCoords(this%getSingleVolumeInElementsIds(p))
             ff%n_cord = 2
             ff%n_cord_max = 2
             allocate(ff%i(2))
@@ -588,26 +590,26 @@ contains
 
          block 
             call readDirection(&
-               J_PR_FAR_FIELD_PHI, ff%phistart, ff%phistop, ff%phistep)
+               p, J_PR_FAR_FIELD_PHI, ff%phistart, ff%phistop, ff%phistep)
             call readDirection(&
-               J_PR_FAR_FIELD_THETA, ff%thetastart, ff%thetastop, ff%thetastep)
+               p, J_PR_FAR_FIELD_THETA, ff%thetastart, ff%thetastop, ff%thetastep)
          end block
-
-      contains
-         subroutine readDirection(label, initial, final, step)
-            type(json_value), pointer :: dir
-            character (len=*), intent(in) :: label
-            logical :: found
-            real, pointer :: initial, final, step
-            call this%get(p, label, dir, found=found)
-            if (.not. found) &
-               write (error_unit, *) "Error reading far field probe. Direction label not found."
-            initial = this%getRealAt(dir, J_PR_FAR_FIELD_DIR_INITIAL)
-            final   = this%getRealAt(dir, J_PR_FAR_FIELD_DIR_FINAL)
-            step    = this%getRealAt(dir, J_PR_FAR_FIELD_DIR_STEP)
-         end subroutine
-
       end function
+
+      subroutine readDirection(p, label, initial, final, step)
+         type(json_value), pointer :: p
+         type(json_value), pointer :: dir
+         character (len=*), intent(in) :: label
+         logical :: found
+         real, intent(inout) :: initial, final, step
+
+         call this%core%get(p, label, dir, found=found)
+         if (.not. found) &
+            write (error_unit, *) "Error reading far field probe. Direction label not found."
+         initial = this%getRealAt(dir, J_PR_FAR_FIELD_DIR_INITIAL)
+         final   = this%getRealAt(dir, J_PR_FAR_FIELD_DIR_FINAL)
+         step    = this%getRealAt(dir, J_PR_FAR_FIELD_DIR_STEP)
+      end subroutine
    end function
 
    function readMoreProbes(this) result (res)
@@ -2112,7 +2114,10 @@ contains
    function getSingleVolumeInElementsIds(this, pw) result (res)
       class(parser_t) :: this
       type(json_value), pointer :: pw
+      type(cell_region_t) :: cellRegion
+      integer, dimension(:), allocatable :: elemIds   
       type(cell_interval_t), dimension(:), allocatable :: res
+      logical :: found
       
       call this%core%get(pw, J_ELEMENTIDS, elemIds)
       if (size(elemIds) /= 1) &

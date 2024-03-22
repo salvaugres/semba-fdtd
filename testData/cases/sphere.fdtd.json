@@ -40945,10 +40945,11 @@
                 "step": 90.0
             },
             "domain": {
-                "type": "time",
-                "initialTime": 0.0,
-                "finalTime": 3e-08,
-                "samplingPeriod": 3.85167e-11
+                "type": "frequency",
+                "initialFrequency": 1e6,
+                "finalFrequency": 1e9,
+                "numberOfFrequencies": 30,
+                "frequencySpacing": "logarithmic"
             }
         }
     ]
