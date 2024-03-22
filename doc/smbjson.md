@@ -512,7 +512,12 @@ Records a vector field a single position referenced by `elementIds` which must c
 
 #### `wire`
 
-Records a scalar field at a single position referenced by `elementIds`. `elementIds` must contain a single `id` referencing an element of type `node`. Additionally, this `node` must point to a `coordinateId` belonging to a single `polyline`. The `[field]` can be `voltage` or `current`. Defaults to `current`. When `current` is selected, the orientation of the `polyline` on which the probe is located indicates the direction of the current. Voltages are well defined at polyline points. However, currents are defined over segments so the solver performs an average of the currents on the segments which are contiguous to the selected point.
+Records a scalar field at a single position referenced by `elementIds`. `elementIds` must contain a single `id` referencing an element of type `node`. Additionally, this `node` must point to a `coordinateId` belonging to at least one `polyline`. 
+If the node's `coordinateId` is shared by more than one `polyline` a probe will be defined for each one of them
+The `[field]` can be `voltage` or `current`. Defaults to `current`. When `current` is selected, the orientation of the `polyline` on which the probe is located indicates the direction of the current. Voltages are well defined at polyline points. However, currents are defined over segments so:
+
+- If the point is in the interior of the wire, the output will be an average on the currents of the segments which are contiguous to it.
+- If the point is at one wire end, the current will be the output of the last segment.
 
 ```json
 {

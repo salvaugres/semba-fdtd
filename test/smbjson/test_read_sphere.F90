@@ -96,9 +96,11 @@ contains
       ex%oldSonda%probes(1)%n_FarField_max = 1
       allocate(ex%oldSonda%probes(1)%FarField(1))
       ex%oldSonda%probes(1)%FarField(1)%probe%outputrequest = "Far field"
+      allocate(ex%oldSonda%probes(1)%FarField(1)%probe%i(2))
+      allocate(ex%oldSonda%probes(1)%FarField(1)%probe%j(2))
+      allocate(ex%oldSonda%probes(1)%FarField(1)%probe%k(2))
       ex%oldSonda%probes(1)%FarField(1)%probe%i = [2, 78]
       ex%oldSonda%probes(1)%FarField(1)%probe%j = [2, 78]
-      ex%oldSonda%probes(1)%FarField(1)%probe%k = [2, 78]
       ex%oldSonda%probes(1)%FarField(1)%probe%k = [2, 78]
       ex%oldSonda%probes(1)%FarField(1)%probe%n_cord = 2
       ex%oldSonda%probes(1)%FarField(1)%probe%n_cord_max = 2
