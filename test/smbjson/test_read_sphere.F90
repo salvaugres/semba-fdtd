@@ -95,7 +95,10 @@ contains
       ex%oldSonda%probes(1)%n_FarField = 1
       ex%oldSonda%probes(1)%n_FarField_max = 1
       allocate(ex%oldSonda%probes(1)%FarField(1))
-      ex%oldSonda%probes(1)%FarField(1)%probe%outputrequest = "Far field"
+      ex%oldSonda%probes(1)%FarField(1)%probe%outputrequest = "Far field_log_"
+      ex%oldSonda%probes(1)%FarField(1)%probe%fstart = 1e6
+      ex%oldSonda%probes(1)%FarField(1)%probe%fstop = 1e9
+      ex%oldSonda%probes(1)%FarField(1)%probe%fstep = 30
       allocate(ex%oldSonda%probes(1)%FarField(1)%probe%i(2))
       allocate(ex%oldSonda%probes(1)%FarField(1)%probe%j(2))
       allocate(ex%oldSonda%probes(1)%FarField(1)%probe%k(2))
@@ -110,6 +113,7 @@ contains
       ex%oldSonda%probes(1)%FarField(1)%probe%phistart   = 0.0
       ex%oldSonda%probes(1)%FarField(1)%probe%phistop    = 360.0
       ex%oldSonda%probes(1)%FarField(1)%probe%phistep    = 90.0   
+      
    end function
 end function
 
