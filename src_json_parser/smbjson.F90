@@ -577,7 +577,7 @@ contains
          ff%fstep = domain%fstep
          ff%FileNormalize = domain%filename
          if (domain%isLogarithmicFrequencySpacing) then
-            res%outputrequest = res%outputrequest // SMBJSON_LOG_SUFFIX
+            ff%outputrequest = ff%outputrequest // SMBJSON_LOG_SUFFIX
          end if
 
          block
@@ -602,22 +602,20 @@ contains
             call readDirection(&
                J_PR_FAR_FIELD_THETA, ff%thetastart, ff%thetastop, ff%thetastep)
          end block
-
-      contains
-         subroutine readDirection(label, initial, final, step)
-            type(json_value), pointer :: dir
-            character (len=*), intent(in) :: label
-            logical :: found
-            real, pointer :: initial, final, step
-            call this%get(p, label, dir, found=found)
-            if (.not. found) &
-               write (error_unit, *) "Error reading far field probe. Direction label not found."
-            initial = this%getRealAt(dir, J_PR_FAR_FIELD_DIR_INITIAL)
-            final   = this%getRealAt(dir, J_PR_FAR_FIELD_DIR_FINAL)
-            step    = this%getRealAt(dir, J_PR_FAR_FIELD_DIR_STEP)
-         end subroutine
-
       end function
+      subroutine readDirection(label, initial, final, step)
+         type(json_value), pointer :: dir
+         character (len=*), intent(in) :: label
+         logical :: found
+         real, pointer :: initial, final, step
+         call this%core%get(p, label, dir, found=found)
+         if (.not. found) &
+            write (error_unit, *) "Error reading far field probe. Direction label not found."
+         initial = this%getRealAt(dir, J_PR_FAR_FIELD_DIR_INITIAL)
+         final   = this%getRealAt(dir, J_PR_FAR_FIELD_DIR_FINAL)
+         step    = this%getRealAt(dir, J_PR_FAR_FIELD_DIR_STEP)
+      end subroutine
+
    end function
 
    function readMoreProbes(this) result (res)
@@ -2240,7 +2238,10 @@ contains
    function getSingleVolumeInElementsIds(this, pw) result (res)
       class(parser_t) :: this
       type(json_value), pointer :: pw
+      type(cell_region_t) :: cellRegion
+      integer, dimension(:), allocatable :: elemIds   
       type(cell_interval_t), dimension(:), allocatable :: res
+      logical :: found
       
       call this%core%get(pw, J_ELEMENTIDS, elemIds)
       if (size(elemIds) /= 1) &
