@@ -241,7 +241,7 @@ module mtln_types_mod
 
     elemental logical function terminal_node_eq(a, b)
       class(terminal_node_t), intent(in) :: a, b
-
+      
       terminal_node_eq = &
          (a%conductor_in_cable == b%conductor_in_cable) .and. &
          (a%side == b%side) .and. &
@@ -256,7 +256,6 @@ module mtln_types_mod
             terminal_node_eq = terminal_node_eq .and. (a%belongs_to_cable == b%belongs_to_cable)
          end if
 
-         
     end function
 
     elemental logical function terminal_connection_eq(a,b)

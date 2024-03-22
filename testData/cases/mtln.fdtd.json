@@ -281,7 +281,7 @@
 	],
 	"mesh": {
 		"grid": {
-			"numberOfCells": [2, 7, 100],
+			"numberOfCells": [100, 7, 2],
 			"steps": {"x": [0.1], "y": [0.1], "z": [0.1]}
 		},
 		"coordinates": [
@@ -357,43 +357,36 @@
 			"name": "b1_terminal_voltage",
 			"type": "wire",
 			"field": "voltage",
-			"elementIds": [34]
+			"elementIds": [34],
+            "domain": { "type": "time" }
 		},
 		{
 			"name": "b1_terminal_current",
 			"type": "wire",
 			"field": "current",
-			"elementIds": [34]
+			"elementIds": [34],
+            "domain": { "type": "time" }
 		},
 		{
-			"name": "b1_junction_current",
+			"name": "junction_current",
 			"type": "wire",
 			"field": "current",
-			"elementIds": [35]
-		},
-		{
-			"name": "b2_junction_current",
-			"type": "wire",
-			"field": "current",
-			"elementIds": [36]
+			"elementIds": [35],
+            "domain": { "type": "time" }
 		},
 		{
 			"name": "b2_terminal_current",
 			"type": "wire",
 			"field": "current",
-			"elementIds": [37]
-		},
-		{
-			"name": "b3_junction_current",
-			"type": "wire",
-			"field": "current",
-			"elementIds": [38]
+			"elementIds": [37],
+            "domain": { "type": "time" }
 		},
 		{
 			"name": "b3_terminal_current",
 			"type": "wire",
 			"field": "current",
-			"elementIds": [39]
+			"elementIds": [39],
+            "domain": { "type": "time" }
 		}
 	],
 

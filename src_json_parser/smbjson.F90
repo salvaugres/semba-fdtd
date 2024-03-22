@@ -513,6 +513,16 @@ contains
             res%isElec = .false.
             res%isMagnet = .false.
             res%isCurrent = .true.
+          case (J_FIELD_ELECTRIC)
+            res%isField = .true.
+            res%isElec = .true.
+            res%isMagnet = .false.
+            res%isCurrent = .false.
+          case (J_FIELD_MAGNETIC)
+            res%isField = .true.
+            res%isElec = .false.
+            res%isMagnet = .true.
+            res%isCurrent = .false.
           case default
             write(error_unit, *) 'Error reading current field source. Field label not recognized.'
          end select
@@ -1153,7 +1163,6 @@ contains
          allocate(res(size(connectors)))
          if (size(connectors) /= 0) then 
             do i = 1, size(connectors)
-               ! id = this%getIntAt(connectors(i)%p, J_ID)
                res(i)%id = this%getIntAt(connectors(i)%p, J_ID)
                if (this%existsAt(connectors(i)%p, J_MAT_CONN_RESISTANCES)) then 
                   res(i)%resistances = this%getRealsAt(connectors(i)%p, J_MAT_CONN_RESISTANCES)
@@ -1459,10 +1468,10 @@ contains
          type(probe_t), dimension(:), allocatable :: res
          type(json_value_ptr), dimension(:), allocatable :: wire_probes, polylines
          type(json_value), pointer :: probes, elements
-         integer :: i,j, position
+         integer :: i,j, position, n_probes, k
          integer, dimension(:), allocatable :: elemIds, polylinecIds
          type(node_t) :: node
-
+         type(cable_t), pointer :: cable_ptr
          if (this%existsAt(this%root, J_PROBES)) then
             call this%core%get(this%root, J_PROBES, probes)
          else 
@@ -1474,19 +1483,28 @@ contains
          polylines = this%jsonValueFilterByKeyValue(elements, J_TYPE, J_ELEM_TYPE_POLYLINE)
          wire_probes = this%jsonValueFilterByKeyValue(probes, J_TYPE, J_MAT_TYPE_WIRE)
 
-         allocate(res(size(wire_probes)))
-         if (size(wire_probes) /= 0) then 
+         n_probes = countProbes(wire_probes, polylines)
+
+         allocate(res(n_probes))
+         if (n_probes /= 0) then 
+            k = 1
             do i = 1, size(wire_probes)
-               res(i)%probe_type = readProbeType(wire_probes(i)%p)
                elemIds = this%getIntsAt(wire_probes(i)%p, J_ELEMENTIDS)
                node = this%mesh%getNode(elemIds(1))
                do j = 1, size(polylines)
                   polylinecIds = this%getIntsAt(polylines(j)%p, J_COORDINATE_IDS)
                   position = findloc(polylinecIds, node%coordIds(1), dim=1)
                   if (position /= 0) then ! polyline found
-                     res(i)%attached_to_cable => getCableContainingElemId(this%getIntAt(polylines(j)%p, J_ID))
-                     res(i)%index = findProbeIndex(polylinecIds, position)
-                     exit 
+                     res(k)%probe_type = readProbeType(wire_probes(i)%p)
+
+                     cable_ptr => getCableContainingElemId(this%getIntAt(polylines(j)%p, J_ID))
+                     do while (associated(cable_ptr%parent_cable))
+                        cable_ptr => cable_ptr%parent_cable
+                     end do
+                     res(k)%attached_to_cable => cable_ptr
+                     ! res(k)%attached_to_cable => getCableContainingElemId(this%getIntAt(polylines(j)%p, J_ID))
+                     res(k)%index = findProbeIndex(polylinecIds, position)
+                     k = k + 1
                   end if
                end do
             end do
@@ -1494,6 +1512,28 @@ contains
 
 
       end function 
+
+      function countProbes(probes, lines) result(res)
+         type(json_value_ptr), dimension(:), allocatable :: probes, lines
+         integer :: res
+         integer, dimension(:), allocatable :: ids, lines_ids
+         type(node_t) :: node
+         integer :: i, j, position
+         res = 0
+         if (size(probes) /= 0) then 
+            do i = 1, size(probes)
+               ids = this%getIntsAt(probes(i)%p, J_ELEMENTIDS)
+               node = this%mesh%getNode(ids(1))
+               do j = 1, size(lines)
+                  lines_ids = this%getIntsAt(lines(j)%p, J_COORDINATE_IDS)
+                  position = findloc(lines_ids, node%coordIds(1), dim=1)
+                  if (position /= 0) then ! polyline found
+                     res = res + 1
+                  end if
+               end do
+            end do
+         end if
+      end function
 
       function readProbeType(probe) result(res)
          type(json_value), pointer :: probe
@@ -1520,7 +1560,7 @@ contains
             c2 = this%mesh%getCoordinate(polyline_cIds(k))
             c1 = this%mesh%getCoordinate(polyline_cIds(k-1))
             delta = c2-c1
-            res = res + delta%position(findDirection(delta))
+            res = res + abs(delta%position(findDirection(delta)))
          end do
 
       end function
@@ -1676,46 +1716,13 @@ contains
             write(error_unit, *) "Error reading cable: is neither wire nor multiwire"
          end if
 
-         ! if (.not.associated(buildConnector(j_cable, J_MAT_ASS_CAB_INI_CONN_ID), null())) then
-         !    mtln_res%connectors         
          res%initial_connector => findConnectorWithId(j_cable, J_MAT_ASS_CAB_INI_CONN_ID)
          res%end_connector => findConnectorWithId(j_cable, J_MAT_ASS_CAB_END_CONN_ID)
-
-         ! res%initial_connector => buildConnector(j_cable, J_MAT_ASS_CAB_INI_CONN_ID)
-         ! res%end_connector => buildConnector(j_cable, J_MAT_ASS_CAB_END_CONN_ID)
          res%transfer_impedance = buildTransferImpedance(material)
          
 
       end function
 
-      ! function findConnectorWithId(j_cable, side) result(res)
-      !    type(json_value), pointer :: j_cable
-      !    character(*), intent(in) :: side
-      !    type(connector_t), pointer :: res
-      !    type(connector_t), target :: conn
-      !    integer :: conn_id
-      !    logical :: found 
-      !    integer :: i
-      !    found = .false.
-      !    if (this%existsAt(j_cable, side)) then 
-      !       conn_id = this%getIntAt(j_cable, side)
-      !       block
-      !          integer :: i
-      !          do i = 1, size(mtln_res%connectors)
-      !             if (mtln_res%connectors(i)%id == conn_id) then 
-      !                allocate(res, mtln_res%connectors(i))
-      !                ! res => mtln_res%connectors(i)
-      !                ! conn = mtln_res%connectors(i)
-      !                ! res => conn
-      !                exit
-      !             end if
-      !          end do
-      !       end block
-      !    else
-      !       res => null()
-      !    end if
-
-      ! end function
 
       function buildTransferImpedance(mat) result(res)
          type(json_value_ptr):: mat
@@ -1854,15 +1861,10 @@ contains
       function buildStepSize(j_cable) result(res)
          type(json_value), pointer :: j_cable
          real, dimension(:), allocatable :: res
-         integer, dimension(:), allocatable :: elemIds, cIds
+         integer, dimension(:), allocatable :: elemIds
          type(polyline_t) :: p_line
-         type(coordinate_t) :: c1, c2
-         integer :: i, j
-         integer :: axis
-         real :: f1, f2
-         real, dimension(:), allocatable :: displacement
-
          type(Desplazamiento) :: desp
+
          desp = this%readGrid()
 
          elemIds = getCableElemIds(j_cable)
@@ -1870,23 +1872,32 @@ contains
 
          p_line = this%mesh%getPolyline(elemIds(1))
          allocate(res(0))
-         do j = 2, size(p_line%coordIds)
-               c2 = this%mesh%getCoordinate(p_line%coordIds(j))
-               c1 = this%mesh%getCoordinate(p_line%coordIds(j-1))
-               axis = findDirection(c2-c1)
-               f1 = abs(ceiling(c1%position(axis))-c1%position(axis))
-               f2 = abs(c2%position(axis)-floor(c2%position(axis)))
-               displacement = assignDisplacement(desp, axis)
-               if (f1 /= 0) then 
-                  res = [res, f1*displacement(floor(c1%position(axis)))]
-               end if
-               do i = ceiling(c1%position(axis)), floor(c2%position(axis)) - 1
-                  res = [res, displacement(i)]
-               enddo
-               if (f2 /= 0) then 
-                  res = [res, f2*displacement(floor(c2%position(axis)))]
-               end if
-         end do
+         block
+            type(coordinate_t) :: c1, c2
+            integer :: axis, i, j
+            integer :: index_1, index_2
+            real :: f1, f2
+            real, dimension(:), allocatable :: displacement
+            do j = 2, size(p_line%coordIds)
+                  c2 = this%mesh%getCoordinate(p_line%coordIds(j))
+                  c1 = this%mesh%getCoordinate(p_line%coordIds(j-1))
+                  axis = findDirection(c2-c1)
+                  f1 = abs(ceiling(c1%position(axis))-c1%position(axis))
+                  f2 = abs(c2%position(axis)-floor(c2%position(axis)))
+                  displacement = assignDisplacement(desp, axis)
+                  if (f1 /= 0) then 
+                     res = [res, f1*displacement(floor(c1%position(axis)))]
+                  end if
+                  index_1 = ceiling(min(abs(c1%position(axis)), abs(c2%position(axis))))
+                  index_2 = floor(max(abs(c1%position(axis)), abs(c2%position(axis))))
+                  do i = index_1, index_2 - 1
+                     res = [res, displacement(i)]
+                  enddo
+                  if (f2 /= 0) then 
+                     res = [res, f2*displacement(floor(c2%position(axis)))]
+                  end if
+            end do
+         end block
       end function
 
       function readTransferImpedance(z) result(res)
