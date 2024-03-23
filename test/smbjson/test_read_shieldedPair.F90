@@ -174,9 +174,6 @@ contains
       allocate(expected%mtln%cables(2)%step_size(18))
       expected%mtln%cables(2)%step_size =  [(0.03, i = 1, 18)]
 
-      expected%mtln%cables(2)%transfer_impedance%direction = 0
-      expected%mtln%cables(2)%transfer_impedance%resistive_term = 0.0
-      expected%mtln%cables(2)%transfer_impedance%inductive_term = 0.0
       allocate(expected%mtln%cables(2)%transfer_impedance%poles(0))
       allocate(expected%mtln%cables(2)%transfer_impedance%residues(0))
 
