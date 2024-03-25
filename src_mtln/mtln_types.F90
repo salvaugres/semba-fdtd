@@ -175,8 +175,8 @@ module mtln_types_mod
           all(a%conductance_per_meter == b%conductance_per_meter) .and. &
           all(a%step_size == b%step_size) .and. &
           (a%transfer_impedance == b%transfer_impedance) .and. &
-          (a%conductor_in_parent == b%conductor_in_parent) .and. &
-          all(a%segment_relative_positions == b%segment_relative_positions)
+          (a%conductor_in_parent == b%conductor_in_parent)! .and. &
+         !  all(a%segment_relative_positions == b%segment_relative_positions)
 
          if (.not. associated(a%parent_cable) .and. .not. associated(b%parent_cable)) then 
             cable_eq = cable_eq .and. .true.
