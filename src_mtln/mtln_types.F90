@@ -21,6 +21,11 @@ module mtln_types_mod
     integer, parameter :: PROBE_TYPE_VOLTAGE   =  1
     integer, parameter :: PROBE_TYPE_CURRENT   =  2
  
+   !  type :: segment_relative_position_t
+   !    integer, dimension(3) :: position  
+   !    !  integer :: i, j, k
+   !  end type
+
     type :: termination_t
        integer :: termination_type = TERMINATION_UNDEFINED
        real :: resistance = 0.0
@@ -103,6 +108,8 @@ module mtln_types_mod
        integer :: conductor_in_parent = -1
        type(connector_t), pointer :: initial_connector => null()
        type(connector_t), pointer :: end_connector => null()
+      !  type(segment_relative_position_t), allocatable, dimension(:) :: segment_relative_positions
+       
     contains
        private
        procedure :: cable_eq
