@@ -24,6 +24,10 @@ module mtln_types_mod
     type :: segment_relative_position_t
       integer, dimension(3) :: position  
       !  integer :: i, j, k
+    contains
+       private
+       procedure :: segment_relative_positions_eq
+       generic, public :: operator(==) => segment_relative_positions_eq
     end type
 
     type :: termination_t
@@ -171,7 +175,8 @@ module mtln_types_mod
           all(a%conductance_per_meter == b%conductance_per_meter) .and. &
           all(a%step_size == b%step_size) .and. &
           (a%transfer_impedance == b%transfer_impedance) .and. &
-          (a%conductor_in_parent == b%conductor_in_parent)! .and. &
+          (a%conductor_in_parent == b%conductor_in_parent) .and. &
+          all(a%segment_relative_positions == b%segment_relative_positions)
 
          if (.not. associated(a%parent_cable) .and. .not. associated(b%parent_cable)) then 
             cable_eq = cable_eq .and. .true.
@@ -277,6 +282,12 @@ module mtln_types_mod
       class(terminal_network_t), intent(in) :: a,b 
       terminal_network_eq = &
          all(a%connections == b%connections)
+    end function
+
+    elemental logical function segment_relative_positions_eq(a,b)
+      class(segment_relative_position_t), intent(in) :: a,b
+      segment_relative_positions_eq = &
+         all(a%position == b%position)
     end function
 
     subroutine terminal_connection_add_node(this, node)

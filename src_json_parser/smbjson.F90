@@ -1927,7 +1927,7 @@ contains
                   orientation = findOrientation(c2-c1)
                   index_1 = ceiling(min(abs(c1%position(axis)), abs(c2%position(axis))))
                   index_2 = floor(max(abs(c1%position(axis)), abs(c2%position(axis))))
-                  do i = 1, index_2 - index_1
+                  do i = 1, index_2 - index_1 - 1
                      sc%position(axis) = sc%position(axis) + 1*orientation
                      res = [res, sc]
                   enddo

@@ -327,6 +327,10 @@ contains
       
       allocate(expected%mtln%cables(1)%step_size(9))
       expected%mtln%cables(1)%step_size = [(0.1, i = 1, 9)]
+      allocate(expected%mtln%cables(1)%segment_relative_positions(9))
+      do i = 1, 9
+         expected%mtln%cables(1)%segment_relative_positions(i)%position = (/i,9,1/)
+      end do
 
       allocate(expected%mtln%cables(1)%transfer_impedance%poles(0))
       allocate(expected%mtln%cables(1)%transfer_impedance%residues(0))
@@ -348,6 +352,11 @@ contains
       expected%mtln%cables(2)%conductance_per_meter = reshape(source=[0.0], shape=[1,1])
       allocate(expected%mtln%cables(2)%step_size(9))
       expected%mtln%cables(2)%step_size =  [(0.1, i = 1, 9)]
+
+      allocate(expected%mtln%cables(2)%segment_relative_positions(9))
+      do i = 1, 9
+         expected%mtln%cables(2)%segment_relative_positions(i)%position = (/i,9,1/)
+      end do
 
       expected%mtln%cables(2)%transfer_impedance%direction = TRANSFER_IMPEDANCE_DIRECTION_INWARDS
       expected%mtln%cables(2)%transfer_impedance%resistive_term = 0.0
@@ -389,7 +398,13 @@ contains
       end do
 
       allocate(expected%mtln%cables(3)%step_size(9))
-      expected%mtln%cables(3)%step_size =  [(0.1, i = 1, 9)]
+      expected%mtln%cables(3)%step_size =  [(0.1, i = 1, 9)]      
+
+      allocate(expected%mtln%cables(3)%segment_relative_positions(9))
+      do i = 1, 9
+         expected%mtln%cables(3)%segment_relative_positions(i)%position = (/i,9,1/)
+      end do
+
 
       expected%mtln%cables(3)%transfer_impedance%direction = TRANSFER_IMPEDANCE_DIRECTION_INWARDS
       expected%mtln%cables(3)%transfer_impedance%resistive_term = 0.0
@@ -418,6 +433,12 @@ contains
       allocate(expected%mtln%cables(4)%step_size(8))
       expected%mtln%cables(4)%step_size = [(0.1, i = 1, 8)]
 
+      allocate(expected%mtln%cables(4)%segment_relative_positions(8))
+      do i = 1, 8
+         expected%mtln%cables(4)%segment_relative_positions(i)%position = (/9+i,9,1/)
+      end do
+
+
       allocate(expected%mtln%cables(4)%transfer_impedance%poles(0))
       allocate(expected%mtln%cables(4)%transfer_impedance%residues(0))
 
@@ -438,6 +459,12 @@ contains
       expected%mtln%cables(5)%conductance_per_meter = reshape(source=[0.0], shape=[1,1])
       allocate(expected%mtln%cables(5)%step_size(8))
       expected%mtln%cables(5)%step_size =  [(0.1, i = 1, 8)]
+
+      allocate(expected%mtln%cables(5)%segment_relative_positions(8))
+      do i = 1, 8
+         expected%mtln%cables(4)%segment_relative_positions(i)%position = (/9+i,9,1/)
+      end do
+
 
       expected%mtln%cables(5)%transfer_impedance%direction = TRANSFER_IMPEDANCE_DIRECTION_INWARDS
       expected%mtln%cables(5)%transfer_impedance%resistive_term = 0.0
@@ -469,6 +496,12 @@ contains
       allocate(expected%mtln%cables(6)%step_size(8))
       expected%mtln%cables(6)%step_size =  [(0.1, i = 1, 8)]
 
+      allocate(expected%mtln%cables(6)%segment_relative_positions(8))
+      do i = 1, 8
+         expected%mtln%cables(4)%segment_relative_positions(i)%position = (/9+i,9,1/)
+      end do
+
+
       expected%mtln%cables(6)%transfer_impedance%direction = TRANSFER_IMPEDANCE_DIRECTION_INWARDS
       expected%mtln%cables(6)%transfer_impedance%resistive_term = 0.0
       expected%mtln%cables(6)%transfer_impedance%inductive_term = 4.2e-9
@@ -496,6 +529,12 @@ contains
       allocate(expected%mtln%cables(7)%step_size(7))
       expected%mtln%cables(7)%step_size = [(0.1, i = 1, 7)]
 
+      allocate(expected%mtln%cables(7)%segment_relative_positions(7))
+      do i = 1,7
+         expected%mtln%cables(7)%segment_relative_positions(i)%position = (/10,9-i,1/)
+      end do
+
+
       allocate(expected%mtln%cables(7)%transfer_impedance%poles(0))
       allocate(expected%mtln%cables(7)%transfer_impedance%residues(0))
 
@@ -516,6 +555,11 @@ contains
       expected%mtln%cables(8)%conductance_per_meter = reshape(source=[0.0], shape=[1,1])
       allocate(expected%mtln%cables(8)%step_size(7))
       expected%mtln%cables(8)%step_size =  [(0.1, i = 1, 7)]
+
+      allocate(expected%mtln%cables(8)%segment_relative_positions(7))
+      do i = 1,7
+         expected%mtln%cables(7)%segment_relative_positions(i)%position = (/10,9-i,1/)
+      end do
 
       expected%mtln%cables(8)%transfer_impedance%direction = TRANSFER_IMPEDANCE_DIRECTION_INWARDS
       expected%mtln%cables(8)%transfer_impedance%resistive_term = 0.0
@@ -553,6 +597,11 @@ contains
       end do
       allocate(expected%mtln%cables(9)%step_size(7))
       expected%mtln%cables(9)%step_size =  [(0.1, i = 1, 7)]
+
+      allocate(expected%mtln%cables(9)%segment_relative_positions(7))
+      do i = 1,7
+         expected%mtln%cables(7)%segment_relative_positions(i)%position = (/10,9-i,1/)
+      end do
 
       expected%mtln%cables(9)%transfer_impedance%direction = TRANSFER_IMPEDANCE_DIRECTION_INWARDS
       expected%mtln%cables(9)%transfer_impedance%resistive_term = 0.0
