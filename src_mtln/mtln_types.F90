@@ -21,10 +21,10 @@ module mtln_types_mod
     integer, parameter :: PROBE_TYPE_VOLTAGE   =  1
     integer, parameter :: PROBE_TYPE_CURRENT   =  2
  
-   !  type :: segment_relative_position_t
-   !    integer, dimension(3) :: position  
-   !    !  integer :: i, j, k
-   !  end type
+    type :: segment_relative_position_t
+      integer, dimension(3) :: position  
+      !  integer :: i, j, k
+    end type
 
     type :: termination_t
        integer :: termination_type = TERMINATION_UNDEFINED
@@ -108,7 +108,7 @@ module mtln_types_mod
        integer :: conductor_in_parent = -1
        type(connector_t), pointer :: initial_connector => null()
        type(connector_t), pointer :: end_connector => null()
-      !  type(segment_relative_position_t), allocatable, dimension(:) :: segment_relative_positions
+       type(segment_relative_position_t), allocatable, dimension(:) :: segment_relative_positions
        
     contains
        private
@@ -243,7 +243,9 @@ module mtln_types_mod
          else
             probe_eq = probe_eq .and. (a%attached_to_cable == b%attached_to_cable)
          end if
-
+      if (probe_eq .eqv. .false.) then 
+         probe_eq = .false.
+      end if
     end function
 
     elemental logical function terminal_node_eq(a, b)

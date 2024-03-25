@@ -1741,6 +1741,7 @@ contains
          end if
 
          res%step_size = buildStepSize(j_cable)
+         res%segment_relative_positions = mapSegmentsToGridCoordinates(j_cable)
          ! write(*,*) 'id: ', this%getIntAt(j_cable, J_MATERIAL_ID, found)
          material = this%matTable%getId(this%getIntAt(j_cable, J_MATERIAL_ID, found))
          if (.not. found) &
@@ -1901,45 +1902,45 @@ contains
       
       end subroutine
 
-      ! function mapSegmentToGridCoordinates(j_cable) result(res)
-      !    type(json_value), pointer :: j_cable
-      !    type(segment_relative_position_t) :: res
-      !    integer, dimension(:), allocatable :: elemIds
-      !    type(polyline_t) :: p_line
-      !    type(Desplazamiento) :: desp
+      function mapSegmentsToGridCoordinates(j_cable) result(res)
+         type(json_value), pointer :: j_cable
+         type(segment_relative_position_t), dimension(:), allocatable :: res
+         integer, dimension(:), allocatable :: elemIds
+         type(polyline_t) :: p_line
+         type(Desplazamiento) :: desp
 
-      !    desp = this%readGrid()
+         desp = this%readGrid()
 
-      !    elemIds = getCableElemIds(j_cable)
-      !    if (size(elemIds) == 0) return
+         elemIds = getCableElemIds(j_cable)
+         if (size(elemIds) == 0) return
 
-      !    p_line = this%mesh%getPolyline(elemIds(1))
-      !    allocate(res(0))
-      !    block
-      !       type(coordinate_t) :: c1, c2
-      !       integer :: axis, i, j, orientation
-      !       integer :: index_1, index_2
-      !       type(segment_relative_position_t) :: sc
-      !       do j = 2, size(p_line%coordIds)
-      !             c2 = this%mesh%getCoordinate(p_line%coordIds(j))
-      !             c1 = this%mesh%getCoordinate(p_line%coordIds(j-1))
-      !             do i = 1, 3
-      !                sc%position(k) = c1%position(k)
-      !             end do
-      !             res = [res, sc]
-      !             axis = findDirection(c2-c1)
-      !             orientation = findOrientation(c2-c1)
-      !             index_1 = ceiling(min(abs(c1%position(axis)), abs(c2%position(axis))))
-      !             index_2 = floor(max(abs(c1%position(axis)), abs(c2%position(axis))))
-      !             do i = 1, index_2 - index_1
-      !                sc%position(axis) = sc%position(axis) + 1*orientation
-      !                res = [res, sc]
-      !             enddo
-      !       end do
-      !    end block
+         p_line = this%mesh%getPolyline(elemIds(1))
+         allocate(res(0))
+         block
+            type(coordinate_t) :: c1, c2
+            integer :: axis, i, j, orientation
+            integer :: index_1, index_2
+            type(segment_relative_position_t) :: sc
+            do j = 2, size(p_line%coordIds)
+                  c2 = this%mesh%getCoordinate(p_line%coordIds(j))
+                  c1 = this%mesh%getCoordinate(p_line%coordIds(j-1))
+                  do i = 1, 3
+                     sc%position(i) = c1%position(i)
+                  end do
+                  res = [res, sc]
+                  axis = findDirection(c2-c1)
+                  orientation = findOrientation(c2-c1)
+                  index_1 = ceiling(min(abs(c1%position(axis)), abs(c2%position(axis))))
+                  index_2 = floor(max(abs(c1%position(axis)), abs(c2%position(axis))))
+                  do i = 1, index_2 - index_1
+                     sc%position(axis) = sc%position(axis) + 1*orientation
+                     res = [res, sc]
+                  enddo
+            end do
+         end block
 
 
-      ! end function
+      end function
 
       function buildStepSize(j_cable) result(res)
          type(json_value), pointer :: j_cable
@@ -1973,7 +1974,8 @@ contains
                   end if
                   index_1 = ceiling(min(abs(c1%position(axis)), abs(c2%position(axis))))
                   index_2 = floor(max(abs(c1%position(axis)), abs(c2%position(axis))))
-                  do i = index_1, index_2 - 1
+                  do i = 1, index_2 - index_1
+                  ! do i = index_1, index_2 - 1
                      res = [res, displacement(i)]
                   enddo
                   if (f2 /= 0) then 
