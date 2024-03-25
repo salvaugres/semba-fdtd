@@ -4,7 +4,7 @@ import shutil, glob, re
 import json
 
 TEST_DATA_FOLDER = 'testData/'
-CASE_FOLDER = TEST_DATA_FOLDER + 'case/'
+CASE_FOLDER = TEST_DATA_FOLDER + 'cases/'
 EXCTITATIONS_FOLDER = TEST_DATA_FOLDER + 'gauss.exc'
 
 SEMBA_EXE = 'build/bin/semba-fdtd'

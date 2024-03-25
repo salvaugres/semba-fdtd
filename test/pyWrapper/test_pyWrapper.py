@@ -4,16 +4,16 @@ def test_probes_output_exists(tmp_path):
     case = 'holland1981'
     input_json = getCase(case)
     input_json['general']['numberOfTimeSteps'] = 1
-    input_file = tmp_path + case + '.fdtd.json'
-    input_json.save(input_file)    
+    fn = tmp_path.name + '/' + case + '.fdtd.json'
+    json.dump(input_json, fn) 
 
     makeTemporaryCopy(tmp_path, EXCTITATIONS_FOLDER+'gauss.exc')
 
-    solver = FDTD(file_name = input_file, path_to_exe=SEMBA_EXE)
+    solver = FDTD(file_name = fn, path_to_exe=SEMBA_EXE)
     
     solver.run()
     
-    probe_files = solver.getSolvedProbeFiles("mid_point")
+    probe_files = solver.getSolvedProbeFilenames("mid_point")
     
     assert solver.hasFinishedSuccessfully() == True
     assert len(probe_files) == 1

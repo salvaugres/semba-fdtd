@@ -21,7 +21,7 @@ class FDTD():
         with open(self.file_name) as input_file:
             return json.load(input_file)
         
-    def getSolvedProbeFiles(self, probe_name):
+    def getSolvedProbeFilenames(self, probe_name):
         input_json = self.createJsonDict()
         if not "probes" in input_json:
             raise ValueError('Solver does not contain probes.')
