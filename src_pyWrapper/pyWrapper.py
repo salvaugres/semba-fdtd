@@ -1,21 +1,41 @@
 import subprocess
 import json
+import os
+import glob, re
 
-class pyWrapper():
+class FDTD():
     def __init__(self, file_name, path_to_exe):
         self.file_name = file_name
         self.path_to_exe = path_to_exe
+
+        self.folder = os.path.dirname(self.file_name)
+        self.case = os.path.basename(self.file_name).split('.json')[0]
+        self.hasRun = False
     
     def run(self):
+        os.chdir(self.folder)
         self.output = subprocess.run([self.path_to_exe+"/semba-fdtd", "-i",self.file_name])
+        self.hasRun = True
     
-    def createJsonDict(self):
+    def readJsonDict(self):
         with open(self.file_name) as input_file:
             return json.load(input_file)
+        
+    def getSolvedProbeFiles(self, probe_name):
+        input_json = self.createJsonDict()
+        if not "probes" in input_json:
+            raise ValueError('Solver does not contain probes.')
+        
+        for probe in input_json["probes"]:
+            probeFiles = [x for x in glob.glob('*dat') if re.match(self.case + '_' + probe_name + '.*dat',x)]
+            return probeFiles
     
-    def hasFinishedSuccess(self):
+    def hasFinishedSuccessfully(self):
+        if self.hasRun:
+            return False
         if (self.output.returncode == 0):
             return True
         else:
             return False
+        
         

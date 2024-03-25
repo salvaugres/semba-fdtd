@@ -1,9 +1,16 @@
 import pytest
-import src_pyWrapper.pyWrapper as pyw
-import shutil, os, glob, re
+from src_pyWrapper.pyWrapper import *
+import shutil, glob, re
+import json
 
 TEST_DATA_FOLDER = 'testData/'
-CASES_FOLDER = TEST_DATA_FOLDER+'pyWrapper/'
+CASE_FOLDER = TEST_DATA_FOLDER + 'case/'
+EXCTITATIONS_FOLDER = TEST_DATA_FOLDER + 'gauss.exc'
+
+SEMBA_EXE = 'build/bin/semba-fdtd'
+
+def getCase(case):
+    return json.load(open(CASE_FOLDER + case + '.fdtd.json'))
 
 def makeTemporaryCopy(temp_dir, file_path):
     file_name = file_path.split('/')[-1]
@@ -14,11 +21,6 @@ def copyTemporaryInputFiles(temp_dir, input, excitation, executable):
     makeTemporaryCopy(temp_dir, input)
     makeTemporaryCopy(temp_dir, excitation)
     makeTemporaryCopy(temp_dir, executable)
-
-def isProbeInOutputFiles(prefix, probe_name):
-    return len([x for x in glob.glob('*dat') if re.match(prefix + '_' + probe_name + '.*dat',x)]) == 1
-    # r = [x for x in glob.glob('*dat') if re.match(prefix + '_' + probe_name + '.*dat',x)]
-    # return len(r) == 1
 
 def getProbeFile(prefix, probe_name):
     return  ([x for x in glob.glob('*dat') if re.match(prefix + '_' + probe_name + '.*dat',x)])[0]
