@@ -657,7 +657,7 @@ An example of a planewave propagating towards $\hat{z}$ and polarized in the $+\
 
 This object represents a time-varying vector field applied along an oriented line with the same orientation of the line. Therefore, the `elementIds` within must contain only elements of type `cell` with `intervals` describing a collection of oriented lines. Additionally, it may contain:
 
-+ `[field]` with a `electric`, `magnetic`, or `current` label which indicates the vector field which will be applied. If not present, it defaults to `electric`.
++ `[field]` with a `electric` or `magnetic` label which indicates the vector field which will be applied. If not present, it defaults to `electric`.
 + `[hardness]` with `soft` or `hard` label. A `soft` hardness indicated that the magnitude will be **added** to the field this situation is typical for a waveport. `hard` sources mean that the field is **substituted** by the value established by the `magnitudeFile`, which for an electric field `nodalSource` would be equivalent to a `pec` material if the magnitude is zero.
 
 **Example:**
@@ -669,7 +669,7 @@ This object represents a time-varying vector field applied along an oriented lin
     "magnitudeFile": "gauss.exc", 
     "elementIds": [1],
     "hardness": "soft",
-    "field": "current"
+    "field": "electric"
 }
 ```
 

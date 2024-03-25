@@ -89,7 +89,7 @@ contains
 
    function readProblemDescription(this) result (res)
       class(parser_t) :: this
-      type(Parseador) :: res 
+      type(Parseador) :: res
 
       allocate(this%jsonfile)
       call this%jsonfile%initialize()
@@ -283,7 +283,7 @@ contains
          logical :: found = .false.
 
          call this%core%get(this%root, path, vec, found)
-         
+
          if (.not. found) then
             write(error_unit, *) 'Error reading grid: steps not found.'
          endif
@@ -425,22 +425,22 @@ contains
 
          character (len=:), allocatable :: label
          logical :: found
-         
+
          res%nombre_fichero = trim(adjustl( &
             this%getStrAt(pw,J_SRC_MAGNITUDE_FILE)))
-            
-            call this%core%get(pw, J_SRC_PW_ATTRIBUTE, label, found)
+
+         call this%core%get(pw, J_SRC_PW_ATTRIBUTE, label, found)
          if (found) then
             res%atributo = trim(adjustl(label))
          else
             res%atributo = ""
          endif
-         
+
          call this%core%get(pw, J_SRC_PW_DIRECTION//'.'//J_SRC_PW_THETA, res%theta)
          call this%core%get(pw, J_SRC_PW_DIRECTION//'.'//J_SRC_PW_PHI, res%phi)
          call this%core%get(pw, J_SRC_PW_POLARIZATION//'.'//J_SRC_PW_THETA, res%alpha)
          call this%core%get(pw, J_SRC_PW_POLARIZATION//'.'//J_SRC_PW_PHI, res%beta)
-         
+
          block
             type(coords), dimension(:), allocatable :: nfdeCoords
             nfdeCoords = &
@@ -479,23 +479,18 @@ contains
       res%n_nodSrc = size(nodSrcs)
       res%n_nodSrc_max = size(nodSrcs)
       do i = 1, size(nodSrcs)
-         res%NodalSource(i) = readCurrentFieldSource(nodSrcs(i)%p)
+         res%NodalSource(i) = readField(nodSrcs(i)%p)
       end do
       do i = 1, size(nodSrcs)
          res%n_C2P_max = max(res%n_C2P_max, res%NodalSource(i)%n_C2P)
       end do
 
    contains
-      function readCurrentFieldSource(jns) result(res)
+      function readField(jns) result(res)
          type(Curr_Field_Src) :: res
          type(json_value), pointer :: jns, entry
 
          select case (this%getStrAt(jns, J_FIELD))
-          case (J_FIELD_CURRENT)
-            res%isField = .false.
-            res%isElec = .false.
-            res%isMagnet = .false.
-            res%isCurrent = .true.
           case (J_FIELD_ELECTRIC)
             res%isField = .true.
             res%isElec = .true.
@@ -557,14 +552,14 @@ contains
          type(json_value), pointer :: p
          type(Sonda), pointer :: ff
          character (len=:), allocatable :: outputName
-         
+
          type(domain_t) :: domain
-         
+
          res%n_FarField = 1
          res%n_FarField_max = 1
          allocate(res%FarField(1))
          ff => res%FarField(1)%probe
-         
+
          call this%core%get(p, J_NAME, outputName)
          ff%outputrequest = trim(adjustl(outputName))
 
@@ -598,7 +593,7 @@ contains
             ff%k(2) = nfdeCoords(1)%Ze
          end block
 
-         block 
+         block
             call readDirection(&
                p, J_PR_FAR_FIELD_PHI, ff%phistart, ff%phistop, ff%phistep)
             call readDirection(&
@@ -1136,7 +1131,7 @@ contains
       type(fhash_tbl_t) :: elemIdToPosition, elemIdToCable, connIdToConnector
       type(json_value_ptr), dimension(:), allocatable :: cables
       integer :: nWs
-      
+
       mtln_res%time_step = this%getRealAt(this%root, J_GENERAL//'.'//J_GEN_TIME_STEP)
       mtln_res%number_of_steps = this%getRealAt(this%root, J_GENERAL//'.'//J_GEN_NUMBER_OF_STEPS)
 
@@ -1178,11 +1173,11 @@ contains
          j = 1
          if (size(cables) /= 0) then
             do i = 1, size(cables)
-               if (isMultiwire(cables(i)%p)) then 
+               if (isMultiwire(cables(i)%p)) then
                   parentId = this%getIntAt(cables(i)%p, J_MAT_ASS_CAB_CONTAINED_WITHIN_ID)
                   mtln_res%cables(j)%parent_cable => getCableContainingElemId(parentId)
                   mtln_res%cables(j)%conductor_in_parent = getParentPositionInMultiwire(parentId)
-               else if (isWire(cables(i)%p)) then 
+               else if (isWire(cables(i)%p)) then
                   mtln_res%cables(j)%parent_cable => null()
                   mtln_res%cables(j)%conductor_in_parent = 0
                end if
@@ -1195,7 +1190,7 @@ contains
       mtln_res%networks = buildNetworks()
 
    contains
-               
+
       function readConnectors() result(res)
          type(connector_t), target, dimension(:), allocatable :: res
          type(json_value), pointer :: mat, z
@@ -1205,19 +1200,19 @@ contains
          call this%core%get(this%root, J_MATERIALS, mat)
          connectors = this%jsonValueFilterByKeyValue(mat, J_TYPE, J_MAT_TYPE_CONNECTOR)
          allocate(res(size(connectors)))
-         if (size(connectors) /= 0) then 
+         if (size(connectors) /= 0) then
             do i = 1, size(connectors)
                res(i)%id = this%getIntAt(connectors(i)%p, J_ID)
-               if (this%existsAt(connectors(i)%p, J_MAT_CONN_RESISTANCES)) then 
+               if (this%existsAt(connectors(i)%p, J_MAT_CONN_RESISTANCES)) then
                   res(i)%resistances = this%getRealsAt(connectors(i)%p, J_MAT_CONN_RESISTANCES)
-               else 
+               else
                   allocate(res(i)%resistances(0))
                end if
 
-               if (this%existsAt(connectors(i)%p, J_MAT_CONN_TRANSFER_IMPEDANCE)) then 
+               if (this%existsAt(connectors(i)%p, J_MAT_CONN_TRANSFER_IMPEDANCE)) then
                   call this%core%get(connectors(i)%p, J_MAT_MULTIWIRE_TRANSFER_IMPEDANCE,  z)
                   res(i)%transfer_impedance_per_meter = readTransferImpedance(z)
-               else 
+               else
                   res(i)%transfer_impedance_per_meter = noTransferImpedance()
                end if
 
@@ -1265,13 +1260,13 @@ contains
          integer, dimension(:), allocatable :: elemIds
          integer :: res
          res = 0
-         
+
          if (size(cables) /= 0) then
             do i = 1, size(cables)
                elemIds = getCableElemIds(cables(i)%p)
                if (size(elemIds) == 0) return
-               m = maxval(elemIds,dim = 1)               
-               if (m > res) then 
+               m = maxval(elemIds,dim = 1)
+               if (m > res) then
                   res = m
                end if
             end do
@@ -1335,7 +1330,7 @@ contains
          type(aux_node_t), dimension(:), intent(in) :: aux_nodes
          type(aux_node_t), dimension(:), allocatable :: network_nodes
          integer, dimension(:), allocatable :: node_ids
-         integer :: i         
+         integer :: i
          type(terminal_network_t) :: res
 
          network_nodes = filterNetworkNodes(network_coordinate, aux_nodes)
@@ -1346,17 +1341,17 @@ contains
          end do
 
 
-      end function   
+      end function
 
       function buildListOfNodeIds(network_nodes) result(res)
          type(aux_node_t), dimension(:), intent(in) :: network_nodes
          integer, dimension(:), allocatable :: res
          integer :: i
          allocate(res(0))
-         do i = 1, size(network_nodes) 
+         do i = 1, size(network_nodes)
             if (findloc(res, network_nodes(i)%cId, 1) == 0) res = [res, network_nodes(i)%cId]
          end do
-      end function   
+      end function
 
       function filterNetworkNodes(network_coordinate, aux_nodes) result(res)
          type(coordinate_t), intent(in) :: network_coordinate
@@ -1365,7 +1360,7 @@ contains
          integer :: i
          allocate(res(0))
          do i = 1, size(aux_nodes)
-            if (aux_nodes(i)%relPos == network_coordinate) then 
+            if (aux_nodes(i)%relPos == network_coordinate) then
                res = [res, aux_nodes(i)]
             end if
          end do
@@ -1377,7 +1372,7 @@ contains
          type(terminal_connection_t) :: res
          integer :: i
          do i = 1, size(network_nodes)
-            if (network_nodes(i)%cId == node_id) then 
+            if (network_nodes(i)%cId == node_id) then
                call res%add_node(network_nodes(i)%node)
             end if
          end do
@@ -1402,8 +1397,8 @@ contains
          polyline = this%mesh%getPolyline(conductor_index)
          coord_ini = this%mesh%getCoordinate(polyline%coordIds(1))
          coord_end = this%mesh%getCoordinate(polyline%coordIds(ubound(polyline%coordIds,1)))
-         
-         if (size(coordinates) /= 0) then 
+
+         if (size(coordinates) /= 0) then
             do i = 1, size(coordinates)
                if (coordinates(i) == coord_ini) then
                   found_ini = .true.
@@ -1414,11 +1409,11 @@ contains
             end do
          end if
 
-         if (.not. found_ini) then 
+         if (.not. found_ini) then
             coordinates = [coordinates, coord_ini]
          end if
 
-         if (.not. found_end) then 
+         if (.not. found_end) then
             coordinates = [coordinates, coord_end]
          end if
 
@@ -1437,7 +1432,7 @@ contains
             return
          end if
          terminal = this%matTable%getId(this%getIntAt(cable, label))
-         if (.not. this%existsAt(terminal%p, J_MAT_TERM_TERMINATIONS)) then 
+         if (.not. this%existsAt(terminal%p, J_MAT_TERM_TERMINATIONS)) then
             write(error_unit, *) 'Error: missing terminations on terminal'
             res => null()
             return
@@ -1463,34 +1458,34 @@ contains
          res%node%termination%inductance = readTerminationRLC(termination, J_MAT_TERM_INDUCTANCE, default=0.0)
          res%node%conductor_in_cable = index
          res%node%belongs_to_cable => getCableContainingElemId(id)
-         
+
          polyline = this%mesh%getPolyline(id)
-         
-         if (label == TERMINAL_NODE_SIDE_INI) then 
+
+         if (label == TERMINAL_NODE_SIDE_INI) then
             res%cId = polyline%coordIds(1)
             res%relPos = this%mesh%getCoordinate(polyline%coordIds(1))
-         else if (label == TERMINAL_NODE_SIDE_END) then 
+         else if (label == TERMINAL_NODE_SIDE_END) then
             res%cId = polyline%coordIds(ubound(polyline%coordIds,1))
             res%relPos = this%mesh%getCoordinate(polyline%coordIds(ubound(polyline%coordIds,1)))
          end if
       end function
 
       function readTerminationType(termination) result(res)
-         type(json_value), pointer :: termination 
+         type(json_value), pointer :: termination
          integer :: res
          character(:), allocatable :: type
          type = this%getStrAt(termination, J_TYPE)
-         if (type == J_MAT_TERM_TYPE_OPEN) then 
+         if (type == J_MAT_TERM_TYPE_OPEN) then
             res = TERMINATION_OPEN
-         else if (type == J_MAT_TERM_TYPE_SHORT) then 
+         else if (type == J_MAT_TERM_TYPE_SHORT) then
             res = TERMINATION_SHORT
-         else if (type == J_MAT_TERM_TYPE_SERIES) then 
+         else if (type == J_MAT_TERM_TYPE_SERIES) then
             res = TERMINATION_SERIES
-         else if (type == J_MAT_TERM_TYPE_LCpRs) then 
+         else if (type == J_MAT_TERM_TYPE_LCpRs) then
             res = TERMINATION_LCpRs
-         else if (type == J_MAT_TERM_TYPE_RLsCp) then 
+         else if (type == J_MAT_TERM_TYPE_RLsCp) then
             res = TERMINATION_RLsCp
-         else 
+         else
             res = TERMINATION_UNDEFINED
          end if
       end function
@@ -1500,9 +1495,9 @@ contains
          character(*), intent(in) :: label
          real, intent(in) :: default
          real :: res
-         if (this%existsAt(termination, label)) then 
+         if (this%existsAt(termination, label)) then
             res = this%getRealAt(termination, label)
-         else 
+         else
             res = default
          end if
 
@@ -1518,7 +1513,7 @@ contains
          type(cable_t), pointer :: cable_ptr
          if (this%existsAt(this%root, J_PROBES)) then
             call this%core%get(this%root, J_PROBES, probes)
-         else 
+         else
             allocate(res(0))
             return
          end if
@@ -1530,7 +1525,7 @@ contains
          n_probes = countProbes(wire_probes, polylines)
 
          allocate(res(n_probes))
-         if (n_probes /= 0) then 
+         if (n_probes /= 0) then
             k = 1
             do i = 1, size(wire_probes)
                elemIds = this%getIntsAt(wire_probes(i)%p, J_ELEMENTIDS)
@@ -1555,7 +1550,7 @@ contains
          end if
 
 
-      end function 
+      end function
 
       function countProbes(probes, lines) result(res)
          type(json_value_ptr), dimension(:), allocatable :: probes, lines
@@ -1564,7 +1559,7 @@ contains
          type(node_t) :: node
          integer :: i, j, position
          res = 0
-         if (size(probes) /= 0) then 
+         if (size(probes) /= 0) then
             do i = 1, size(probes)
                ids = this%getIntsAt(probes(i)%p, J_ELEMENTIDS)
                node = this%mesh%getNode(ids(1))
@@ -1588,7 +1583,7 @@ contains
             res = PROBE_TYPE_VOLTAGE
          else if (probe_type == J_FIELD_CURRENT) then
             res = PROBE_TYPE_CURRENT
-         else 
+         else
             write(error_unit,*) 'probe type '//probe_type//' not supported'
             res = PROBE_TYPE_UNDEFINED
          end if
@@ -1614,19 +1609,19 @@ contains
          integer :: mStat
          class(*), pointer :: d
          type(cable_t), pointer :: res
-         
+
          nullify(res)
          call elemIdToCable%check_key(key(id), mStat)
          if (mStat /= 0) then
             return
          end if
-   
+
          call elemIdToCable%get_raw_ptr(key(id), d, mStat)
          if (mStat /= 0) then
             return
          end if
          select type(d)
-         type is (cable_t)
+          type is (cable_t)
 
             res => d
          end select
@@ -1637,7 +1632,7 @@ contains
          character(*), intent(in) :: side
          integer :: conn_id
          type(connector_t), pointer :: res
-         if (this%existsAt(j_cable, side)) then 
+         if (this%existsAt(j_cable, side)) then
             conn_id = this%getIntAt(j_cable, side)
             res => getConnectorWithIdFromMap(conn_id)
          else
@@ -1657,14 +1652,14 @@ contains
             res => null()
             return
          end if
-   
+
          call connIdToConnector%get_raw_ptr(key(id), d, mStat)
          if (mStat /= 0) then
             res => null()
             return
          end if
          select type(d)
-         type is (connector_t)
+          type is (connector_t)
             res => d
          end select
       end function
@@ -1673,7 +1668,7 @@ contains
          integer, intent(in) :: id
          integer :: mStat
          integer :: res
-         
+
          call elemIdToPosition%check_key(key(id), mStat)
          if (mStat /= 0) then
             return
@@ -1694,7 +1689,7 @@ contains
 
       subroutine addElemIdToCableMap(map, j_cable, cable)
          type(fhash_tbl_t), intent(inout) :: map
-         type(json_value), pointer :: j_cable 
+         type(json_value), pointer :: j_cable
          type(cable_t), intent(in) :: cable
          integer, dimension(:), allocatable :: elemIds
          integer :: i
@@ -1706,7 +1701,7 @@ contains
 
       subroutine addElemIdToPositionMap(map, j_cable)
          type(fhash_tbl_t), intent(inout) :: map
-         type(json_value), pointer :: j_cable 
+         type(json_value), pointer :: j_cable
          integer, dimension(:), allocatable :: elemIds
          integer :: i
          elemIds = getCableElemIds(j_cable)
@@ -1718,7 +1713,7 @@ contains
       function getCableElemIds(cable) result(res)
          type(json_value), pointer :: cable
          integer, dimension(:), allocatable :: res
-         if (this%existsAt(cable, J_ELEMENTIDS)) then 
+         if (this%existsAt(cable, J_ELEMENTIDS)) then
             res = this%getIntsAt(cable, J_ELEMENTIDS)
          else
             allocate(res(0))
@@ -1764,7 +1759,7 @@ contains
          res%initial_connector => findConnectorWithId(j_cable, J_MAT_ASS_CAB_INI_CONN_ID)
          res%end_connector => findConnectorWithId(j_cable, J_MAT_ASS_CAB_END_CONN_ID)
          res%transfer_impedance = buildTransferImpedance(material)
-         
+
 
       end function
 
@@ -1776,7 +1771,7 @@ contains
          if (this%existsAt(mat%p, J_MAT_MULTIWIRE_TRANSFER_IMPEDANCE)) then
             call this%core%get(mat%p, J_MAT_MULTIWIRE_TRANSFER_IMPEDANCE,  z)
             res = readTransferImpedance(z)
-         else 
+         else
             res = noTransferImpedance()
          end if
       end function
@@ -1795,12 +1790,12 @@ contains
          character(:), allocatable :: name, type
          integer :: id
          real, dimension(:), allocatable :: rs
-         if (this%existsAt(j_cable, side)) then 
+         if (this%existsAt(j_cable, side)) then
             conn = this%matTable%getId(this%getIntAt(j_cable, side))
 
             if (this%existsAt(conn%p, J_MAT_CONN_RESISTANCES)) then
                res_conn%resistances = this%getRealsAt(conn%p, J_MAT_CONN_RESISTANCES)
-            else 
+            else
                allocate(res_conn%resistances(0))
                write(error_unit, *) "Error reading connector: no resistances label found"
             end if
@@ -1827,21 +1822,21 @@ contains
          allocate(res%resistance_per_meter(1,1), source = 0.0)
          allocate(res%conductance_per_meter(1,1), source = 0.0)
 
-         if (this%existsAt(mat%p, J_MAT_WIRE_REF_CAPACITANCE)) then 
+         if (this%existsAt(mat%p, J_MAT_WIRE_REF_CAPACITANCE)) then
             res%capacitance_per_meter(1,1) = this%getRealAt(mat%p, J_MAT_WIRE_REF_CAPACITANCE)
-         else  
+         else
             write(error_unit, *) "Error reading material region: __referenceCapacitancePerMeter label not found."
          end if
 
-         if (this%existsAt(mat%p, J_MAT_WIRE_REF_INDUCTANCE)) then 
+         if (this%existsAt(mat%p, J_MAT_WIRE_REF_INDUCTANCE)) then
             res%inductance_per_meter(1,1) = this%getRealAt(mat%p, J_MAT_WIRE_REF_INDUCTANCE)
-         else  
+         else
             write(error_unit, *) "Error reading material region: __referenceInductancePerMeter label not found."
          end if
 
-         if (this%existsAt(mat%p, J_MAT_WIRE_RESISTANCE)) then 
+         if (this%existsAt(mat%p, J_MAT_WIRE_RESISTANCE)) then
             res%resistance_per_meter(1,1) = this%getRealAt(mat%p, J_MAT_WIRE_RESISTANCE)
-         else  
+         else
             res%resistance_per_meter(1,1) = 0.0
             ! write(error_unit, *) "Error reading material region: resistancePerMeter label not found."
          end if
@@ -1855,7 +1850,7 @@ contains
          real, dimension(:,:), allocatable :: null_matrix
          logical :: found
          allocate(null_matrix(n,n), source = 0.0)
-         if (this%existsAt(mat%p, J_MAT_MULTIWIRE_INDUCTANCE)) then 
+         if (this%existsAt(mat%p, J_MAT_MULTIWIRE_INDUCTANCE)) then
             if (n /= 1) then
                res%inductance_per_meter = this%getMatrixAt(mat%p, J_MAT_MULTIWIRE_INDUCTANCE,found)
             else
@@ -1865,8 +1860,8 @@ contains
             write(error_unit, *) "Error reading material region: inductancePerMeter label not found."
             res%inductance_per_meter = null_matrix
          end if
-   
-         if (this%existsAt(mat%p, J_MAT_MULTIWIRE_CAPACITANCE)) then 
+
+         if (this%existsAt(mat%p, J_MAT_MULTIWIRE_CAPACITANCE)) then
             if (n /= 1) then
                res%capacitance_per_meter = this%getMatrixAt(mat%p, J_MAT_MULTIWIRE_CAPACITANCE,found)
             else
@@ -1876,11 +1871,11 @@ contains
             write(error_unit, *) "Error reading material region: capacitancePerMeter label not found."
             res%capacitance_per_meter = null_matrix
          end if
-        
+
          if (this%existsAt(mat%p, J_MAT_MULTIWIRE_RESISTANCE)) then
             if (n /= 1) then
                res%resistance_per_meter = vectorToDiagonalMatrix(this%getRealsAt(mat%p, J_MAT_MULTIWIRE_RESISTANCE,found))
-            else 
+            else
                res%resistance_per_meter = scalarToMatrix(this%getRealAt(mat%p, J_MAT_MULTIWIRE_RESISTANCE,found))
             end if
          else
@@ -1889,7 +1884,7 @@ contains
          end if
 
          if (this%existsAt(mat%p, J_MAT_MULTIWIRE_CONDUCTANCE)) then
-            if (n /=1 ) then 
+            if (n /=1 ) then
                res%conductance_per_meter = vectorToDiagonalMatrix(this%getRealsAt(mat%p, J_MAT_MULTIWIRE_CONDUCTANCE,found))
             else
                res%conductance_per_meter = scalarToMatrix(this%getRealAt(mat%p, J_MAT_MULTIWIRE_CONDUCTANCE,found))
@@ -1899,7 +1894,7 @@ contains
             res%conductance_per_meter = null_matrix
          end if
 
-      
+
       end subroutine
 
       function mapSegmentsToGridCoordinates(j_cable) result(res)
@@ -1989,26 +1984,26 @@ contains
          type(json_value), pointer :: z
          type(transfer_impedance_per_meter_t) :: res
          character(len=:), allocatable :: direction
-         
+
          if (this%existsAt(z, J_MAT_TRANSFER_IMPEDANCE_RESISTANCE)) then
             res%resistive_term = this%getRealAt(z,J_MAT_TRANSFER_IMPEDANCE_RESISTANCE)
          end if
-         
+
          if (this%existsAt(z, J_MAT_TRANSFER_IMPEDANCE_INDUCTANCE)) then
             res%inductive_term = this%getRealAt(z,J_MAT_TRANSFER_IMPEDANCE_INDUCTANCE)
          end if
-         
-         if (this%existsAt(z, J_MAT_TRANSFER_IMPEDANCE_DIRECTION)) then 
+
+         if (this%existsAt(z, J_MAT_TRANSFER_IMPEDANCE_DIRECTION)) then
             direction = trim(adjustl(this%getStrAt(z,J_MAT_TRANSFER_IMPEDANCE_DIRECTION)))
          else
             write(error_unit,*) 'Error reading material: direction of transferImpedancePerMeter missing'
          end if
 
-         if (direction == "inwards") then 
+         if (direction == "inwards") then
             res%direction = TRANSFER_IMPEDANCE_DIRECTION_INWARDS
-         else if (direction == "outwards") then 
+         else if (direction == "outwards") then
             res%direction = TRANSFER_IMPEDANCE_DIRECTION_OUTWARDS
-         else if (direction == "both") then 
+         else if (direction == "both") then
             res%direction = TRANSFER_IMPEDANCE_DIRECTION_BOTH
          end if
          allocate(res%poles(0),res%residues(0))
@@ -2031,15 +2026,15 @@ contains
          type(Desplazamiento), intent(in) :: desp
          integer, intent(in) :: axis
          real, dimension(:), allocatable :: res
-         
-         if (axis == 1) then 
+
+         if (axis == 1) then
             res = desp%desX
          else if (axis == 2) then
             res = desp%desY
          else if (axis == 3) then
             res = desp%desZ
          end if
-      end function   
+      end function
 
       function findOrientation(coordDiference) result(res)
          type(coordinate_t), intent(in) :: coordDiference
@@ -2060,37 +2055,37 @@ contains
          do i = 1, 3
             if (coordDiference%position(i) /= 0) res = i
          end do
-      end function  
-      
+      end function
+
       logical function isMultiwire(cable)
-            type(json_value), pointer :: cable
-            type(json_value_ptr) :: mat
-            integer, dimension(:), allocatable :: eIds
-            logical :: found
+         type(json_value), pointer :: cable
+         type(json_value_ptr) :: mat
+         integer, dimension(:), allocatable :: eIds
+         logical :: found
 
-            isMultiwire = .false.
+         isMultiwire = .false.
 
-            ! materialId is multiwire
-            mat = this%matTable%getId(this%getIntAt(cable, J_MATERIAL_ID, found=found))
-            if (.not. found) return
-            ! write(*,*) 'type: ', this%getStrAt(mat%p, J_TYPE)
-            if (this%getStrAt(mat%p, J_TYPE) /= J_MAT_TYPE_MULTIWIRE) return
-   
-            ! has terminal on initial side
-            mat = this%matTable%getId(this%getIntAt(cable, J_MAT_ASS_CAB_INI_TERM_ID, found=found))
-            if (.not. found) return
-            if (this%getStrAt(mat%p, J_TYPE) /= J_MAT_TYPE_TERMINAL) return
+         ! materialId is multiwire
+         mat = this%matTable%getId(this%getIntAt(cable, J_MATERIAL_ID, found=found))
+         if (.not. found) return
+         ! write(*,*) 'type: ', this%getStrAt(mat%p, J_TYPE)
+         if (this%getStrAt(mat%p, J_TYPE) /= J_MAT_TYPE_MULTIWIRE) return
 
-            ! has terminal on end side
-            mat = this%matTable%getId(this%getIntAt(cable, J_MAT_ASS_CAB_END_TERM_ID, found=found))
-            if (.not. found) return
-            if (this%getStrAt(mat%p, J_TYPE) /= J_MAT_TYPE_TERMINAL) return
+         ! has terminal on initial side
+         mat = this%matTable%getId(this%getIntAt(cable, J_MAT_ASS_CAB_INI_TERM_ID, found=found))
+         if (.not. found) return
+         if (this%getStrAt(mat%p, J_TYPE) /= J_MAT_TYPE_TERMINAL) return
 
-            ! has elementIds
-            eIds = this%getIntsAt(cable, J_ELEMENTIDS, found=found)
-            if (.not. found) return
+         ! has terminal on end side
+         mat = this%matTable%getId(this%getIntAt(cable, J_MAT_ASS_CAB_END_TERM_ID, found=found))
+         if (.not. found) return
+         if (this%getStrAt(mat%p, J_TYPE) /= J_MAT_TYPE_TERMINAL) return
 
-            isMultiwire = .true.
+         ! has elementIds
+         eIds = this%getIntsAt(cable, J_ELEMENTIDS, found=found)
+         if (.not. found) return
+
+         isMultiwire = .true.
 
       end function
 
@@ -2122,7 +2117,7 @@ contains
 
          isWire = .true.
 
-   end function
+      end function
 
    end function
 
@@ -2177,7 +2172,7 @@ contains
       call this%core%get(place, path,  matrix, found)
       call this%core%info(matrix, vartype, nr)
       allocate(res(nr,nr))
-     
+
       do i = 1, nr
          call this%core%get_child(matrix, i, row)
          call this%core%get(row, res_row)
@@ -2296,10 +2291,10 @@ contains
       class(parser_t) :: this
       type(json_value), pointer :: pw
       type(cell_region_t) :: cellRegion
-      integer, dimension(:), allocatable :: elemIds   
+      integer, dimension(:), allocatable :: elemIds
       type(cell_interval_t), dimension(:), allocatable :: res
       logical :: found
-      
+
       call this%core%get(pw, J_ELEMENTIDS, elemIds)
       if (size(elemIds) /= 1) &
          write(error_unit, *) "Entity must contain a single elementId."
@@ -2309,5 +2304,5 @@ contains
       res = cellRegion%getIntervalsOfType(CELL_TYPE_VOXEL)
       if (size(res) /= 1) &
          write(error_unit, *) "Entity must contain a single cell region defining a volume."
-   end function 
+   end function
 end module
