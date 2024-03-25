@@ -13,8 +13,9 @@ class FDTD():
         self.hasRun = False
     
     def run(self):
+        self.wd = os.getcwd()+'/'
         os.chdir(self.folder)
-        self.output = subprocess.run([self.path_to_exe+"/semba-fdtd", "-i",self.file_name])
+        self.output = subprocess.run([self.wd+self.path_to_exe, "-i",self.file_name])
         self.hasRun = True
     
     def readJsonDict(self):
@@ -22,7 +23,7 @@ class FDTD():
             return json.load(input_file)
         
     def getSolvedProbeFilenames(self, probe_name):
-        input_json = self.createJsonDict()
+        input_json = self.readJsonDict()
         if not "probes" in input_json:
             raise ValueError('Solver does not contain probes.')
         
@@ -32,10 +33,9 @@ class FDTD():
     
     def hasFinishedSuccessfully(self):
         if self.hasRun:
-            return False
-        if (self.output.returncode == 0):
-            return True
-        else:
-            return False
+            if (self.output.returncode == 0):
+                return True
+            else:
+                return False
         
         

@@ -3,16 +3,15 @@ from utils import *
 def test_probes_output_exists(tmp_path):
     case = 'holland1981'
     input_json = getCase(case)
-    input_json['general']['numberOfTimeSteps'] = 1
-    fn = tmp_path.name + '/' + case + '.fdtd.json'
-    json.dump(input_json, fn) 
+    input_json['general']['numberOfSteps'] = 1
+    fn = tmp_path._str + '/' + case + '.fdtd.json'
+    with open(fn, 'w') as modified_json:
+        json.dump(input_json, modified_json) 
 
     makeTemporaryCopy(tmp_path, EXCTITATIONS_FOLDER+'gauss.exc')
 
     solver = FDTD(file_name = fn, path_to_exe=SEMBA_EXE)
-    
     solver.run()
-    
     probe_files = solver.getSolvedProbeFilenames("mid_point")
     
     assert solver.hasFinishedSuccessfully() == True
@@ -22,81 +21,61 @@ def test_probes_output_exists(tmp_path):
     
 
 def test_probes_output_number_of_steps(tmp_path):
-    input_name = 'holland1981_1_step.fdtd.json'
+    case = 'holland1981'
+    input_json = getCase(case)
+    number_of_steps = 10
+    input_json['general']['numberOfSteps'] = number_of_steps
+    fn = tmp_path._str + '/' + case + '.fdtd.json'
+    with open(fn, 'w') as modified_json:
+        json.dump(input_json, modified_json) 
 
-    input_path = CASE_FOLDER + input_name
-    excitation_path = CASE_FOLDER + 'gauss.exc'
-    executable_path = 'build/bin/semba-fdtd'
+    makeTemporaryCopy(tmp_path, EXCTITATIONS_FOLDER+'gauss.exc')
 
-    copyTemporaryInputFiles(tmp_path, input_path, excitation_path, executable_path)
-    os.chdir(tmp_path)
-    wrapper = pyw.FDTD(file_name = input_name, path_to_exe= './')
-    wrapper.run()
-
-    j_dict = wrapper.createJsonDict()
-    if "probes" in j_dict:
-        for probe in j_dict["probes"]:
-            assert(isProbeInOutputFiles(input_name.split('.json')[0], probe["name"]) == True)
-            assert(countLinesInOutputFile(input_name.split('.json')[0], probe["name"]) == 3)
-
-    assert(wrapper.hasFinishedSuccess() == True)
-
-
-def test_towel_hanger(tmp_path):
-
-    CASE_FOLDER = CASES_FOLDER + 'towel_hanger/base_case/'
-    input_name = 'towel_hanger.fdtd.json'
-
-    input_path = CASE_FOLDER + input_name
-    excitation_path = CASE_FOLDER + 'gauss.exc'
-    executable_path = 'build/bin/semba-fdtd'
-   
-    expected_path = CASE_FOLDER+'base_case_towel_hanger.fdtd_*****.dat'
-
-    copyTemporaryInputFiles(tmp_path, input_path, excitation_path, executable_path)
-    makeTemporaryCopy(tmp_path, expected_path)
-    os.chdir(tmp_path)
-
-    #run the case
-    wrapper = pyw.FDTD(file_name = input_name, path_to_exe= './')
-    wrapper.run()
-
-    j_dict = wrapper.createJsonDict()
-    if "probes" in j_dict:
-        for probe in j_dict["probes"]:
-            assert(isProbeInOutputFiles(input_name.split('.json')[0], probe["name"]) == True)
-            expected_probe = getProbeFile('base_case_'+ input_name.split('.json')[0], probe["name"])
-            result_probe = getProbeFile(input_name.split('.json')[0], probe["name"])
-            assert(compareFiles(expected_probe, result_probe))
-
-    assert(wrapper.hasFinishedSuccess() == True)
+    solver = FDTD(file_name = fn, path_to_exe=SEMBA_EXE)
+    solver.run()
+    probe_files = solver.getSolvedProbeFilenames("mid_point")
     
+    assert solver.hasFinishedSuccessfully() == True
+    assert len(probe_files) == 1
+    assert 'holland1981.fdtd_mid_point_Wz_11_11_12_s2.dat' == probe_files[0]
+    assert countLinesInFile(probe_files[0]) == number_of_steps + 2
 
 def test_holland(tmp_path):
+    case = 'holland1981'
+    makeTemporaryCopy(tmp_path, EXCTITATIONS_FOLDER+'gauss.exc')
+    makeTemporaryCopy(tmp_path, CASE_FOLDER + case + '.fdtd.json')
+    fn = tmp_path._str + '/' + case + '.fdtd.json'
 
-    CASE_FOLDER = CASES_FOLDER + 'holland/base_case/'
-    input_name = 'holland1981.fdtd.json'
-
-    input_path = CASE_FOLDER + input_name
-    excitation_path = CASE_FOLDER + 'gauss.exc'
-    executable_path = 'build/bin/semba-fdtd'
-   
-    expected_path = CASE_FOLDER+'base_case_holland1981.fdtd_mid_point_Wz_11_11_12_s2.dat'
-
-    copyTemporaryInputFiles(tmp_path, input_path, excitation_path, executable_path)
-    makeTemporaryCopy(tmp_path, expected_path)
+    solver = FDTD(file_name = fn, path_to_exe=SEMBA_EXE)
+    solver.run()
+    probe_files = solver.getSolvedProbeFilenames("mid_point")
     
-    os.chdir(tmp_path)
-    wrapper = pyw.FDTD(file_name = input_name, path_to_exe= './')
-    wrapper.run()
+    assert solver.hasFinishedSuccessfully() == True
+    assert len(probe_files) == 1
+    assert 'holland1981.fdtd_mid_point_Wz_11_11_12_s2.dat' == probe_files[0]
+    assert countLinesInFile(probe_files[0]) == 1002
+    assert compareFiles(solver.wd+OUTPUT_FOLDER+'holland1981.fdtd_mid_point_Wz_11_11_12_s2.dat',\
+                        probe_files[0])
 
-    j_dict = wrapper.createJsonDict()
-    if "probes" in j_dict:
-        for probe in j_dict["probes"]:
-            assert(isProbeInOutputFiles(input_name.split('.json')[0], probe["name"]) == True)
-            expected_probe = getProbeFile('base_case_'+ input_name.split('.json')[0], probe["name"])
-            result_probe = getProbeFile(input_name.split('.json')[0], probe["name"])
-            assert(compareFiles(expected_probe, result_probe))
 
-    assert(wrapper.hasFinishedSuccess() == True)
     
+def test_towel_hanger(tmp_path):
+    case = 'towelHanger'
+    makeTemporaryCopy(tmp_path, EXCTITATIONS_FOLDER+'gauss.exc')
+    makeTemporaryCopy(tmp_path, CASE_FOLDER + case + '.fdtd.json')
+    fn = tmp_path._str + '/' + case + '.fdtd.json'
+
+    solver = FDTD(file_name = fn, path_to_exe=SEMBA_EXE)
+    solver.run()
+    probe_files = solver.getSolvedProbeFilenames("probe_name")
+    
+    assert solver.hasFinishedSuccessfully() == True
+    assert len(probe_files) == 1
+    assert 'towelHanger.fdtd_probe_name_Wz_x_y_z_s2.dat' == probe_files[0]
+    assert countLinesInFile(probe_files[0]) == 1002
+    assert compareFiles(solver.wd+OUTPUT_FOLDER+'towelHanger.fdtd_probe_name_Wz_x_y_z_s2.dat',\
+                        probe_files[0])
+
+
+    
+

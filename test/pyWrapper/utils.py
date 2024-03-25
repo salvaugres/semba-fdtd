@@ -5,9 +5,10 @@ import json
 
 TEST_DATA_FOLDER = 'testData/'
 CASE_FOLDER = TEST_DATA_FOLDER + 'cases/'
-EXCTITATIONS_FOLDER = TEST_DATA_FOLDER + 'gauss.exc'
+EXCTITATIONS_FOLDER = TEST_DATA_FOLDER + 'excitations/'
+OUTPUT_FOLDER = TEST_DATA_FOLDER + 'outputs/'
 
-SEMBA_EXE = 'build/bin/semba-fdtd'
+SEMBA_EXE = '/build/bin/semba-fdtd'
 
 def getCase(case):
     return json.load(open(CASE_FOLDER + case + '.fdtd.json'))
@@ -25,12 +26,9 @@ def copyTemporaryInputFiles(temp_dir, input, excitation, executable):
 def getProbeFile(prefix, probe_name):
     return  ([x for x in glob.glob('*dat') if re.match(prefix + '_' + probe_name + '.*dat',x)])[0]
 
-def countLinesInOutputFile(prefix, probe_name):
-    probe_file_name = getProbeFile(prefix, probe_name)
-    probe_file = open(probe_file_name)
-    num_lines= len(probe_file.readlines())
-    probe_file.close()
-    return num_lines
+def countLinesInFile(probe_fn):
+    with open(probe_fn, 'r') as f:
+        return len(f.readlines())
     
 def readWithoutHeader(file_name):
     with open(file_name) as f:
