@@ -462,7 +462,7 @@ contains
 
       allocate(expected%mtln%cables(5)%segment_relative_positions(8))
       do i = 1, 8
-         expected%mtln%cables(4)%segment_relative_positions(i)%position = (/9+i,9,1/)
+         expected%mtln%cables(5)%segment_relative_positions(i)%position = (/9+i,9,1/)
       end do
 
 
@@ -498,7 +498,7 @@ contains
 
       allocate(expected%mtln%cables(6)%segment_relative_positions(8))
       do i = 1, 8
-         expected%mtln%cables(4)%segment_relative_positions(i)%position = (/9+i,9,1/)
+         expected%mtln%cables(6)%segment_relative_positions(i)%position = (/9+i,9,1/)
       end do
 
 
@@ -558,7 +558,7 @@ contains
 
       allocate(expected%mtln%cables(8)%segment_relative_positions(7))
       do i = 1,7
-         expected%mtln%cables(7)%segment_relative_positions(i)%position = (/10,9-i,1/)
+         expected%mtln%cables(8)%segment_relative_positions(i)%position = (/10,9-i,1/)
       end do
 
       expected%mtln%cables(8)%transfer_impedance%direction = TRANSFER_IMPEDANCE_DIRECTION_INWARDS
@@ -600,7 +600,7 @@ contains
 
       allocate(expected%mtln%cables(9)%segment_relative_positions(7))
       do i = 1,7
-         expected%mtln%cables(7)%segment_relative_positions(i)%position = (/10,9-i,1/)
+         expected%mtln%cables(9)%segment_relative_positions(i)%position = (/10,9-i,1/)
       end do
 
       expected%mtln%cables(9)%transfer_impedance%direction = TRANSFER_IMPEDANCE_DIRECTION_INWARDS

@@ -1902,9 +1902,6 @@ contains
          type(segment_relative_position_t), dimension(:), allocatable :: res
          integer, dimension(:), allocatable :: elemIds
          type(polyline_t) :: p_line
-         type(Desplazamiento) :: desp
-
-         desp = this%readGrid()
 
          elemIds = getCableElemIds(j_cable)
          if (size(elemIds) == 0) return
@@ -1913,28 +1910,51 @@ contains
          allocate(res(0))
          block
             type(coordinate_t) :: c1, c2
-            integer :: axis, i, j, orientation
-            integer :: index_1, index_2
-            type(segment_relative_position_t) :: sc
-            do j = 2, size(p_line%coordIds)
-                  c2 = this%mesh%getCoordinate(p_line%coordIds(j))
-                  c1 = this%mesh%getCoordinate(p_line%coordIds(j-1))
-                  do i = 1, 3
-                     sc%position(i) = c1%position(i)
-                  end do
-                  res = [res, sc]
-                  axis = findDirection(c2-c1)
-                  orientation = findOrientation(c2-c1)
-                  index_1 = ceiling(min(abs(c1%position(axis)), abs(c2%position(axis))))
-                  index_2 = floor(max(abs(c1%position(axis)), abs(c2%position(axis))))
-                  do i = 1, index_2 - index_1 - 1
-                     sc%position(axis) = sc%position(axis) + 1*orientation
-                     res = [res, sc]
-                  enddo
+            integer :: i
+            do i = 2, size(p_line%coordIds)
+                  c2 = this%mesh%getCoordinate(p_line%coordIds(i))
+                  c1 = this%mesh%getCoordinate(p_line%coordIds(i-1))
+
+                  if (findOrientation(c2-c1) > 0) then 
+                     res = [res, mapPositiveSegment(c1,c2)]
+                  else if (findOrientation(c2-c1) < 0) then 
+                     res = [res, mapNegativeSegment(c1,c2)]
+                  else 
+                     write(error_unit, *) 'Error: polyline first and last coordinate are identical'
+                  end if
             end do
          end block
+      end function
 
+      function mapNegativeSegment(c1, c2) result(res)
+         type(coordinate_t), intent(in) :: c1, c2
+         type(segment_relative_position_t) :: curr_pos
+         integer :: axis, i, n_segments
+         type(segment_relative_position_t), dimension(:), allocatable :: res
 
+         axis = findDirection(c2-c1)
+         n_segments = abs(ceiling(c2%position(axis)) - floor(c1%position(axis)))
+         allocate(res(n_segments))
+         curr_pos%position = [(c1%position(i), i = 1, 3)]
+
+         res = [(curr_pos, i = 1, n_segments)]
+         res(:)%position(axis) = [(res(i)%position(axis) - i, i = 1, n_segments)]
+
+      end function
+
+      function mapPositiveSegment(c1, c2) result(res)
+         type(coordinate_t), intent(in) :: c1, c2
+         type(segment_relative_position_t) :: curr_pos
+         integer :: axis, i, n_segments
+         type(segment_relative_position_t), dimension(:), allocatable :: res
+
+         axis = findDirection(c2-c1)
+         n_segments = abs(floor(c2%position(axis)) - ceiling(c1%position(axis)))
+         allocate(res(n_segments))
+         curr_pos%position = [(c1%position(i), i = 1, 3)]
+
+         res = [(curr_pos, i = 1, n_segments)]
+         res(:)%position(axis) = [(res(i)%position(axis) + (i-1), i = 1, n_segments)]
       end function
 
       function buildStepSize(j_cable) result(res)
