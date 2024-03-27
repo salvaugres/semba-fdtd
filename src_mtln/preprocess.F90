@@ -29,8 +29,13 @@ module preprocess_mod
         procedure :: addProbesWithId
     end type
 
+    type, public :: cable_ptr_t
+        type(cable_t), pointer :: p
+    end type
+
     type, public :: cable_array_t
-        type(cable_t), dimension(:), allocatable :: cables
+        type(cable_ptr_t), dimension(:), allocatable :: cables
+        ! type(cable_t), dimension(:), pointer :: cables
     end type
 
     type, public :: cable_bundle_t
@@ -205,7 +210,8 @@ contains
                              name = cable%name, &
                              parent_name = parent_name, &
                              conductor_in_parent = conductor_in_parent, & 
-                             transfer_impedance = res%transfer_impedance)
+                             transfer_impedance = cable%transfer_impedance, &
+                             segment_relative_positions = cable%segment_relative_positions)
 
         if (associated(cable%initial_connector)) call addConnector(res, cable%initial_connector, 0)
         if (associated(cable%end_connector))     call addConnector(res, cable%initial_connector, size(res%rpul,1))
@@ -228,7 +234,7 @@ contains
                 nc = size(cable_bundles(i)%levels(j)%cables)
                 allocate(res(i)%levels(j)%lines(nc))
                 do k = 1, nc
-                    res(i)%levels(j)%lines(k) = buildLineFromCable(cable_bundles(i)%levels(j)%cables(k))
+                    res(i)%levels(j)%lines(k) = buildLineFromCable(cable_bundles(i)%levels(j)%cables(k)%p)
                 end do
             end do
         end do
@@ -236,31 +242,52 @@ contains
     end function
 
     function buildCableBundleFromParent(parent, cables) result(res)
-        type(cable_t), intent(in) :: parent
-        type(cable_t), dimension(:), intent(in) :: cables
+        type(cable_ptr_t), intent(in) :: parent
+        type(cable_t), dimension(:), intent(in), target :: cables
         type(cable_array_t) :: level
         type(cable_bundle_t) :: res
 
         allocate(res%levels(1))
-        level%cables = [parent]
+        allocate(res%levels(1)%cables(1))
+
+        allocate(level%cables(1))
+        level%cables(1)%p => parent%p
+        
         res%levels(1) = level
 
-        do while (findNextLevel(level) /= 0)
+        do while (findNextLevel(level, cables) /= 0)
             res%levels = [res%levels, level]
         end do
 
         contains
-            integer function findNextLevel(curr_level)
+            integer function findNextLevel(curr_level, c)
                 type(cable_array_t), intent(inout) :: curr_level
+                type(cable_t), dimension(:), intent(in), target :: c
                 type(cable_t), target :: tgt
                 type(cable_array_t) :: next_level
-                integer :: i,j
-                allocate(next_level%cables(0))
+                integer :: i,j, next_level_size
+                integer :: n
+                ! allocate(next_level%cables(0))
+                next_level_size = 0
                 do i = 1, size(curr_level%cables) 
-                    tgt = curr_level%cables(i)
-                    do j = 1, size(cables)
-                        if (associated(cables(j)%parent_cable, tgt)) then 
-                            next_level%cables = [next_level%cables, cables(j)]
+                    do j = 1, size(c)
+                        if (associated(c(j)%parent_cable, curr_level%cables(i)%p)) then 
+                            next_level_size = next_level_size + 1
+                        end if
+                    end do
+                end do
+                
+                allocate(next_level%cables(next_level_size))
+                n = 0
+                do i = 1, size(curr_level%cables) 
+                    ! tgt = curr_level%cables(i)%p
+                    do j = 1, size(c)
+                        if (associated(c(j)%parent_cable, curr_level%cables(i)%p)) then 
+                        ! if (associated(c(j)%parent_cable, tgt)) then 
+                            ! next_level%cables = [next_level%cables, c(j)]
+                            n = n + 1
+                            ! tgt = c(j)
+                            next_level%cables(n)%p => c(j)
                         end if
                     end do
                 end do
@@ -271,8 +298,8 @@ contains
     end function
 
     function findParentCables(cables) result(res)
-        type(cable_t), dimension(:), intent(in) :: cables
-        type(cable_t), dimension(:), allocatable :: res
+        type(cable_t), dimension(:), intent(in), target :: cables
+        type(cable_ptr_t), dimension(:), allocatable :: res
         integer :: i
         integer, dimension(:), allocatable :: parent_ids
 
@@ -285,15 +312,15 @@ contains
 
         allocate(res(size(parent_ids)))
         do i = 1, size(parent_ids)
-            res(i) = cables((parent_ids(i)))
+            res(i)%p => cables((parent_ids(i)))
         end do
     end function
 
 
     function buildCableBundles(cables) result(cable_bundles)
         type(cable_t), dimension(:), intent(in) :: cables
-        type(cable_bundle_t), dimension(:), allocatable :: cable_bundles
-        type(cable_t), dimension(:), allocatable :: parents
+        type(cable_bundle_t), dimension(:), pointer :: cable_bundles
+        type(cable_ptr_t), dimension(:), allocatable :: parents
         integer :: i
 
         parents = findParentCables(cables)

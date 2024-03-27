@@ -4,7 +4,6 @@ module mtl_bundle_mod
     use probes_mod
     use dispersive_mod
     use mtl_mod
-
     implicit none
 
     type, public :: mtl_bundle_t
@@ -21,6 +20,9 @@ module mtl_bundle_mod
         
         real, dimension(:,:,:), allocatable :: v_term, i_term
         real, dimension(:,:,:), allocatable :: v_diff, i_diff
+
+        type(segment_relative_position_t), dimension(:), allocatable :: segment_relative_positions
+
 
     contains
         procedure :: mergePULMatrices
@@ -62,6 +64,7 @@ contains
         res%dt = levels(1)%lines(1)%dt
         res%step_size = levels(1)%lines(1)%step_size
         res%number_of_divisions = size(res%step_size,1)
+        res%segment_relative_positions = levels(1)%lines(1)%segment_relative_positions
         call res%initialAllocation()
         call res%mergePULMatrices(levels)
         call res%mergeDispersiveMatrices(levels)

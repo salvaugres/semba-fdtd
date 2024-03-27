@@ -5,12 +5,13 @@ integer function test_json_to_solver_input_shielded_pair() bind (C) result(err)
    
    implicit none
 
-   character(len=*),parameter :: filename = PATH_TO_TEST_DATA//'system/mtln.fdtd.json'
+   character(len=*),parameter :: filename = PATH_TO_TEST_DATA//'cases/shieldedPair.fdtd.json'
    type(Parseador) :: problem
    type(parser_t) :: parser
    type(mtln_solver_t) :: solver
    type(preprocess_t) :: pre, expected
    logical :: areSame
+   integer :: i
    err = 0
 
    parser = parser_t(filename)
@@ -19,11 +20,43 @@ integer function test_json_to_solver_input_shielded_pair() bind (C) result(err)
    expected = expectedPreprocess()
    pre = preprocess(problem%mtln)
 
-   ! solver = mtlnCtor(problem%mtln)
+   solver = mtlnCtor(problem%mtln)
+   call solver%runUntil(2e-12)
+   write(*,*) 'h'
    ! call expect_eq(err, expected, problem)
    ! call expect_eq_mtln(err, expected, problem)
+   ! if (.not. all(abs(pre%bundles(1)%lpul(:,1,1) - 5.362505362505362e-07) < &
+   !             5.362505362505362e-07/100)) then 
+   !    err = err + 1
+   ! end if
+   ! do i = 1, 18
+   !    if (.not. areMatricesClose(pre%bundles(1)%lpul(i,2:3,2:3), &
+   !                               reshape(source=[3.13182309e-07, 7.45674981e-08, 7.45674981e-08, 3.13182309e-07], & 
+   !                                     shape=[2,2], &
+   !                                     order =[2,1]), tolerance = 0.01)) then
+   !       err = err + 1
+   !    end if
+   ! end do
 
-contains
+   contains
+
+   logical function areMatricesClose(a, b, tolerance)
+      real, dimension(:,:), intent(in) :: a
+      real, dimension(:,:), intent(in) :: b
+      real, intent(in) :: tolerance
+      real :: val_a, val_b
+      integer :: n, k, j
+      areMatricesClose = .true.
+      n = size(a,1)
+      do k = 1, n 
+         do j = 1, n
+            val_a = a(k,j)
+            val_b = b(k,j)
+            areMatricesClose = areMatricesClose .and. abs(val_a - val_b) < tolerance*val_a
+         end do
+      end do
+   end function
+
    function expectedPreprocess() result (expected)
       type(preprocess_t) :: expected
       integer :: i

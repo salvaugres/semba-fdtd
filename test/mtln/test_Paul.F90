@@ -760,7 +760,7 @@ integer function test_coaxial_line_paul_8_6_square() bind(C) result(error_cnt)
         integer :: i
         cable%step_size = [(4.0, i = 1, 100)]
     end block
-
+    ! cable%segment_relative_positions
     parsed%time_step = 2e-8
     parsed%number_of_steps = 20e-6/parsed%time_step
 

@@ -3,6 +3,7 @@ module mtl_mod
     ! use NFDETypes
     use utils_mod
     use dispersive_mod
+    use mtln_types_mod, only: segment_relative_position_t
 
     implicit none
 
@@ -19,7 +20,7 @@ module mtl_mod
         integer :: conductor_in_parent
 
         type(transfer_impedance_per_meter_t) :: transfer_impedance
-
+        type(segment_relative_position_t), allocatable, dimension(:) :: segment_relative_positions
 
     contains
         procedure :: setTimeStep
@@ -82,7 +83,8 @@ contains
     function mtlHomogeneous(lpul, cpul, rpul, gpul, &
                             step_size, name, &
                             dt, parent_name, conductor_in_parent, &
-                            transfer_impedance) result(res)
+                            transfer_impedance, &
+                            segment_relative_positions) result(res)
         type(mtl_t) :: res
         real, intent(in), dimension(:,:) :: lpul, cpul, rpul, gpul
         real, intent(in), dimension(:) :: step_size
@@ -93,6 +95,7 @@ contains
         character(len=*), intent(in), optional :: parent_name
         integer, intent(in), optional :: conductor_in_parent
         type(transfer_impedance_per_meter_t), intent(in), optional :: transfer_impedance
+        type(segment_relative_position_t), intent(in), dimension(:), optional :: segment_relative_positions
 
         res%name = name
         res%step_size =  step_size
@@ -127,6 +130,9 @@ contains
             res%transfer_impedance = transfer_impedance
         end if
 
+        if (present(segment_relative_positions)) then 
+            res%segment_relative_positions = segment_relative_positions
+        end if
     end function
 
     function mtlInhomogeneous(lpul, cpul, rpul, gpul, &
