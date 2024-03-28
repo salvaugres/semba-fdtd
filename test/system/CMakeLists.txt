@@ -21,7 +21,7 @@ target_link_libraries(system_test_fortran
     ${JSONFORTRAN_LIB}
 )
 
-add_executable(system_tests "main_test.cpp")
+add_library(system_tests "system_tests.cpp")
 
 if (${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
     add_custom_command(TARGET system_tests POST_BUILD
@@ -34,11 +34,5 @@ endif()
 
 target_link_libraries(system_tests
     system_test_fortran
-    GTest::gtest_main
+    GTest::gtest
 )
-
-add_test (
-    NAME system_tests
-    COMMAND system_tests
-)
-

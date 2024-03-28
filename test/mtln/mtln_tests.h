@@ -37,11 +37,6 @@ extern "C" int test_termination_resistive_capacitive();
 extern "C" int test_termination_rls_cp();
 extern "C" int test_termination_rls_cp_ns();
 extern "C" int test_termination_rcp();
-int main(int argc, char **argv) 
-{
-    ::testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
-}
 
 TEST(mtln, mtl_homogeneous)   { EXPECT_EQ(0, test_mtl_init_homogeneous()); }
 TEST(mtln, mtl_inhomogeneous) { EXPECT_EQ(0, test_mtl_init_inhomogeneous()); }

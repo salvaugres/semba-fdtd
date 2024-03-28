@@ -25,14 +25,10 @@ add_subdirectory(external/fhash/)
 add_subdirectory(external/googletest/)
 
 add_subdirectory(src_json_parser)
-add_subdirectory(test/smbjson)
+add_subdirectory(src_mtln)
 
-add_subdirectory(test/system)
+add_subdirectory(test)
 
-if (CompileWithMTLN)
-	add_subdirectory(src_mtln)
-	add_subdirectory(test/mtln)
-endif()
 
 if (CompileExecutable)
 	add_executable(semba-fdtd 

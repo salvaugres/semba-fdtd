@@ -11,6 +11,7 @@ on:
   pull_request:
     branches:
       - main
+      - dev
 
 jobs:
   builds-and-test:
@@ -29,12 +30,12 @@ jobs:
         cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCompileExecutable=YES -DCompileWithMTLN=YES
         cmake --build build -j
       
-    - name: Run json-parser tests 
+    - name: Run fdtd unit tests 
       run: |
-        build/bin/smbjson_tests
+        build/bin/fdtd_tests
 
-    - name: Run mtln tests 
+    - name: Run wrapper tests
       run: |
-        build/bin/mtlnsolver_tests
-        
+        python -m pytest test/pyWrapper/test_pyWrapper.py
+       
       

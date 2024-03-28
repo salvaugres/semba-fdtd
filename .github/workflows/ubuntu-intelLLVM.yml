@@ -15,6 +15,7 @@ on:
   pull_request:
     branches:
       - main
+      - dev
 
 jobs:
 
@@ -70,10 +71,15 @@ jobs:
       run: |
         build/bin/smbjson_tests
 
-    - name: Run mtln tests 
+    - name: Run fdtd unit tests 
       run: |
-        build/bin/mtlnsolver_tests
+        build/bin/fdtd_tests
 
+    - name: Run wrapper tests
+      run: |
+        python -m pytest test/pyWrapper/test_pyWrapper.py
+         
+        
     - name: exclude unused files from cache
       if: steps.cache-install.outputs.cache-hit != 'true'
       run: sh -c .github/workflows/oneapi_cache_exclude_linux.sh

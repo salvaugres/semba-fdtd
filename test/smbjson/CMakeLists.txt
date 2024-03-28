@@ -28,16 +28,10 @@ target_link_libraries(smbjson_test_fortran
     ${JSONFORTRAN_LIB}
 )
 
-add_executable(smbjson_tests "main_test.cpp")
+add_library(smbjson_tests "smbjson_tests.cpp")
 
 target_link_libraries(smbjson_tests
     smbjson 
     smbjson_test_fortran
-    GTest::gtest_main
+    GTest::gtest
 )
-
-add_test (
-    NAME smbjson_tests
-    COMMAND smbjson_tests
-)
-

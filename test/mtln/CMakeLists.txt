@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.5)
 enable_language (CXX Fortran)
 enable_testing ()
 
-message(STATUS "Creating build system for test/mtlnsolver")
+message(STATUS "Creating build system for test/mtln")
 
 set(CMAKE_Fortran_MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/mod)
 
@@ -25,7 +25,7 @@ target_link_libraries(mtln_solver_tests_fortran
     ngspice_interface
 )
 
-add_executable(mtlnsolver_tests "main_test.cpp")
+add_library(mtln_tests "mtln_tests.cpp")
 
 if (${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
     add_custom_command(TARGET mtlnsolver_tests POST_BUILD
@@ -35,7 +35,7 @@ if (${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
     )
 endif()
 
-target_link_libraries(mtlnsolver_tests
+target_link_libraries(mtln_tests
     mtln_solver_tests_fortran
-    GTest::gtest_main
+    GTest::gtest
 )
