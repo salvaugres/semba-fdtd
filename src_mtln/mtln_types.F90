@@ -21,6 +21,15 @@ module mtln_types_mod
     integer, parameter :: PROBE_TYPE_VOLTAGE   =  1
     integer, parameter :: PROBE_TYPE_CURRENT   =  2
  
+    type :: segment_relative_position_t
+      integer, dimension(3) :: position  
+      !  integer :: i, j, k
+    contains
+       private
+       procedure :: segment_relative_positions_eq
+       generic, public :: operator(==) => segment_relative_positions_eq
+    end type
+
     type :: termination_t
        integer :: termination_type = TERMINATION_UNDEFINED
        real :: resistance = 0.0
@@ -70,8 +79,8 @@ module mtln_types_mod
     end type
  
     type, public :: transfer_impedance_per_meter_t
-       real :: inductive_term
-       real :: resistive_term
+       real :: inductive_term = 0.0
+       real :: resistive_term = 0.0
        complex, dimension(:), allocatable :: poles, residues ! poles and residues
        integer :: direction = TRANSFER_IMPEDANCE_DIRECTION_INWARDS
     contains
@@ -82,6 +91,7 @@ module mtln_types_mod
     end type
  
     type :: connector_t
+      integer :: id
        real, dimension(:), allocatable :: resistances
        type(transfer_impedance_per_meter_t) :: transfer_impedance_per_meter
     contains
@@ -102,6 +112,8 @@ module mtln_types_mod
        integer :: conductor_in_parent = -1
        type(connector_t), pointer :: initial_connector => null()
        type(connector_t), pointer :: end_connector => null()
+       type(segment_relative_position_t), allocatable, dimension(:) :: segment_relative_positions
+       
     contains
        private
        procedure :: cable_eq
@@ -122,6 +134,7 @@ module mtln_types_mod
        type(cable_t), dimension(:), allocatable :: cables
        type(terminal_network_t), dimension(:), allocatable :: networks
        type(probe_t), dimension(:), allocatable :: probes
+       type(connector_t), dimension(:), allocatable :: connectors
        real :: time_step
        integer :: number_of_steps
     contains
@@ -162,7 +175,13 @@ module mtln_types_mod
           all(a%conductance_per_meter == b%conductance_per_meter) .and. &
           all(a%step_size == b%step_size) .and. &
           (a%transfer_impedance == b%transfer_impedance) .and. &
-          (a%conductor_in_parent == b%conductor_in_parent)! .and. &
+          (a%conductor_in_parent == b%conductor_in_parent) .and. &
+          all(a%segment_relative_positions == b%segment_relative_positions)
+
+
+         if (.not. cable_eq) then 
+            cable_eq = .false.
+         end if
 
          if (.not. associated(a%parent_cable) .and. .not. associated(b%parent_cable)) then 
             cable_eq = cable_eq .and. .true.
@@ -173,6 +192,10 @@ module mtln_types_mod
             cable_eq = cable_eq .and. (a%parent_cable == b%parent_cable)
          end if
 
+         if (.not. cable_eq) then 
+            cable_eq = .false.
+         end if
+
          if (.not. associated(a%initial_connector) .and. .not. associated(b%initial_connector)) then 
             cable_eq = cable_eq .and. .true.
          else if ((associated(a%initial_connector) .and. .not. associated(b%initial_connector)) .or. &
@@ -180,6 +203,9 @@ module mtln_types_mod
             cable_eq = cable_eq .and. .false.
          else
             cable_eq = cable_eq .and. (a%initial_connector == b%initial_connector)
+         end if
+         if (.not. cable_eq) then 
+            cable_eq = .false.
          end if
 
          if (.not. associated(a%end_connector) .and. .not. associated(b%end_connector)) then 
@@ -190,6 +216,9 @@ module mtln_types_mod
          else 
             cable_eq = cable_eq .and. (a%end_connector == b%end_connector)
          end if
+         if (.not. cable_eq) then 
+            cable_eq = .false.
+         end if
 
     end function
 
@@ -197,6 +226,7 @@ module mtln_types_mod
       class(connector_t), intent(in) :: a, b
       logical :: l 
       connector_eq = &
+         (a%id == b%id) .and. &
          (all(a%resistances == b%resistances)) .and. &
          (a%transfer_impedance_per_meter == b%transfer_impedance_per_meter)
     end function
@@ -233,12 +263,14 @@ module mtln_types_mod
          else
             probe_eq = probe_eq .and. (a%attached_to_cable == b%attached_to_cable)
          end if
-
+      if (probe_eq .eqv. .false.) then 
+         probe_eq = .false.
+      end if
     end function
 
     elemental logical function terminal_node_eq(a, b)
       class(terminal_node_t), intent(in) :: a, b
-
+      
       terminal_node_eq = &
          (a%conductor_in_cable == b%conductor_in_cable) .and. &
          (a%side == b%side) .and. &
@@ -253,7 +285,6 @@ module mtln_types_mod
             terminal_node_eq = terminal_node_eq .and. (a%belongs_to_cable == b%belongs_to_cable)
          end if
 
-         
     end function
 
     elemental logical function terminal_connection_eq(a,b)
@@ -266,6 +297,12 @@ module mtln_types_mod
       class(terminal_network_t), intent(in) :: a,b 
       terminal_network_eq = &
          all(a%connections == b%connections)
+    end function
+
+    elemental logical function segment_relative_positions_eq(a,b)
+      class(segment_relative_position_t), intent(in) :: a,b
+      segment_relative_positions_eq = &
+         all(a%position == b%position)
     end function
 
     subroutine terminal_connection_add_node(this, node)

@@ -46,9 +46,9 @@ contains
       expected%despl%mx1 = 0
       expected%despl%my1 = 0
       expected%despl%mz1 = 0
-      expected%despl%mx2 = 19
-      expected%despl%my2 = 19
-      expected%despl%mz2 = 19
+      expected%despl%mx2 = 20
+      expected%despl%my2 = 20
+      expected%despl%mz2 = 20
 
       ! Expected boundaries.
       expected%front%tipoFrontera(:) = F_MUR
@@ -91,10 +91,10 @@ contains
       expected%nodSrc%n_C2P_max = 1
       allocate(expected%nodSrc%NodalSource(1))
       expected%nodSrc%NodalSource(1)%nombre = "gauss.exc"
-      expected%nodSrc%NodalSource(1)%isElec = .false.
+      expected%nodSrc%NodalSource(1)%isElec = .true.
       expected%nodSrc%NodalSource(1)%isMagnet = .false.
-      expected%nodSrc%NodalSource(1)%isCurrent = .true.
-      expected%nodSrc%NodalSource(1)%isField = .false.
+      expected%nodSrc%NodalSource(1)%isCurrent = .false.
+      expected%nodSrc%NodalSource(1)%isField = .true.
       expected%nodSrc%NodalSource(1)%isInitialValue = .false.
       allocate(expected%nodSrc%NodalSource(1)%c1P(0))
       allocate(expected%nodSrc%NodalSource(1)%c2P(1))
@@ -111,17 +111,8 @@ contains
       expected%nodSrc%NodalSource(1)%c2P(1)%yc = 1.0
       expected%nodSrc%NodalSource(1)%c2P(1)%zc = 0.0
       ! Expected probes
-      ! oldSonda
-      expected%oldSONDA%n_probes = 0
-      expected%oldSONDA%n_probes_max = 0
-      allocate(expected%oldSONDA%probes(0))
       
-      ! sonda
-      expected%Sonda%len_cor_max = 0
-      expected%Sonda%length = 0
-      expected%Sonda%length_max = 0
-      allocate(expected%Sonda%collection(0))
-      
+      ! sonda      
       ! bloqueprobes
       expected%BloquePrb%n_bp = 2
       expected%BloquePrb%n_bp_max = 2
