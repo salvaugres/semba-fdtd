@@ -976,7 +976,7 @@ contains
 
          call this%core%get(tm, J_MAT_TERM_RESISTANCE, res%r, default=0.0)
          call this%core%get(tm, J_MAT_TERM_INDUCTANCE, res%l, default=0.0)
-         call this%core%get(tm, J_MAT_TERM_CAPACITANCE, res%c, default=0.0)
+         call this%core%get(tm, J_MAT_TERM_CAPACITANCE, res%c, default=1e22)
       end function
 
       function strToTerminationType(label) result(res)
