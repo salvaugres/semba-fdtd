@@ -212,8 +212,10 @@ contains
       
       expected%tWires%tw(1)%tl = SERIES_CONS
       expected%tWires%tw(1)%R_LeftEnd = 0.7e-3
+      expected%tWires%tw(1)%C_LeftEnd = 1e22
       expected%tWires%tw(1)%tr = SERIES_CONS
       expected%tWires%tw(1)%R_RightEnd = 1e-6
+      expected%tWires%tw(1)%C_RightEnd = 1e22
 
       ! wire 2
       expected%tWires%tw(2)%rad=0.0001
@@ -238,8 +240,10 @@ contains
       
       expected%tWires%tw(2)%tl = SERIES_CONS
       expected%tWires%tw(2)%R_LeftEnd = 1e-6
+      expected%tWires%tw(2)%C_LeftEnd = 1e22
       expected%tWires%tw(2)%tr = SERIES_CONS
       expected%tWires%tw(2)%R_RightEnd = 1.0
+      expected%tWires%tw(2)%C_RightEnd = 1e22
 
       ! wire 3
       expected%tWires%tw(3)%rad=0.0001
@@ -264,8 +268,10 @@ contains
       
       expected%tWires%tw(3)%tl = SERIES_CONS
       expected%tWires%tw(3)%R_LeftEnd = 1e-6
+      expected%tWires%tw(3)%C_LeftEnd = 1e22
       expected%tWires%tw(3)%tr = SERIES_CONS
       expected%tWires%tw(3)%R_RightEnd = 0.7e-3
+      expected%tWires%tw(3)%C_RightEnd = 1e22
 
       expected%tWires%n_tw = 3
       expected%tWires%n_tw_max = 3

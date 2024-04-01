@@ -126,9 +126,11 @@ contains
       
       expected%tWires%tw(1)%tl = SERIES_CONS
       expected%tWires%tw(1)%R_LeftEnd = 50
+      expected%tWires%tw(1)%C_LeftEnd = 1e22
       expected%tWires%tw(1)%tr = SERIES_CONS
       expected%tWires%tw(1)%R_RightEnd = 50
-      
+      expected%tWires%tw(1)%C_RightEnd = 1e22
+            
       expected%tWires%n_tw = 1
       expected%tWires%n_tw_max = 1
 
