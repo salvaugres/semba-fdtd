@@ -20,6 +20,7 @@ integer function test_read_sphere() bind (C) result(err)
    if (.not. ex%front == pr%front)     call testFails(err, 'Expected and read "boundary" do not match')
    if (.not. ex%Mats == pr%Mats)       call testFails(err, 'Expected and read "materials" do not match')
    ! -- specific surfs not included DO NOT use comparison --
+   if (.not. ex%plnSrc == pr%plnSrc) call testFails(err, 'Expected and read "planewave sources" do not match')
    if (.not. ex%nodSrc == pr%nodSrc) call testFails(err, 'Expected and read "nodal sources" do not match')
    if (.not. ex%sonda == pr%sonda)         call testFails(err, 'Expected and read "new probes" do not match')
    if (.not. ex%BloquePrb == pr%BloquePrb) call testFails(err, 'Expected and read "block probes" do not match')
@@ -73,10 +74,10 @@ contains
 
       ! Expected sources.
       allocate(ex%plnSrc%collection(1))
-      ex%plnSrc%collection(1)%nombre_fichero = "predefinedExcitation.exc"
+      ex%plnSrc%collection(1)%nombre_fichero = "gauss.exc"
       ex%plnSrc%collection(1)%atributo = ""
       ex%plnSrc%collection(1)%coor1 = [0, 0, 0]
-      ex%plnSrc%collection(1)%coor2 = [80, 80, 80]
+      ex%plnSrc%collection(1)%coor2 = [79, 79, 79]
       ex%plnSrc%collection(1)%theta = 1.5707963268
       ex%plnSrc%collection(1)%phi = 0.0
       ex%plnSrc%collection(1)%alpha = 1.5707963268

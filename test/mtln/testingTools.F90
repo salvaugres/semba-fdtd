@@ -60,12 +60,17 @@ contains
         integer, intent(in), optional :: conductor_in_parent
         real, allocatable, dimension(:,:) :: lpul, cpul, rpul, gpul
         real, dimension(5) :: step_size = [20.0, 20.0, 20.0, 20.0, 20.0]
+        type(segment_relative_position_t), dimension(5) :: segment_positions
         integer :: i,j
 
         allocate(lpul(n,n), source = 0.0)
         allocate(cpul(n,n), source = 0.0)
         allocate(gpul(n,n), source = 0.0)
         allocate(rpul(n,n), source = 0.0)
+
+        do i = 1, 5
+            segment_positions(i)%position =(/i,1,1/)            
+        end do
 
         do i = 1, n
             do j = 1, n
@@ -81,18 +86,21 @@ contains
             end do
         end do
         if (present(dt) .and. .not.present(parent_name)) then
-            res = mtl_t(lpul, cpul, rpul, gpul, step_size, name, dt = dt)
+            res = mtl_t(lpul, cpul, rpul, gpul, step_size, name, dt = dt, &
+                        segment_relative_positions = segment_positions)
         else if (.not.present(dt) .and. present(parent_name) ) then
             res = mtl_t(lpul, cpul, rpul, gpul, step_size, name, & 
                         parent_name= parent_name, &
-                        conductor_in_parent=conductor_in_parent)
+                        conductor_in_parent=conductor_in_parent, &
+                        segment_relative_positions = segment_positions)
         else if (present(dt) .and. present(parent_name) ) then
             res = mtl_t(lpul, cpul, rpul, gpul, step_size, name, & 
                         parent_name= parent_name, &
                         conductor_in_parent=conductor_in_parent, &
-                        dt = dt)
+                        dt = dt, segment_relative_positions = segment_positions)
         else 
-            res = mtl_t(lpul, cpul, rpul, gpul, step_size, name)
+            res = mtl_t(lpul, cpul, rpul, gpul, step_size, name, &
+                        segment_relative_positions = segment_positions)
         end if
     end function    
 

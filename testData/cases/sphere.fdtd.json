@@ -40913,7 +40913,7 @@
     "sources": [
         {
             "type": "planewave",
-            "magnitudeFile": "predefinedExcitation.exc",
+            "magnitudeFile": "gauss.exc",
             "elementIds": [
                 1
             ],

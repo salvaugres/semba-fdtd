@@ -893,11 +893,11 @@ contains
          end block
 
          block
-            type(json_value_ptr) :: mat
+            type(json_value_ptr) :: terminal
             type(thinwiretermination_t) :: term
             character (len=:), allocatable :: label
-            mat = this%matTable%getId(this%getIntAt(cable, J_MAT_ASS_CAB_INI_TERM_ID))
-            term = readThinWireTermination(mat%p)
+            terminal = this%matTable%getId(this%getIntAt(cable, J_MAT_ASS_CAB_INI_TERM_ID))
+            term = readThinWireTermination(terminal%p)
             res%tl = term%terminationType
             res%R_LeftEnd = term%r
             res%L_LeftEnd = term%l
@@ -974,9 +974,17 @@ contains
             write(error_unit, *) "Error reading wire terminal. termination must specify a type."
          end if
 
-         call this%core%get(tm, J_MAT_TERM_RESISTANCE, res%r, default=0.0)
-         call this%core%get(tm, J_MAT_TERM_INDUCTANCE, res%l, default=0.0)
-         call this%core%get(tm, J_MAT_TERM_CAPACITANCE, res%c, default=0.0)
+         select case(label)
+         case(J_MAT_TERM_TYPE_OPEN)
+            res%r = 0.0
+            res%l = 0.0
+            res%c = 0.0
+         case default
+            call this%core%get(tm, J_MAT_TERM_RESISTANCE, res%r, default=0.0)
+            call this%core%get(tm, J_MAT_TERM_INDUCTANCE, res%l, default=0.0)
+            call this%core%get(tm, J_MAT_TERM_CAPACITANCE, res%c, default=1e22)
+         end select
+
       end function
 
       function strToTerminationType(label) result(res)
@@ -1150,17 +1158,18 @@ contains
       allocate (mtln_res%cables(nWs))
       block
          logical :: is_read
-         integer :: i, j,  nC = 0
+         integer :: i, j, ncc
          type(cable_t) :: read_cable
          if (size(cables) /= 0) then
+            ncc = 0
             do i = 1, size(cables)
                if (isWire(cables(i)%p) .or. isMultiwire(cables(i)%p)) then
                   is_read = .true.
                   read_cable = readMTLNCable(cables(i)%p, is_read)
                   if (is_read) then
-                     nC = nC + 1
-                     mtln_res%cables(nC) = read_cable
-                     call addElemIdToCableMap(elemIdToCable, cables(i)%p, mtln_res%cables(nC))
+                     ncc = ncc + 1
+                     mtln_res%cables(ncc) = read_cable
+                     call addElemIdToCableMap(elemIdToCable, cables(i)%p, mtln_res%cables(ncc))
                      call addElemIdToPositionMap(elemIdToPosition, cables(i)%p)
                   end if
                end if

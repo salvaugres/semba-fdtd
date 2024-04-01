@@ -137,7 +137,7 @@ This is an array of objects which represent Cartesian coordinates within the gri
 
 **Example:** The following figure represents a grid with the numbers of the cells marked in light gray. The third dimension is ignored for clarity. The two coordinates (blue) represent positions in the grid. Note that coordinate 2 has a fractional position in the $x$ direction.
 
-![Coordinates in grid](doc/fig/grid-coordinates.png)
+![Coordinates in grid](fig/grid-coordinates.png)
 
 ```json
 "mesh": {
@@ -212,7 +212,7 @@ An interval allows specifying regions within the grid which can be a point, an o
 + The third is formed by two oriented lines towards $+\hat{x}$ and $+\hat{y}$, respectively.
 + Finally, the fourth `cell` is formed by a single line, oriented towards $-\hat{y}$. Note that the integer in the ending segment is $-1$ as it falls out from the lower bound of the grid.
 
-![Intervals example](doc/fig/grid-intervals.png)
+![Intervals example](fig/grid-intervals.png)
 
 ```json
 "mesh": {
@@ -393,7 +393,7 @@ Each entry in `terminations` is specified by a `type`
 + Different configurations of passive circuit elements R, L, and C can be defined with `series` (for RLC series circuits), `LCpRs` (LC parallel in series with a resistance) and `RLsCp` (for series RL in parallel with C). The are defined as follows:
   + `[resistance]` which defaults to `0.0`,
   + `[inductance]` which defaults to `0.0`,
-  + `[capacitance>]` which defaults to `1e22`.
+  + `[capacitance]` which defaults to `1e22`.
 
 **Example:**
 

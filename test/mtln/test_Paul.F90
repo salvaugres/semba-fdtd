@@ -748,7 +748,8 @@ integer function test_coaxial_line_paul_8_6_square() bind(C) result(error_cnt)
     real,dimension(1,1) :: cpul = 100.0e-12
 
     character(20) :: charR, charL, charC, lineC
-
+    integer :: i
+    type(segment_relative_position_t), dimension(100) :: segment_positions
     error_cnt = 0
 
     cable%name = "wire0"
@@ -756,11 +757,12 @@ integer function test_coaxial_line_paul_8_6_square() bind(C) result(error_cnt)
     cable%conductance_per_meter = gpul
     cable%resistance_per_meter = rpul
     cable%capacitance_per_meter = cpul
-    block
-        integer :: i
-        cable%step_size = [(4.0, i = 1, 100)]
-    end block
-    ! cable%segment_relative_positions
+    do i = 1, 100
+        segment_positions(i)%position = (/i, 1, 1/)
+    end do
+    cable%segment_relative_positions = segment_positions
+    cable%step_size = [(4.0, i = 1, 100)]
+
     parsed%time_step = 2e-8
     parsed%number_of_steps = 20e-6/parsed%time_step
 
