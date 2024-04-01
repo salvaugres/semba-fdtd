@@ -1150,17 +1150,18 @@ contains
       allocate (mtln_res%cables(nWs))
       block
          logical :: is_read
-         integer :: i, j,  nC = 0
+         integer :: i, j, ncc
          type(cable_t) :: read_cable
          if (size(cables) /= 0) then
+            ncc = 0
             do i = 1, size(cables)
                if (isWire(cables(i)%p) .or. isMultiwire(cables(i)%p)) then
                   is_read = .true.
                   read_cable = readMTLNCable(cables(i)%p, is_read)
                   if (is_read) then
-                     nC = nC + 1
-                     mtln_res%cables(nC) = read_cable
-                     call addElemIdToCableMap(elemIdToCable, cables(i)%p, mtln_res%cables(nC))
+                     ncc = ncc + 1
+                     mtln_res%cables(ncc) = read_cable
+                     call addElemIdToCableMap(elemIdToCable, cables(i)%p, mtln_res%cables(ncc))
                      call addElemIdToPositionMap(elemIdToPosition, cables(i)%p)
                   end if
                end if
