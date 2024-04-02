@@ -14,11 +14,21 @@ integer function test_mtl_bundle_init() bind(C) result(error_cnt)
 
 
     real, dimension(5) :: step_size = [20.0, 20.0, 20.0, 20.0, 20.0]
+    type(segment_relative_position_t), dimension(5) :: segment_positions
 
     error_cnt = 0
+    block
+        integer :: i
+        do i = 1, 5
+            segment_positions(i)%position = (/i, 1, 1/)
+        end do
+    end block
 
-    mtl_out   = mtl_t(l1, c1, r1, g1, step_size, "line_out")
-    mtl_in   =  mtl_t(l1, c1, r1, g1, step_size, "line_in",   parent_name = "line_out",   conductor_in_parent = 1)
+    mtl_out   = mtl_t(l1, c1, r1, g1, step_size, "line_out", segment_relative_positions = segment_positions)
+    mtl_in   =  mtl_t(l1, c1, r1, g1, step_size, "line_in",  &
+                      parent_name = "line_out", &
+                      conductor_in_parent = 1, &
+                      segment_relative_positions = segment_positions)
 
     allocate(levels(1)%lines(1))
     allocate(levels(2)%lines(1))

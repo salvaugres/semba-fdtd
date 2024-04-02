@@ -15,8 +15,11 @@ module probes_mod
     contains
         procedure :: resizeFrames
         procedure :: update
-        procedure, private :: saveFrame
-        
+        procedure :: saveFrame
+
+        ! ! private
+        ! procedure :: probe_eq
+        ! generic, public :: operator(==) => probe_eq
 
     end type probe_t
 
@@ -84,5 +87,13 @@ contains
         ! end if  
         this%current_frame = this%current_frame + 1
     end subroutine
+
+    ! elemental logical function probe_eq(a, b)
+    !     class(probe_t), intent(in) :: a, b
+    !     probe_eq = &
+    !         a%index == b%index .and. &
+    !         a%type == b%type .and. &
+    !         a%dt == b%dt
+    ! end function
 
 end module probes_mod
