@@ -915,10 +915,12 @@ contains
          character (len=:), allocatable :: entry
          type(json_value), pointer :: je, je2
          integer :: i
+         logical :: found
 
          block
             type(json_value_ptr) :: m
-            m = this%matTable%getId(this%getIntAt(cable, J_MATERIAL_ID))
+            m = this%matTable%getId(this%getIntAt(cable, J_MATERIAL_ID, found))
+            if (.not. found) write(error_unit, *) "ERROR: material id not found in mat. association."
             call this%core%get(m%p, J_MAT_WIRE_RADIUS,     res%rad, default = 0.0)
             call this%core%get(m%p, J_MAT_WIRE_RESISTANCE, res%res, default = 0.0)
             call this%core%get(m%p, J_MAT_WIRE_INDUCTANCE, res%ind, default = 0.0)
@@ -952,13 +954,14 @@ contains
 
          block
             type(linel_t), dimension(:), allocatable :: linels
-            integer :: i
-            integer :: coordId
             integer, dimension(:), allocatable :: elementIds
             type(polyline_t) :: polyline
             character (len=MAX_LINE) :: tagLabel
             type(generator_description_t), dimension(:), allocatable :: genDesc
-            call this%core%get(cable, J_ELEMENTIDS, elementIds)
+            call this%core%get(cable, J_ELEMENTIDS, elementIds, found)
+            if (.not. found) then
+               write(error_unit, *) "elementIds not found for material association."
+            end if
             if (size(elementIds) /= 1) then
                write(error_unit, *) "Thin wires must be defined by a single polyline element."
             end if
@@ -1027,10 +1030,10 @@ contains
 
                select case(this%getStrAt(genSrcs(i)%p, J_FIELD))
                case (J_FIELD_VOLTAGE)
-                  res(position)%srctype = J_FIELD_VOLTAGE
+                  res(position)%srctype = "VOLT"
                   res(position)%srcfile = this%getStrAt(genSrcs(i)%p, J_SRC_MAGNITUDE_FILE)
                case (J_FIELD_CURRENT)
-                  res(position)%srctype = J_FIELD_CURRENT
+                  res(position)%srctype = "CURR"
                   res(position)%srcfile = this%getStrAt(genSrcs(i)%p, J_SRC_MAGNITUDE_FILE)
                case default 
                   write(error_unit, *) 'Field block of source of type generator must be current or voltage'
