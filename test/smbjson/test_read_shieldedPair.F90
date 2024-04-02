@@ -44,11 +44,11 @@ contains
       expected%despl%desY = 1.0
       expected%despl%desZ = 0.03
       expected%despl%mx1 = 0
-      expected%despl%mx2 = 2
+      expected%despl%mx2 = 1
       expected%despl%my1 = 0
-      expected%despl%my2 = 2
+      expected%despl%my2 = 1
       expected%despl%mz1 = 0
-      expected%despl%mz2 = 20
+      expected%despl%mz2 = 19
 
       ! Expected boundaries.
       expected%front%tipoFrontera(:) = F_MUR
@@ -150,10 +150,7 @@ contains
       
       allocate(expected%mtln%cables(1)%step_size(18))
       expected%mtln%cables(1)%step_size = [(0.03, i = 1, 18)]
-      allocate(expected%mtln%cables(1)%segment_relative_positions(18))
-      do i = 1, 18
-         expected%mtln%cables(1)%segment_relative_positions(i)%position = (/1,1,i/)
-      end do
+
       expected%mtln%cables(1)%transfer_impedance%direction = TRANSFER_IMPEDANCE_DIRECTION_INWARDS
       expected%mtln%cables(1)%transfer_impedance%resistive_term = 0.0
       expected%mtln%cables(1)%transfer_impedance%inductive_term = 4.0e-9
@@ -176,11 +173,10 @@ contains
       expected%mtln%cables(2)%conductance_per_meter = reshape(source=[0.0], shape=[1,1])
       allocate(expected%mtln%cables(2)%step_size(18))
       expected%mtln%cables(2)%step_size =  [(0.03, i = 1, 18)]
-      allocate(expected%mtln%cables(2)%segment_relative_positions(18))
-      do i = 1, 18
-         expected%mtln%cables(2)%segment_relative_positions(i)%position = (/1,1,i/)
-      end do
 
+      expected%mtln%cables(2)%transfer_impedance%direction = 0
+      expected%mtln%cables(2)%transfer_impedance%resistive_term = 0.0
+      expected%mtln%cables(2)%transfer_impedance%inductive_term = 0.0
       allocate(expected%mtln%cables(2)%transfer_impedance%poles(0))
       allocate(expected%mtln%cables(2)%transfer_impedance%residues(0))
 
@@ -253,8 +249,7 @@ contains
       expected%mtln%networks(2)%connections(2)%nodes(1)%termination%termination_type = TERMINATION_SERIES
       expected%mtln%networks(2)%connections(2)%nodes(1)%termination%resistance = 50.0
 
-      !connectors
-      allocate(expected%mtln%connectors(0))
+      
 
    end function
 end function

@@ -16,7 +16,9 @@ It also includes the following features, representing physical rather than topol
 * The possibility to include dispersive elements, i.e. elements whose properties depend on the frequency of the excitation
 * The effect of transfer impedances between a shield and the shielded conductores therein. Real-life shields are not perfect, and the currents circulating on the shields induce a voltage on the conductors inside them. These transfer impedances are often frequency-dependent, and their treatment is similar to that of dispersive elements. 
 * The possibility to simulate non-homogeneous tranmission lines, i.e. transmission lines whose per-unit-length parameters (inductance, capacitance, resistance and conductance) depend on the position along the transmission line. This can be used to simulate lumped non-dispersive elements on the TL.
-* The capability to simulate non-uniform transmission lines, i.e. where the spatial step can vary along the line. This allows to use the MTLN solver in non-uniform grids. 
+<!---
+* non-uniform TL: spatial step can vary along the line
+--->
 
 # Multiconductor Transmission Lines #
 
@@ -60,7 +62,7 @@ _Solving_ a network means computing the voltages on all the external nodes of th
 Using the state variables analysis, the network can be analyzed solving a system with a number of variables equal to the sum of independent inductors and capacitors.
 State equations can in principle solve any network. However, the complexity of the method rises noticeably with increasing number of inductors and capactors. The state equations are very different for different types of connections and the potential for generalization is limited. In the current version of the code, networks composed of either a short, a resistance, a capacitance, or a resistance and a capacitance in parallel, in series with an inductor (RCpLs) can be solved.
 
-An alternative, is to use a circuit simulator to solve the networks. A call to the simulator would be made from within the MTLN solver. At each time step, the currents on the extreme of the bundle connected to the network nodes would be provided as an input, returning the voltages on said nodes.
+An alternative, **not yet implemented**, is to use _Spice_ to solve the networks. A call to _Spice_ would be made from within the MTLN solver, giving as an inpout the initial values of the currents and voltages on the network external nodes, and returning the voltages on said nodes.
 
 # Bundles #
 
@@ -71,19 +73,6 @@ A bundle is divided in domains and levels
 A bundle can contain other bundles
 
 # Features #
-
-## Coupling to NgSpice ##
-
-An arbitrary network might include electronic devices in addition to electronic components and sources. With increasing number of components, and specially with the addition of devices, the analytical solution of the network grows dramatically in complexity. Instead, a circuit simulator might be used. [NgSpice](https://ngspice.sourceforge.io/) is an open source spice simulator for electric and electronic circuits. It is an ongoing and maintained project, with a wide user base.
-
-While semba-fdtd is written in Fortran, NgSpice is written in C. Fortran and C are interfactable (functions from the former can be called from the latter, and viceversa), and an interface has been written to allow calls to NgSpice from semba-fdtd.
-(ngspice_interface.F90). The module circuit.F90 is a wrapper around the interface functions, allowing for simple calls to NgSpice and providing a series of methods to update currents and voltages between the bundles and the NgSpice circuits. 
-
-NgSpice permits only one simultaneous instance. This means that all networks are part of a single circuit, composed of disconnected subcircuits[^1].
-
-
-
-[^1]: Subcircuits understood as parts of the circuit defined in the same instance, not as the .SUBCKT elements.
 
 ## Dispersive elements ##
 

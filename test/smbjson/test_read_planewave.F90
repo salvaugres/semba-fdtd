@@ -42,11 +42,11 @@ contains
       expected%despl%desY = 0.1
       expected%despl%desZ = 0.1
       expected%despl%mx1 = 0
-      expected%despl%mx2 = 10
+      expected%despl%mx2 = 9
       expected%despl%my1 = 0
-      expected%despl%my2 = 10
+      expected%despl%my2 = 9
       expected%despl%mz1 = 0
-      expected%despl%mz2 = 10
+      expected%despl%mz2 = 9
 
       ! Expected boundaries.
       expected%front%tipoFrontera(:) = F_MUR
@@ -67,8 +67,13 @@ contains
       expected%plnSrc%nc = 1
       expected%plnSrc%nC_max = 1
 
+      allocate(expected%nodSrc%NodalSource(0))
 
       ! Expected probes
+      ! oldSonda
+      expected%oldSONDA%n_probes = 0
+      expected%oldSONDA%n_probes_max = 0
+      allocate(expected%oldSONDA%probes(0))
       ! sonda
       expected%Sonda%len_cor_max = 0
       expected%Sonda%length = 1

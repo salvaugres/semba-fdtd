@@ -36,6 +36,7 @@ endif()
 
 if (CompileExecutable)
 	add_executable(semba-fdtd 
+		"src_main_pub/nfde_rotate.F90"
 		"src_main_pub/errorreport.F90"
 		"src_main_pub/anisotropic.F90"
 		"src_main_pub/borderscpml.F90"
@@ -58,7 +59,7 @@ if (CompileExecutable)
 		"src_main_pub/planewaves.F90"
 		"src_main_pub/pml_bodies.F90"
 		"src_main_pub/postprocess.F90"
-		"src_main_pub/preprocess.F90"
+		"src_main_pub/preprocess_geom.F90"
 		"src_main_pub/resuming.F90"
 		"src_main_pub/interpreta_switches.F90"
 		"src_main_pub/semba_fdtd.F90"

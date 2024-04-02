@@ -44,7 +44,10 @@
         "elements": [
             {"id": 1, "type": "node", "coordinateIds": [2]},
             {"id": 2, "type": "polyline", "coordinateIds": [1, 2, 3] },
-            {"id": 3, "type": "cell", "intervals": [[[1, 1, 1], [19, 19, 21]]] }
+            {"id": 3, "type": "cell", "intervals": [ 
+                    [ [1, 1, 1], [19, 19, 21] ]
+                ] 
+            }
         ]
     },
 

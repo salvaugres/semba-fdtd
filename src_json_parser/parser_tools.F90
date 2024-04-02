@@ -178,11 +178,4 @@ contains
       end do
    end function
 
-   function scalarToMatrix(scalar) result(res)
-      real, intent(in) :: scalar
-      real, dimension(:, :), allocatable :: res
-      allocate(res(1,1), source = 0.0)
-      res(1,1) = scalar
-   end function
-
 end module

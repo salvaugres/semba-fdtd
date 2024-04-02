@@ -29,14 +29,12 @@ module mtln_solver_mod
         procedure :: updateExternalCurrent
         
         procedure :: runUntil
-
     end type mtln_t
 
 
     interface mtln_t
         module procedure mtlnCtor
     end interface
-    
 
 contains
 
@@ -233,5 +231,6 @@ contains
         end do
 
     end subroutine
+
 
 end module mtln_solver_mod
