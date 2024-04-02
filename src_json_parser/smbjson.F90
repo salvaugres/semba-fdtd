@@ -75,7 +75,8 @@ module smbjson
 
    type, private :: domain_t
       real :: tstart, tstop, tstep
-      real :: fstart, fstop, fstep
+      real :: fstart, fstop
+      integer :: fstep
       character(len=:), allocatable :: filename
       integer :: type1, type2
       logical :: isLogarithmicFrequencySpacing
@@ -1046,21 +1047,37 @@ contains
       character(len=*), intent(in) :: path
 
       type(json_value), pointer :: domain
-      character (len=:), allocatable :: fn, domainType, freqSpacing
-      logical :: found, transferFunctionFound
+      character (len=:), allocatable :: domainType, freqSpacing
+      logical :: found
       real :: val
+      integer :: numberOfFrequencies
 
       call this%core%get(place, path, domain, found)
       if (.not. found) return
 
       res%type1 = NP_T1_PLAIN
 
-      call this%core%get(domain, J_PR_DOMAIN_MAGNITUDE_FILE, fn, transferFunctionFound)
-      if (found) then
-         res%filename = trim(adjustl(fn))
-      else
-         res%filename = " "
-      endif
+      block
+         logical :: transferFunctionFound, sourcesFound
+         type(json_value), pointer :: sources, source
+         character (len=:), allocatable :: fn
+
+         call this%core%get(domain, J_PR_DOMAIN_MAGNITUDE_FILE, fn, transferFunctionFound)
+         if (.not. transferFunctionFound) then
+            call this%core%get(root, J_SOURCES, sources, sourcesFound)
+            if (sourcesFound) then 
+               if (this%core%count(sources) == 1) then
+                  call this%core%get_child(sources, 1, source)
+                  call this%core%get(source, J_SRC_MAGNITUDE_FILE, fn,found=transferFunctionFound)
+               end if
+            end if
+         end if
+         if (transferFunctionFound) then
+            res%filename = trim(adjustl(fn))
+         else
+            res%filename = " "
+         end if
+      end block
 
       call this%core%get(domain, J_TYPE, domainType)
       res%type2 = getNPDomainType(domainType, transferFunctionFound)
@@ -1070,7 +1087,13 @@ contains
       call this%core%get(domain, J_PR_DOMAIN_TIME_STEP,  res%tstep,  default=0.0)
       call this%core%get(domain, J_PR_DOMAIN_FREQ_START, res%fstart, default=0.0)
       call this%core%get(domain, J_PR_DOMAIN_FREQ_STOP,  res%fstop,  default=0.0)
-      call this%core%get(domain, J_PR_DOMAIN_FREQ_STEP,  res%fstep,  default=0.0)
+      
+      call this%core%get(domain, J_PR_DOMAIN_FREQ_NUMBER,  numberOfFrequencies,  default=0)
+      if (numberOfFrequencies == 0) then
+         res%fstep = 0.0
+      else
+         res%fstep = res%fstart * numberOfFrequencies
+      endif
 
       call this%core%get(domain, J_PR_DOMAIN_FREQ_SPACING, &
          freqSpacing, default=J_PR_DOMAIN_FREQ_SPACING_LINEAR)

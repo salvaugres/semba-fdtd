@@ -611,12 +611,13 @@ The domain must specify a `<type>` from the following ones:
   + `[samplingPeriod]`. Defaults to the simulation time step which is the minimum sampling period.
 
 + `frequency`, means that the output will be converted into the frequency domain.
-  + `<initialFrequency>`, `<finalFrequency>` and `<numberOfFrequencies>`.
+  + `<initialFrequency>`, `<finalFrequency>` as real numbers, and `<numberOfFrequencies>` as an integer.
   + `[frequencySpacing]` can be `linear` or `logarithmic`. Defaults to `linear`.
 
 + `timeFrequency` will record both time and frequency.
 
 Additionally, a `domain` can contain a `[magnitudeFile]` as specified in [sources](#sources). This file will be used as to compute a *transfer function* between the recorded output and the specified magnitude.
+If not `magnitudeFile` is specified and only one `source` is defined, the `magnitudeFile` of that source will be used to calculate the transfer function.
 
 ## `[sources]`
 
