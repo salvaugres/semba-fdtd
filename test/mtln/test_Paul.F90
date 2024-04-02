@@ -190,7 +190,7 @@ integer function test_termination_resistive_inductive() bind(C) result(error_cnt
     ! p.run(finalTime = 18e-6)
     block
         integer :: i
-        open(unit = 1, file =  './probes/probes_RL_termination.txt')
+        open(unit = 1, file =  './testData/outputs/spice/RL_termination.txt')
         do i = 1, size(solver%bundles(1)%probes(1)%t)
             write(1,*) solver%bundles(1)%probes(1)%t(i)," ", &
                     solver%bundles(1)%probes(1)%val(i,1) ," ", &
@@ -293,7 +293,7 @@ integer function test_termination_resistive_capacitive_parallel() bind(C) result
     ! p.run(finalTime = 18e-6)
     block
         integer :: i
-        open(unit = 1, file =  './probes/probes_RCp_termination.txt')
+        open(unit = 1, file =  './testData/outputs/spice/RCp_termination.txt')
         do i = 1, size(solver%bundles(1)%probes(1)%t)
             write(1,*) solver%bundles(1)%probes(1)%t(i)," ", &
                     solver%bundles(1)%probes(1)%val(i,1) ," ", &
@@ -396,7 +396,7 @@ integer function test_termination_rls_cp() bind(C) result(error_cnt)
     ! p.run(finalTime = 18e-6)
     block
         integer :: i
-        open(unit = 1, file =  './probes/probes_RLsCp_termination.txt')
+        open(unit = 1, file =  './testData/outputs/spice/RLsCp_termination.txt')
         do i = 1, size(solver%bundles(1)%probes(1)%t)
             write(1,*) solver%bundles(1)%probes(1)%t(i)," ", &
                     solver%bundles(1)%probes(1)%val(i,1) ," ", &
@@ -504,7 +504,7 @@ integer function test_termination_rls_cp_ns() bind(C) result(error_cnt)
     ! p.run(finalTime = 18e-6)
     block
         integer :: i
-        open(unit = 1, file =  './probes/probes_RLsCp_termination_ns.txt')
+        open(unit = 1, file =  './testData/outputs/spice/RLsCp_termination_ns.txt')
         do i = 1, size(solver%bundles(1)%probes(1)%t)
             write(1,*) solver%bundles(1)%probes(1)%t(i)," ", &
                     solver%bundles(1)%probes(1)%val(i,1) ," ", &
@@ -607,7 +607,7 @@ integer function test_termination_rcp() bind(C) result(error_cnt)
     ! p.run(finalTime = 18e-6)
     block
         integer :: i
-        open(unit = 1, file =  './probes/probes_RCp_termination.txt')
+        open(unit = 1, file =  './testData/outputs/spice/RCp_termination.txt')
         do i = 1, size(solver%bundles(1)%probes(1)%t)
             write(1,*) solver%bundles(1)%probes(1)%t(i)," ", &
                     solver%bundles(1)%probes(1)%val(i,1) ," ", &
@@ -710,7 +710,7 @@ integer function test_termination_resistive_capacitive() bind(C) result(error_cn
     ! p.run(finalTime = 18e-6)
     block
         integer :: i
-        open(unit = 1, file =  './probes/probes_RC_termination_gauss.txt')
+        open(unit = 1, file =  './testData/outputs/spice/RC_termination_gauss.txt')
         do i = 1, size(solver%bundles(1)%probes(1)%t)
             write(1,*) solver%bundles(1)%probes(1)%t(i)," ", &
                     solver%bundles(1)%probes(1)%val(i,1) ," ", &
@@ -810,7 +810,7 @@ integer function test_coaxial_line_paul_8_6_square() bind(C) result(error_cnt)
 
     block
         integer :: i
-        open(unit = 1, file =  'probes/probes_8.6_square.txt')
+        open(unit = 1, file =  'testData/outputs/paul/paul_8.6_square.txt')
         do i = 1, size(solver%bundles(1)%probes(1)%t)
             write(1,*) solver%bundles(1)%probes(1)%t(i)," ", &
                        solver%bundles(1)%probes(1)%val(i,1) ," ", &
@@ -819,20 +819,16 @@ integer function test_coaxial_line_paul_8_6_square() bind(C) result(error_cnt)
 
     end block
 
-    block
-        real, dimension(:), allocatable :: start_times, end_times, expected_voltages
-        integer :: i, start, end
+    ! block
+    !     real, dimension(:), allocatable :: start_times, end_times, expected_voltages
+    !     integer :: i, start, end
     
-        start_times = [0.1, 4.1, 6.1, 8.1, 10.1, 12.1, 14.1, 16.1]
-        end_times = [3.9, 5.9, 7.9, 9.9, 11.9, 13.9, 15.9, 18.9]
-        expected_voltages = [25.0, -12.5, -37.5, -18.75, 18.75, 9.375, -9.375, -4.6875]
-        do i = 1, size(start_times) 
-        end do
-    ! for (t_start, t_end, v) in zip(start_times, end_times, check_voltages):
-    !     start = np.argmin(np.abs(p.probes["v_source"].t - t_start*1e-6))
-    !     end = np.argmin(np.abs(p.probes["v_source"].t - t_end*1e-6))
-    !     assert np.all(np.isclose(p.probes["v_source"].val[start:end], v))
-    end block
+    !     start_times = [0.1, 4.1, 6.1, 8.1, 10.1, 12.1, 14.1, 16.1]
+    !     end_times = [3.9, 5.9, 7.9, 9.9, 11.9, 13.9, 15.9, 18.9]
+    !     expected_voltages = [25.0, -12.5, -37.5, -18.75, 18.75, 9.375, -9.375, -4.6875]
+    !     do i = 1, size(start_times) 
+    !     end do
+    ! end block
 
 
 
@@ -923,7 +919,7 @@ integer function test_coaxial_line_paul_8_6_triangle() bind(C) result(error_cnt)
     write(*,*) error_cnt
     block
         integer :: i
-        open(unit = 1, file =  './probes/probes_8.6_triangle.txt')
+        open(unit = 1, file =  './testData/outputs/paul/paul_8.6_triangle.txt')
         do i = 1, size(solver%bundles(1)%probes(1)%t)
             write(1,*) solver%bundles(1)%probes(1)%t(i)," ", &
                        solver%bundles(1)%probes(1)%val(i,1) ," ", &
@@ -1059,7 +1055,7 @@ integer function test_2_conductor_line_paul_9_6_1c() bind(C) result(error_cnt)
 
     block
         integer :: i
-        open(unit = 1, file =  './probes/probes_9.6_gauss_1c_R_50_L_0_C_50p_par.txt')
+        open(unit = 1, file =  'testData/outputs/paul/paul_9.6_gauss_1c_R_50_L_0_C_50p_par.txt')
         ! open(unit = 1, file =  './probes/probes_9.6_gauss_1c_RLsCp_R_100_L_100u_C_10p.txt')
         do i = 1, size(solver%bundles(1)%probes(1)%t)
             write(1,*) solver%bundles(1)%probes(1)%t(i)," ", &
@@ -1206,7 +1202,7 @@ integer function test_2_conductor_line_paul_9_6() bind(C) result(error_cnt)
     ! p.run(finalTime = 18e-6)
     block
         integer :: i
-        open(unit = 1, file =  './probes/probes_9.6_pulse.txt')
+        open(unit = 1, file =  'testData/outputs/paul/paul_9.6_pulse.txt')
         do i = 1, size(solver%bundles(1)%probes(1)%t)
             write(1,*) solver%bundles(1)%probes(1)%t(i)," ", &
                        solver%bundles(1)%probes(1)%val(i,1) ," ", &
@@ -1331,7 +1327,7 @@ integer function test_2_conductor_line_paul_9_11_20ns() bind(C) result(error_cnt
 
     block
         integer :: i
-        open(unit = 1, file =  './probes/probes_9.11_20ns.txt')
+        open(unit = 1, file =  'testData/outputs/paul/paul_9.11_20ns.txt')
         do i = 1, size(solver%bundles(1)%probes(1)%t)
             write(1,*) solver%bundles(1)%probes(1)%t(i)," ", &
                        solver%bundles(1)%probes(1)%val(i,1)," ", &
@@ -1446,7 +1442,7 @@ integer function test_2_conductor_line_paul_9_11_1ns() bind(C) result(error_cnt)
 
     block
         integer :: i
-        open(unit = 1, file =  './probes/probes_9.11_1ns.txt')
+        open(unit = 1, file =  'testData/outputs/paul/paul_9.11_1ns.txt')
         do i = 1, size(solver%bundles(1)%probes(1)%t)
             write(1,*) solver%bundles(1)%probes(1)%t(i)," ", &
                        solver%bundles(1)%probes(1)%val(i,1)," ", &

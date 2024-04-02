@@ -73,6 +73,11 @@ module smbjson
       real :: r, l, c
    end type
 
+   type, private :: generator_description_t
+      character(:), allocatable :: srctype, srcfile
+   end type
+
+
    type, private :: domain_t
       real :: tstart, tstop, tstep
       real :: fstart, fstop, fstep
@@ -140,6 +145,7 @@ contains
       res%tWires = this%readThinWires()
       res%sWires = this%readSlantedWires()
       res%tSlots = this%readThinSlots()
+      
 
       ! mtln
       res%mtln = this%readMTLN(res%despl)
@@ -874,6 +880,8 @@ contains
          end do
       end if
 
+
+
    contains
       function readThinWire(cable) result(res)
          type(ThinWire) :: res
@@ -924,7 +932,7 @@ contains
             integer, dimension(:), allocatable :: elementIds
             type(polyline_t) :: polyline
             character (len=MAX_LINE) :: tagLabel
-
+            type(generator_description_t), dimension(:), allocatable :: genDesc
             call this%core%get(cable, J_ELEMENTIDS, elementIds)
             if (size(elementIds) /= 1) then
                write(error_unit, *) "Thin wires must be defined by a single polyline element."
@@ -934,12 +942,14 @@ contains
 
             write(tagLabel, '(i10)') elementIds(1)
 
+            genDesc = readGeneratorOnThinWire(linels, elementIds)
+
             res%n_twc = size(linels)
             res%n_twc_max = size(linels)
             allocate(res%twc(size(linels)))
             do i = 1, size(linels)
-               res%twc(i)%srcfile = 'None'
-               res%twc(i)%srctype = 'None'
+               res%twc(i)%srcfile = genDesc(i)%srcfile
+               res%twc(i)%srctype = genDesc(i)%srctype
                res%twc(i)%i = linels(i)%cell(1)
                res%twc(i)%j = linels(i)%cell(2)
                res%twc(i)%k = linels(i)%cell(3)
@@ -948,6 +958,77 @@ contains
                res%twc(i)%tag = trim(adjustl(tagLabel))
             end do
          end block
+
+      end function
+
+      function readGeneratorOnThinWire(linels, plineElemIds) result(res)
+         type(linel_t), dimension(:), intent(in) :: linels
+         integer, dimension(:), intent(in) :: plineElemIds
+         type(json_value), pointer :: sources
+         type(json_value_ptr), dimension(:), allocatable :: genSrcs
+         logical :: found
+         type(generator_description_t), dimension(:), allocatable :: res
+         integer :: i
+
+         allocate(res(size(linels)))
+         do i = 1, size(linels)
+            res(i)%srcfile = 'None'
+            res(i)%srctype = 'None'
+         end do
+
+         call this%core%get(this%root, J_SOURCES, sources, found)
+         if (.not. found) then
+            return
+         end if
+  
+         genSrcs = this%jsonValueFilterByKeyValues(sources, J_TYPE, [J_SRC_TYPE_GEN])
+         if (size(genSrcs) == 0) then
+            return
+         end if
+
+         block
+            integer, dimension(:), allocatable :: sourceElemIds
+            integer :: position
+            do i = 1, size(genSrcs)
+               call this%core%get(genSrcs(i)%p, J_ELEMENTIDS, sourceElemIds)
+               if (.not. any(plineElemIds == sourceElemIds(1))) continue ! generator is not in this polyline
+
+               position = findSourcePositionInLinels(sourceElemIds, linels)
+      
+               if (.not. this%existsAt(genSrcs(i)%p, J_SRC_MAGNITUDE_FILE)) then 
+                  write(error_unit, *) 'magnitudeFile of source missing'
+                  return
+               end if
+
+               select case(this%getStrAt(genSrcs(i)%p, J_FIELD))
+               case (J_FIELD_VOLTAGE)
+                  res(position)%srctype = J_FIELD_VOLTAGE
+                  res(position)%srcfile = this%getStrAt(genSrcs(i)%p, J_SRC_MAGNITUDE_FILE)
+               case (J_FIELD_CURRENT)
+                  res(position)%srctype = J_FIELD_CURRENT
+                  res(position)%srcfile = this%getStrAt(genSrcs(i)%p, J_SRC_MAGNITUDE_FILE)
+               case default 
+                  write(error_unit, *) 'Field block of source of type generator must be current or voltage'
+               end select
+
+            end do
+         end block
+
+      end function
+
+      function findSourcePositionInLinels(srcElemIds, linels) result(res)
+         integer, dimension(:), intent(in) :: srcElemIds
+         type(linel_t), dimension(:), intent(in) :: linels
+         type(pixel_t), dimension(:), allocatable :: pixels
+         integer :: res
+         integer :: i
+         pixels = this%mesh%convertNodeToPixels(this%mesh%getNode(srcElemIds(1)))
+         do i = 1, size(linels)
+            if (all(linels(i)%cell ==pixels(1)%cell)) then 
+               res = i 
+               return
+            end if
+         end do
 
       end function
 
