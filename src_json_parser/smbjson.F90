@@ -553,7 +553,7 @@ contains
          type(json_value), pointer :: p
          type(Sonda), pointer :: ff
          character (len=:), allocatable :: outputName
-
+         logical :: transferFunctionFound
          type(domain_t) :: domain
 
          res%n_FarField = 1
@@ -572,7 +572,31 @@ contains
          ff%fstart = domain%fstart
          ff%fstop = domain%fstop
          ff%fstep = domain%fstep
-         ff%FileNormalize = domain%filename
+         
+         block
+            logical :: sourcesFound
+            type(json_value), pointer :: sources, src
+            character (len=:), allocatable :: fn
+            
+            fn = this%getStrAt(p, J_PR_DOMAIN//J_PR_DOMAIN_MAGNITUDE_FILE, found=transferFunctionFound)
+            if (.not. transferFunctionFound) then
+               call this%core%get(this%root, J_SOURCES, sources, sourcesFound)
+               if (sourcesFound) then 
+                  if (this%core%count(sources) == 1) then
+                     call this%core%get_child(sources, 1, src)
+                     call this%core%get(src, J_SRC_MAGNITUDE_FILE, fn, found=transferFunctionFound)
+                  end if
+               end if
+            end if
+
+            if (transferFunctionFound) then   
+               ff%FileNormalize = trim(adjustl(fn))
+            else
+               ff%FileNormalize = " "
+            end if
+            
+         end block
+            
          if (domain%isLogarithmicFrequencySpacing) then
             ff%outputrequest = ff%outputrequest // SMBJSON_LOG_SUFFIX
          end if
@@ -1046,39 +1070,25 @@ contains
       type(json_value), pointer :: place
       character(len=*), intent(in) :: path
 
-      type(json_value), pointer :: domain
-      character (len=:), allocatable :: domainType, freqSpacing
-      logical :: found
-      real :: val
       integer :: numberOfFrequencies
+      type(json_value), pointer :: domain
+      character (len=:), allocatable :: fn, domainType, freqSpacing
+      logical :: found, transferFunctionFound
+      real :: val
 
       call this%core%get(place, path, domain, found)
       if (.not. found) return
 
+
+      call this%core%get(domain, J_PR_DOMAIN_MAGNITUDE_FILE, fn, transferFunctionFound)
+      if (found) then
+         res%filename = trim(adjustl(fn))
+      else
+         res%filename = " "
+      endif
+
       res%type1 = NP_T1_PLAIN
-
-      block
-         logical :: transferFunctionFound, sourcesFound
-         type(json_value), pointer :: sources, source
-         character (len=:), allocatable :: fn
-
-         call this%core%get(domain, J_PR_DOMAIN_MAGNITUDE_FILE, fn, transferFunctionFound)
-         if (.not. transferFunctionFound) then
-            call this%core%get(root, J_SOURCES, sources, sourcesFound)
-            if (sourcesFound) then 
-               if (this%core%count(sources) == 1) then
-                  call this%core%get_child(sources, 1, source)
-                  call this%core%get(source, J_SRC_MAGNITUDE_FILE, fn,found=transferFunctionFound)
-               end if
-            end if
-         end if
-         if (transferFunctionFound) then
-            res%filename = trim(adjustl(fn))
-         else
-            res%filename = " "
-         end if
-      end block
-
+      
       call this%core%get(domain, J_TYPE, domainType)
       res%type2 = getNPDomainType(domainType, transferFunctionFound)
 

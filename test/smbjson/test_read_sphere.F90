@@ -99,7 +99,8 @@ contains
       ex%oldSonda%probes(1)%FarField(1)%probe%outputrequest = "Far field_log_"
       ex%oldSonda%probes(1)%FarField(1)%probe%fstart = 1e6
       ex%oldSonda%probes(1)%FarField(1)%probe%fstop = 1e9
-      ex%oldSonda%probes(1)%FarField(1)%probe%fstep = 30
+      ex%oldSonda%probes(1)%FarField(1)%probe%fstep = 1e6*5
+      ex%oldSONDA%probes(1)%FarField(1)%probe%FileNormalize = "gauss.exc"
       allocate(ex%oldSonda%probes(1)%FarField(1)%probe%i(2))
       allocate(ex%oldSonda%probes(1)%FarField(1)%probe%j(2))
       allocate(ex%oldSonda%probes(1)%FarField(1)%probe%k(2))

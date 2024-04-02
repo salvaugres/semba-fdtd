@@ -97,9 +97,8 @@ def test_sphere(tmp_path):
 
     solver = FDTD(input_filename = fn, path_to_exe=SEMBA_EXE)
     solver.run()
-    probe_files = solver.getSolvedProbeFilenames("wire_end")
+    probe_files = solver.getSolvedProbeFilenames("Far") # semba-fdtd seems to always use the name Far for "far field" probes.
     
-    # assert solver.hasFinishedSuccessfully() == True
-    # assert len(probe_files) == 1
-    # assert 'towelHanger.fdtd_wire_end_Wz_100_100_80_s4.dat' == probe_files[0]
-    # assert countLinesInFile(probe_files[0]) == 3
+    assert solver.hasFinishedSuccessfully() == True
+    assert len(probe_files) == 1
+    assert 'sphere.fdtd_Far_FF_2_2_2__77_77_77.dat' == probe_files[0]

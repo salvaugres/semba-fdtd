@@ -565,9 +565,12 @@ TODO EXAMPLE IMAGE
 
 #### `farField`
 
-Probes of type `farField` perform a near to far field transformation of the electric and magnetic vector fields and are typically located in the scattered field region which is defined by a total/scatterd field excitation, e.g. [a planewave](#planewave). They must be defined with a single `cell` element which must contain a single `interval` defining a cuboid. The direction of  the radiated field $\hat{r}(\theta, \phi)$ is defined with the following entries:
+Probes of type `farField` perform a near to far field transformation of the electric and magnetic vector fields and are typically located in the scattered field region which is defined by a total/scatterd field excitation, e.g. [a planewave](#planewave). 
+They must be defined with a single `cell` element which must contain a single `interval` defining a cuboid. 
+The direction of  the radiated field $\hat{r}(\theta, \phi)$ is defined with `<theta>` and `<phi>`, which must contain `<initial>`, `<final>`, and `<step>`, expressed in degrees.
+The `domain` of a `farField` probe can only be of type `frequency`.
+If not `magnitudeFile` is specified and only one `source` is defined, the `magnitudeFile` of that source will be used to calculate as normalizing function.
 
-+ `<theta>` and `<phi>`, which must contain `<initial>`, `<final>`, and `<step>`, expressed in degrees.
 
 ```json
 {
@@ -617,7 +620,7 @@ The domain must specify a `<type>` from the following ones:
 + `timeFrequency` will record both time and frequency.
 
 Additionally, a `domain` can contain a `[magnitudeFile]` as specified in [sources](#sources). This file will be used as to compute a *transfer function* between the recorded output and the specified magnitude.
-If not `magnitudeFile` is specified and only one `source` is defined, the `magnitudeFile` of that source will be used to calculate the transfer function.
+
 
 ## `[sources]`
 
