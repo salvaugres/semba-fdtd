@@ -2200,8 +2200,9 @@ CONTAINS
 #ifdef CompileWithConformal
       l%run_with_dmma = .false.
 ! todo esto para el abrezanjas. se precisa tambien el l%input_conformal_flag  
-!!!!quitado sgg ojo 290521 esto no se ha arreglado aim... quito el abrezanjas !290521 bug
-      l%run_with_abrezanjas = .true. !OJO 0323 A VECES DA ERROR. PONER A FALSE SI SUCEDE
+!!!!quitado sgg ojo 290521 esto no se ha arreglado aim... quito el abrezanjas !290521 bug     
+  !!!    l%run_with_abrezanjas = .true. !OJO 0323 A VECES DA ERROR. PONER A FALSE SI SUCEDE
+      l%run_with_abrezanjas = .false. !OJO 0323 A VECES DA ERROR. PONER A FALSE SI SUCEDE
       !!!!l%run_with_abrezanjas = .false.
       if (.NOT.l%input_conformal_flag) then
             l%conformal_file_input_name = char(0)

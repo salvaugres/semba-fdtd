@@ -18,6 +18,12 @@ module mesh_mod
 
    type, public :: coordinate_t
       real, dimension(3) :: position
+   contains
+      private
+      procedure :: coordinate_diff
+      generic, public :: operator(-) => coordinate_diff
+      procedure :: coordinate_eq
+      generic, public :: operator(==) => coordinate_eq
    end type
 
    type, public :: mesh_t
@@ -268,5 +274,16 @@ contains
       res(1)%cell = c%position
       res(1)%tag = node%coordIds(1)
    end function
-   
+
+   function coordinate_diff(a, b) result(res)
+      class(coordinate_t), intent(in) :: a, b
+      type(coordinate_t) :: res
+      res%position = [(a%position(i) - b%position(i), i = 1, 3)]
+   end function
+
+   logical function coordinate_eq(a, b)
+      class(coordinate_t), intent(in) :: a, b
+      coordinate_eq = all(a%position == b%position)
+   end function
+
 end module

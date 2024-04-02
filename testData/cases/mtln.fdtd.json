@@ -153,10 +153,9 @@
 			"id": 7,
 			"name": "Short",
 			"type": "terminal",
-			"termination": {
-				"type": "series",
-				"resistance": 1e-6
-			}
+			"terminations": [
+				{"type": "series","resistance": 1e-6}
+			]
 		},
 		{
 			"id": 72,
@@ -249,19 +248,19 @@
 			"id": 24,
 			"name": "SegmentConnector1",
 			"type": "connector",
-			"resistances": [ 100e-3 ]
+			"resistances": [ 100.0e-3 ]
 		},
 		{
 			"id": 25,
 			"name": "SegmentConnector2",
 			"type": "connector",
-			"resistances": [ 19 ]
+			"resistances": [ 19.0 ]
 		},
 		{
 			"id": 204,
 			"name": "SegmentConnector1",
 			"type": "connector",
-			"resistances": [100e-3],
+			"resistances": [100.0e-3],
 			"transferImpedancePerMeter" : {
 				"resistiveTerm" : 3.33,
 				"inductiveTerm" : 2.6e-9,
@@ -272,7 +271,7 @@
 			"id": 205,
 			"name": "SegmentConnector2",
 			"type": "connector",
-			"resistance": 19,
+			"resistances": [19.0],
 			"transferImpedancePerMeter" : {
 				"resistiveTerm" : 609.3,
 				"inductiveTerm" : 2.6e-9,
@@ -282,12 +281,8 @@
 	],
 	"mesh": {
 		"grid": {
-			"numberOfCells": [2, 7, 100],
-			"steps": {
-				"x": [0.1], 
-				"y": [0.1], 
-				"z": [0.1]
-			}
+			"numberOfCells": [100, 7, 2],
+			"steps": {"x": [0.1], "y": [0.1], "z": [0.1]}
 		},
 		"coordinates": [
 			{"id": 1 , "relativePosition": [  1, 9, 1]},
@@ -346,7 +341,7 @@
 			{"id": 30, "type": "polyline", "coordinateIds": [44, 62]},
 			{"id": 31, "type": "polyline", "coordinateIds": [45, 63]},
 			{"id": 32, "type": "polyline", "coordinateIds": [46, 64]},
-			{"id": 33, "type": "cell", "intervals": [[2, 9, 1], [4, 9, 1]]},
+			{"id": 33, "type": "cell", "intervals": [[[2, 9, 1], [4, 9, 1]]]},
 			{"id": 34, "type": "node", "coordinateIds": [11]},
 			{"id": 35, "type": "node", "coordinateIds": [15]},
 			{"id": 36, "type": "node", "coordinateIds": [15]},
@@ -362,43 +357,36 @@
 			"name": "b1_terminal_voltage",
 			"type": "wire",
 			"field": "voltage",
-			"elementIds": [34]
+			"elementIds": [34],
+            "domain": { "type": "time" }
 		},
 		{
 			"name": "b1_terminal_current",
 			"type": "wire",
 			"field": "current",
-			"elementIds": [34]
+			"elementIds": [34],
+            "domain": { "type": "time" }
 		},
 		{
-			"name": "b1_junction_current",
+			"name": "junction_current",
 			"type": "wire",
 			"field": "current",
-			"elementIds": [35]
-		},
-		{
-			"name": "b2_junction_current",
-			"type": "wire",
-			"field": "current",
-			"elementIds": [36]
+			"elementIds": [35],
+            "domain": { "type": "time" }
 		},
 		{
 			"name": "b2_terminal_current",
 			"type": "wire",
 			"field": "current",
-			"elementIds": [37]
-		},
-		{
-			"name": "b3_junction_current",
-			"type": "wire",
-			"field": "current",
-			"elementIds": [38]
+			"elementIds": [37],
+            "domain": { "type": "time" }
 		},
 		{
 			"name": "b3_terminal_current",
 			"type": "wire",
 			"field": "current",
-			"elementIds": [39]
+			"elementIds": [39],
+            "domain": { "type": "time" }
 		}
 	],
 
@@ -452,8 +440,9 @@
 		},
 		{
 			"name": "line_1_1",
-			"materialId": 3,
+			"type": "cable",
 			"elementIds": [10],
+			"materialId": 3,
 			"initialTerminalId": 7,
 			"endTerminalId": 7,
 			"initialConnectorId": 205,

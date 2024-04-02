@@ -12,7 +12,7 @@ message(STATUS ${CMAKE_Fortran_COMPILER_ID})
 option(CompileWithHDF "Use HDF" OFF)
 option(CompileWithMPI "Use MPI" OFF)
 option(CompileExecutable "Compiles semba-fdtd executable" ON)
-option(CompileWithMTLN "Use MTLN modules" OFF)
+option(CompileWithMTLN "Use MTLN modules" ON)
 
 include("${CMAKE_CURRENT_SOURCE_DIR}/set_precompiled_libraries.cmake")
 

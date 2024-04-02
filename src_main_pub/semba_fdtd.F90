@@ -481,11 +481,11 @@ PROGRAM SEMBA_FDTD_launcher
       !REVIEW: sgg
 
 #ifdef CompilePrivateVersion           
-      CALL Destroy_Parser (parser)
-#endif      
+      CALL Destroy_Parser (parser)  
       DEALLOCATE (NFDE_FILE%lineas)
       DEALLOCATE (NFDE_FILE)
       nullify (NFDE_FILE)
+#endif      
       
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 #ifdef CompileWithMPI
@@ -1157,7 +1157,6 @@ subroutine cargaNFDE
 end subroutine cargaNFDE
 #endif
 
-#ifdef CompileWithJSON
    subroutine cargaFDTDJSON(filename, parsed)
       character(len=1024), intent(in) :: filename
       type(Parseador), pointer :: parsed
@@ -1171,7 +1170,6 @@ end subroutine cargaNFDE
       allocate(parsed)
       parsed = parser%readProblemDescription()
    end subroutine cargaFDTDJSON
-#endif
 
 !!!!!!!!!!!!!!!!!
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
