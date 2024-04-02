@@ -80,7 +80,8 @@ module smbjson
 
    type, private :: domain_t
       real :: tstart, tstop, tstep
-      real :: fstart, fstop, fstep
+      real :: fstart, fstop
+      integer :: fstep
       character(len=:), allocatable :: filename
       integer :: type1, type2
       logical :: isLogarithmicFrequencySpacing
@@ -558,7 +559,7 @@ contains
          type(json_value), pointer :: p
          type(Sonda), pointer :: ff
          character (len=:), allocatable :: outputName
-
+         logical :: transferFunctionFound
          type(domain_t) :: domain
 
          res%n_FarField = 1
@@ -577,7 +578,31 @@ contains
          ff%fstart = domain%fstart
          ff%fstop = domain%fstop
          ff%fstep = domain%fstep
-         ff%FileNormalize = domain%filename
+         
+         block
+            logical :: sourcesFound
+            type(json_value), pointer :: sources, src
+            character (len=:), allocatable :: fn
+            
+            fn = this%getStrAt(p, J_PR_DOMAIN//J_PR_DOMAIN_MAGNITUDE_FILE, found=transferFunctionFound)
+            if (.not. transferFunctionFound) then
+               call this%core%get(this%root, J_SOURCES, sources, sourcesFound)
+               if (sourcesFound) then 
+                  if (this%core%count(sources) == 1) then
+                     call this%core%get_child(sources, 1, src)
+                     call this%core%get(src, J_SRC_MAGNITUDE_FILE, fn, found=transferFunctionFound)
+                  end if
+               end if
+            end if
+
+            if (transferFunctionFound) then   
+               ff%FileNormalize = trim(adjustl(fn))
+            else
+               ff%FileNormalize = " "
+            end if
+            
+         end block
+            
          if (domain%isLogarithmicFrequencySpacing) then
             ff%outputrequest = ff%outputrequest // SMBJSON_LOG_SUFFIX
          end if
@@ -1126,6 +1151,7 @@ contains
       type(json_value), pointer :: place
       character(len=*), intent(in) :: path
 
+      integer :: numberOfFrequencies
       type(json_value), pointer :: domain
       character (len=:), allocatable :: fn, domainType, freqSpacing
       logical :: found, transferFunctionFound
@@ -1134,7 +1160,6 @@ contains
       call this%core%get(place, path, domain, found)
       if (.not. found) return
 
-      res%type1 = NP_T1_PLAIN
 
       call this%core%get(domain, J_PR_DOMAIN_MAGNITUDE_FILE, fn, transferFunctionFound)
       if (found) then
@@ -1143,6 +1168,8 @@ contains
          res%filename = " "
       endif
 
+      res%type1 = NP_T1_PLAIN
+      
       call this%core%get(domain, J_TYPE, domainType)
       res%type2 = getNPDomainType(domainType, transferFunctionFound)
 
@@ -1151,7 +1178,13 @@ contains
       call this%core%get(domain, J_PR_DOMAIN_TIME_STEP,  res%tstep,  default=0.0)
       call this%core%get(domain, J_PR_DOMAIN_FREQ_START, res%fstart, default=0.0)
       call this%core%get(domain, J_PR_DOMAIN_FREQ_STOP,  res%fstop,  default=0.0)
-      call this%core%get(domain, J_PR_DOMAIN_FREQ_STEP,  res%fstep,  default=0.0)
+      
+      call this%core%get(domain, J_PR_DOMAIN_FREQ_NUMBER,  numberOfFrequencies,  default=0)
+      if (numberOfFrequencies == 0) then
+         res%fstep = 0.0
+      else
+         res%fstep = res%fstart * numberOfFrequencies
+      endif
 
       call this%core%get(domain, J_PR_DOMAIN_FREQ_SPACING, &
          freqSpacing, default=J_PR_DOMAIN_FREQ_SPACING_LINEAR)
