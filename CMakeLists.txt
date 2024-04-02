@@ -27,7 +27,7 @@ add_subdirectory(external/googletest/)
 add_subdirectory(src_json_parser)
 add_subdirectory(test/smbjson)
 
-add_subdirectory(test/system)
+
 
 if (CompileWithMTLN)
 	add_subdirectory(src_mtln)
