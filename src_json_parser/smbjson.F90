@@ -75,6 +75,7 @@ module smbjson
 
    type, private :: generator_description_t
       character(:), allocatable :: srctype, srcfile
+      real :: multiplier
    end type
 
 
@@ -978,13 +979,13 @@ contains
             do i = 1, size(linels)
                res%twc(i)%srcfile = genDesc(i)%srcfile
                res%twc(i)%srctype = genDesc(i)%srctype
+               res%twc(i)%m = genDesc(i)%multiplier
                res%twc(i)%i = linels(i)%cell(1)
                res%twc(i)%j = linels(i)%cell(2)
                res%twc(i)%k = linels(i)%cell(3)
                res%twc(i)%d = abs(linels(i)%orientation)
                res%twc(i)%nd = linels(i)%tag
                res%twc(i)%tag = trim(adjustl(tagLabel))
-               res%twc(i)%m = 1.0
             end do
          end block
 
@@ -1003,6 +1004,7 @@ contains
          do i = 1, size(linels)
             res(i)%srcfile = 'None'
             res(i)%srctype = 'None'
+            res(i)%multiplier = 0.0
          end do
 
          call this%core%get(this%root, J_SOURCES, sources, found)
@@ -1033,9 +1035,11 @@ contains
                case (J_FIELD_VOLTAGE)
                   res(position)%srctype = "VOLT"
                   res(position)%srcfile = this%getStrAt(genSrcs(i)%p, J_SRC_MAGNITUDE_FILE)
+                  res(position)%multiplier = 1.0
                case (J_FIELD_CURRENT)
                   res(position)%srctype = "CURR"
                   res(position)%srcfile = this%getStrAt(genSrcs(i)%p, J_SRC_MAGNITUDE_FILE)
+                  res(position)%multiplier = 1.0
                case default 
                   write(error_unit, *) 'Field block of source of type generator must be current or voltage'
                end select
