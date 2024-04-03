@@ -17,7 +17,6 @@ add_library (smbjson_test_fortran
     
     "test_read_planewave.F90"
     "test_read_holland1981.F90"
-    "test_read_towelHanger.F90"
     "test_read_currentinjection.F90"
     "test_read_shieldedPair.F90"
     "test_read_mtln.F90"

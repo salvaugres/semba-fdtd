@@ -4,8 +4,8 @@ import os
 import glob, re
 
 class FDTD():
-    def __init__(self, input_filename, path_to_exe):
-        self.file_name = input_filename
+    def __init__(self, file_name, path_to_exe):
+        self.file_name = file_name
         self.path_to_exe = path_to_exe
 
         self.folder = os.path.dirname(self.file_name)
@@ -13,8 +13,9 @@ class FDTD():
         self.hasRun = False
     
     def run(self):
+        self.wd = os.getcwd()+'/'
         os.chdir(self.folder)
-        self.output = subprocess.run([self.path_to_exe, "-i",self.file_name])
+        self.output = subprocess.run([self.wd+self.path_to_exe, "-i",self.file_name])
         self.hasRun = True
     
     def readJsonDict(self):
@@ -37,4 +38,4 @@ class FDTD():
             else:
                 return False
         
-
+        

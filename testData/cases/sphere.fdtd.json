@@ -40913,7 +40913,7 @@
     "sources": [
         {
             "type": "planewave",
-            "magnitudeFile": "gauss.exc",
+            "magnitudeFile": "predefinedExcitation.exc",
             "elementIds": [
                 1
             ],
@@ -40929,7 +40929,7 @@
     ],
     "probes": [
         {
-            "name": "FarField",
+            "name": "Far field",
             "type": "farField",
             "elementIds": [
                 2
@@ -40948,7 +40948,7 @@
                 "type": "frequency",
                 "initialFrequency": 1e6,
                 "finalFrequency": 1e9,
-                "numberOfFrequencies": 5,
+                "numberOfFrequencies": 30,
                 "frequencySpacing": "logarithmic"
             }
         }

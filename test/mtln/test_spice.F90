@@ -63,7 +63,7 @@ integer function test_spice_dc() bind(C) result(error_cnt)
     names(4) = string_t("v-sweep", 7)
 
     error_cnt = 0
-    netlist = PATH_TO_TEST_DATA//'netlists/netlist_dc.cir'
+    netlist = PATH_TO_TEST_DATA//'mtln/netlist_dc.cir'
     call circuit%init(names = names, netlist = netlist)
     call circuit%step()
 
@@ -87,7 +87,7 @@ integer function test_spice_tran() bind(C) result(error_cnt)
     implicit none
 
     type(circuit_t) :: circuit
-    character(len=*, kind=c_char), parameter :: netlist= PATH_TO_TEST_DATA//c_char_'netlists/netlist_tran.cir'
+    character(len=*, kind=c_char), parameter :: netlist= PATH_TO_TEST_DATA//c_char_'mtln/netlist_tran.cir'
     real :: finalTime
     real :: result(3)
     integer :: i
@@ -134,7 +134,7 @@ integer function test_spice_tran_2() bind(C) result(error_cnt)
     implicit none
 
     type(circuit_t) :: circuit
-    character(len=*, kind=c_char), parameter :: netlist= PATH_TO_TEST_DATA//c_char_'netlists/netlist_tran_2.cir'
+    character(len=*, kind=c_char), parameter :: netlist= PATH_TO_TEST_DATA//c_char_'mtln/netlist_tran_2.cir'
     real :: finalTime
     integer :: i
     real :: result(3)
@@ -192,7 +192,7 @@ integer function test_spice_current_source() bind(C) result(error_cnt)
     finalTime = 200e-6
 
     error_cnt = 0
-    netlist = PATH_TO_TEST_DATA//'netlists/netlist_current_source.cir'
+    netlist = PATH_TO_TEST_DATA//'mtln/netlist_current_source.cir'
 
     resistance = 10
     current = 0.1
@@ -234,7 +234,7 @@ integer function test_spice_multiple() bind(C) result(error_cnt)
 
     error_cnt = 0
 
-    netlist = PATH_TO_TEST_DATA//'netlists/netlist_multiple.cir'
+    netlist = PATH_TO_TEST_DATA//'mtln/netlist_multiple.cir'
     call circuit%init(names = names, netlist = netlist)
     call circuit%setStopTimes(finalTime, dt)
     do while (circuit%time < finalTime)

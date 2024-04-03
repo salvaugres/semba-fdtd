@@ -73,15 +73,9 @@ module smbjson
       real :: r, l, c
    end type
 
-   type, private :: generator_description_t
-      character(:), allocatable :: srctype, srcfile
-   end type
-
-
    type, private :: domain_t
       real :: tstart, tstop, tstep
-      real :: fstart, fstop
-      integer :: fstep
+      real :: fstart, fstop, fstep
       character(len=:), allocatable :: filename
       integer :: type1, type2
       logical :: isLogarithmicFrequencySpacing
@@ -146,7 +140,6 @@ contains
       res%tWires = this%readThinWires()
       res%sWires = this%readSlantedWires()
       res%tSlots = this%readThinSlots()
-      
 
       ! mtln
       res%mtln = this%readMTLN(res%despl)
@@ -559,7 +552,7 @@ contains
          type(json_value), pointer :: p
          type(Sonda), pointer :: ff
          character (len=:), allocatable :: outputName
-         logical :: transferFunctionFound
+
          type(domain_t) :: domain
 
          res%n_FarField = 1
@@ -578,31 +571,7 @@ contains
          ff%fstart = domain%fstart
          ff%fstop = domain%fstop
          ff%fstep = domain%fstep
-         
-         block
-            logical :: sourcesFound
-            type(json_value), pointer :: sources, src
-            character (len=:), allocatable :: fn
-            
-            fn = this%getStrAt(p, J_PR_DOMAIN//J_PR_DOMAIN_MAGNITUDE_FILE, found=transferFunctionFound)
-            if (.not. transferFunctionFound) then
-               call this%core%get(this%root, J_SOURCES, sources, sourcesFound)
-               if (sourcesFound) then 
-                  if (this%core%count(sources) == 1) then
-                     call this%core%get_child(sources, 1, src)
-                     call this%core%get(src, J_SRC_MAGNITUDE_FILE, fn, found=transferFunctionFound)
-                  end if
-               end if
-            end if
-
-            if (transferFunctionFound) then   
-               ff%FileNormalize = trim(adjustl(fn))
-            else
-               ff%FileNormalize = " "
-            end if
-            
-         end block
-            
+         ff%FileNormalize = domain%filename
          if (domain%isLogarithmicFrequencySpacing) then
             ff%outputrequest = ff%outputrequest // SMBJSON_LOG_SUFFIX
          end if
@@ -905,8 +874,6 @@ contains
          end do
       end if
 
-
-
    contains
       function readThinWire(cable) result(res)
          type(ThinWire) :: res
@@ -915,12 +882,10 @@ contains
          character (len=:), allocatable :: entry
          type(json_value), pointer :: je, je2
          integer :: i
-         logical :: found
 
          block
             type(json_value_ptr) :: m
-            m = this%matTable%getId(this%getIntAt(cable, J_MATERIAL_ID, found))
-            if (.not. found) write(error_unit, *) "ERROR: material id not found in mat. association."
+            m = this%matTable%getId(this%getIntAt(cable, J_MATERIAL_ID))
             call this%core%get(m%p, J_MAT_WIRE_RADIUS,     res%rad, default = 0.0)
             call this%core%get(m%p, J_MAT_WIRE_RESISTANCE, res%res, default = 0.0)
             call this%core%get(m%p, J_MAT_WIRE_INDUCTANCE, res%ind, default = 0.0)
@@ -954,14 +919,13 @@ contains
 
          block
             type(linel_t), dimension(:), allocatable :: linels
+            integer :: i
+            integer :: coordId
             integer, dimension(:), allocatable :: elementIds
             type(polyline_t) :: polyline
             character (len=MAX_LINE) :: tagLabel
-            type(generator_description_t), dimension(:), allocatable :: genDesc
-            call this%core%get(cable, J_ELEMENTIDS, elementIds, found)
-            if (.not. found) then
-               write(error_unit, *) "elementIds not found for material association."
-            end if
+
+            call this%core%get(cable, J_ELEMENTIDS, elementIds)
             if (size(elementIds) /= 1) then
                write(error_unit, *) "Thin wires must be defined by a single polyline element."
             end if
@@ -970,14 +934,12 @@ contains
 
             write(tagLabel, '(i10)') elementIds(1)
 
-            genDesc = readGeneratorOnThinWire(linels, elementIds)
-
             res%n_twc = size(linels)
             res%n_twc_max = size(linels)
             allocate(res%twc(size(linels)))
             do i = 1, size(linels)
-               res%twc(i)%srcfile = genDesc(i)%srcfile
-               res%twc(i)%srctype = genDesc(i)%srctype
+               res%twc(i)%srcfile = 'None'
+               res%twc(i)%srctype = 'None'
                res%twc(i)%i = linels(i)%cell(1)
                res%twc(i)%j = linels(i)%cell(2)
                res%twc(i)%k = linels(i)%cell(3)
@@ -986,77 +948,6 @@ contains
                res%twc(i)%tag = trim(adjustl(tagLabel))
             end do
          end block
-
-      end function
-
-      function readGeneratorOnThinWire(linels, plineElemIds) result(res)
-         type(linel_t), dimension(:), intent(in) :: linels
-         integer, dimension(:), intent(in) :: plineElemIds
-         type(json_value), pointer :: sources
-         type(json_value_ptr), dimension(:), allocatable :: genSrcs
-         logical :: found
-         type(generator_description_t), dimension(:), allocatable :: res
-         integer :: i
-
-         allocate(res(size(linels)))
-         do i = 1, size(linels)
-            res(i)%srcfile = 'None'
-            res(i)%srctype = 'None'
-         end do
-
-         call this%core%get(this%root, J_SOURCES, sources, found)
-         if (.not. found) then
-            return
-         end if
-  
-         genSrcs = this%jsonValueFilterByKeyValues(sources, J_TYPE, [J_SRC_TYPE_GEN])
-         if (size(genSrcs) == 0) then
-            return
-         end if
-
-         block
-            integer, dimension(:), allocatable :: sourceElemIds
-            integer :: position
-            do i = 1, size(genSrcs)
-               call this%core%get(genSrcs(i)%p, J_ELEMENTIDS, sourceElemIds)
-               if (.not. any(plineElemIds == sourceElemIds(1))) continue ! generator is not in this polyline
-
-               position = findSourcePositionInLinels(sourceElemIds, linels)
-      
-               if (.not. this%existsAt(genSrcs(i)%p, J_SRC_MAGNITUDE_FILE)) then 
-                  write(error_unit, *) 'magnitudeFile of source missing'
-                  return
-               end if
-
-               select case(this%getStrAt(genSrcs(i)%p, J_FIELD))
-               case (J_FIELD_VOLTAGE)
-                  res(position)%srctype = "VOLT"
-                  res(position)%srcfile = this%getStrAt(genSrcs(i)%p, J_SRC_MAGNITUDE_FILE)
-               case (J_FIELD_CURRENT)
-                  res(position)%srctype = "CURR"
-                  res(position)%srcfile = this%getStrAt(genSrcs(i)%p, J_SRC_MAGNITUDE_FILE)
-               case default 
-                  write(error_unit, *) 'Field block of source of type generator must be current or voltage'
-               end select
-
-            end do
-         end block
-
-      end function
-
-      function findSourcePositionInLinels(srcElemIds, linels) result(res)
-         integer, dimension(:), intent(in) :: srcElemIds
-         type(linel_t), dimension(:), intent(in) :: linels
-         type(pixel_t), dimension(:), allocatable :: pixels
-         integer :: res
-         integer :: i
-         pixels = this%mesh%convertNodeToPixels(this%mesh%getNode(srcElemIds(1)))
-         do i = 1, size(linels)
-            if (all(linels(i)%cell ==pixels(1)%cell)) then 
-               res = i 
-               return
-            end if
-         end do
 
       end function
 
@@ -1154,7 +1045,6 @@ contains
       type(json_value), pointer :: place
       character(len=*), intent(in) :: path
 
-      integer :: numberOfFrequencies
       type(json_value), pointer :: domain
       character (len=:), allocatable :: fn, domainType, freqSpacing
       logical :: found, transferFunctionFound
@@ -1163,6 +1053,7 @@ contains
       call this%core%get(place, path, domain, found)
       if (.not. found) return
 
+      res%type1 = NP_T1_PLAIN
 
       call this%core%get(domain, J_PR_DOMAIN_MAGNITUDE_FILE, fn, transferFunctionFound)
       if (found) then
@@ -1171,8 +1062,6 @@ contains
          res%filename = " "
       endif
 
-      res%type1 = NP_T1_PLAIN
-      
       call this%core%get(domain, J_TYPE, domainType)
       res%type2 = getNPDomainType(domainType, transferFunctionFound)
 
@@ -1181,13 +1070,7 @@ contains
       call this%core%get(domain, J_PR_DOMAIN_TIME_STEP,  res%tstep,  default=0.0)
       call this%core%get(domain, J_PR_DOMAIN_FREQ_START, res%fstart, default=0.0)
       call this%core%get(domain, J_PR_DOMAIN_FREQ_STOP,  res%fstop,  default=0.0)
-      
-      call this%core%get(domain, J_PR_DOMAIN_FREQ_NUMBER,  numberOfFrequencies,  default=0)
-      if (numberOfFrequencies == 0) then
-         res%fstep = 0.0
-      else
-         res%fstep = res%fstart * numberOfFrequencies
-      endif
+      call this%core%get(domain, J_PR_DOMAIN_FREQ_STEP,  res%fstep,  default=0.0)
 
       call this%core%get(domain, J_PR_DOMAIN_FREQ_SPACING, &
          freqSpacing, default=J_PR_DOMAIN_FREQ_SPACING_LINEAR)

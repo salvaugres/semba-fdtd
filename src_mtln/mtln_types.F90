@@ -22,7 +22,7 @@ module mtln_types_mod
     integer, parameter :: PROBE_TYPE_CURRENT   =  2
  
     type :: segment_relative_position_t
-      integer, dimension(3) ::position  
+      integer, dimension(3) :: position  
       !  integer :: i, j, k
     contains
        private

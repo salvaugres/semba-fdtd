@@ -3,14 +3,12 @@ from src_pyWrapper.pyWrapper import *
 import shutil, glob, re
 import json
 
-# Use of absolute path to avoid conflicts when changing directory.
-SEMBA_EXE = os.getcwd() + '/build/bin/semba-fdtd'
-TEST_DATA_FOLDER = os.getcwd() + '/testData/' 
-
+TEST_DATA_FOLDER = 'testData/'
 CASE_FOLDER = TEST_DATA_FOLDER + 'cases/'
-EXCITATIONS_FOLDER = TEST_DATA_FOLDER + 'excitations/'
+EXCTITATIONS_FOLDER = TEST_DATA_FOLDER + 'excitations/'
 OUTPUT_FOLDER = TEST_DATA_FOLDER + 'outputs/'
 
+SEMBA_EXE = '/build/bin/semba-fdtd'
 
 def getCase(case):
     return json.load(open(CASE_FOLDER + case + '.fdtd.json'))
@@ -43,4 +41,4 @@ def compareFiles(expected_name, result_name):
     f_result = readWithoutHeader(result_name)
     return f_expected == f_result
     
-
+    

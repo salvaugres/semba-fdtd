@@ -6,13 +6,11 @@ project(semba-fdtd Fortran)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-# set(CMAKE_Fortran_MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/mod)
 
 message(STATUS ${CMAKE_Fortran_COMPILER_ID})
 
 option(CompileWithHDF "Use HDF" OFF)
 option(CompileWithMPI "Use MPI" OFF)
-option(CompileWithJSON "Compile JSON format parser" ON)
 option(CompileExecutable "Compiles semba-fdtd executable" ON)
 option(CompileWithMTLN "Use MTLN modules" ON)
 
@@ -26,21 +24,15 @@ add_library(semba-types
 add_subdirectory(external/fhash/)
 add_subdirectory(external/googletest/)
 
-if (CompileWithJSON)
-	message(STATUS "Compiling JSON format parser")
-	add_definitions(-DCompileWithJSON)
-	add_subdirectory(external/json-fortran)
-	add_subdirectory(src_json_parser)
+add_subdirectory(src_json_parser)
 add_subdirectory(src_mtln)
 
-add_subdirectory(test)
+
 
 
 if (CompileExecutable)
-	if (NOT CompilePrivateVersion AND NOT CompileWithJSON)
-		message(FATAL_ERROR "Executable must be compiled with .fdtd.json parser or alternative.")
-	endif()
 	add_executable(semba-fdtd 
+		"src_main_pub/nfde_rotate.F90"
 		"src_main_pub/errorreport.F90"
 		"src_main_pub/anisotropic.F90"
 		"src_main_pub/borderscpml.F90"
