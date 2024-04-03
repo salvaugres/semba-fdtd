@@ -3,8 +3,8 @@
     "__comments": "",
 
     "general": {
-        "timeStep": 1e-12,
-        "numberOfSteps": 1000
+        "timeStep": 3e-11,
+        "numberOfSteps": 350
     },
   
     "boundary": {
@@ -20,7 +20,7 @@
         {
             "id": 1,
             "type": "wire",
-            "radius": 1.3e-7,
+            "radius": 0.1e-3,
             "resistancePerMeter": 0.0,
             "inductancePerMeter": 0.0
         },
@@ -38,20 +38,22 @@
 
     "mesh": {
         "grid": {
-            "numberOfCells": [200, 200, 164],
-            "steps": { "x": [0.00025], "y": [0.00025], "z": [0.00025] }
+            "numberOfCells": [60, 60, 60],
+            "steps": { "x": [0.01], "y": [0.01], "z": [0.01] }
         },
         "coordinates": [
-            {"id": 1, "relativePosition": [90,  100, 80]},
-            {"id": 2, "relativePosition": [90,  100, 85]},
-            {"id": 3, "relativePosition": [100, 100, 85]},
-            {"id": 4, "relativePosition": [100, 100, 80]}
+            {"id": 1, "relativePosition": [27, 25, 30]},
+            {"id": 2, "relativePosition": [27, 25, 32]},
+            {"id": 3, "relativePosition": [43, 25, 32]},
+            {"id": 4, "relativePosition": [43, 25, 30]}
         ],
         "elements": [
             {"id": 1, "type": "node", "coordinateIds": [1]},
             {"id": 2, "type": "polyline", "coordinateIds": [1, 2, 3, 4] },
-            {"id": 3, "type": "cell", "intervals": [[[80, 80, 80], [120, 120, 80]]] },
-            {"id": 4, "type": "node", "coordinateIds": [4]}
+            {"id": 3, "type": "cell", "intervals": [[[25, 20, 30], [45, 30, 30]]] },
+            {"id": 4, "type": "node", "coordinateIds": [4]},
+            {"id": 5, "type": "node", "coordinateIds": [2]},
+            {"id": 6, "type": "node", "coordinateIds": [3]}
         ]
     },
 
@@ -69,7 +71,7 @@
         {
             "name": "terminal_generator",
             "type": "generator",
-            "magnitudeFile": "gauss.exc",
+            "magnitudeFile": "ramp.exc",
             "elementIds": [1],
             "field": "voltage"
         }
@@ -77,11 +79,13 @@
 
     "probes": [
         {
-            "name": "wire_end",
+            "name": "wire_end_i",
             "type": "wire",
             "field": "current",
             "elementIds": [4],
             "domain": { "type": "time" }
         }
+
+
     ]
 }

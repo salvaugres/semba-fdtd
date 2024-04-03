@@ -984,6 +984,7 @@ contains
                res%twc(i)%d = abs(linels(i)%orientation)
                res%twc(i)%nd = linels(i)%tag
                res%twc(i)%tag = trim(adjustl(tagLabel))
+               res%twc(i)%m = 1.0
             end do
          end block
 
