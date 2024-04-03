@@ -1318,15 +1318,15 @@ CONTAINS
       CALL get_secnds (l%time_out2)
       call print_credits(l)
 #ifdef CompileWithReal8
-      WRITE (dubuf,*) 'Compiled with Double l%precision (real*8)'
+      WRITE (dubuf,*) 'Compiled with Double precision (real*8)'
       CALL print11 (l%layoutnumber, dubuf)
 #endif      
 #ifdef CompileWithReal4
-      WRITE (dubuf,*) 'Compiled with Single l%precision (real*4)'
+      WRITE (dubuf,*) 'Compiled with Single precision (real*4)'
       CALL print11 (l%layoutnumber, dubuf)
 #endif      
 #ifdef CompileWithReal16
-      WRITE (dubuf,*) 'Compiled with Quadruple l%precision (real*16)'
+      WRITE (dubuf,*) 'Compiled with Quadruple precision (real*16)'
       CALL print11 (l%layoutnumber, dubuf)
 #endif      
       WRITE (dubuf,*) SEPARADOR // SEPARADOR // SEPARADOR
@@ -1459,7 +1459,7 @@ CONTAINS
       WRITE (dubuf,*) 'Launched on              ', l%time_out2%fecha(7:8), '/', l%time_out2%fecha(5:6), '/', &
       &                l%time_out2%fecha(1:4), ' ', l%time_out2%hora(1:2), ':', l%time_out2%hora(3:4)
       CALL print11 (l%layoutnumber, dubuf)
-      print *, 'Highest integer ',huge(1_4)
+      if (l%layoutnumber==0) print *, 'Highest integer ',huge(1_4)
       return
    end subroutine print_credits
 
@@ -2200,8 +2200,9 @@ CONTAINS
 #ifdef CompileWithConformal
       l%run_with_dmma = .false.
 ! todo esto para el abrezanjas. se precisa tambien el l%input_conformal_flag  
-!!!!quitado sgg ojo 290521 esto no se ha arreglado aim... quito el abrezanjas !290521 bug
-      l%run_with_abrezanjas = .true. !OJO 0323 A VECES DA ERROR. PONER A FALSE SI SUCEDE
+!!!!quitado sgg ojo 290521 esto no se ha arreglado aim... quito el abrezanjas !290521 bug     
+  !!!    l%run_with_abrezanjas = .true. !OJO 0323 A VECES DA ERROR. PONER A FALSE SI SUCEDE
+      l%run_with_abrezanjas = .false. !OJO 0323 A VECES DA ERROR. PONER A FALSE SI SUCEDE
       !!!!l%run_with_abrezanjas = .false.
       if (.NOT.l%input_conformal_flag) then
             l%conformal_file_input_name = char(0)
