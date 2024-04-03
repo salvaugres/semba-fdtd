@@ -106,7 +106,7 @@ contains
       expected%tWires%tw(1)%n_twc_max=20
       allocate(expected%tWires%tw(1)%twc(20))
       expected%tWires%tw(1)%twc(1)%srcfile = 'gauss.exc'
-      expected%tWires%tw(1)%twc(1)%srctype = 'voltage'
+      expected%tWires%tw(1)%twc(1)%srctype = 'VOLT'
       expected%tWires%tw(1)%twc(2:5)%srcfile = 'None'
       expected%tWires%tw(1)%twc(2:5)%srctype = 'None'
       expected%tWires%tw(1)%twc(1:5)%i = 90
