@@ -107,8 +107,10 @@ contains
       allocate(expected%tWires%tw(1)%twc(20))
       expected%tWires%tw(1)%twc(1)%srcfile = 'ramp.exc'
       expected%tWires%tw(1)%twc(1)%srctype = 'VOLT'
+      expected%tWires%tw(1)%twc(1)%m = 1.0
       expected%tWires%tw(1)%twc(2)%srcfile = 'None'
       expected%tWires%tw(1)%twc(2)%srctype = 'None'
+      expected%tWires%tw(1)%twc(2)%m = 0.0
       expected%tWires%tw(1)%twc(1:2)%i = 27
       expected%tWires%tw(1)%twc(1:2)%j = 25
       expected%tWires%tw(1)%twc(1:2)%k = [(i, i = 30, 31)]
@@ -117,6 +119,7 @@ contains
 
       expected%tWires%tw(1)%twc(3:18)%srcfile = 'None'
       expected%tWires%tw(1)%twc(3:18)%srctype = 'None'
+      expected%tWires%tw(1)%twc(3:18)%m = 0.0
       expected%tWires%tw(1)%twc(3:18)%i = [(i, i=27,42)]
       expected%tWires%tw(1)%twc(3:18)%j = 25
       expected%tWires%tw(1)%twc(3:18)%k = 32
@@ -125,6 +128,8 @@ contains
 
       expected%tWires%tw(1)%twc(19:20)%srcfile = 'None'
       expected%tWires%tw(1)%twc(19:20)%srctype = 'None'
+      expected%tWires%tw(1)%twc(19:20)%m = 0.0
+
       expected%tWires%tw(1)%twc(19:20)%i = 43
       expected%tWires%tw(1)%twc(19:20)%j = 25
       expected%tWires%tw(1)%twc(19:20)%k = [(i, i=31, 30, -1)]

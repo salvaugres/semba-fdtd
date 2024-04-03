@@ -79,7 +79,7 @@
 
     "probes": [
         {
-            "name": "wire_end_i",
+            "name": "wire_end",
             "type": "wire",
             "field": "current",
             "elementIds": [4],
