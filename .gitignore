@@ -10,7 +10,6 @@
 # Precompiled Headers
 *.gch
 *.pch
-*.i90
 
 # Compiled Dynamic libraries
 *.so
@@ -35,8 +34,9 @@
 .bak
 .vs
 build/
-build-*/
-
+build-rls/
+build-dbg/
+build-nv/
 CMakeSettings.json
 /CppProperties.json
 

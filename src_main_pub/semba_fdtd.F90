@@ -42,12 +42,18 @@ PROGRAM SEMBA_FDTD_launcher
    USE Resuming
    !nfde parser stuff
    USE NFDETypes
+   use nfde_rotate_m           
+
+
 #ifdef CompilePrivateVersion      
    USE ParseadorClass
 #endif
-   USE smbjson, only: fdtdjson_parser_t => parser_t 
+
+   USE smbjson, only: fdtdjson_parser_t => parser_t
    USE Preprocess_m
    USE storeData
+
+   
    
 #ifdef CompileWithXDMF
    USE xdmf_h5
@@ -140,6 +146,10 @@ PROGRAM SEMBA_FDTD_launcher
    integer (kind=4) :: my_iostat
 !!!!!!!!!!!!!!!!comienzo instrucciones
                                 
+   INTEGER (KIND=4) ::  verdadero_mpidir
+   logical :: newrotate !300124 tiramos con el rotador antiguo
+
+   newrotate=.false.       !!ojo tocar luego                     
 !!200918 !!!si se lanza con -pscal se overridea esto
    Eps0= 8.8541878176203898505365630317107502606083701665994498081024171524053950954599821142852891607182008932e-12
    Mu0 = 1.2566370614359172953850573533118011536788677597500423283899778369231265625144835994512139301368468271e-6
@@ -348,6 +358,7 @@ PROGRAM SEMBA_FDTD_launcher
 #else
    call cargaFDTDJSON(l%fichin, parser)
 #endif   
+
 !!!!!!!!!!!!!!!!!!!!!!!
    sgg%extraswitches=parser%switches
 !!!da preferencia a los switches por linea de comando
@@ -473,10 +484,11 @@ PROGRAM SEMBA_FDTD_launcher
 
 #ifdef CompilePrivateVersion           
       CALL Destroy_Parser (parser)
-#endif      
+
       DEALLOCATE (NFDE_FILE%lineas)
       DEALLOCATE (NFDE_FILE)
       nullify (NFDE_FILE)
+#endif      
       
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 #ifdef CompileWithMPI
@@ -1124,7 +1136,21 @@ subroutine cargaNFDE
    WRITE (dubuf,*) 'INIT interpreting geometrical data from ', trim (adjustl(l%fileFDE))
    CALL print11 (l%layoutnumber, dubuf)
 !!!!!!!!!!
+   if(newrotate) then
+       verdadero_mpidir=NFDE_FILE%mpidir
+       NFDE_FILE%mpidir=3     !no lo rota el parseador antiguo
+   endif
    parser => newparser (NFDE_FILE)
+#ifdef CompileWithMPI            
+   CALL MPI_Barrier (SUBCOMM_MPI, l%ierr)
+#endif
+   if(newrotate) then      
+       NFDE_FILE%mpidir=verdadero_mpidir   !restorealo
+       call nfde_rotate (parser,NFDE_FILE%mpidir)   !lo rota el parseador nuevo  
+#ifdef CompileWithMPI            
+       CALL MPI_Barrier (SUBCOMM_MPI, l%ierr)
+#endif
+   endif
    l%thereare_stoch=NFDE_FILE%thereare_stoch
    l%mpidir=NFDE_FILE%mpidir !bug 100419
 !!!!!!!!!!!
@@ -1133,6 +1159,7 @@ subroutine cargaNFDE
 
 end subroutine cargaNFDE
 #endif
+
 
    subroutine cargaFDTDJSON(filename, parsed)
       character(len=1024), intent(in) :: filename
@@ -1147,6 +1174,7 @@ end subroutine cargaNFDE
       allocate(parsed)
       parsed = parser%readProblemDescription()
    end subroutine cargaFDTDJSON
+
 
 !!!!!!!!!!!!!!!!!
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -1303,6 +1331,8 @@ subroutine NFDE2sgg
             call HalvesStochasticMPI(l%layoutnumber,l%size,l%simu_devia)
          endif
 #endif
+                   
+         CALL MPI_Barrier (SUBCOMM_MPI, l%ierr)   
 !!!ahora divide el espacio computacional
          CALL MPIdivide (sgg, fullsize, SINPML_fullsize, l%layoutnumber, l%size, l%forcing, l%forced, l%slicesoriginales, l%resume,l%fatalerror)
          !
@@ -1334,9 +1364,12 @@ subroutine NFDE2sgg
          !!fin 16/07/15
          WRITE (dubuf,*) 'INIT NFDE --------> GEOM'
          CALL print11 (l%layoutnumber, dubuf)
+
          CALL read_geomData (sgg,sggMtag,sggMiNo,sggMiEx,sggMiEy,sggMiEz,sggMiHx,sggMiHy,sggMiHz, l%fichin, l%layoutnumber, l%size, SINPML_fullsize, fullsize, parser, &
          l%groundwires,l%attfactorc,l%mibc,l%sgbc,l%sgbcDispersive,l%MEDIOEXTRA,maxSourceValue,l%skindepthpre,l%createmapvtk,l%input_conformal_flag,l%CLIPREGION,l%boundwireradius,l%maxwireradius,l%updateshared,l%run_with_dmma, &
          eps0,mu0,l%simu_devia,l%hay_slanted_wires,l%verbose,l%ignoresamplingerrors,tagtype,l%wiresflavor)
+
+
 #ifdef CompileWithMPI
          !wait until everything comes out
          CALL MPI_Barrier (SUBCOMM_MPI, l%ierr)

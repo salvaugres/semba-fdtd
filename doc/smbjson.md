@@ -212,7 +212,7 @@ An interval allows specifying regions within the grid which can be a point, an o
 + The third is formed by two oriented lines towards $+\hat{x}$ and $+\hat{y}$, respectively.
 + Finally, the fourth `cell` is formed by a single line, oriented towards $-\hat{y}$. Note that the integer in the ending segment is $-1$ as it falls out from the lower bound of the grid.
 
-![Intervals example](fig/grid-intervals.png)
+![Intervals example](doc/fig/grid-intervals.png)
 
 ```json
 "mesh": {
@@ -571,6 +571,7 @@ The direction of  the radiated field $\hat{r}(\theta, \phi)$ is defined with `<t
 The `domain` of a `farField` probe can only be of type `frequency`.
 If not `magnitudeFile` is specified and only one `source` is defined, the `magnitudeFile` of that source will be used to calculate as normalizing function.
 
++ `<theta>` and `<phi>`, which must contain `<initial>`, `<final>`, and `<step>`, expressed in degrees.
 
 ```json
 {

@@ -43,4 +43,4 @@ def compareFiles(expected_name, result_name):
     f_result = readWithoutHeader(result_name)
     return f_expected == f_result
     
-    
+

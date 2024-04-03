@@ -37,4 +37,4 @@ class FDTD():
             else:
                 return False
         
-        
+

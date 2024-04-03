@@ -23,6 +23,7 @@ module mtln_types_mod
  
     type :: segment_relative_position_t
       integer, dimension(3) ::position  
+      !  integer :: i, j, k
     contains
        private
        procedure :: segment_relative_positions_eq
