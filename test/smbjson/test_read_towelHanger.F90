@@ -24,31 +24,31 @@ contains
       call initializeProblemDescription(expected)
 
       ! Expected general info.
-      expected%general%dt = 1e-12
-      expected%general%nmax = 1000
+      expected%general%dt = 3e-11
+      expected%general%nmax = 350
 
       ! Excected media matrix.
-      expected%matriz%totalX = 200
-      expected%matriz%totalY = 200
-      expected%matriz%totalZ = 164
+      expected%matriz%totalX = 60
+      expected%matriz%totalY = 60
+      expected%matriz%totalZ = 60
 
       ! Expected grid.
-      expected%despl%nX = 200
-      expected%despl%nY = 200
-      expected%despl%nZ = 164
+      expected%despl%nX = 60
+      expected%despl%nY = 60
+      expected%despl%nZ = 60
 
-      allocate(expected%despl%desX(200))
-      allocate(expected%despl%desY(200))
-      allocate(expected%despl%desZ(164))
-      expected%despl%desX = 0.00025
-      expected%despl%desY = 0.00025
-      expected%despl%desZ = 0.00025
+      allocate(expected%despl%desX(60))
+      allocate(expected%despl%desY(60))
+      allocate(expected%despl%desZ(60))
+      expected%despl%desX = 0.01
+      expected%despl%desY = 0.01
+      expected%despl%desZ = 0.01
       expected%despl%mx1 = 0
-      expected%despl%mx2 = 200
+      expected%despl%mx2 = 60
       expected%despl%my1 = 0
-      expected%despl%my2 = 200
+      expected%despl%my2 = 60
       expected%despl%mz1 = 0
-      expected%despl%mz2 = 164
+      expected%despl%mz2 = 60
 
       ! Expected boundaries.
       expected%front%tipoFrontera(:) = F_PML
@@ -98,42 +98,47 @@ contains
       
       ! Expected thin wires
       allocate(expected%tWires%tw(1))
-      expected%tWires%tw(1)%rad=1.3e-7
+      expected%tWires%tw(1)%rad=0.1e-3
       expected%tWires%tw(1)%dispfile = trim(adjustl(" "))
       expected%tWires%tw(1)%dispfile_LeftEnd = trim(adjustl(" "))
       expected%tWires%tw(1)%dispfile_RightEnd = trim(adjustl(" "))
       expected%tWires%tw(1)%n_twc=20
       expected%tWires%tw(1)%n_twc_max=20
       allocate(expected%tWires%tw(1)%twc(20))
-      expected%tWires%tw(1)%twc(1)%srcfile = 'gauss.exc'
+      expected%tWires%tw(1)%twc(1)%srcfile = 'ramp.exc'
       expected%tWires%tw(1)%twc(1)%srctype = 'VOLT'
-      expected%tWires%tw(1)%twc(2:5)%srcfile = 'None'
-      expected%tWires%tw(1)%twc(2:5)%srctype = 'None'
-      expected%tWires%tw(1)%twc(1:5)%i = 90
-      expected%tWires%tw(1)%twc(1:5)%j = 100
-      expected%tWires%tw(1)%twc(1:5)%k = [(i, i=80, 84)]
-      expected%tWires%tw(1)%twc(1:5)%d = DIR_Z
-      expected%tWires%tw(1)%twc(1:5)%nd = -1
+      expected%tWires%tw(1)%twc(1)%m = 1.0
+      expected%tWires%tw(1)%twc(2)%srcfile = 'None'
+      expected%tWires%tw(1)%twc(2)%srctype = 'None'
+      expected%tWires%tw(1)%twc(2)%m = 0.0
+      expected%tWires%tw(1)%twc(1:2)%i = 27
+      expected%tWires%tw(1)%twc(1:2)%j = 25
+      expected%tWires%tw(1)%twc(1:2)%k = [(i, i = 30, 31)]
+      expected%tWires%tw(1)%twc(1:2)%d = DIR_Z
+      expected%tWires%tw(1)%twc(1:2)%nd = -1
 
-      expected%tWires%tw(1)%twc(6:15)%srcfile = 'None'
-      expected%tWires%tw(1)%twc(6:15)%srctype = 'None'
-      expected%tWires%tw(1)%twc(6:15)%i = [(i, i=90,99)]
-      expected%tWires%tw(1)%twc(6:15)%j = 100
-      expected%tWires%tw(1)%twc(6:15)%k = 85
-      expected%tWires%tw(1)%twc(6:15)%d = DIR_X
-      expected%tWires%tw(1)%twc(6:15)%nd = -1
+      expected%tWires%tw(1)%twc(3:18)%srcfile = 'None'
+      expected%tWires%tw(1)%twc(3:18)%srctype = 'None'
+      expected%tWires%tw(1)%twc(3:18)%m = 0.0
+      expected%tWires%tw(1)%twc(3:18)%i = [(i, i=27,42)]
+      expected%tWires%tw(1)%twc(3:18)%j = 25
+      expected%tWires%tw(1)%twc(3:18)%k = 32
+      expected%tWires%tw(1)%twc(3:18)%d = DIR_X
+      expected%tWires%tw(1)%twc(3:18)%nd = -1
 
-      expected%tWires%tw(1)%twc(16:20)%srcfile = 'None'
-      expected%tWires%tw(1)%twc(16:20)%srctype = 'None'
-      expected%tWires%tw(1)%twc(16:20)%i = 100
-      expected%tWires%tw(1)%twc(16:20)%j = 100
-      expected%tWires%tw(1)%twc(16:20)%k = [(i, i=84, 80, -1)]
-      expected%tWires%tw(1)%twc(16:20)%d = DIR_Z
-      expected%tWires%tw(1)%twc(16:20)%nd = -1
+      expected%tWires%tw(1)%twc(19:20)%srcfile = 'None'
+      expected%tWires%tw(1)%twc(19:20)%srctype = 'None'
+      expected%tWires%tw(1)%twc(19:20)%m = 0.0
+
+      expected%tWires%tw(1)%twc(19:20)%i = 43
+      expected%tWires%tw(1)%twc(19:20)%j = 25
+      expected%tWires%tw(1)%twc(19:20)%k = [(i, i=31, 30, -1)]
+      expected%tWires%tw(1)%twc(19:20)%d = DIR_Z
+      expected%tWires%tw(1)%twc(19:20)%nd = -1
 
       expected%tWires%tw(1)%twc(1)%nd  = 1
-      expected%tWires%tw(1)%twc(6)%nd  = 2
-      expected%tWires%tw(1)%twc(16)%nd  = 3
+      expected%tWires%tw(1)%twc(3)%nd  = 2
+      expected%tWires%tw(1)%twc(19)%nd  = 3
       expected%tWires%tw(1)%twc(20)%nd = 4
       
       expected%tWires%tw(1)%twc(1:20)%tag = trim(adjustl("2"))   ! The polyline id is used as tag.
