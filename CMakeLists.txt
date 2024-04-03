@@ -11,47 +11,26 @@ message(STATUS ${CMAKE_Fortran_COMPILER_ID})
 
 option(CompileWithHDF "Use HDF" OFF)
 option(CompileWithMPI "Use MPI" OFF)
-option(CompileWithJSON "Compile JSON format parser" ON)
 option(CompileExecutable "Compiles semba-fdtd executable" ON)
-option(CompileWithMTLN "Use MTLN modules" OFF)
+option(CompileWithMTLN "Use MTLN modules" ON)
+
+include("${CMAKE_CURRENT_SOURCE_DIR}/set_precompiled_libraries.cmake")
 
 add_library(semba-types 
 	"src_main_pub/nfde_types.F90"
 	"src_main_pub/fdetypes.F90"
+	"src_mtln/mtln_types.F90"
 )
 add_subdirectory(external/fhash/)
+add_subdirectory(external/googletest/)
 
-if (${CMAKE_Fortran_COMPILER_ID} STREQUAL "GNU" AND ${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
-	set(JSONFORTRAN_DIR "${CMAKE_SOURCE_DIR}/precompiled_libraries/linux-gcc-rls/jsonfortran/")
-	set(JSONFORTRAN_LIB ${JSONFORTRAN_DIR}libjsonfortran.a)
-elseif (${CMAKE_Fortran_COMPILER_ID} STREQUAL "Intel" AND ${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
-	set(JSONFORTRAN_DIR "${CMAKE_SOURCE_DIR}/precompiled_libraries/linux-intel-rls/jsonfortran/")
-	set(JSONFORTRAN_LIB ${JSONFORTRAN_DIR}libjsonfortran.a)
-elseif (${CMAKE_Fortran_COMPILER_ID} STREQUAL "IntelLLVM" AND ${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
-	set(JSONFORTRAN_DIR "${CMAKE_SOURCE_DIR}/precompiled_libraries/linux-intelLLVM-rls/jsonfortran/")
-	set(JSONFORTRAN_LIB ${JSONFORTRAN_DIR}libjsonfortran-static.a)
-elseif(${CMAKE_Fortran_COMPILER_ID} STREQUAL "Intel" AND ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
-	set(JSONFORTRAN_DIR "${CMAKE_SOURCE_DIR}/precompiled_libraries/windows-intel-rls/jsonfortran/")
-	set(JSONFORTRAN_LIB ${JSONFORTRAN_DIR}jsonfortran.lib)
-endif()
-include_directories(${JSONFORTRAN_DIR}/include/)
-MESSAGE(STATUS "Using json-fortran precompiled libraries at: " ${JSONFORTRAN_DIR})
+add_subdirectory(src_json_parser)
+add_subdirectory(src_mtln)
 
-if (CompileWithJSON)
-	message(STATUS "Compiling JSON format parser")
-	add_definitions(-DCompileWithJSON)
-	add_subdirectory(src_json_parser)
-endif()
+add_subdirectory(test)
 
-if (CompileWithMTLN)
-	message(STATUS "Compiling MTLN solver")
-	add_subdirectory(src_mtln)
-endif()
 
 if (CompileExecutable)
-	if (NOT CompilePrivateVersion AND NOT CompileWithJSON)
-		message(FATAL_ERROR "Executable must be compiled with .fdtd.json parser or alternative.")
-	endif()
 	add_executable(semba-fdtd 
 		"src_main_pub/errorreport.F90"
 		"src_main_pub/anisotropic.F90"
@@ -75,7 +54,7 @@ if (CompileExecutable)
 		"src_main_pub/planewaves.F90"
 		"src_main_pub/pml_bodies.F90"
 		"src_main_pub/postprocess.F90"
-		"src_main_pub/preprocess.F90"
+		"src_main_pub/preprocess_geom.F90"
 		"src_main_pub/resuming.F90"
 		"src_main_pub/interpreta_switches.F90"
 		"src_main_pub/semba_fdtd.F90"

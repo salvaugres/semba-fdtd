@@ -1,34 +1,36 @@
-[![ubuntu-gnu](https://github.com/OpenSEMBA/fdtd/actions/workflows/ubuntu-gnu.yml/badge.svg?branch=main)](https://github.com/OpenSEMBA/fdtd/actions/workflows/ubuntu-gnu.yml)
-[![ubuntu-intel](https://github.com/OpenSEMBA/fdtd/actions/workflows/ubuntu-intel.yml/badge.svg?branch=main)](https://github.com/OpenSEMBA/fdtd/actions/workflows/ubuntu-intel.yml)
-[![ubuntu-intelLLVM](https://github.com/OpenSEMBA/fdtd/actions/workflows/ubuntu-intelLLVM.yml/badge.svg?branch=main)](https://github.com/OpenSEMBA/fdtd/actions/workflows/ubuntu-intelLLVM.yml)
+[![ubuntu-gnu](https://github.com/OpenSEMBA/fdtd/actions/workflows/ubuntu-gnu.yml/badge.svg)](https://github.com/OpenSEMBA/fdtd/actions/workflows/ubuntu-gnu.yml)
+[![ubuntu-intelLLVM](https://github.com/OpenSEMBA/fdtd/actions/workflows/ubuntu-intelLLVM.yml/badge.svg)](https://github.com/OpenSEMBA/fdtd/actions/workflows/ubuntu-intelLLVM.yml)
+[![windows-intelLLVM](https://github.com/OpenSEMBA/fdtd/actions/workflows/windows-intelLLVM.yml/badge.svg)](https://github.com/OpenSEMBA/fdtd/actions/workflows/windows-intelLLVM.yml)
 
 # semba-fdtd
 
 In a nutshell, semba-fdtd capabilities are
 
-- Cluster working capabilites through MPI.
-- Multiple threads per processor through OpenMP.
-- Closed/symmetric problems by means of PEC and PMC conditions.
-- Open problems by means of PML boundary conditions (CPML formulation) or by Mur ABCs.
-- Non-uniformly meshed domains by means of mesh-grading techniques.
-- Bulk lossless and lossy dielectrics.
-- Materials with frequency dependent relative permittivity and/or permeability, with an arbitrary number of complex-conjugate pole-residue pairs.
-- Bulk anisotropic lossless and lossy dielectrics.
-- Equivalent models of multilayered skin-depth materials.
-- Branched multiwires: 
-– Junctions of wires of different radii.
-	1. Junctions of multiwires.
-	2. Wire bundles.
-	3. Loaded with p.u.l resistance and inductance wires.
-	4. Grounding through lumped elements.
-	- Plane-wave illumination with arbitrary time variation.
-- Multiple planewaves illumination for reverberation chamber modeling.
-- Hertzian dipole sources.
-	- Equivalent Huygens surfaces.
-	- Low frequency thin composites and lossy surfaces.
-	- Thin slots.
-	- Time, frequency and transfer function probes .
-	- Near-to-far field transformation.
++ Cluster working capabilites through MPI.
++ Multiple threads per processor through OpenMP.
++ Closed/symmetric problems by means of PEC and PMC conditions.
++ Open problems by means of PML boundary conditions (CPML formulation) or by Mur ABCs.
++ Non-uniformly meshed domains by means of mesh-grading techniques.
++ Bulk lossless and lossy dielectrics.
++ Materials with frequency dependent relative permittivity and/or permeability, with an arbitrary number of complex-conjugate pole-residue pairs.
++ Bulk anisotropic lossless and lossy dielectrics.
++ Equivalent models of multilayered skin-depth materials.
++ Branched multiwires:
++ Junctions of wires of different radii.
+
+  1. Junctions of multiwires.
+  2. Wire bundles.
+  3. Loaded with p.u.l resistance and inductance wires.
+  4. Grounding through lumped elements.
+
++ Plane-wave illumination with arbitrary time variation.
++ Multiple planewaves illumination for reverberation chamber modeling.
++ Hertzian dipole sources.
++ Equivalent Huygens surfaces.
++ Low frequency thin composites and lossy surfaces.
++ Thin slots.
++ Time, frequency and transfer function probes .
++ Near-to-far field transformation.
 
 Most of these capabilities are explained in further detail in the references below
 
@@ -46,15 +48,19 @@ https://doi.org/10.1109/NEMO.2017.7964255.
 IEEE Transactions on Electromagnetic Compatibility. 2016. https://doi.org/10.1109/TEMC.2016.2514379.
 
 # Usage
+
 ## Compilation
 
 ## Running cases
-semba-fdtd uses the following [format](src_json_parser/readme.md) as input files.
+
+`semba-fdtd` uses the following [format](doc/smbjson.md) as input files.
 
 # License
-All rights reserved by the University of Granada (Spain)
+
+This code is licensed under the terms of the [MIT License](LICENSE). All rights reserved by the University of Granada (Spain)
 _______________________________________________________________
-Authors: 
+Authors:
+
 - Salvador Gonzalez Garcia <salva@ugr.es>
 - Miguel Ruiz Cabello <mcabello@ugr.es>
 - Luis Diaz Angulo <lmdiazangulo@ugr.es>

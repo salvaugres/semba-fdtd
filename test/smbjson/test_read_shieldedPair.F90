@@ -1,0 +1,263 @@
+integer function test_read_shieldedpair() bind (C) result(err)
+   use smbjson
+   use testingTools
+
+   implicit none
+
+   character(len=*),parameter :: filename = PATH_TO_TEST_DATA//'cases/shieldedPair.fdtd.json'
+   type(Parseador) :: problem, expected
+   type(parser_t) :: parser
+   logical :: areSame
+   err = 0
+
+   expected = expectedProblemDescription()
+   parser = parser_t(filename)
+   problem = parser%readProblemDescription()
+   call expect_eq(err, expected, problem)
+   call expect_eq_mtln(err, expected, problem)
+contains
+   function expectedProblemDescription() result (expected)
+      type(Parseador) :: expected
+
+      integer :: i
+
+      call initializeProblemDescription(expected)
+
+      ! Expected general info.
+      expected%general%dt = 1e-12
+      expected%general%nmax = 1000
+
+      ! Excected media matrix.
+      expected%matriz%totalX = 2
+      expected%matriz%totalY = 2
+      expected%matriz%totalZ = 20
+
+      ! Expected grid.
+      expected%despl%nX = 2
+      expected%despl%nY = 2
+      expected%despl%nZ = 20
+
+      allocate(expected%despl%desX(2))
+      allocate(expected%despl%desY(2))
+      allocate(expected%despl%desZ(2))
+      expected%despl%desX = 1.0
+      expected%despl%desY = 1.0
+      expected%despl%desZ = 0.03
+      expected%despl%mx1 = 0
+      expected%despl%mx2 = 2
+      expected%despl%my1 = 0
+      expected%despl%my2 = 2
+      expected%despl%mz1 = 0
+      expected%despl%mz2 = 20
+
+      ! Expected boundaries.
+      expected%front%tipoFrontera(:) = F_MUR
+
+      ! Expected sources.
+
+      ! Expected probes
+      ! oldSonda
+      expected%oldSONDA%n_probes = 0
+      expected%oldSONDA%n_probes_max = 0
+      allocate(expected%oldSONDA%probes(0))
+
+      ! sonda
+      expected%Sonda%length = 2
+      expected%Sonda%length_max = 2
+      allocate(expected%Sonda%collection(2))
+      
+      expected%Sonda%collection(1)%outputrequest = "voltage_at_wire_end"
+      expected%Sonda%collection(1)%type1 = NP_T1_PLAIN
+      expected%Sonda%collection(1)%type2 = NP_T2_TIME
+      expected%Sonda%collection(1)%filename = ' '
+      expected%Sonda%collection(1)%tstart = 0.0
+      expected%Sonda%collection(1)%tstop = 0.0
+      expected%Sonda%collection(1)%tstep = 0.0
+      expected%Sonda%collection(1)%fstart = 0.0
+      expected%Sonda%collection(1)%fstop = 0.0
+      expected%Sonda%collection(1)%fstep = 0.0
+      allocate(expected%Sonda%collection(1)%cordinates(1))
+      expected%Sonda%collection(1)%len_cor = 1
+      expected%Sonda%collection(1)%cordinates(1)%tag = "voltage_at_wire_end"
+      expected%Sonda%collection(1)%cordinates(1)%Xi = 2 ! Coord id as tag.
+      expected%Sonda%collection(1)%cordinates(1)%Yi = 0
+      expected%Sonda%collection(1)%cordinates(1)%Zi = 0
+      expected%Sonda%collection(1)%cordinates(1)%Or = NP_COR_DDP
+      
+      expected%Sonda%collection(2)%outputrequest = "current_at_wire_end"
+      expected%Sonda%collection(2)%type1 = NP_T1_PLAIN
+      expected%Sonda%collection(2)%type2 = NP_T2_TIME
+      expected%Sonda%collection(2)%filename = ' '
+      expected%Sonda%collection(2)%tstart = 0.0
+      expected%Sonda%collection(2)%tstop = 0.0
+      expected%Sonda%collection(2)%tstep = 0.0
+      expected%Sonda%collection(2)%fstart = 0.0
+      expected%Sonda%collection(2)%fstop = 0.0
+      expected%Sonda%collection(2)%fstep = 0.0
+      allocate(expected%Sonda%collection(2)%cordinates(1))
+      expected%Sonda%collection(2)%len_cor = 1
+      expected%Sonda%collection(2)%cordinates(1)%tag = "current_at_wire_end"
+      expected%Sonda%collection(2)%cordinates(1)%Xi = 2 ! Coord id as tag.
+      expected%Sonda%collection(2)%cordinates(1)%Yi = 0
+      expected%Sonda%collection(2)%cordinates(1)%Zi = 0
+      expected%Sonda%collection(2)%cordinates(1)%Or = NP_COR_WIRECURRENT
+            
+      ! Expected thin wires
+      allocate(expected%tWires%tw(1))
+      expected%tWires%tw(1)%rad=0.0001
+      expected%tWires%tw(1)%res=22.9e-3
+      expected%tWires%tw(1)%dispfile = trim(adjustl(" "))
+      expected%tWires%tw(1)%dispfile_LeftEnd = trim(adjustl(" "))
+      expected%tWires%tw(1)%dispfile_RightEnd = trim(adjustl(" "))
+      expected%tWires%tw(1)%n_twc=18
+      expected%tWires%tw(1)%n_twc_max=18
+      allocate(expected%tWires%tw(1)%twc(18))
+      expected%tWires%tw(1)%twc(1:18)%srcfile = 'None'
+      expected%tWires%tw(1)%twc(1:18)%srctype = 'None'
+      expected%tWires%tw(1)%twc(1:18)%i = 1
+      expected%tWires%tw(1)%twc(1:18)%j = 1
+      expected%tWires%tw(1)%twc(1:18)%k = [(i, i=1, 18)]
+      expected%tWires%tw(1)%twc(1:18)%d = DIR_Z
+      expected%tWires%tw(1)%twc(1)%nd  = 1
+      expected%tWires%tw(1)%twc(2:17)%nd = NO_TAG
+      expected%tWires%tw(1)%twc(18)%nd  = 2
+      
+      expected%tWires%tw(1)%twc(1:18)%tag = trim(adjustl("1"))   ! The polyline id is used as tag.
+      
+      expected%tWires%tw(1)%tl = SERIES_CONS
+      expected%tWires%tw(1)%R_LeftEnd = 50
+      expected%tWires%tw(1)%C_LeftEnd = 1e22
+      expected%tWires%tw(1)%tr = SERIES_CONS
+      expected%tWires%tw(1)%R_RightEnd = 50
+      expected%tWires%tw(1)%C_RightEnd = 1e22
+            
+      expected%tWires%n_tw = 1
+      expected%tWires%n_tw_max = 1
+
+      ! Expected mtln type
+      allocate(expected%mtln%cables(2))
+      ! cable 1 - multiwire
+      expected%mtln%cables(1)%name = "line_1"
+      allocate(expected%mtln%cables(1)%inductance_per_meter(2,2))
+      allocate(expected%mtln%cables(1)%capacitance_per_meter(2,2))
+      allocate(expected%mtln%cables(1)%resistance_per_meter(2,2))
+      allocate(expected%mtln%cables(1)%conductance_per_meter(2,2))
+
+      expected%mtln%cables(1)%inductance_per_meter = & 
+         reshape( source = [ 3.13182309e-07, 7.45674981e-08, 7.45674981e-08, 3.13182309e-07 ], shape = [ 2,2 ] )
+      expected%mtln%cables(1)%capacitance_per_meter = &
+         reshape( source = [85.0e-12, -20.5e-12, -20.5e-12, 85.0e-12 ], shape = [ 2,2 ] )
+      expected%mtln%cables(1)%resistance_per_meter =  reshape(source=[0.0, 0.0, 0.0, 0.0], shape=[2,2])
+      expected%mtln%cables(1)%conductance_per_meter = reshape(source=[0.0, 0.0, 0.0, 0.0], shape=[2,2])
+      
+      allocate(expected%mtln%cables(1)%step_size(18))
+      expected%mtln%cables(1)%step_size = [(0.03, i = 1, 18)]
+      allocate(expected%mtln%cables(1)%segment_relative_positions(18))
+      do i = 1, 18
+         expected%mtln%cables(1)%segment_relative_positions(i)%position = (/1,1,i/)
+      end do
+      expected%mtln%cables(1)%transfer_impedance%direction = TRANSFER_IMPEDANCE_DIRECTION_INWARDS
+      expected%mtln%cables(1)%transfer_impedance%resistive_term = 0.0
+      expected%mtln%cables(1)%transfer_impedance%inductive_term = 4.0e-9
+      allocate(expected%mtln%cables(1)%transfer_impedance%poles(0))
+      allocate(expected%mtln%cables(1)%transfer_impedance%residues(0))
+
+      expected%mtln%cables(1)%parent_cable => expected%mtln%cables(2)
+      expected%mtln%cables(1)%conductor_in_parent = 1
+      expected%mtln%cables(1)%initial_connector => null()
+      expected%mtln%cables(1)%end_connector => null()
+      ! cable 2 - wire
+      expected%mtln%cables(2)%name = "line_0"
+      allocate(expected%mtln%cables(2)%inductance_per_meter(1,1))
+      allocate(expected%mtln%cables(2)%capacitance_per_meter(1,1))
+      allocate(expected%mtln%cables(2)%resistance_per_meter(1,1))
+      allocate(expected%mtln%cables(2)%conductance_per_meter(1,1))
+      expected%mtln%cables(2)%inductance_per_meter = reshape(source=[5.362505362505362e-07], shape=[1,1])
+      expected%mtln%cables(2)%capacitance_per_meter = reshape(source=[20.72e-12], shape=[1,1])
+      expected%mtln%cables(2)%resistance_per_meter = reshape(source=[22.9e-3], shape=[1,1])
+      expected%mtln%cables(2)%conductance_per_meter = reshape(source=[0.0], shape=[1,1])
+      allocate(expected%mtln%cables(2)%step_size(18))
+      expected%mtln%cables(2)%step_size =  [(0.03, i = 1, 18)]
+      allocate(expected%mtln%cables(2)%segment_relative_positions(18))
+      do i = 1, 18
+         expected%mtln%cables(2)%segment_relative_positions(i)%position = (/1,1,i/)
+      end do
+
+      allocate(expected%mtln%cables(2)%transfer_impedance%poles(0))
+      allocate(expected%mtln%cables(2)%transfer_impedance%residues(0))
+
+      expected%mtln%cables(2)%parent_cable => null()
+      expected%mtln%cables(2)%conductor_in_parent = 0
+      expected%mtln%cables(2)%initial_connector => null()
+      expected%mtln%cables(2)%end_connector => null()
+
+      ! probes
+      allocate(expected%mtln%probes(2))
+      expected%mtln%probes(1)%attached_to_cable => expected%mtln%cables(2) ! to which cable is the probe attached in mtln?
+      expected%mtln%probes(1)%index = 19
+      expected%mtln%probes(1)%probe_type = PROBE_TYPE_VOLTAGE
+
+      expected%mtln%probes(2)%attached_to_cable => expected%mtln%cables(2)
+      expected%mtln%probes(2)%index = 19
+      expected%mtln%probes(2)%probe_type = PROBE_TYPE_CURRENT
+
+      ! networks
+      allocate(expected%mtln%networks(2))
+      allocate(expected%mtln%networks(1)%connections(3))
+
+      allocate(expected%mtln%networks(1)%connections(3)%nodes(1))
+      expected%mtln%networks(1)%connections(3)%nodes(1)%conductor_in_cable = 1
+      expected%mtln%networks(1)%connections(3)%nodes(1)%side = TERMINAL_NODE_SIDE_INI
+      expected%mtln%networks(1)%connections(3)%nodes(1)%belongs_to_cable =>  expected%mtln%cables(2)
+      allocate(termination_t :: expected%mtln%networks(1)%connections(3)%nodes(1)%termination)
+      expected%mtln%networks(1)%connections(3)%nodes(1)%termination%termination_type = TERMINATION_SERIES
+      expected%mtln%networks(1)%connections(3)%nodes(1)%termination%resistance = 50.0
+
+      allocate(expected%mtln%networks(1)%connections(1)%nodes(1))
+      expected%mtln%networks(1)%connections(1)%nodes(1)%conductor_in_cable = 1
+      expected%mtln%networks(1)%connections(1)%nodes(1)%side = TERMINAL_NODE_SIDE_INI
+      expected%mtln%networks(1)%connections(1)%nodes(1)%belongs_to_cable => expected%mtln%cables(1)
+      allocate(termination_t :: expected%mtln%networks(1)%connections(1)%nodes(1)%termination)
+      expected%mtln%networks(1)%connections(1)%nodes(1)%termination%termination_type = TERMINATION_SERIES
+      expected%mtln%networks(1)%connections(1)%nodes(1)%termination%resistance = 50.0
+
+      allocate(expected%mtln%networks(1)%connections(2)%nodes(1))
+      expected%mtln%networks(1)%connections(2)%nodes(1)%conductor_in_cable = 2
+      expected%mtln%networks(1)%connections(2)%nodes(1)%side = TERMINAL_NODE_SIDE_INI
+      expected%mtln%networks(1)%connections(2)%nodes(1)%belongs_to_cable => expected%mtln%cables(1)
+      allocate(termination_t :: expected%mtln%networks(1)%connections(2)%nodes(1)%termination)
+      expected%mtln%networks(1)%connections(2)%nodes(1)%termination%termination_type = TERMINATION_SERIES
+      expected%mtln%networks(1)%connections(2)%nodes(1)%termination%resistance = 50.0
+
+      allocate(expected%mtln%networks(2)%connections(3))
+
+      allocate(expected%mtln%networks(2)%connections(3)%nodes(1))
+      expected%mtln%networks(2)%connections(3)%nodes(1)%conductor_in_cable = 1
+      expected%mtln%networks(2)%connections(3)%nodes(1)%side = TERMINAL_NODE_SIDE_END
+      expected%mtln%networks(2)%connections(3)%nodes(1)%belongs_to_cable => expected%mtln%cables(2)
+      allocate(termination_t :: expected%mtln%networks(2)%connections(3)%nodes(1)%termination)
+      expected%mtln%networks(2)%connections(3)%nodes(1)%termination%termination_type = TERMINATION_SERIES
+      expected%mtln%networks(2)%connections(3)%nodes(1)%termination%resistance = 50.0
+
+      allocate(expected%mtln%networks(2)%connections(1)%nodes(1))
+      expected%mtln%networks(2)%connections(1)%nodes(1)%conductor_in_cable = 1
+      expected%mtln%networks(2)%connections(1)%nodes(1)%side = TERMINAL_NODE_SIDE_END
+      expected%mtln%networks(2)%connections(1)%nodes(1)%belongs_to_cable => expected%mtln%cables(1)
+      allocate(termination_t :: expected%mtln%networks(2)%connections(1)%nodes(1)%termination)
+      expected%mtln%networks(2)%connections(1)%nodes(1)%termination%termination_type = TERMINATION_SERIES
+      expected%mtln%networks(2)%connections(1)%nodes(1)%termination%resistance = 50.0
+
+      allocate(expected%mtln%networks(2)%connections(2)%nodes(1))
+      expected%mtln%networks(2)%connections(2)%nodes(1)%conductor_in_cable = 2
+      expected%mtln%networks(2)%connections(2)%nodes(1)%side = TERMINAL_NODE_SIDE_END
+      expected%mtln%networks(2)%connections(2)%nodes(1)%belongs_to_cable => expected%mtln%cables(1)
+      allocate(termination_t :: expected%mtln%networks(2)%connections(2)%nodes(1)%termination)
+      expected%mtln%networks(2)%connections(2)%nodes(1)%termination%termination_type = TERMINATION_SERIES
+      expected%mtln%networks(2)%connections(2)%nodes(1)%termination%resistance = 50.0
+
+      !connectors
+      allocate(expected%mtln%connectors(0))
+
+   end function
+end function
+
