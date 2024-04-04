@@ -133,8 +133,16 @@ contains
       character (len=*), intent(in)  ::  slicesoriginales
       character (len=BUFSIZE_LONG)  ::  slices=' '
       character (LEN=BUFSIZE)     ::  dubuf
-      logical :: resume,fatalerror
-      character(len=BUFSIZE) :: buff
+      logical :: resume,fatalerror,originalPML_up_or_down
+      character(len=BUFSIZE) :: buff 
+      character (len=BUFSIZE)  ::  whoami
+      integer(kind=4), dimension( 1:2 ) :: sggPMLNumLayers_original
+      
+      
+      sggPMLNumLayers_original(:)=sgg%PML%NumLayers(3,:) !bug 310124 slices justo en PML
+      originalPML_up_or_down=sgg%Border%IsUpPML.or.sgg%Border%IsDownPML !bug 310124 slices justo en PML
+      
+      WRITE (whoami, '(a,i5,a,i5,a)') '(', layoutnumber + 1, '/', size, ') '
       cZE => null(); cZI=> null(); trancos=> null(); mpizcom=> null(); mpizfin=> null();
       !
       !clip the simulation region
@@ -293,13 +301,15 @@ contains
          sgg%Border%IsUpPMC=.false.
          sgg%Border%IsUpPEC=.false.
          sgg%Border%IsDownPMC=.false.
-         sgg%Border%IsDownPEC=.false.
+         sgg%Border%IsDownPEC=.false.   
+         !ojoo  en un futuro con este < a secas  cuando la PML esta justo en la division mpi 1310124
          if ((sgg%Sweep(iEx)%ZI<SINPML_fullsize(iEx)%ZI)) then
             sgg%Border%IsDownPML=.true.
          else
             sgg%Border%IsDownPML=.false. !no PML layers DOWN
          endif
-         if ((sgg%Sweep(iEx)%ZE>SINPML_fullsize(iEx)%ZE))   then
+         !ojoo  en un futuro con este > a secas  cuando la PML esta justo en la division mpi 1310124
+         if ((sgg%Sweep(iEx)%ZE>SINPML_fullsize(iEx)%ZE))   then 
             sgg%Border%IsUpPML=.true.
          else
             sgg%Border%IsUpPML=.false.  !no PML layers UP
@@ -311,7 +321,6 @@ contains
       !I readjust this since mpicomm touches this variable.
       if (.not.(sgg%Border%IsUpPML  )) sgg%PML%NumLayers(3,2)=0 !no PML layers UP
       if (.not.(sgg%Border%IsDownPML)) sgg%PML%NumLayers(3,1)=0 !no PML layers DOWN
-
 
       !writing
       if (layoutnumber==0) then
@@ -335,6 +344,14 @@ contains
       endif
       !end writing
 
+      !bug 310124 cuando PML coincide con la primera celda de la ultima particion
+      !no me complico y fuerzo menos MPI size
+      if ((originalPML_up_or_down).and. &
+             (mpiZfin(layoutnumber)-mpiZcom(layoutnumber)<=minval(sggPMLNumLayers_original))) then
+           write(buff,'(a,i3,i3)') trim(adjustl(whoami))//' Minimum slice sizes along MPI should be larger that PML number of layers ', &
+              mpiZfin(layoutnumber)-mpiZcom(layoutnumber), minval(sggPMLNumLayers_original)
+            call StopOnError(layoutnumber,size,buff)
+      endif
       deallocate(cZE,cZI,trancos,mpizcom,mpizfin)
 
       return

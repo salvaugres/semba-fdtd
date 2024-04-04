@@ -1911,6 +1911,7 @@ contains
                 !esta informacion solo se utiliza si realmente luego hay un nodo terminal y se suma la resistencia. En cualquier otro caso no sirver para nada
                 !de todos modos hay un bug en la deteccion. sgg 110815
                 ! se usal la informacion nodal (lo que sigue algun d\EDa se mover\E1 a la rutina de generacion nodal que se creo en preprocess y se podra dejar solo lo que sigue 110815
+                !!!bug 270224 gg Cuando se sobrepasa el MPI  kmenos1=k o kmas1=k da un buggy error. Pero no se toma decision alguna. se puede ignorar con -ignoreerrors
                 select case (whatfield)
                  case (iEx)
                    med(0)  = sggMiEx(i + 1  , j     , k       )
@@ -1941,7 +1942,8 @@ contains
                    med(10) = sggMiEx(i - 1  , j     , k       )
                    med(11) = sggMiNo(i      , j     , k       )
                  case (iEz)
-
+!!!ojooooo 270224 esta logica esta mal porque machaco las variables kmas1 y kmenos1.... corregir.... no tiene impacto pq el bucle es informativo y no se toman decisiones. en todo caso solo afectaria a MPI!
+                     !!!pero esta no es la razon 27024 por la que sucede el error gg   (    8/   40) wir1_BUGGYERROR:  Lossy, pec,  2.           329         180         160   15000.0000000000      F F
                    if (kmas1   >  sgg%alloc(iEz)%ZE) kmas1=k  ; med(0)  = sggMiEz(i     , j     , kmas1    )
                    if (kmas1   >  sgg%alloc(iEx)%ZE) kmas1=k  ; med(1)  = sggMiEx(i     , j     , kmas1    )
                    if (kmas1   >  sgg%alloc(iEx)%ZE) kmas1=k  ; med(2)  = sggMiEx(i - 1 , j     , kmas1    )
@@ -1989,14 +1991,19 @@ contains
                 !!!
                 if ((.not.ispec).and.(.not.isLossy)) then  !algun extremo no pec y ambos extremos no lossy debe haber error si la conductividad no es nula
                    if (abs(sigt) > 1.0e-19_RKIND_wires) then
-                      write (buff,*)  'wir1_BUGGYERROR:  Lossy, pec,  2.  ', i,j,k,sigt,ispec,isLossy
-                      call WarnErrReport(buff,.true.)
+                       !270224 creo que el bug gg 270224 es simplemente que conviven pec y lossy en plus o minus siendo el otro minus/plus vacio. Se voidea
+                       !270224 el islosyplus/minus a false por ser pec. el ispec es false porque uno es vacio y el islossy tambien es vacio
+                       !270224 pero se ha almacenado alguna sigt no nula. El arreglo es simplemente convertir esto en un warning de casuistica de conexionado en vez de un buggyerror
+                      !!comentado a 010324 por los motivos anteriores    write (buff,*)  'wir1_BUGGYERROR:  Lossy, pec,  2.  ', i,j,k,sigt,ispec,isLossy
+                      !!comentado a 010324 por los motivos anteriores    call WarnErrReport(buff,.true.)
                    endif
+                   write (buff,*)  'wir1_WARNING:  Lossy, pec,  2.: A wire is connected at some ending both to a lossy and to a PEC edge. Assuming it PEC  ', i,j,k,sigt,ispec,isLossy,IsPECPlus,IsPECMinu
+                   call WarnErrReport(buff)
                 endif
                 if (isLossy) then !alguno extremo lossy con conductividad desconocida (multiports de ss)
                    if (abs(sigt) < 1.0e-19_RKIND_wires) then
                       sigt=1e4 ! asignale una resistencia de contacto por defecto si es nula !tipico de los composites de ss !habra algun dia que afinar esto
-                      write (buff,*)  'wir1_WARNING:  A Lossy segment with unknown conductivity. Assuming a STANDARD value of 1e4 S/m ', i,j,k,sigt,ispec,isLossy
+                      write (buff,*)  'wir1_WARNING:  A Lossy segment with unknown conductivity. Assuming a STANDARD value of 1e4 S/m ', i,j,k,sigt,ispec,isLossy,IsLossyPlus,IsLossyMinu
                       call WarnErrReport(buff)
                    endif
                 endif
@@ -4047,12 +4054,12 @@ end subroutine deembed_segment
 !!!!! ojo cambio AGRESIVO: sgg 08092016 a peticion OLD. si un nodo es heterogeneousjunction automaticamente no es ni pec ni lossy !esto es delicado !validado con gra_simple_conectado179_162_173.nfde
                if (nodo%isPEC.and.(nodo%IsHeterogeneousJunction)) then
                     nodo%isPEC   = .false.
-			        write (buff,*)  'wir1_ERROR: (Deprecated 170220 ) PEC grounded node detached for being a wire junction', i,j,k,nodo%ispec,nodo%islossy
+			        write (buff,*)  'wir1_ERROR: (Deprecated 170220-010324: no longer an error, though I stop. If sure relaunch with -ignoreerrors) ENL/ENR PEC grounded node detached from ground-material for being a wire junction', i,j,k,nodo%ispec,nodo%islossy
                     if ((k >  ZI).and.(k <= ZE)) call WarnErrReport(buff,.true.)
                endif               
                if (nodo%isLossy.and.(nodo%IsHeterogeneousJunction)) then
                     nodo%isLossy   = .false.
-                    write (buff,*) 'wir1_ERROR: (Deprecated 170220 )  Lossy grounded node detached for being a wire junction', i,j,k,nodo%ispec,nodo%islossy
+                    write (buff,*) 'wir1_ERROR: (Deprecated 170220-010324: no longer an error, though I stop. If sure relaunch with -ignoreerrors)  ENL/ENR Lossy grounded node detached from ground-material for being a wire junction', i,j,k,nodo%ispec,nodo%islossy
                     if ((k >  ZI).and.(k <= ZE)) call WarnErrReport(buff,.true.)
                endif
 !!!!!!!!! fin cambio sgg 080912016               

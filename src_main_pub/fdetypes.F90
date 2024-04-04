@@ -33,6 +33,17 @@ module  FDETYPES
    use omp_lib
 #endif
 
+ 
+#ifdef CompileWithReal16 
+#undef CompileWithReal8
+#undef CompileWithReal4
+#endif
+
+#ifdef CompileWithReal8 
+#undef CompileWithReal16
+#undef CompileWithReal4
+#endif
+
 #ifndef CompileWithReal16
 #ifndef CompileWithReal8
 #ifndef CompileWithReal4

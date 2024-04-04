@@ -27,14 +27,6 @@ target_link_libraries(mtln_solver_tests_fortran
 
 add_library(mtln_tests "mtln_tests.cpp")
 
-if (${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
-    add_custom_command(TARGET mtlnsolver_tests POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            "${NGSPICE_DIR}ngspice.dll"      
-            $<TARGET_FILE_DIR:mtlnsolver_tests>
-    )
-endif()
-
 target_link_libraries(mtln_tests
     mtln_solver_tests_fortran
     GTest::gtest
