@@ -62,7 +62,7 @@ def test_holland(tmp_path):
 def test_towel_hanger(tmp_path):
     case = 'towelHanger'
     input_json = getCase(case)
-    # input_json['general']['numberOfSteps'] = 600
+    input_json['general']['numberOfSteps'] = 1
     # input_json['general']['timeStep'] = 3.0E-013
     
     fn = tmp_path._str + '/' + case + '.fdtd.json'
@@ -75,26 +75,21 @@ def test_towel_hanger(tmp_path):
     solver.run()
     probe_start = solver.getSolvedProbeFilenames("wire_start")
     probe_end = solver.getSolvedProbeFilenames("wire_end")
+    probe_mid = solver.getSolvedProbeFilenames("wire_mid")
     
     assert solver.hasFinishedSuccessfully() == True
     assert len(probe_start) == 1
+    assert len(probe_mid) == 1
     assert len(probe_end) == 1
-    # assert len(probe_files_2) == 1
-    # assert len(probe_files_3) == 1
     assert 'towelHanger.fdtd_wire_start_Wz_27_25_30_s1.dat' == probe_start[0]
     assert 'towelHanger.fdtd_wire_end_Wz_43_25_30_s4.dat' == probe_end[0]
-    # assert countLinesInFile(probe_files[0]) == 3
+    assert 'towelHanger.fdtd_wire_mid_Wz_35_25_30_s5.dat' == probe_mid[0]
+    assert countLinesInFile(probe_start[0]) == 3
+    assert countLinesInFile(probe_mid[0]) == 3
+    assert countLinesInFile(probe_end[0]) == 3
     # assert compareFiles(solver.wd+OUTPUT_FOLDER+'towelHanger.fdtd_wire_end_Wz_100_100_80_s4.dat',\
     #                     probe_files[0])
 
-    t_exc, v_exc = readTimeAndExcitation('ramp.exc')
-    t_start, i_start = readProbeTimeAndValue(probe_start[0])
-    t_end, i_end = readProbeTimeAndValue(probe_end[0])
-    z = np.array([])
-    for (i, time) in enumerate(t_end):
-        vt = np.interp(time, t_exc, v_exc)
-        z = np.append(z, vt/i_end[i])
-    print('0')
     
 def test_sphere(tmp_path):    
     case = 'sphere'
@@ -116,3 +111,8 @@ def test_sphere(tmp_path):
     assert len(probe_files) == 1
     assert 'sphere.fdtd_Far_FF_2_2_2__77_77_77.dat' == probe_files[0]
 
+def test_plot():
+    a = np.array([1,2,34])
+    b = np.array([1,2,34])
+    plt.plot(a,b)
+    plt.ion()
