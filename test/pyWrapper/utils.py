@@ -2,6 +2,8 @@ import pytest
 from src_pyWrapper.pyWrapper import *
 import shutil, glob, re
 import json
+import numpy as np
+import matplotlib.pyplot as plt
 
 # Use of absolute path to avoid conflicts when changing directory.
 SEMBA_EXE = os.getcwd() + '/build/bin/semba-fdtd'
@@ -44,3 +46,26 @@ def compareFiles(expected_name, result_name):
     return f_expected == f_result
     
     
+def readTimeAndExcitation(exc_file):
+    t = np.array([])
+    e = np.array([])
+    with open(exc_file, 'r') as f:
+        for line in f:
+            t = np.append(t, float(line.split()[0]))
+            e = np.append(e, float(line.split()[1]))
+    return t, e
+            
+def readProbeTimeAndValue(probe_file):
+    t = np.array([])
+    value = np.array([])
+    with open(probe_file, 'r') as f:
+        f.readline()
+        for line in f:
+            t = np.append(t, float(line.split()[0]))
+            value = np.append(value, float(line.split()[1]))
+    return t, value
+            
+
+
+        
+

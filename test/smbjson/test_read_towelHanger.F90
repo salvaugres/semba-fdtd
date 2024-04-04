@@ -24,8 +24,8 @@ contains
       call initializeProblemDescription(expected)
 
       ! Expected general info.
-      expected%general%dt = 3e-11
-      expected%general%nmax = 350
+      expected%general%dt = 1e-12
+      expected%general%nmax = 1000
 
       ! Excected media matrix.
       expected%matriz%totalX = 60
@@ -56,28 +56,32 @@ contains
       expected%front%propiedadesPML(:)%orden = 2.0
       expected%front%propiedadesPML(:)%refl = 0.001
 
-      ! Expected sources.
-      allocate(expected%plnSrc%collection(0))
-      ! expected%plnSrc%collection(1)%nombre_fichero = "gauss.exc"
-      ! expected%plnSrc%collection(1)%atributo = ""
-      ! expected%plnSrc%collection(1)%coor1 = [1, 1, 1]
-      ! expected%plnSrc%collection(1)%coor2 = [18, 18, 20]
-      ! expected%plnSrc%collection(1)%theta = 1.5708
-      ! expected%plnSrc%collection(1)%phi = 0.0
-      ! expected%plnSrc%collection(1)%alpha = 0.0
-      ! expected%plnSrc%collection(1)%beta = 0.0
-      ! expected%plnSrc%collection(1)%isRC=.false.
-      ! expected%plnSrc%collection(1)%nummodes=1
-      ! expected%plnSrc%collection(1)%INCERTMAX=0.0
-      ! expected%plnSrc%nc = 1
-      ! expected%plnSrc%nC_max = 1
+      ! Expected PEC regions.
+      expected%pecRegs%nLins = 0
+      expected%pecRegs%nLins_max = 0
+      expected%pecRegs%nSurfs = 1
+      expected%pecRegs%nSurfs_max = 1
+      expected%pecRegs%nVols = 0
+      expected%pecRegs%nVols_max = 0
+      allocate(expected%pecRegs%Surfs(1))
+      expected%pecRegs%Surfs(1)%Xi = 25
+      expected%pecRegs%Surfs(1)%Xe = 44
+      expected%pecRegs%Surfs(1)%yi = 20
+      expected%pecRegs%Surfs(1)%ye = 29
+      expected%pecRegs%Surfs(1)%zi = 30
+      expected%pecRegs%Surfs(1)%ze = 30
+      expected%pecRegs%Surfs(1)%Xtrancos = 1
+      expected%pecRegs%Surfs(1)%Ytrancos = 1
+      expected%pecRegs%Surfs(1)%Ztrancos = 1
+      expected%pecRegs%Surfs(1)%Or = 3
+      expected%pecRegs%Surfs(1)%tag =  trim(adjustl(" "))
 
       ! Expected probes
       ! sonda
-      expected%Sonda%length = 1
-      expected%Sonda%length_max = 1
-      allocate(expected%Sonda%collection(1))
-      expected%Sonda%collection(1)%outputrequest = "wire_end"
+      expected%Sonda%length = 2
+      expected%Sonda%length_max = 2
+      allocate(expected%Sonda%collection(2))
+      expected%Sonda%collection(1)%outputrequest = "wire_start"
       expected%Sonda%collection(1)%type1 = NP_T1_PLAIN
       expected%Sonda%collection(1)%type2 = NP_T2_TIME
       expected%Sonda%collection(1)%filename = ' '
@@ -89,11 +93,29 @@ contains
       expected%Sonda%collection(1)%fstep = 0.0
       allocate(expected%Sonda%collection(1)%cordinates(1))
       expected%Sonda%collection(1)%len_cor = 1
-      expected%Sonda%collection(1)%cordinates(1)%tag = "wire_end"
-      expected%Sonda%collection(1)%cordinates(1)%Xi = 4 ! Coord id as tag.
+      expected%Sonda%collection(1)%cordinates(1)%tag = "wire_start"
+      expected%Sonda%collection(1)%cordinates(1)%Xi = 1 ! Coord id as tag.
       expected%Sonda%collection(1)%cordinates(1)%Yi = 0
       expected%Sonda%collection(1)%cordinates(1)%Zi = 0
       expected%Sonda%collection(1)%cordinates(1)%Or = NP_COR_WIRECURRENT
+      
+      expected%Sonda%collection(2)%outputrequest = "wire_end"
+      expected%Sonda%collection(2)%type1 = NP_T1_PLAIN
+      expected%Sonda%collection(2)%type2 = NP_T2_TIME
+      expected%Sonda%collection(2)%filename = ' '
+      expected%Sonda%collection(2)%tstart = 0.0
+      expected%Sonda%collection(2)%tstop = 0.0
+      expected%Sonda%collection(2)%tstep = 0.0
+      expected%Sonda%collection(2)%fstart = 0.0
+      expected%Sonda%collection(2)%fstop = 0.0
+      expected%Sonda%collection(2)%fstep = 0.0
+      allocate(expected%Sonda%collection(2)%cordinates(1))
+      expected%Sonda%collection(2)%len_cor = 1
+      expected%Sonda%collection(2)%cordinates(1)%tag = "wire_end"
+      expected%Sonda%collection(2)%cordinates(1)%Xi = 4 ! Coord id as tag.
+      expected%Sonda%collection(2)%cordinates(1)%Yi = 0
+      expected%Sonda%collection(2)%cordinates(1)%Zi = 0
+      expected%Sonda%collection(2)%cordinates(1)%Or = NP_COR_WIRECURRENT
       
       
       ! Expected thin wires

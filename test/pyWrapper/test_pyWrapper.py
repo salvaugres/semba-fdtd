@@ -62,7 +62,7 @@ def test_holland(tmp_path):
 def test_towel_hanger(tmp_path):
     case = 'towelHanger'
     input_json = getCase(case)
-    input_json['general']['numberOfSteps'] = 100
+    # input_json['general']['numberOfSteps'] = 600
     # input_json['general']['timeStep'] = 3.0E-013
     
     fn = tmp_path._str + '/' + case + '.fdtd.json'
@@ -73,19 +73,28 @@ def test_towel_hanger(tmp_path):
 
     solver = FDTD(input_filename = fn, path_to_exe=SEMBA_EXE)
     solver.run()
-    probe_files_1 = solver.getSolvedProbeFilenames("wire_end_i")
-    # probe_files_2 = solver.getSolvedProbeFilenames("wire_start_v")
-    # probe_files_3 = solver.getSolvedProbeFilenames("wire_end_v")
+    probe_start = solver.getSolvedProbeFilenames("wire_start")
+    probe_end = solver.getSolvedProbeFilenames("wire_end")
     
     assert solver.hasFinishedSuccessfully() == True
-    assert len(probe_files_1) == 1
+    assert len(probe_start) == 1
+    assert len(probe_end) == 1
     # assert len(probe_files_2) == 1
     # assert len(probe_files_3) == 1
-    # assert 'towelHanger.fdtd_wire_end_Wz_43_25_30_s4.dat' == probe_files[0]
+    assert 'towelHanger.fdtd_wire_start_Wz_27_25_30_s1.dat' == probe_start[0]
+    assert 'towelHanger.fdtd_wire_end_Wz_43_25_30_s4.dat' == probe_end[0]
     # assert countLinesInFile(probe_files[0]) == 3
     # assert compareFiles(solver.wd+OUTPUT_FOLDER+'towelHanger.fdtd_wire_end_Wz_100_100_80_s4.dat',\
     #                     probe_files[0])
 
+    t_exc, v_exc = readTimeAndExcitation('ramp.exc')
+    t_start, i_start = readProbeTimeAndValue(probe_start[0])
+    t_end, i_end = readProbeTimeAndValue(probe_end[0])
+    z = np.array([])
+    for (i, time) in enumerate(t_end):
+        vt = np.interp(time, t_exc, v_exc)
+        z = np.append(z, vt/i_end[i])
+    print('0')
     
 def test_sphere(tmp_path):    
     case = 'sphere'
@@ -106,3 +115,4 @@ def test_sphere(tmp_path):
     assert solver.hasFinishedSuccessfully() == True
     assert len(probe_files) == 1
     assert 'sphere.fdtd_Far_FF_2_2_2__77_77_77.dat' == probe_files[0]
+

@@ -3,8 +3,8 @@
     "__comments": "",
 
     "general": {
-        "timeStep": 3e-11,
-        "numberOfSteps": 350
+        "timeStep": 1e-12,
+        "numberOfSteps": 1000
     },
   
     "boundary": {
@@ -33,6 +33,10 @@
             "id": 3,
             "type": "terminal",
             "terminations": [{"type": "short"}]
+        },
+        {
+            "id": 4,
+            "type": "pec"
         }
     ],
 
@@ -51,9 +55,7 @@
             {"id": 1, "type": "node", "coordinateIds": [1]},
             {"id": 2, "type": "polyline", "coordinateIds": [1, 2, 3, 4] },
             {"id": 3, "type": "cell", "intervals": [[[25, 20, 30], [45, 30, 30]]] },
-            {"id": 4, "type": "node", "coordinateIds": [4]},
-            {"id": 5, "type": "node", "coordinateIds": [2]},
-            {"id": 6, "type": "node", "coordinateIds": [3]}
+            {"id": 4, "type": "node", "coordinateIds": [4]}
         ]
     },
 
@@ -64,6 +66,11 @@
             "initialTerminalId": 2,
             "endTerminalId": 3,
             "elementIds": [2]
+        },
+        {
+            "type": "bulk", 
+            "materialId": 4, 
+            "elementIds": [3]
         }
     ],
 
@@ -78,6 +85,13 @@
     ],
 
     "probes": [
+        {
+            "name": "wire_start",
+            "type": "wire",
+            "field": "current",
+            "elementIds": [1],
+            "domain": { "type": "time" }
+        },
         {
             "name": "wire_end",
             "type": "wire",
