@@ -76,6 +76,11 @@
             "initialTerminalId": 3,
             "endTerminalId": 3,
             "elementIds": [5]
+        },
+        {
+            "type": "bulk", 
+            "materialId": 4, 
+            "elementIds": [3]
         }
     ],
 
@@ -102,13 +107,6 @@
             "type": "wire",
             "field": "current",
             "elementIds": [4],
-            "domain": { "type": "time" }
-        },
-        {
-            "name": "wire_mid",
-            "type": "wire",
-            "field": "current",
-            "elementIds": [6],
             "domain": { "type": "time" }
         }
     ]

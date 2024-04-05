@@ -317,6 +317,7 @@
 			{"id": 62, "relativePosition": [ 10, 2, 1]}, 
 			{"id": 63, "relativePosition": [ 10, 2, 1]}, 
 			{"id": 64, "relativePosition": [ 10, 2, 1]}
+			
 		],
 		"elements": [
 			{"id": 1,  "type": "polyline", "coordinateIds": [ 1,  2]},				

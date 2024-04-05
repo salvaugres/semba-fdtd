@@ -55,10 +55,9 @@
         ],
         "elements": [
             {"id": 1, "type": "node", "coordinateIds": [1]},
-            {"id": 2, "type": "polyline", "coordinateIds": [1, 2, 5] },
+            {"id": 2, "type": "polyline", "coordinateIds": [1, 2, 3, 4] },
             {"id": 3, "type": "cell", "intervals": [[[25, 20, 30], [45, 30, 30]]] },
             {"id": 4, "type": "node", "coordinateIds": [4]},
-            {"id": 5, "type": "polyline", "coordinateIds": [5, 3, 4] },
             {"id": 6, "type": "node", "coordinateIds": [5]}
         ]
     },
@@ -67,16 +66,9 @@
         { 
             "type": "cable",
             "materialId": 1,
-            "initialTerminalId": 3,
-            "endTerminalId": 2,
-            "elementIds": [2]
-        },
-        { 
-            "type": "cable",
-            "materialId": 1,
-            "initialTerminalId": 3,
+            "initialTerminalId": 2,
             "endTerminalId": 3,
-            "elementIds": [5]
+            "elementIds": [2]
         },
         {
             "type": "bulk", 
@@ -108,13 +100,6 @@
             "type": "wire",
             "field": "current",
             "elementIds": [4],
-            "domain": { "type": "time" }
-        },
-        {
-            "name": "wire_mid",
-            "type": "wire",
-            "field": "current",
-            "elementIds": [6],
             "domain": { "type": "time" }
         }
 

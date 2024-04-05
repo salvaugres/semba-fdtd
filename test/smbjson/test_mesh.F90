@@ -40,6 +40,72 @@ integer function test_mesh_add_get() bind(C) result(error_cnt)
 
 end function
 
+integer function test_mesh_add_get_long_list() bind(C) result(error_cnt)
+   use mesh_mod
+   use testingTools
+
+   implicit none
+
+   type(mesh_t) :: mesh
+   logical :: found
+
+   error_cnt = 0
+   call mesh%addCoordinate( 1 , coordinate_t([  1, 9, 1]))
+   call mesh%addCoordinate( 2 , coordinate_t([ 10, 9, 1]))
+   call mesh%addCoordinate( 5 , coordinate_t([ 18, 9, 1])) 
+   call mesh%addCoordinate( 6 , coordinate_t([ 10, 2, 1]))    
+   call mesh%addCoordinate( 11, coordinate_t([  1, 9, 1]))
+   call mesh%addCoordinate( 15, coordinate_t([ 10, 9, 1]))
+   call mesh%addCoordinate( 23, coordinate_t([ 18, 9, 1])) 
+   call mesh%addCoordinate( 24, coordinate_t([ 10, 2, 1])) 
+   call mesh%addCoordinate( 33, coordinate_t([  1, 9, 1]))
+   call mesh%addCoordinate( 34, coordinate_t([  1, 9, 1]))
+   call mesh%addCoordinate( 35, coordinate_t([  1, 9, 1]))
+   call mesh%addCoordinate( 36, coordinate_t([  1, 9, 1]))
+   call mesh%addCoordinate( 37, coordinate_t([  1, 9, 1]))
+   call mesh%addCoordinate( 38, coordinate_t([  1, 9, 1]))
+   call mesh%addCoordinate( 39, coordinate_t([  1, 9, 1]))
+   call mesh%addCoordinate( 40, coordinate_t([  1, 9, 1]))
+   call mesh%addCoordinate( 41, coordinate_t([ 10, 9, 1]))
+   call mesh%addCoordinate( 42, coordinate_t([ 10, 9, 1]))
+   call mesh%addCoordinate( 43, coordinate_t([ 10, 9, 1]))
+   call mesh%addCoordinate( 44, coordinate_t([ 10, 9, 1]))
+   call mesh%addCoordinate( 45, coordinate_t([ 10, 9, 1]))
+   call mesh%addCoordinate( 46, coordinate_t([ 10, 9, 1]))
+   call mesh%addCoordinate( 47, coordinate_t([ 10, 9, 1]))
+   call mesh%addCoordinate( 48, coordinate_t([ 10, 9, 1]))
+   call mesh%addCoordinate( 51, coordinate_t([ 18, 9, 1]))
+   call mesh%addCoordinate( 52, coordinate_t([ 18, 9, 1]))
+   call mesh%addCoordinate( 59, coordinate_t([ 10, 2, 1])) 
+   call mesh%addCoordinate( 60, coordinate_t([ 10, 2, 1])) 
+   call mesh%addCoordinate( 61, coordinate_t([ 10, 2, 1])) 
+   call mesh%addCoordinate( 62, coordinate_t([ 10, 2, 1])) 
+   call mesh%addCoordinate( 63, coordinate_t([ 10, 2, 1]))
+   call mesh%addCoordinate( 64, coordinate_t([ 10, 2, 1]))
+   call mesh%addCoordinate( 65, coordinate_t([ 10, 2, 1]))
+   call mesh%addCoordinate( 66, coordinate_t([ 10, 2, 1]))
+
+
+   block
+      type(coordinate_t) :: expected, obtained      
+      expected%position = [10,2,1]
+      obtained = mesh%getCoordinate(65, found)
+      if (.not. found) error_cnt = error_cnt + 1
+      if (any(obtained%position /= expected%position)) error_cnt = error_cnt + 1
+   end block
+
+   block
+      type(coordinate_t) :: expected, obtained      
+      expected%position = [10,2,1]
+      obtained = mesh%getCoordinate(66, found)
+      if (.not. found) error_cnt = error_cnt + 1
+      if (any(obtained%position /= expected%position)) error_cnt = error_cnt + 1
+   end block
+
+   call mesh%printCoordHashInfo()
+
+end function
+
 integer function test_mesh_node_to_pixel() bind(C) result(err)
    use mesh_mod
    use cells_mod

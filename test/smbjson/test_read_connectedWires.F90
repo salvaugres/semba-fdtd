@@ -1,10 +1,10 @@
-integer function test_read_splitWires() bind (C) result(err)
+integer function test_read_connectedwires() bind (C) result(err)
    use smbjson
    use testingTools
 
    implicit none
 
-   character(len=*),parameter :: filename = PATH_TO_TEST_DATA//'cases/towelHanger.fdtd.json'
+   character(len=*),parameter :: filename = PATH_TO_TEST_DATA//'cases/connectedWires.fdtd.json'
    type(Parseador) :: problem, expected
    type(parser_t) :: parser
    logical :: areSame
@@ -119,14 +119,15 @@ contains
       
       
       ! Expected thin wires
-      allocate(expected%tWires%tw(1))
+      allocate(expected%tWires%tw(2))
+      ! thin wire 1
       expected%tWires%tw(1)%rad=0.1e-3
       expected%tWires%tw(1)%dispfile = trim(adjustl(" "))
       expected%tWires%tw(1)%dispfile_LeftEnd = trim(adjustl(" "))
       expected%tWires%tw(1)%dispfile_RightEnd = trim(adjustl(" "))
-      expected%tWires%tw(1)%n_twc=20
-      expected%tWires%tw(1)%n_twc_max=20
-      allocate(expected%tWires%tw(1)%twc(20))
+      expected%tWires%tw(1)%n_twc=10
+      expected%tWires%tw(1)%n_twc_max=10
+      allocate(expected%tWires%tw(1)%twc(10))
       expected%tWires%tw(1)%twc(1)%srcfile = 'ramp.exc'
       expected%tWires%tw(1)%twc(1)%srctype = 'VOLT'
       expected%tWires%tw(1)%twc(1)%m = 1.0
@@ -139,40 +140,68 @@ contains
       expected%tWires%tw(1)%twc(1:2)%d = DIR_Z
       expected%tWires%tw(1)%twc(1:2)%nd = -1
 
-      expected%tWires%tw(1)%twc(3:18)%srcfile = 'None'
-      expected%tWires%tw(1)%twc(3:18)%srctype = 'None'
-      expected%tWires%tw(1)%twc(3:18)%m = 0.0
-      expected%tWires%tw(1)%twc(3:18)%i = [(i, i=27,42)]
-      expected%tWires%tw(1)%twc(3:18)%j = 25
-      expected%tWires%tw(1)%twc(3:18)%k = 32
-      expected%tWires%tw(1)%twc(3:18)%d = DIR_X
-      expected%tWires%tw(1)%twc(3:18)%nd = -1
-
-      expected%tWires%tw(1)%twc(19:20)%srcfile = 'None'
-      expected%tWires%tw(1)%twc(19:20)%srctype = 'None'
-      expected%tWires%tw(1)%twc(19:20)%m = 0.0
-
-      expected%tWires%tw(1)%twc(19:20)%i = 43
-      expected%tWires%tw(1)%twc(19:20)%j = 25
-      expected%tWires%tw(1)%twc(19:20)%k = [(i, i=31, 30, -1)]
-      expected%tWires%tw(1)%twc(19:20)%d = DIR_Z
-      expected%tWires%tw(1)%twc(19:20)%nd = -1
+      expected%tWires%tw(1)%twc(3:10)%srcfile = 'None'
+      expected%tWires%tw(1)%twc(3:10)%srctype = 'None'
+      expected%tWires%tw(1)%twc(3:10)%m = 0.0
+      expected%tWires%tw(1)%twc(3:10)%i = [(i, i=27,34)]
+      expected%tWires%tw(1)%twc(3:10)%j = 25
+      expected%tWires%tw(1)%twc(3:10)%k = 32
+      expected%tWires%tw(1)%twc(3:10)%d = DIR_X
+      expected%tWires%tw(1)%twc(3:10)%nd = -1
 
       expected%tWires%tw(1)%twc(1)%nd  = 1
       expected%tWires%tw(1)%twc(3)%nd  = 2
-      expected%tWires%tw(1)%twc(19)%nd  = 3
-      expected%tWires%tw(1)%twc(20)%nd = 4
+      expected%tWires%tw(1)%twc(10)%nd  = 5
       
-      expected%tWires%tw(1)%twc(1:20)%tag = trim(adjustl("2"))   ! The polyline id is used as tag.
+      expected%tWires%tw(1)%twc(1:10)%tag = trim(adjustl("2"))   ! The polyline id is used as tag.
       
-      expected%tWires%tw(1)%tl = SERIES_CONS
-      expected%tWires%tw(1)%R_LeftEnd = 50
+      expected%tWires%tw(1)%tl = MATERIAL_CONS
       expected%tWires%tw(1)%C_LeftEnd = 1e22
-      expected%tWires%tw(1)%tr = MATERIAL_CONS
+      expected%tWires%tw(1)%tr = SERIES_CONS
+      expected%tWires%tw(1)%R_RightEnd = 50
       expected%tWires%tw(1)%C_RightEnd = 1e22
+
+      ! thin wire 2
+
+      expected%tWires%tw(2)%rad=0.1e-3
+      expected%tWires%tw(2)%dispfile = trim(adjustl(" "))
+      expected%tWires%tw(2)%dispfile_LeftEnd = trim(adjustl(" "))
+      expected%tWires%tw(2)%dispfile_RightEnd = trim(adjustl(" "))
+      expected%tWires%tw(2)%n_twc=10
+      expected%tWires%tw(2)%n_twc_max=10
+      allocate(expected%tWires%tw(2)%twc(10))
+      expected%tWires%tw(2)%twc(1:8)%srcfile = 'None'
+      expected%tWires%tw(2)%twc(1:8)%srctype = 'None'
+      expected%tWires%tw(2)%twc(1:8)%i = [(i, i=35,42)]
+      expected%tWires%tw(2)%twc(1:8)%j = 25
+      expected%tWires%tw(2)%twc(1:8)%k = 32
+      expected%tWires%tw(2)%twc(1:8)%d = DIR_X
+      expected%tWires%tw(2)%twc(1:8)%nd = -1
       
-      expected%tWires%n_tw = 1
-      expected%tWires%n_tw_max = 1
+
+      expected%tWires%tw(2)%twc(9:10)%srcfile = 'None'
+      expected%tWires%tw(2)%twc(9:10)%srctype = 'None'
+      expected%tWires%tw(2)%twc(9:10)%m = 0.0
+      expected%tWires%tw(2)%twc(9:10)%i = 43
+      expected%tWires%tw(2)%twc(9:10)%j = 25
+      expected%tWires%tw(2)%twc(9:10)%k = [(i, i=31,30,-1)]
+      expected%tWires%tw(2)%twc(9:10)%d = DIR_Z
+      expected%tWires%tw(2)%twc(9:10)%nd = -1
+
+
+      expected%tWires%tw(2)%twc(1)%nd  = 5
+      expected%tWires%tw(2)%twc(9)%nd  = 3
+      expected%tWires%tw(2)%twc(10)%nd  = 4
+      
+      expected%tWires%tw(2)%twc(1:10)%tag = trim(adjustl("5"))   ! The polyline id is used as tag.
+      
+      expected%tWires%tw(2)%tl = MATERIAL_CONS
+      expected%tWires%tw(2)%C_LeftEnd = 1e22
+      expected%tWires%tw(2)%tr = MATERIAL_CONS
+      expected%tWires%tw(2)%C_RightEnd = 1e22
+
+      expected%tWires%n_tw = 2
+      expected%tWires%n_tw_max = 2
    end function
 end function
 
