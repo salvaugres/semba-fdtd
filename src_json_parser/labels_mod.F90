@@ -161,7 +161,7 @@ module labels_mod
    
    character (len=*), parameter :: J_PR_DOMAIN_FREQ_START = "initialFrequency"
    character (len=*), parameter :: J_PR_DOMAIN_FREQ_STOP   = "finalFrequency"
-   character (len=*), parameter :: J_PR_DOMAIN_FREQ_STEP  = "numberOfFrequencies"
+   character (len=*), parameter :: J_PR_DOMAIN_FREQ_NUMBER  = "numberOfFrequencies"
    character (len=*), parameter :: J_PR_DOMAIN_FREQ_SPACING  = "frequencySpacing"
    character (len=*), parameter :: J_PR_DOMAIN_FREQ_SPACING_LINEAR  = "linear"
    character (len=*), parameter :: J_PR_DOMAIN_FREQ_SPACING_LOGARITHMIC  = "logarithmic"

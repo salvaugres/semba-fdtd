@@ -1719,7 +1719,6 @@ contains
                         cable_ptr => cable_ptr%parent_cable
                      end do
                      res(k)%attached_to_cable => cable_ptr
-                     ! res(k)%attached_to_cable => getCableContainingElemId(this%getIntAt(polylines(j)%p, J_ID))
                      res(k)%index = findProbeIndex(polylinecIds, position)
                      k = k + 1
                   end if
@@ -1871,7 +1870,6 @@ contains
          integer, dimension(:), intent(in) :: elemIds
          integer :: index
          integer :: i
-         elemIds = getCableElemIds(j_cable)
          do i = 1, size(elemIds)
             call map%set(key(elemIds(i)), index)
          end do
@@ -2168,7 +2166,6 @@ contains
                   index_1 = ceiling(min(abs(c1%position(axis)), abs(c2%position(axis))))
                   index_2 = floor(max(abs(c1%position(axis)), abs(c2%position(axis))))
                   do i = 1, index_2 - index_1
-                  ! do i = index_1, index_2 - 1
                      res = [res, displacement(i)]
                   enddo
                   if (f2 /= 0) then 
