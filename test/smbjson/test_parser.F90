@@ -65,3 +65,39 @@ integer function test_parser_tools_interval_to_coords() result(err)
 
 
 end function
+
+integer function test_parser_read_mesh() bind(C) result(err)
+
+   use smbjson
+   use testingTools
+
+   implicit none
+
+   character(len=*),parameter :: filename = PATH_TO_TEST_DATA//'cases/mtln.fdtd.json'
+   type(parser_t) :: parser
+   type(mesh_t) :: mesh
+   logical :: found
+   type(coordinate_t) :: expected, obtained
+
+   err = 0
+
+   parser = parser_t(filename)
+   call parser%initializeJson()
+   mesh = parser%readMesh()
+   call mesh%printCoordHashInfo()
+   expected%position = [10,2,1]
+   
+   obtained = mesh%getCoordinate(59, found)
+   if (.not. found) err = err + 1
+   if ( any(obtained%position /= expected%position)) err = err + 1
+
+   obtained = mesh%getCoordinate(64, found)
+   if (.not. found) err = err + 1
+   if ( any(obtained%position /= expected%position)) err = err + 1
+
+   obtained = mesh%getCoordinate(61, found)
+   if (.not. found) err = err + 1
+   if ( any(obtained%position /= expected%position)) err = err + 1
+
+
+end function

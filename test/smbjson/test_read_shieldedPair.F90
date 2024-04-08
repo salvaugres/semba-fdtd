@@ -136,6 +136,31 @@ contains
 
       ! Expected mtln type
       allocate(expected%mtln%cables(2))
+      ! cable 2 - wire
+      expected%mtln%cables(2)%name = "line_0"
+      allocate(expected%mtln%cables(2)%inductance_per_meter(1,1))
+      allocate(expected%mtln%cables(2)%capacitance_per_meter(1,1))
+      allocate(expected%mtln%cables(2)%resistance_per_meter(1,1))
+      allocate(expected%mtln%cables(2)%conductance_per_meter(1,1))
+      expected%mtln%cables(2)%inductance_per_meter = reshape(source=[5.362505362505362e-07], shape=[1,1])
+      expected%mtln%cables(2)%capacitance_per_meter = reshape(source=[20.72e-12], shape=[1,1])
+      expected%mtln%cables(2)%resistance_per_meter = reshape(source=[22.9e-3], shape=[1,1])
+      expected%mtln%cables(2)%conductance_per_meter = reshape(source=[0.0], shape=[1,1])
+      allocate(expected%mtln%cables(2)%step_size(18))
+      expected%mtln%cables(2)%step_size =  [(0.03, i = 1, 18)]
+      allocate(expected%mtln%cables(2)%segment_relative_positions(18))
+      do i = 1, 18
+         expected%mtln%cables(2)%segment_relative_positions(i)%position = (/1,1,i/)
+      end do
+
+      allocate(expected%mtln%cables(2)%transfer_impedance%poles(0))
+      allocate(expected%mtln%cables(2)%transfer_impedance%residues(0))
+
+      expected%mtln%cables(2)%parent_cable => null()
+      expected%mtln%cables(2)%conductor_in_parent = 0
+      expected%mtln%cables(2)%initial_connector => null()
+      expected%mtln%cables(2)%end_connector => null()
+
       ! cable 1 - multiwire
       expected%mtln%cables(1)%name = "line_1"
       allocate(expected%mtln%cables(1)%inductance_per_meter(2,2))
@@ -166,30 +191,6 @@ contains
       expected%mtln%cables(1)%conductor_in_parent = 1
       expected%mtln%cables(1)%initial_connector => null()
       expected%mtln%cables(1)%end_connector => null()
-      ! cable 2 - wire
-      expected%mtln%cables(2)%name = "line_0"
-      allocate(expected%mtln%cables(2)%inductance_per_meter(1,1))
-      allocate(expected%mtln%cables(2)%capacitance_per_meter(1,1))
-      allocate(expected%mtln%cables(2)%resistance_per_meter(1,1))
-      allocate(expected%mtln%cables(2)%conductance_per_meter(1,1))
-      expected%mtln%cables(2)%inductance_per_meter = reshape(source=[5.362505362505362e-07], shape=[1,1])
-      expected%mtln%cables(2)%capacitance_per_meter = reshape(source=[20.72e-12], shape=[1,1])
-      expected%mtln%cables(2)%resistance_per_meter = reshape(source=[22.9e-3], shape=[1,1])
-      expected%mtln%cables(2)%conductance_per_meter = reshape(source=[0.0], shape=[1,1])
-      allocate(expected%mtln%cables(2)%step_size(18))
-      expected%mtln%cables(2)%step_size =  [(0.03, i = 1, 18)]
-      allocate(expected%mtln%cables(2)%segment_relative_positions(18))
-      do i = 1, 18
-         expected%mtln%cables(2)%segment_relative_positions(i)%position = (/1,1,i/)
-      end do
-
-      allocate(expected%mtln%cables(2)%transfer_impedance%poles(0))
-      allocate(expected%mtln%cables(2)%transfer_impedance%residues(0))
-
-      expected%mtln%cables(2)%parent_cable => null()
-      expected%mtln%cables(2)%conductor_in_parent = 0
-      expected%mtln%cables(2)%initial_connector => null()
-      expected%mtln%cables(2)%end_connector => null()
 
       ! probes
       allocate(expected%mtln%probes(2))

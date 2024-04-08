@@ -30,6 +30,7 @@ module smbjson
 
    contains
       procedure :: readProblemDescription
+      procedure :: initializeJson
 
       ! private
       procedure :: readGeneral
@@ -94,10 +95,33 @@ contains
       res%filename = filename
    end function
 
+   subroutine initializeJson(this)
+      class(parser_t) :: this
+      integer :: stat 
+      
+      allocate(this%jsonfile)
+      call this%jsonfile%initialize()
+      if (this%jsonfile%failed()) then
+         call this%jsonfile%print_error_message(error_unit)
+         return
+      end if
+
+      call this%jsonfile%load(filename = this%filename)
+      if (this%jsonfile%failed()) then
+         call this%jsonfile%print_error_message(error_unit)
+         return
+      end if
+
+      allocate(this%core)
+      call this%jsonfile%get_core(this%core)
+      call this%jsonfile%get('.', this%root)
+   end subroutine
+
    function readProblemDescription(this) result (res)
       class(parser_t) :: this
       type(Parseador) :: res
-
+      integer :: stat 
+      
       allocate(this%jsonfile)
       call this%jsonfile%initialize()
       if (this%jsonfile%failed()) then
@@ -118,6 +142,8 @@ contains
       this%mesh = this%readMesh()
       this%matTable = IdChildTable_t(this%core, this%root, J_MATERIALS)
 
+
+      
       call initializeProblemDescription(res)
 
       ! Basics
@@ -167,10 +193,12 @@ contains
       integer :: id, i
       real, dimension(:), allocatable :: pos
       type(coordinate_t) :: c
+      integer :: stat
       logical :: found
-
+    
       call this%core%get(this%root, J_MESH//'.'//J_COORDINATES, jcs, found=found)
       if (found) then
+         call res%allocateCoordinates(10*this%core%count(jcs))
          do i = 1, this%core%count(jcs)
             call this%core%get_child(jcs, i, jc)
             call this%core%get(jc, J_ID, id)
@@ -1020,9 +1048,15 @@ contains
          block
             integer, dimension(:), allocatable :: sourceElemIds
             integer :: position
+            type(node_t) :: srcCoord
+            type(polyline_t) :: polylineCoords
             do i = 1, size(genSrcs)
                call this%core%get(genSrcs(i)%p, J_ELEMENTIDS, sourceElemIds)
-               if (.not. any(plineElemIds == sourceElemIds(1))) continue ! generator is not in this polyline
+               srcCoord = this%mesh%getNode(sourceElemIds(1))
+               polylineCoords = this%mesh%getPolyline(plineElemIds(1))
+               if (.not. any(polylineCoords%coordIds == srcCoord%coordIds(1))) then 
+                  cycle ! generator is not in this polyline
+               end if
 
                position = findSourcePositionInLinels(sourceElemIds, linels)
       
@@ -1266,7 +1300,7 @@ contains
       mtln_res%number_of_steps = this%getRealAt(this%root, J_GENERAL//'.'//J_GEN_NUMBER_OF_STEPS)
 
       cables = readCables()
-      mtln_res%connectors = readConnectors()
+      mtln_res%connectors => readConnectors()
       call addConnIdToConnectorMap(connIdToConnector, mtln_res%connectors)
 
       block
@@ -1291,7 +1325,7 @@ contains
                   if (is_read) then
                      ncc = ncc + 1
                      mtln_res%cables(ncc) = read_cable
-                     call addElemIdToCableMap(elemIdToCable, cables(i)%p, mtln_res%cables(ncc))
+                     call addElemIdToCableMap(elemIdToCable, getCableElemIds(cables(i)%p), ncc)
                      call addElemIdToPositionMap(elemIdToPosition, cables(i)%p)
                   end if
                end if
@@ -1300,13 +1334,15 @@ contains
       end block
 
       block
-         integer :: i, j, parentId
+         integer :: i, j, parentId, index
          j = 1
          if (size(cables) /= 0) then
             do i = 1, size(cables)
                if (isMultiwire(cables(i)%p)) then
                   parentId = this%getIntAt(cables(i)%p, J_MAT_ASS_CAB_CONTAINED_WITHIN_ID)
-                  mtln_res%cables(j)%parent_cable => getCableContainingElemId(parentId)
+                  call elemIdToCable%get(key(parentId), value=index)
+                  mtln_res%cables(j)%parent_cable => mtln_res%cables(index)
+
                   mtln_res%cables(j)%conductor_in_parent = getParentPositionInMultiwire(parentId)
                else if (isWire(cables(i)%p)) then
                   mtln_res%cables(j)%parent_cable => null()
@@ -1316,14 +1352,14 @@ contains
             end do
          end if
       end block
-
+    
       mtln_res%probes = readWireProbes()
       mtln_res%networks = buildNetworks()
 
    contains
 
       function readConnectors() result(res)
-         type(connector_t), target, dimension(:), allocatable :: res
+         type(connector_t), dimension(:), pointer :: res
          type(json_value), pointer :: mat, z
 
          type(json_value_ptr), dimension(:), allocatable :: connectors
@@ -1425,6 +1461,7 @@ contains
          integer, dimension(:), allocatable :: elemIds
          type(json_value), pointer :: terminations_ini, terminations_end
          type(coordinate_t), dimension(:), allocatable :: networks_coordinates
+
          allocate(aux_nodes(0))
          allocate(networks_coordinates(0))
          cables = readCables()
@@ -1440,6 +1477,8 @@ contains
 
          end do
          allocate(res(size(networks_coordinates)))
+        
+         
          do i = 1, size(networks_coordinates)
             res(i) = buildNetwork(networks_coordinates(i), aux_nodes)
          end do
@@ -1522,12 +1561,15 @@ contains
          integer :: i
          logical :: found_ini, found_end
          type(coordinate_t) :: coord_ini, coord_end
+         integer :: ub
 
          found_ini = .false.
          found_end = .false.
          polyline = this%mesh%getPolyline(conductor_index)
          coord_ini = this%mesh%getCoordinate(polyline%coordIds(1))
-         coord_end = this%mesh%getCoordinate(polyline%coordIds(ubound(polyline%coordIds,1)))
+         
+         ub = ubound(polyline%coordIds,1)
+         coord_end = this%mesh%getCoordinate(polyline%coordIds(ub))
 
          if (size(coordinates) /= 0) then
             do i = 1, size(coordinates)
@@ -1580,6 +1622,7 @@ contains
          integer, intent(in) :: index, id
          type(polyline_t) :: polyline
          type(aux_node_t) :: res
+         integer :: cable_index
          call this%core%get_child(termination_list, index, termination)
          allocate(termination_t :: res%node%termination)
          res%node%side = label
@@ -1588,7 +1631,9 @@ contains
          res%node%termination%resistance = readTerminationRLC(termination, J_MAT_TERM_RESISTANCE, default = 0.0)
          res%node%termination%inductance = readTerminationRLC(termination, J_MAT_TERM_INDUCTANCE, default=0.0)
          res%node%conductor_in_cable = index
-         res%node%belongs_to_cable => getCableContainingElemId(id)
+         
+         call elemIdToCable%get(key(id), value=cable_index)
+         res%node%belongs_to_cable => mtln_res%cables(cable_index)
 
          polyline = this%mesh%getPolyline(id)
 
@@ -1642,6 +1687,7 @@ contains
          integer, dimension(:), allocatable :: elemIds, polylinecIds
          type(node_t) :: node
          type(cable_t), pointer :: cable_ptr
+         integer :: index
          if (this%existsAt(this%root, J_PROBES)) then
             call this%core%get(this%root, J_PROBES, probes)
          else
@@ -1667,12 +1713,12 @@ contains
                   if (position /= 0) then ! polyline found
                      res(k)%probe_type = readProbeType(wire_probes(i)%p)
 
-                     cable_ptr => getCableContainingElemId(this%getIntAt(polylines(j)%p, J_ID))
+                     call elemIdToCable%get(key(this%getIntAt(polylines(j)%p, J_ID)), value=index)
+                     cable_ptr => mtln_res%cables(index)
                      do while (associated(cable_ptr%parent_cable))
                         cable_ptr => cable_ptr%parent_cable
                      end do
                      res(k)%attached_to_cable => cable_ptr
-                     ! res(k)%attached_to_cable => getCableContainingElemId(this%getIntAt(polylines(j)%p, J_ID))
                      res(k)%index = findProbeIndex(polylinecIds, position)
                      k = k + 1
                   end if
@@ -1761,11 +1807,12 @@ contains
       function findConnectorWithId(j_cable, side) result(res)
          type(json_value), pointer :: j_cable
          character(*), intent(in) :: side
-         integer :: conn_id
+         integer :: conn_id, conn_index
          type(connector_t), pointer :: res
          if (this%existsAt(j_cable, side)) then
             conn_id = this%getIntAt(j_cable, side)
-            res => getConnectorWithIdFromMap(conn_id)
+            call connIdToConnector%get(key(conn_id), conn_index)
+            res => mtln_res%connectors(conn_index)
          else
             res => null()
          end if
@@ -1813,20 +1860,18 @@ contains
          integer :: i
          if (size(conn) == 0) return
          do i = 1, size(conn)
-            call map%set(key(conn(i)%id), conn(i), pointer=.true.)
+            call map%set(key(conn(i)%id), i)
          end do
       end subroutine
 
 
-      subroutine addElemIdToCableMap(map, j_cable, cable)
+      subroutine addElemIdToCableMap(map, elemIds, index)
          type(fhash_tbl_t), intent(inout) :: map
-         type(json_value), pointer :: j_cable
-         type(cable_t), intent(in) :: cable
-         integer, dimension(:), allocatable :: elemIds
+         integer, dimension(:), intent(in) :: elemIds
+         integer :: index
          integer :: i
-         elemIds = getCableElemIds(j_cable)
          do i = 1, size(elemIds)
-            call map%set(key(elemIds(i)), cable, pointer=.true.)
+            call map%set(key(elemIds(i)), index)
          end do
       end subroutine
 
@@ -2121,7 +2166,6 @@ contains
                   index_1 = ceiling(min(abs(c1%position(axis)), abs(c2%position(axis))))
                   index_2 = floor(max(abs(c1%position(axis)), abs(c2%position(axis))))
                   do i = 1, index_2 - index_1
-                  ! do i = index_1, index_2 - 1
                      res = [res, displacement(i)]
                   enddo
                   if (f2 /= 0) then 

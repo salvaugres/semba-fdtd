@@ -33,6 +33,7 @@ module mesh_mod
    contains
       procedure :: addCoordinate => mesh_addCoordinate
       procedure :: getCoordinate => mesh_getCoordinate
+      procedure :: checkId => mesh_checkId
 
       procedure :: addElement => mesh_addElement
       procedure :: getNode => mesh_getNode
@@ -45,12 +46,40 @@ module mesh_mod
       procedure :: arePolylineSegmentsStructured => mesh_arePolylineSegmentsStructured
       procedure :: convertPolylineToLinels => mesh_convertPolylineToLinels
       procedure :: convertNodeToPixels => mesh_convertNodeToPixels
+
+      procedure :: printCoordHashInfo => mesh_printCoordHashInfo
+      procedure :: allocateCoordinates => mesh_allocateCoordinates
    end type
 
 
 contains
    ! __________________________________________________________________
    ! Mesh procedures
+   subroutine mesh_allocateCoordinates(this, buck)
+      class(mesh_t) :: this
+      integer :: buck
+      call this%coordinates%allocate(buck)
+   end subroutine
+
+   subroutine mesh_printCoordHashInfo(this)
+      class(mesh_t) :: this
+      integer :: num_buckets, num_items, num_collisions, max_depth
+      call this%coordinates%stats(num_buckets,num_items,num_collisions,max_depth)
+      write(*,'(A,T40,I0)') '  Number of buckets allocated: ',num_buckets
+      write(*,'(A,T40,I0)') '  Number of key-value pairs stored: ',num_items
+      write(*,'(A,T40,I0)') '  Total number of hash-collisions: ',num_collisions
+      write(*,'(A,T40,I0)') '  The worst case bucket depth is ',max_depth
+      print *
+
+   end subroutine
+
+   subroutine mesh_checkId(this, id, stat)
+      class(mesh_t) :: this
+      integer, intent(in) :: id
+      integer, intent(inout) :: stat
+      call this%coordinates%check_key(key(id), stat)
+   end subroutine
+
    subroutine mesh_addCoordinate(this, id, coordinate)
       class(mesh_t) :: this
       integer, intent(in) :: id
