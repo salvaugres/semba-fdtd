@@ -75,7 +75,7 @@ if(CMAKE_Fortran_COMPILER_ID MATCHES "GNU")
 endif()
 if(CMAKE_Fortran_COMPILER_ID MATCHES "^Intel")
 	message(STATUS "INTEL FORTRAN found...")
-	set(CMAKE_Fortran_FLAGS "-fpp -check all -debug full -traceback ")
+	set(CMAKE_Fortran_FLAGS "-fpp -check all,nounint -debug full -traceback ")
 endif()
 
 if (CompileWithHDF)
