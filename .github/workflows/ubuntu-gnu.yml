@@ -11,6 +11,7 @@ on:
   pull_request:
     branches:
       - main
+      - dev
 
 jobs:
   builds-and-test:
@@ -26,15 +27,19 @@ jobs:
       
     - name: Build application
       run: |       
-        cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCompileExecutable=YES -DCompileWithMTLN=YES
+        cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
         cmake --build build -j
       
-    - name: Run json-parser tests 
+    - name: Run fdtd unit tests 
       run: |
-        build/bin/smbjson_tests
+        build/bin/fdtd_tests
 
-    - name: Run mtln tests 
+    - name: Install python wrapper requirements
       run: |
-        build/bin/mtlnsolver_tests
-        
+        python -m pip install -r requirements.txt
+
+    - name: Run wrapper tests
+      run: |
+        python -m pytest test/pyWrapper/test_pyWrapper.py
+       
       

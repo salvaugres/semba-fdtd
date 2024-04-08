@@ -22,8 +22,7 @@ module mtln_types_mod
     integer, parameter :: PROBE_TYPE_CURRENT   =  2
  
     type :: segment_relative_position_t
-      integer, dimension(3) :: position  
-      !  integer :: i, j, k
+      integer, dimension(3) ::position  
     contains
        private
        procedure :: segment_relative_positions_eq
@@ -131,10 +130,10 @@ module mtln_types_mod
     end type
  
     type, public :: mtln_t
-       type(cable_t), dimension(:), allocatable :: cables
+      type(cable_t), dimension(:), pointer :: cables
        type(terminal_network_t), dimension(:), allocatable :: networks
        type(probe_t), dimension(:), allocatable :: probes
-       type(connector_t), dimension(:), allocatable :: connectors
+      type(connector_t), dimension(:), pointer :: connectors
        real :: time_step
        integer :: number_of_steps
     contains
@@ -167,16 +166,16 @@ module mtln_types_mod
 
     recursive elemental logical function cable_eq(a,b)    
        class(cable_t), intent(in) :: a, b
-       cable_eq = &
-          (a%name == b%name) .and. &
-          all(a%inductance_per_meter == b%inductance_per_meter) .and. &
-          all(a%capacitance_per_meter == b%capacitance_per_meter) .and. &
-          all(a%resistance_per_meter == b%resistance_per_meter) .and. &
-          all(a%conductance_per_meter == b%conductance_per_meter) .and. &
-          all(a%step_size == b%step_size) .and. &
-          (a%transfer_impedance == b%transfer_impedance) .and. &
-          (a%conductor_in_parent == b%conductor_in_parent) .and. &
-          all(a%segment_relative_positions == b%segment_relative_positions)
+      cable_eq = .true.
+      cable_eq = cable_eq .and.  (a%name == b%name) 
+      cable_eq = cable_eq .and.  all(a%inductance_per_meter == b%inductance_per_meter)
+      cable_eq = cable_eq .and.  all(a%capacitance_per_meter == b%capacitance_per_meter)
+      cable_eq = cable_eq .and.  all(a%resistance_per_meter == b%resistance_per_meter)
+      cable_eq = cable_eq .and.  all(a%conductance_per_meter == b%conductance_per_meter)
+      cable_eq = cable_eq .and.  all(a%step_size == b%step_size)
+      cable_eq = cable_eq .and.  (a%transfer_impedance == b%transfer_impedance)
+      cable_eq = cable_eq .and.  (a%conductor_in_parent == b%conductor_in_parent)
+      cable_eq = cable_eq .and.  all(a%segment_relative_positions == b%segment_relative_positions)
 
 
          if (.not. cable_eq) then 

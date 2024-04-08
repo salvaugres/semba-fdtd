@@ -30,6 +30,7 @@ module smbjson
 
    contains
       procedure :: readProblemDescription
+      procedure :: initializeJson
 
       ! private
       procedure :: readGeneral
@@ -73,9 +74,16 @@ module smbjson
       real :: r, l, c
    end type
 
+   type, private :: generator_description_t
+      character(:), allocatable :: srctype, srcfile
+      real :: multiplier
+   end type
+
+
    type, private :: domain_t
       real :: tstart, tstop, tstep
-      real :: fstart, fstop, fstep
+      real :: fstart, fstop
+      integer :: fstep
       character(len=:), allocatable :: filename
       integer :: type1, type2
       logical :: isLogarithmicFrequencySpacing
@@ -87,9 +95,32 @@ contains
       res%filename = filename
    end function
 
+   subroutine initializeJson(this)
+      class(parser_t) :: this
+      integer :: stat 
+      
+      allocate(this%jsonfile)
+      call this%jsonfile%initialize()
+      if (this%jsonfile%failed()) then
+         call this%jsonfile%print_error_message(error_unit)
+         return
+      end if
+
+      call this%jsonfile%load(filename = this%filename)
+      if (this%jsonfile%failed()) then
+         call this%jsonfile%print_error_message(error_unit)
+         return
+      end if
+
+      allocate(this%core)
+      call this%jsonfile%get_core(this%core)
+      call this%jsonfile%get('.', this%root)
+   end subroutine
+
    function readProblemDescription(this) result (res)
       class(parser_t) :: this
       type(Parseador) :: res
+      integer :: stat 
 
       allocate(this%jsonfile)
       call this%jsonfile%initialize()
@@ -111,6 +142,8 @@ contains
       this%mesh = this%readMesh()
       this%matTable = IdChildTable_t(this%core, this%root, J_MATERIALS)
 
+
+      
       call initializeProblemDescription(res)
 
       ! Basics
@@ -140,6 +173,7 @@ contains
       res%tWires = this%readThinWires()
       res%sWires = this%readSlantedWires()
       res%tSlots = this%readThinSlots()
+      
 
       ! mtln
       res%mtln = this%readMTLN(res%despl)
@@ -159,10 +193,12 @@ contains
       integer :: id, i
       real, dimension(:), allocatable :: pos
       type(coordinate_t) :: c
+      integer :: stat
       logical :: found
 
       call this%core%get(this%root, J_MESH//'.'//J_COORDINATES, jcs, found=found)
       if (found) then
+         call res%allocateCoordinates(10*this%core%count(jcs))
          do i = 1, this%core%count(jcs)
             call this%core%get_child(jcs, i, jc)
             call this%core%get(jc, J_ID, id)
@@ -552,7 +588,7 @@ contains
          type(json_value), pointer :: p
          type(Sonda), pointer :: ff
          character (len=:), allocatable :: outputName
-
+         logical :: transferFunctionFound
          type(domain_t) :: domain
 
          res%n_FarField = 1
@@ -571,7 +607,31 @@ contains
          ff%fstart = domain%fstart
          ff%fstop = domain%fstop
          ff%fstep = domain%fstep
-         ff%FileNormalize = domain%filename
+         
+         block
+            logical :: sourcesFound
+            type(json_value), pointer :: sources, src
+            character (len=:), allocatable :: fn
+            
+            fn = this%getStrAt(p, J_PR_DOMAIN//J_PR_DOMAIN_MAGNITUDE_FILE, found=transferFunctionFound)
+            if (.not. transferFunctionFound) then
+               call this%core%get(this%root, J_SOURCES, sources, sourcesFound)
+               if (sourcesFound) then 
+                  if (this%core%count(sources) == 1) then
+                     call this%core%get_child(sources, 1, src)
+                     call this%core%get(src, J_SRC_MAGNITUDE_FILE, fn, found=transferFunctionFound)
+                  end if
+               end if
+            end if
+
+            if (transferFunctionFound) then   
+               ff%FileNormalize = trim(adjustl(fn))
+            else
+               ff%FileNormalize = " "
+            end if
+            
+         end block
+            
          if (domain%isLogarithmicFrequencySpacing) then
             ff%outputrequest = ff%outputrequest // SMBJSON_LOG_SUFFIX
          end if
@@ -874,6 +934,8 @@ contains
          end do
       end if
 
+
+
    contains
       function readThinWire(cable) result(res)
          type(ThinWire) :: res
@@ -882,10 +944,12 @@ contains
          character (len=:), allocatable :: entry
          type(json_value), pointer :: je, je2
          integer :: i
+         logical :: found
 
          block
             type(json_value_ptr) :: m
-            m = this%matTable%getId(this%getIntAt(cable, J_MATERIAL_ID))
+            m = this%matTable%getId(this%getIntAt(cable, J_MATERIAL_ID, found))
+            if (.not. found) write(error_unit, *) "ERROR: material id not found in mat. association."
             call this%core%get(m%p, J_MAT_WIRE_RADIUS,     res%rad, default = 0.0)
             call this%core%get(m%p, J_MAT_WIRE_RESISTANCE, res%res, default = 0.0)
             call this%core%get(m%p, J_MAT_WIRE_INDUCTANCE, res%ind, default = 0.0)
@@ -919,13 +983,14 @@ contains
 
          block
             type(linel_t), dimension(:), allocatable :: linels
-            integer :: i
-            integer :: coordId
             integer, dimension(:), allocatable :: elementIds
             type(polyline_t) :: polyline
             character (len=MAX_LINE) :: tagLabel
-
-            call this%core%get(cable, J_ELEMENTIDS, elementIds)
+            type(generator_description_t), dimension(:), allocatable :: genDesc
+            call this%core%get(cable, J_ELEMENTIDS, elementIds, found)
+            if (.not. found) then
+               write(error_unit, *) "elementIds not found for material association."
+            end if
             if (size(elementIds) /= 1) then
                write(error_unit, *) "Thin wires must be defined by a single polyline element."
             end if
@@ -934,12 +999,15 @@ contains
 
             write(tagLabel, '(i10)') elementIds(1)
 
+            genDesc = readGeneratorOnThinWire(linels, elementIds)
+
             res%n_twc = size(linels)
             res%n_twc_max = size(linels)
             allocate(res%twc(size(linels)))
             do i = 1, size(linels)
-               res%twc(i)%srcfile = 'None'
-               res%twc(i)%srctype = 'None'
+               res%twc(i)%srcfile = genDesc(i)%srcfile
+               res%twc(i)%srctype = genDesc(i)%srctype
+               res%twc(i)%m = genDesc(i)%multiplier
                res%twc(i)%i = linels(i)%cell(1)
                res%twc(i)%j = linels(i)%cell(2)
                res%twc(i)%k = linels(i)%cell(3)
@@ -948,6 +1016,86 @@ contains
                res%twc(i)%tag = trim(adjustl(tagLabel))
             end do
          end block
+
+      end function
+
+      function readGeneratorOnThinWire(linels, plineElemIds) result(res)
+         type(linel_t), dimension(:), intent(in) :: linels
+         integer, dimension(:), intent(in) :: plineElemIds
+         type(json_value), pointer :: sources
+         type(json_value_ptr), dimension(:), allocatable :: genSrcs
+         logical :: found
+         type(generator_description_t), dimension(:), allocatable :: res
+         integer :: i
+
+         allocate(res(size(linels)))
+         do i = 1, size(linels)
+            res(i)%srcfile = 'None'
+            res(i)%srctype = 'None'
+            res(i)%multiplier = 0.0
+         end do
+
+         call this%core%get(this%root, J_SOURCES, sources, found)
+         if (.not. found) then
+            return
+         end if
+  
+         genSrcs = this%jsonValueFilterByKeyValues(sources, J_TYPE, [J_SRC_TYPE_GEN])
+         if (size(genSrcs) == 0) then
+            return
+         end if
+
+         block
+            integer, dimension(:), allocatable :: sourceElemIds
+            integer :: position
+            type(node_t) :: srcCoord
+            type(polyline_t) :: polylineCoords
+            do i = 1, size(genSrcs)
+               call this%core%get(genSrcs(i)%p, J_ELEMENTIDS, sourceElemIds)
+               srcCoord = this%mesh%getNode(sourceElemIds(1))
+               polylineCoords = this%mesh%getPolyline(plineElemIds(1))
+               if (.not. any(polylineCoords%coordIds == srcCoord%coordIds(1))) then 
+                  cycle ! generator is not in this polyline
+               end if
+
+               position = findSourcePositionInLinels(sourceElemIds, linels)
+      
+               if (.not. this%existsAt(genSrcs(i)%p, J_SRC_MAGNITUDE_FILE)) then 
+                  write(error_unit, *) 'magnitudeFile of source missing'
+                  return
+               end if
+
+               select case(this%getStrAt(genSrcs(i)%p, J_FIELD))
+               case (J_FIELD_VOLTAGE)
+                  res(position)%srctype = "VOLT"
+                  res(position)%srcfile = this%getStrAt(genSrcs(i)%p, J_SRC_MAGNITUDE_FILE)
+                  res(position)%multiplier = 1.0
+               case (J_FIELD_CURRENT)
+                  res(position)%srctype = "CURR"
+                  res(position)%srcfile = this%getStrAt(genSrcs(i)%p, J_SRC_MAGNITUDE_FILE)
+                  res(position)%multiplier = 1.0
+               case default 
+                  write(error_unit, *) 'Field block of source of type generator must be current or voltage'
+               end select
+
+            end do
+         end block
+
+      end function
+
+      function findSourcePositionInLinels(srcElemIds, linels) result(res)
+         integer, dimension(:), intent(in) :: srcElemIds
+         type(linel_t), dimension(:), intent(in) :: linels
+         type(pixel_t), dimension(:), allocatable :: pixels
+         integer :: res
+         integer :: i
+         pixels = this%mesh%convertNodeToPixels(this%mesh%getNode(srcElemIds(1)))
+         do i = 1, size(linels)
+            if (all(linels(i)%cell ==pixels(1)%cell)) then 
+               res = i 
+               return
+            end if
+         end do
 
       end function
 
@@ -1045,6 +1193,7 @@ contains
       type(json_value), pointer :: place
       character(len=*), intent(in) :: path
 
+      integer :: numberOfFrequencies
       type(json_value), pointer :: domain
       character (len=:), allocatable :: fn, domainType, freqSpacing
       logical :: found, transferFunctionFound
@@ -1053,7 +1202,6 @@ contains
       call this%core%get(place, path, domain, found)
       if (.not. found) return
 
-      res%type1 = NP_T1_PLAIN
 
       call this%core%get(domain, J_PR_DOMAIN_MAGNITUDE_FILE, fn, transferFunctionFound)
       if (found) then
@@ -1062,6 +1210,8 @@ contains
          res%filename = " "
       endif
 
+      res%type1 = NP_T1_PLAIN
+      
       call this%core%get(domain, J_TYPE, domainType)
       res%type2 = getNPDomainType(domainType, transferFunctionFound)
 
@@ -1070,7 +1220,13 @@ contains
       call this%core%get(domain, J_PR_DOMAIN_TIME_STEP,  res%tstep,  default=0.0)
       call this%core%get(domain, J_PR_DOMAIN_FREQ_START, res%fstart, default=0.0)
       call this%core%get(domain, J_PR_DOMAIN_FREQ_STOP,  res%fstop,  default=0.0)
-      call this%core%get(domain, J_PR_DOMAIN_FREQ_STEP,  res%fstep,  default=0.0)
+      
+      call this%core%get(domain, J_PR_DOMAIN_FREQ_NUMBER,  numberOfFrequencies,  default=0)
+      if (numberOfFrequencies == 0) then
+         res%fstep = 0.0
+      else
+         res%fstep = res%fstart * numberOfFrequencies
+      endif
 
       call this%core%get(domain, J_PR_DOMAIN_FREQ_SPACING, &
          freqSpacing, default=J_PR_DOMAIN_FREQ_SPACING_LINEAR)
@@ -1144,7 +1300,7 @@ contains
       mtln_res%number_of_steps = this%getRealAt(this%root, J_GENERAL//'.'//J_GEN_NUMBER_OF_STEPS)
 
       cables = readCables()
-      mtln_res%connectors = readConnectors()
+      mtln_res%connectors => readConnectors()
       call addConnIdToConnectorMap(connIdToConnector, mtln_res%connectors)
 
       block
@@ -1169,7 +1325,7 @@ contains
                   if (is_read) then
                      ncc = ncc + 1
                      mtln_res%cables(ncc) = read_cable
-                     call addElemIdToCableMap(elemIdToCable, cables(i)%p, mtln_res%cables(ncc))
+                     call addElemIdToCableMap(elemIdToCable, getCableElemIds(cables(i)%p), ncc)
                      call addElemIdToPositionMap(elemIdToPosition, cables(i)%p)
                   end if
                end if
@@ -1178,13 +1334,15 @@ contains
       end block
 
       block
-         integer :: i, j, parentId
+         integer :: i, j, parentId, index
          j = 1
          if (size(cables) /= 0) then
             do i = 1, size(cables)
                if (isMultiwire(cables(i)%p)) then
                   parentId = this%getIntAt(cables(i)%p, J_MAT_ASS_CAB_CONTAINED_WITHIN_ID)
-                  mtln_res%cables(j)%parent_cable => getCableContainingElemId(parentId)
+                  call elemIdToCable%get(key(parentId), value=index)
+                  mtln_res%cables(j)%parent_cable => mtln_res%cables(index)
+
                   mtln_res%cables(j)%conductor_in_parent = getParentPositionInMultiwire(parentId)
                else if (isWire(cables(i)%p)) then
                   mtln_res%cables(j)%parent_cable => null()
@@ -1201,7 +1359,7 @@ contains
    contains
 
       function readConnectors() result(res)
-         type(connector_t), target, dimension(:), allocatable :: res
+         type(connector_t), dimension(:), pointer :: res
          type(json_value), pointer :: mat, z
 
          type(json_value_ptr), dimension(:), allocatable :: connectors
@@ -1303,6 +1461,7 @@ contains
          integer, dimension(:), allocatable :: elemIds
          type(json_value), pointer :: terminations_ini, terminations_end
          type(coordinate_t), dimension(:), allocatable :: networks_coordinates
+
          allocate(aux_nodes(0))
          allocate(networks_coordinates(0))
          cables = readCables()
@@ -1318,6 +1477,8 @@ contains
 
          end do
          allocate(res(size(networks_coordinates)))
+        
+         
          do i = 1, size(networks_coordinates)
             res(i) = buildNetwork(networks_coordinates(i), aux_nodes)
          end do
@@ -1400,12 +1561,15 @@ contains
          integer :: i
          logical :: found_ini, found_end
          type(coordinate_t) :: coord_ini, coord_end
+         integer :: ub
 
          found_ini = .false.
          found_end = .false.
          polyline = this%mesh%getPolyline(conductor_index)
          coord_ini = this%mesh%getCoordinate(polyline%coordIds(1))
-         coord_end = this%mesh%getCoordinate(polyline%coordIds(ubound(polyline%coordIds,1)))
+         
+         ub = ubound(polyline%coordIds,1)
+         coord_end = this%mesh%getCoordinate(polyline%coordIds(ub))
 
          if (size(coordinates) /= 0) then
             do i = 1, size(coordinates)
@@ -1458,6 +1622,7 @@ contains
          integer, intent(in) :: index, id
          type(polyline_t) :: polyline
          type(aux_node_t) :: res
+         integer :: cable_index
          call this%core%get_child(termination_list, index, termination)
          allocate(termination_t :: res%node%termination)
          res%node%side = label
@@ -1466,7 +1631,9 @@ contains
          res%node%termination%resistance = readTerminationRLC(termination, J_MAT_TERM_RESISTANCE, default = 0.0)
          res%node%termination%inductance = readTerminationRLC(termination, J_MAT_TERM_INDUCTANCE, default=0.0)
          res%node%conductor_in_cable = index
-         res%node%belongs_to_cable => getCableContainingElemId(id)
+         
+         call elemIdToCable%get(key(id), value=cable_index)
+         res%node%belongs_to_cable => mtln_res%cables(cable_index)
 
          polyline = this%mesh%getPolyline(id)
 
@@ -1520,6 +1687,7 @@ contains
          integer, dimension(:), allocatable :: elemIds, polylinecIds
          type(node_t) :: node
          type(cable_t), pointer :: cable_ptr
+         integer :: index
          if (this%existsAt(this%root, J_PROBES)) then
             call this%core%get(this%root, J_PROBES, probes)
          else
@@ -1545,7 +1713,8 @@ contains
                   if (position /= 0) then ! polyline found
                      res(k)%probe_type = readProbeType(wire_probes(i)%p)
 
-                     cable_ptr => getCableContainingElemId(this%getIntAt(polylines(j)%p, J_ID))
+                     call elemIdToCable%get(key(this%getIntAt(polylines(j)%p, J_ID)), value=index)
+                     cable_ptr => mtln_res%cables(index)
                      do while (associated(cable_ptr%parent_cable))
                         cable_ptr => cable_ptr%parent_cable
                      end do
@@ -1639,11 +1808,12 @@ contains
       function findConnectorWithId(j_cable, side) result(res)
          type(json_value), pointer :: j_cable
          character(*), intent(in) :: side
-         integer :: conn_id
+         integer :: conn_id, conn_index
          type(connector_t), pointer :: res
          if (this%existsAt(j_cable, side)) then
             conn_id = this%getIntAt(j_cable, side)
-            res => getConnectorWithIdFromMap(conn_id)
+            call connIdToConnector%get(key(conn_id), conn_index)
+            res => mtln_res%connectors(conn_index)
          else
             res => null()
          end if
@@ -1691,20 +1861,19 @@ contains
          integer :: i
          if (size(conn) == 0) return
          do i = 1, size(conn)
-            call map%set(key(conn(i)%id), conn(i), pointer=.true.)
+            call map%set(key(conn(i)%id), i)
          end do
       end subroutine
 
 
-      subroutine addElemIdToCableMap(map, j_cable, cable)
+      subroutine addElemIdToCableMap(map, elemIds, index)
          type(fhash_tbl_t), intent(inout) :: map
-         type(json_value), pointer :: j_cable
-         type(cable_t), intent(in) :: cable
-         integer, dimension(:), allocatable :: elemIds
+         integer, dimension(:), intent(in) :: elemIds
+         integer :: index
          integer :: i
          elemIds = getCableElemIds(j_cable)
          do i = 1, size(elemIds)
-            call map%set(key(elemIds(i)), cable, pointer=.true.)
+            call map%set(key(elemIds(i)), index)
          end do
       end subroutine
 

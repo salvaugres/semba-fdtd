@@ -786,9 +786,12 @@ integer function test_coaxial_line_paul_8_6_square() bind(C) result(error_cnt)
     node_right%side = TERMINAL_NODE_SIDE_END
     node_right%termination = termination_t(termination_type=TERMINATION_SHORT)
 
+    allocate(connection_right%nodes(1))
     connection_right%nodes = [node_right]
     
+    allocate(network_left%connections(1))
     network_left%connections = [connection_left]
+    allocate(network_right%connections(1))
     network_right%connections = [connection_right]
 
     probe_v%attached_to_cable => cable
@@ -799,9 +802,11 @@ integer function test_coaxial_line_paul_8_6_square() bind(C) result(error_cnt)
     probe_i%index = 100
     probe_i%probe_type = PROBE_TYPE_CURRENT
 
-
+    allocate(parsed%networks(2))
     parsed%networks = [network_left, network_right]
+    allocate(parsed%cables(1))
     parsed%cables = [cable]
+    allocate(parsed%probes(2))
     parsed%probes = [probe_v, probe_i]
 
     solver = mtlnCtor(parsed)
