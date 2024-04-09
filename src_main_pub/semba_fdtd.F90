@@ -42,12 +42,17 @@ PROGRAM SEMBA_FDTD_launcher
    USE Resuming
    !nfde parser stuff
    USE NFDETypes
+   use nfde_rotate_m           
+
+
 #ifdef CompilePrivateVersion      
    USE ParseadorClass
 #endif
    USE smbjson, only: fdtdjson_parser_t => parser_t 
    USE Preprocess_m
    USE storeData
+   
+   
    
 #ifdef CompileWithXDMF
    USE xdmf_h5
@@ -138,8 +143,11 @@ PROGRAM SEMBA_FDTD_launcher
    
    logical :: lexis
    integer (kind=4) :: my_iostat
-!!!!!!!!!!!!!!!!comienzo instrucciones
                                 
+   INTEGER (KIND=4) ::  verdadero_mpidir
+   logical :: newrotate !300124 tiramos con el rotador antiguo
+
+   newrotate=.false.       !!ojo tocar luego                     
 !!200918 !!!si se lanza con -pscal se overridea esto
    Eps0= 8.8541878176203898505365630317107502606083701665994498081024171524053950954599821142852891607182008932e-12
    Mu0 = 1.2566370614359172953850573533118011536788677597500423283899778369231265625144835994512139301368468271e-6
@@ -343,11 +351,21 @@ PROGRAM SEMBA_FDTD_launcher
 !!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!
    call print_credits(l)
+   if (trim(adjustl(l%extension))=='.nfde') then   
 #ifdef CompilePrivateVersion   
-   call cargaNFDE
+       call cargaNFDE(l%filefde,parser)
 #else
-   call cargaFDTDJSON(l%fichin, parser)
+       print *,'Not compiled with cargaNFDEINDEX'
+       stop
 #endif   
+   elseif (trim(adjustl(l%extension))=='.json') then
+   call cargaFDTDJSON(l%fichin, parser)
+   else
+       print *, 'Neither .nfde nor .json files used as input after -i'
+       stop
+   endif
+   
+
 !!!!!!!!!!!!!!!!!!!!!!!
    sgg%extraswitches=parser%switches
 !!!da preferencia a los switches por linea de comando
@@ -473,10 +491,10 @@ PROGRAM SEMBA_FDTD_launcher
 
 #ifdef CompilePrivateVersion           
       CALL Destroy_Parser (parser)
-#endif      
       DEALLOCATE (NFDE_FILE%lineas)
       DEALLOCATE (NFDE_FILE)
       nullify (NFDE_FILE)
+#endif      
       
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 #ifdef CompileWithMPI
@@ -1047,17 +1065,19 @@ contains
 
 
 #ifdef CompilePrivateVersion 
-subroutine cargaNFDE
+subroutine cargaNFDE(local_nfde,local_parser)
+   CHARACTER (LEN=BUFSIZE) :: local_nfde
+   TYPE (Parseador), POINTER :: local_parser
    INTEGER (KIND=8) :: numero,i8,troncho,longitud
    integer (kind=4) :: mpi_t_linea_t,longitud4
    IF (l%existeNFDE) THEN
-       WRITE (dubuf,*) 'INIT Reading file '//trim (adjustl(whoami))//' ', trim (adjustl(l%fileFDE))
+       WRITE (dubuf,*) 'INIT Reading file '//trim (adjustl(whoami))//' ', trim (adjustl(local_nfde))
        CALL print11 (l%layoutnumber, dubuf)
 !!!!!!!!!!!!!!!!!!!!!!!
 #ifdef CompileWithMPI
       CALL MPI_Barrier (SUBCOMM_MPI, l%ierr)
       if (l%layoutnumber==0) then
-           NFDE_FILE => cargar_NFDE_FILE (l%fileFDE)
+           NFDE_FILE => cargar_NFDE_FILE (local_nfde)
       !!!ya se allocatea dentro
       else
            ALLOCATE (NFDE_FILE)
@@ -1114,17 +1134,31 @@ subroutine cargaNFDE
             !!!close (6729)
       !!!!!!
 #else
-    NFDE_FILE => cargar_NFDE_FILE (l%fileFDE)
+    NFDE_FILE => cargar_NFDE_FILE (local_nfde)
 #endif
       write(dubuf,*) '[OK]';  call print11(l%layoutnumber,dubuf)
       !--->
    END IF
    NFDE_FILE%mpidir=l%mpidir
 !!!!!!!!!!!!!!!!!!!
-   WRITE (dubuf,*) 'INIT interpreting geometrical data from ', trim (adjustl(l%fileFDE))
+   WRITE (dubuf,*) 'INIT interpreting geometrical data from ', trim (adjustl(local_nfde))
    CALL print11 (l%layoutnumber, dubuf)
 !!!!!!!!!!
-   parser => newparser (NFDE_FILE)
+   if(newrotate) then
+       verdadero_mpidir=NFDE_FILE%mpidir
+       NFDE_FILE%mpidir=3     !no lo rota el parseador antiguo
+   endif
+   local_parser => newparser (NFDE_FILE)         
+#ifdef CompileWithMPI            
+   CALL MPI_Barrier (SUBCOMM_MPI, l%ierr)
+#endif
+   if(newrotate) then      
+       NFDE_FILE%mpidir=verdadero_mpidir   !restorealo
+       call nfde_rotate (local_parser,NFDE_FILE%mpidir)   !lo rota el parseador nuevo  
+#ifdef CompileWithMPI            
+       CALL MPI_Barrier (SUBCOMM_MPI, l%ierr)
+#endif
+   endif
    l%thereare_stoch=NFDE_FILE%thereare_stoch
    l%mpidir=NFDE_FILE%mpidir !bug 100419
 !!!!!!!!!!!
@@ -1303,6 +1337,8 @@ subroutine NFDE2sgg
             call HalvesStochasticMPI(l%layoutnumber,l%size,l%simu_devia)
          endif
 #endif
+                   
+         CALL MPI_Barrier (SUBCOMM_MPI, l%ierr)   
 !!!ahora divide el espacio computacional
          CALL MPIdivide (sgg, fullsize, SINPML_fullsize, l%layoutnumber, l%size, l%forcing, l%forced, l%slicesoriginales, l%resume,l%fatalerror)
          !
