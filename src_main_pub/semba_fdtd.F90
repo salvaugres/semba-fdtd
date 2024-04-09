@@ -53,8 +53,6 @@ PROGRAM SEMBA_FDTD_launcher
    USE Preprocess_m
    USE storeData
 
-   
-   
 #ifdef CompileWithXDMF
    USE xdmf_h5
 #endif   
