@@ -5,25 +5,41 @@ import glob, re
 import pandas as pd
 import numpy as np
 
+def positionStrToCell(pos_str):
+    pos = pos_str.split('_')
+    return np.array([int(pos[0]), int(pos[1]), int(pos[2])])
+
 class Probe():
     
     def __init__(self, probe_filename):
         self.filename = probe_filename
         
-        current_probe_tags = ('_Wx_', '_Wy_', '_Wz_')
+        current_probe_tags = ['_Wx_', '_Wy_', '_Wz_']
+        far_field_tag = ['_FF_']
+        all_tags = current_probe_tags + far_field_tag
+        self.df = pd.read_csv(self.filename, sep='\s+')
         
         basename = os.path.basename(self.filename)
         self.case_name, basename_with_no_case_name = basename.split('.fdtd_')
         basename_with_no_case_name = basename_with_no_case_name.split('.dat')[0]
         
-        for tag in current_probe_tags:
+        
+        for tag in all_tags:
             ids = [m.start() for m in re.finditer(tag, basename_with_no_case_name)]
             if len(ids) == 0:
                 continue
             elif len(ids) == 1:
-                self.type = 'wire'
-                self.name, position_str = basename_with_no_case_name.split(tag)
-                break
+                if tag in current_probe_tags:
+                    self.type = 'wire'
+                    self.name, position_str = basename_with_no_case_name.split(tag)
+                    self.cell = positionStrToCell(position_str)
+                    self.segment_tag = int(position_str.split('_s')[1])
+                elif tag in far_field_tag:
+                    self.type = 'farField'
+                    self.name, positions_str = basename_with_no_case_name.split(tag)
+                    init_str, end_str = pos = positions_str.split('__')
+                    self.cell_init = positionStrToCell(init_str)
+                    self.cell_end = positionStrToCell(end_str)
             else:
                 raise ValueError("Unable to determine probe name or type for a probe with name:" + basename)
         try:
@@ -31,12 +47,6 @@ class Probe():
             self.name
         except:
             raise ValueError('Unable to determine type for probe' + basename)
-        
-        pos = position_str.split('_')
-        self.cell = np.array([int(pos[0]), int(pos[1]), int(pos[2])])
-        self.segment_tag = int(pos[3].split('s')[1])
-
-        self.df = pd.read_csv(self.filename, sep='\s+')
         
         if self.type == 'wire':
             self.df = self.df.rename(columns={'t': 'time', basename: 'current'})

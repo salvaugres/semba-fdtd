@@ -2,8 +2,8 @@ from utils import *
 
 def test_holland(tmp_path):
     case = 'holland1981'
-    makeTemporaryCopy(tmp_path, EXCITATIONS_FOLDER+'gauss.exc')
-    makeTemporaryCopy(tmp_path, CASE_FOLDER + case + '.fdtd.json')
+    makeCopy(tmp_path, EXCITATIONS_FOLDER+'gauss.exc')
+    makeCopy(tmp_path, CASE_FOLDER + case + '.fdtd.json')
     fn = tmp_path._str + '/' + case + '.fdtd.json'
 
     solver = FDTD(input_filename = fn, path_to_exe=SEMBA_EXE)
@@ -20,14 +20,14 @@ def test_holland(tmp_path):
 def test_sphere(tmp_path):    
     case = 'sphere'
     input_json = getCase(case)
-    input_json['general']['numberOfSteps'] = 1
-    input_json['general']['timeStep'] = 3.0E-013
+    input_json['general']['numberOfSteps'] = 200
+    input_json['probes'][0]['domain']['numberOfFrequencies'] = 100
     
     fn = tmp_path._str + '/' + case + '.fdtd.json'
     with open(fn, 'w') as modified_json:
         json.dump(input_json, modified_json) 
 
-    makeTemporaryCopy(tmp_path, EXCITATIONS_FOLDER+'gauss.exc')
+    makeCopy(tmp_path, EXCITATIONS_FOLDER+'gauss.exc')
 
     solver = FDTD(input_filename = fn, path_to_exe=SEMBA_EXE)
     solver.run()
@@ -35,4 +35,6 @@ def test_sphere(tmp_path):
     
     assert solver.hasFinishedSuccessfully() == True
     assert len(probe_files) == 1
-    assert 'sphere.fdtd_Far_FF_2_2_2__77_77_77.dat' == probe_files[0]
+    
+    p = Probe(probe_files[0])
+    assert p.type == 'farField'

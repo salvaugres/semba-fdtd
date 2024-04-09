@@ -1,6 +1,6 @@
 from utils import *
 
-def test_read_probe():
+def test_read_wire_probe():
     p = Probe(OUTPUT_FOLDER + 'holland1981.fdtd_mid_point_Wz_11_11_12_s2.dat')
         
     assert p.case_name == 'holland1981'
@@ -16,7 +16,7 @@ def test_read_probe():
     assert len(p['current']) == 1001
     assert p['current'][0] == 0.0
     assert p['current'].iat[-1] == -0.228888888E-021
-    
+  
 
 def test_probes_output_exists(tmp_path):
     case = 'holland1981'
@@ -26,7 +26,7 @@ def test_probes_output_exists(tmp_path):
     with open(fn, 'w') as modified_json:
         json.dump(input_json, modified_json) 
 
-    makeTemporaryCopy(tmp_path, EXCITATIONS_FOLDER+'gauss.exc')
+    makeCopy(tmp_path, EXCITATIONS_FOLDER+'gauss.exc')
 
     solver = FDTD(input_filename = fn, path_to_exe=SEMBA_EXE)
     solver.run()
@@ -46,7 +46,7 @@ def test_probes_output_number_of_steps(tmp_path):
     with open(fn, 'w') as modified_json:
         json.dump(input_json, modified_json) 
 
-    makeTemporaryCopy(tmp_path, EXCITATIONS_FOLDER+'gauss.exc')
+    makeCopy(tmp_path, EXCITATIONS_FOLDER+'gauss.exc')
 
     solver = FDTD(input_filename = fn, path_to_exe=SEMBA_EXE)
     solver.run()
@@ -66,7 +66,7 @@ def test_towel_hanger(tmp_path):
     with open(fn, 'w') as modified_json:
         json.dump(input_json, modified_json) 
 
-    makeTemporaryCopy(tmp_path, EXCITATIONS_FOLDER+'ramp.exc')
+    makeCopy(tmp_path, EXCITATIONS_FOLDER+'ramp.exc')
 
     solver = FDTD(input_filename = fn, path_to_exe=SEMBA_EXE)
     solver.run()
@@ -82,3 +82,26 @@ def test_towel_hanger(tmp_path):
     assert countLinesInFile(probe_start[0]) == 3
     assert countLinesInFile(probe_end[0]) == 3
    
+        
+def test_read_far_field_probe(tmp_path):    
+    case = 'sphere'
+    input_json = getCase(case)
+    input_json['general']['numberOfSteps'] = 1
+    input_json['probes'][0]['domain']['numberOfFrequencies'] = 100
+    
+    
+    fn = tmp_path._str + '/' + case + '.fdtd.json'
+    with open(fn, 'w') as modified_json:
+        json.dump(input_json, modified_json) 
+
+    makeCopy(tmp_path, EXCITATIONS_FOLDER+'gauss.exc')
+
+    solver = FDTD(input_filename = fn, path_to_exe=SEMBA_EXE)
+    solver.run()  
+
+    probe_files = solver.getSolvedProbeFilenames("Far")
+    p_ff = Probe(probe_files[0])
+    
+    assert p_ff.case_name == 'sphere'
+    assert p_ff.type == 'farField'
+    assert np.all(p_ff.cell_init == np.array([2,2,2]))
