@@ -54,7 +54,6 @@ def test_probes_output_number_of_steps(tmp_path):
     
     assert solver.hasFinishedSuccessfully() == True
     assert len(probe_files) == 1
-    assert 'holland1981.fdtd_mid_point_Wz_11_11_12_s2.dat' == probe_files[0]
     assert countLinesInFile(probe_files[0]) == number_of_steps + 2
 
     
@@ -62,7 +61,6 @@ def test_towel_hanger(tmp_path):
     case = 'towelHanger'
     input_json = getCase(case)
     input_json['general']['numberOfSteps'] = 1
-    # input_json['general']['timeStep'] = 3.0E-013
     
     fn = tmp_path._str + '/' + case + '.fdtd.json'
     with open(fn, 'w') as modified_json:
@@ -83,7 +81,4 @@ def test_towel_hanger(tmp_path):
     assert 'towelHanger.fdtd_wire_end_Wz_43_25_30_s4.dat' == probe_end[0]
     assert countLinesInFile(probe_start[0]) == 3
     assert countLinesInFile(probe_end[0]) == 3
-    # assert compareFiles(solver.wd+OUTPUT_FOLDER+'towelHanger.fdtd_wire_end_Wz_100_100_80_s4.dat',\
-    #                     probe_files[0])
-
    

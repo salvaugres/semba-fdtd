@@ -11,11 +11,10 @@ def test_holland(tmp_path):
     probe_files = solver.getSolvedProbeFilenames("mid_point")
     
     assert solver.hasFinishedSuccessfully() == True
-    assert len(probe_files) == 1
-    assert 'holland1981.fdtd_mid_point_Wz_11_11_12_s2.dat' == probe_files[0]
-    assert countLinesInFile(probe_files[0]) == 1002
-    # assert compareFiles(OUTPUT_FOLDER+'holland1981.fdtd_mid_point_Wz_11_11_12_s2.dat',\
-    #                     probe_files[0])
+    p_expected = Probe(OUTPUT_FOLDER+'holland1981.fdtd_mid_point_Wz_11_11_12_s2.dat')
+    p_solved = Probe(probe_files[0])
+    
+    assert np.allclose(p_expected.df.to_numpy(), p_solved.df.to_numpy())
 
     
 def test_sphere(tmp_path):    
