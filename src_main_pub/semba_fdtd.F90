@@ -41,17 +41,18 @@ PROGRAM SEMBA_FDTD_launcher
    USE Solver
    USE Resuming
    !nfde parser stuff
-   USE NFDETypes
+   USE NFDETypes                
    use nfde_rotate_m           
 
 
-#ifdef CompilePrivateVersion      
+#ifdef CompilePrivateVersion  
    USE ParseadorClass
 #endif
-   USE smbjson, only: fdtdjson_parser_t => parser_t 
+
+   USE smbjson, only: fdtdjson_parser_t => parser_t
    USE Preprocess_m
    USE storeData
-   
+
    
    
 #ifdef CompileWithXDMF
@@ -90,8 +91,7 @@ PROGRAM SEMBA_FDTD_launcher
 !!!241018 fin pscaling
    integer (KIND=IKINDMTAG) , allocatable , dimension(:,:,:) ::  sggMtag
    integer (KIND=INTEGERSIZEOFMEDIAMATRICES) , allocatable , dimension(:,:,:) ::  sggMiNo,sggMiEx,sggMiEy,sggMiEz,sggMiHx,sggMiHy,sggMiHz
-
-
+   
    LOGICAL :: dummylog,finishedwithsuccess,l_auxinput, l_auxoutput, ThereArethinslots
    integer (KIND=4) :: myunit,jmed
    REAL (KIND=RKIND) :: maxSourceValue
@@ -143,7 +143,7 @@ PROGRAM SEMBA_FDTD_launcher
    
    logical :: lexis
    integer (kind=4) :: my_iostat
-                                
+   
    INTEGER (KIND=4) ::  verdadero_mpidir
    logical :: newrotate !300124 tiramos con el rotador antiguo
 
@@ -490,7 +490,7 @@ PROGRAM SEMBA_FDTD_launcher
       !REVIEW: sgg
 
 #ifdef CompilePrivateVersion           
-      CALL Destroy_Parser (parser)
+      CALL Destroy_Parser (parser)  
       DEALLOCATE (NFDE_FILE%lineas)
       DEALLOCATE (NFDE_FILE)
       nullify (NFDE_FILE)
@@ -1138,7 +1138,7 @@ subroutine cargaNFDE(local_nfde,local_parser)
 #endif
       write(dubuf,*) '[OK]';  call print11(l%layoutnumber,dubuf)
       !--->
-   END IF
+   END IF    
    NFDE_FILE%mpidir=l%mpidir
 !!!!!!!!!!!!!!!!!!!
    WRITE (dubuf,*) 'INIT interpreting geometrical data from ', trim (adjustl(local_nfde))
@@ -1195,8 +1195,7 @@ subroutine NFDE2sgg
       CALL MPI_Barrier (SUBCOMM_MPI, l%ierr)
 #endif
       CALL read_limits_nogeom (l%layoutnumber,l%size, sgg, fullsize, SINPML_fullsize, parser,l%MurAfterPML,l%mur_exist)
-
-
+    
       dtantesdecorregir=sgg%dt
       !!!!!corrige el delta de t si es necesario !sgg15 310715 bug distintos sgg%dt !!!!!!!!!!
 
@@ -1329,7 +1328,7 @@ subroutine NFDE2sgg
          endif
 #endif
 #endif
-      ELSE !del l%size==1
+      ELSE !del l%size==1       
 #ifdef CompileWithMPI
          CALL MPI_Barrier (SUBCOMM_MPI, l%ierr)
 #ifdef CompileWithStochastic
@@ -1342,12 +1341,12 @@ subroutine NFDE2sgg
 !!!ahora divide el espacio computacional
          CALL MPIdivide (sgg, fullsize, SINPML_fullsize, l%layoutnumber, l%size, l%forcing, l%forced, l%slicesoriginales, l%resume,l%fatalerror)
          !
-         CALL MPI_Barrier (SUBCOMM_MPI, l%ierr)
+         CALL MPI_Barrier (SUBCOMM_MPI, l%ierr)   
          if (l%fatalerror) then
 !intenta recuperarte
             return
          endif
-
+     
          ! if the layout is pure PML then take at least a line of non PML to build the PML data insider read_geomDAta
          ! Uses extra memory but later matrix sggm is deallocated in favor of smaller sggMIEX, etc
          DO field = iEx, iHz
@@ -1356,8 +1355,8 @@ subroutine NFDE2sgg
             sgg%Alloc(field)%ZE = Max (sgg%Alloc(field)%ZE, SINPML_fullsize(field)%ZI+1)
             sgg%Alloc(field)%ZI = Min (sgg%Alloc(field)%ZI, SINPML_fullsize(field)%ZE-1)
          END DO
-         !
-         CALL MPI_Barrier (SUBCOMM_MPI, l%ierr)
+         !   
+         CALL MPI_Barrier (SUBCOMM_MPI, l%ierr)  
          !!incluido aqui pq se precisa para clip 16/07/15
          DO field = iEx, iHz
             sgg%SINPMLSweep(field)%XI = Max (SINPML_fullsize(field)%XI, sgg%Sweep(field)%XI)
@@ -1369,10 +1368,13 @@ subroutine NFDE2sgg
          END DO
          !!fin 16/07/15
          WRITE (dubuf,*) 'INIT NFDE --------> GEOM'
-         CALL print11 (l%layoutnumber, dubuf)
+         CALL print11 (l%layoutnumber, dubuf)           
+
          CALL read_geomData (sgg,sggMtag,sggMiNo,sggMiEx,sggMiEy,sggMiEz,sggMiHx,sggMiHy,sggMiHz, l%fichin, l%layoutnumber, l%size, SINPML_fullsize, fullsize, parser, &
          l%groundwires,l%attfactorc,l%mibc,l%sgbc,l%sgbcDispersive,l%MEDIOEXTRA,maxSourceValue,l%skindepthpre,l%createmapvtk,l%input_conformal_flag,l%CLIPREGION,l%boundwireradius,l%maxwireradius,l%updateshared,l%run_with_dmma, &
          eps0,mu0,l%simu_devia,l%hay_slanted_wires,l%verbose,l%ignoresamplingerrors,tagtype,l%wiresflavor)
+
+
 #ifdef CompileWithMPI
          !wait until everything comes out
          CALL MPI_Barrier (SUBCOMM_MPI, l%ierr)
