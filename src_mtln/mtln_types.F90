@@ -314,8 +314,15 @@ contains
    subroutine terminal_network_add_connection(this, connection)
       class(terminal_network_t) :: this
       type(terminal_connection_t) :: connection
+      type(terminal_connection_t), dimension(:), allocatable :: newConnections
+      integer :: newConnectionsSize
       if (.not. allocated(this%connections))  allocate(this%connections(0))
-      this%connections = [this%connections, connection]
+      
+      allocate(newConnections( size(this%connections) + 1 ) )
+      newConnectionsSize = size(newConnections)
+      newConnections(1:newConnectionsSize-1) = this%connections
+      newConnections(newConnectionsSize) = connection
+      call MOVE_ALLOC(from=newConnections, to=this%connections)
    end subroutine
 
 end module
