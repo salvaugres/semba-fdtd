@@ -1,4 +1,3 @@
-import pytest
 from src_pyWrapper.pyWrapper import *
 import shutil, glob, re
 import json
