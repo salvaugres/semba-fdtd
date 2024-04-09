@@ -359,7 +359,7 @@ PROGRAM SEMBA_FDTD_launcher
        stop
 #endif   
    elseif (trim(adjustl(l%extension))=='.json') then
-   call cargaFDTDJSON(l%fichin, parser)
+        call cargaFDTDJSON(l%fichin, parser)
    else
        print *, 'Neither .nfde nor .json files used as input after -i'
        stop
@@ -489,11 +489,13 @@ PROGRAM SEMBA_FDTD_launcher
       !NOTE: md: lo necesito despues del conformal init (antes se borraba mas arriba)
       !REVIEW: sgg
 
-#ifdef CompilePrivateVersion           
-      CALL Destroy_Parser (parser)  
-      DEALLOCATE (NFDE_FILE%lineas)
-      DEALLOCATE (NFDE_FILE)
-      nullify (NFDE_FILE)
+#ifdef CompilePrivateVersion  
+      if (trim(adjustl(l%extension))=='.nfde') then
+        CALL Destroy_Parser (parser)  
+        DEALLOCATE (NFDE_FILE%lineas)
+        DEALLOCATE (NFDE_FILE)
+        nullify (NFDE_FILE)
+      endif
 #endif      
       
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
