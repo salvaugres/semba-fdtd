@@ -1,0 +1,14 @@
+* dual rc ladder
+R1_n1 n1_int n1_in 10k
+V1_n1 n1_in 0 dc 0 PULSE (0 5 1u 1u 1u 1 1)
+R2_n1 n1_out n1_int 1k
+C1_n1 n1_int 0 1u
+C2_n1 n1_out 0 100n
+R1_n2 n2_int n2_in 10k
+V1_n2 n2_in 0 dc 0 PULSE (0 5 1u 1u 1u 1 1)
+R2_n2 n2_out n2_int 1k
+C1_n2 n2_int 0 1u
+C2_n2 n2_out 0 100n
+.tran 50u 200u
+.save v(n1_in) v(n1_int) v(n1_out) v(n2_in) v(n2_int) v(n2_out)
+.end

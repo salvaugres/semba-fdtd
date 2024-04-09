@@ -40929,7 +40929,7 @@
     ],
     "probes": [
         {
-            "name": "Far field",
+            "name": "FarField",
             "type": "farField",
             "elementIds": [
                 2

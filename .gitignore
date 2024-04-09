@@ -54,3 +54,8 @@ GPG-PUB-KEY-INTEL-SW-PRODUCTS-2023.PUB
 # mtln files
 ./testData/mtln/*exc 
 probes*txt
+
+__pycache__/
+*/__pycache__/
+src_pyWrapper/__pycache__/*
+tmp/

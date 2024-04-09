@@ -53,8 +53,6 @@ PROGRAM SEMBA_FDTD_launcher
    USE Preprocess_m
    USE storeData
 
-   
-   
 #ifdef CompileWithXDMF
    USE xdmf_h5
 #endif   
@@ -66,7 +64,6 @@ PROGRAM SEMBA_FDTD_launcher
    use MPI_stochastic
 #endif
 #endif
-   !
 
    !*************************************************
    !***[conformal] ******************
@@ -350,9 +347,9 @@ PROGRAM SEMBA_FDTD_launcher
    endif
 !!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!
-   call print_credits(l)     
+   call print_credits(l)
    if (trim(adjustl(l%extension))=='.nfde') then   
-#ifdef CompilePrivateVersion 
+#ifdef CompilePrivateVersion   
        call cargaNFDE(l%filefde,parser)
 #else
        print *,'Not compiled with cargaNFDEINDEX'
@@ -489,11 +486,13 @@ PROGRAM SEMBA_FDTD_launcher
       !NOTE: md: lo necesito despues del conformal init (antes se borraba mas arriba)
       !REVIEW: sgg
 
-#ifdef CompilePrivateVersion           
-      CALL Destroy_Parser (parser)  
-      DEALLOCATE (NFDE_FILE%lineas)
-      DEALLOCATE (NFDE_FILE)
-      nullify (NFDE_FILE)
+#ifdef CompilePrivateVersion  
+      if (trim(adjustl(l%extension))=='.nfde') then
+        CALL Destroy_Parser (parser)  
+        DEALLOCATE (NFDE_FILE%lineas)
+        DEALLOCATE (NFDE_FILE)
+        nullify (NFDE_FILE)
+      endif
 #endif      
       
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
