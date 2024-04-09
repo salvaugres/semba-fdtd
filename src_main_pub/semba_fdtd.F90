@@ -66,7 +66,6 @@ PROGRAM SEMBA_FDTD_launcher
    use MPI_stochastic
 #endif
 #endif
-   !
 
    !*************************************************
    !***[conformal] ******************
