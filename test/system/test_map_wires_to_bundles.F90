@@ -18,6 +18,5 @@ integer function test_map_wires_to_bundles() bind (C) result(err)
    solver = mtlnCtor(problem%mtln)
    ! solver = mtlnCtor(problem%mtln)
    ! call expect_eq(err, expected, problem)
-   ! call expect_eq_mtln(err, expected, problem)
 end function
 

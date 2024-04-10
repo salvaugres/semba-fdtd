@@ -145,13 +145,44 @@ module mtln_types_mod
 
 contains
 
-   elemental logical function mtln_eq(a,b)
+   logical function mtln_eq(a,b)
       class(mtln_t), intent(in) :: a,b
-      mtln_eq = &
-         all(a%cables == b%cables) .and. &
-         all(a%probes == b%probes) .and. &
-         all(a%networks == b%networks)
+      integer :: i
+         
+      if (size(a%cables) /= size(b%cables)) then
+         mtln_eq = .false.
+         return
+      end if
+      do i = 1, size(a%cables)
+         if (.not. a%cables(i) == b%cables(i)) then
+            mtln_eq = .false.
+            return
+         end if
+      end do
 
+      if (size(a%probes) /= size(b%probes)) then
+         mtln_eq = .false.
+         return
+      end if
+      do i = 1, size(a%probes)
+         if (.not. a%probes(i) == b%probes(i)) then
+            mtln_eq = .false.
+            return
+         end if
+      end do
+
+      if (size(a%networks) /= size(b%networks)) then
+         mtln_eq = .false.
+         return
+      end if
+      do i = 1, size(a%networks)
+         if (.not. a%networks(i) == b%networks(i)) then
+            mtln_eq = .false.
+            return
+         end if
+      end do
+
+      mtln_eq = .true.
    end function
 
    elemental logical function transfer_impedance_per_meter_eq(a,b)
@@ -164,7 +195,7 @@ contains
          (a%direction == b%direction)
    end function
 
-   recursive elemental logical function cable_eq(a,b)
+   recursive logical function cable_eq(a,b)
       class(cable_t), intent(in) :: a, b
       cable_eq = .true.
       cable_eq = cable_eq .and.  (a%name == b%name) 
@@ -248,7 +279,7 @@ contains
          a%path_to_excitation == b%path_to_excitation
    end function
 
-   elemental logical function probe_eq(a,b)
+   logical function probe_eq(a,b)
       class(probe_t), intent(in) :: a,b
       probe_eq = &
          (a%index == b%index) .and. &
@@ -267,7 +298,7 @@ contains
       end if
    end function
 
-   elemental logical function terminal_node_eq(a, b)
+   logical function terminal_node_eq(a, b)
       class(terminal_node_t), intent(in) :: a, b
 
       terminal_node_eq = &
@@ -286,16 +317,36 @@ contains
 
    end function
 
-   elemental logical function terminal_connection_eq(a,b)
+   logical function terminal_connection_eq(a,b)
       class(terminal_connection_t), intent(in) :: a,b
-      terminal_connection_eq = &
-         all(a%nodes == b%nodes)
+      integer :: i
+      if (size(a%nodes) /= size(b%nodes)) then
+         terminal_connection_eq = .false.
+         return
+      end if
+      do i = 1, size(a%nodes)
+         if (.not. (a%nodes(i) == b%nodes(i))) then
+            terminal_connection_eq = .false.
+            return
+         end if
+      end do
+      terminal_connection_eq = .true.
    end function
 
-   elemental logical function terminal_network_eq(a,b)
+   logical function terminal_network_eq(a,b)
       class(terminal_network_t), intent(in) :: a,b
-      terminal_network_eq = &
-         all(a%connections == b%connections)
+      integer :: i
+      if (size(a%connections) /= size(b%connections)) then
+         terminal_network_eq = .false.
+         return
+      end if
+      do i = 1, size(a%connections)
+         if (.not. (a%connections(i) == b%connections(i))) then
+            terminal_network_eq = .false.
+            return
+         end if
+      end do
+      terminal_network_eq = .true.
    end function
 
    elemental logical function segment_relative_positions_eq(a,b)

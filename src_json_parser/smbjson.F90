@@ -1306,7 +1306,13 @@ contains
       block
          integer :: nW, nMW
          nMW = countNumberOfMultiwires(cables)
-         if (nMW == 0) return
+         if (nMW == 0) then
+             allocate(mtln_res%cables(0))
+             allocate(mtln_res%probes(0))
+             allocate(mtln_res%networks(0))
+             allocate(mtln_res%connectors(0))
+             return
+         end if
          nW =  countNumberOfWires(cables)
          nWs = nW + nMW
       end block

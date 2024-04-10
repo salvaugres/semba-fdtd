@@ -14,7 +14,6 @@ integer function test_read_shieldedpair() bind (C) result(err)
    parser = parser_t(filename)
    problem = parser%readProblemDescription()
    call expect_eq(err, expected, problem)
-   call expect_eq_mtln(err, expected, problem)
 contains
    function expectedProblemDescription() result (expected)
       type(Parseador) :: expected
