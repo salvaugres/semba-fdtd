@@ -1,4 +1,4 @@
-name: ubuntu-gnu
+name: ubuntu-nvhpc
 
 permissions:
   actions: write
