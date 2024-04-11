@@ -70,7 +70,7 @@ contains
 
         do i = 1, 5
             segment_positions(i)%position =(/i,1,1/)            
-            ! segment_positions(i)%direction = DIRECTION_X_POS  
+            segment_positions(i)%direction = DIRECTION_X_POS  
         end do
 
         do i = 1, n
