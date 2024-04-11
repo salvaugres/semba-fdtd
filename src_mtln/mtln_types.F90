@@ -1,5 +1,5 @@
 module mtln_types_mod
-
+   use fdetypes, ONLY: RKIND   !sggmtln
    implicit none
 
    integer, parameter :: TERMINATION_UNDEFINED  = -1
@@ -30,7 +30,8 @@ module mtln_types_mod
 
    type :: segment_relative_position_t
       integer, dimension(3) ::position
-      integer :: direction
+      integer :: direction     
+       REAL (KIND=RKIND) , pointer                 ::  Efield_wire2main,Efield_main2wire   !sggmtln
    contains
       private
       procedure :: segment_relative_positions_eq

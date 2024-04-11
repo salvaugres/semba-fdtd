@@ -91,7 +91,7 @@ module Solver
    use HollandWires        
 #endif       
 #ifdef CompileWithWires_mtln  
-   use HollandWires_mtln             
+   use Wire_bundles_mtln_mod             
 #endif       
 #ifdef CompileWithBerengerWires
    use WiresBerenger
@@ -113,8 +113,9 @@ module Solver
    USE CALC_CONSTANTS
 #ifdef CompileWithPrescale
    USE P_rescale
-#endif   
+#endif              
    use mtln_solver_mod, mtln_solver_t => mtln_t
+   use Wire_bundles_mtln_mod
 !!
 #ifdef CompileWithProfiling
    use nvtx
@@ -144,7 +145,7 @@ contains
    dontwritevtk,experimentalVideal,forceresampled,factorradius,factordelta,noconformalmapvtk, &
    mtln_solver)
           
-!!!
+!!!                          
    type (mtln_solver_t) :: mtln_solver
 !!!
       logical :: noconformalmapvtk
@@ -810,7 +811,7 @@ contains
 
 
 #ifdef CompileWithWires_mtln  
-         call InitWires_mtln(mtln_solver,thereAre%MTLNbundles)
+         call InitWires_mtln(sgg,Ex,Ey,Ez,mtln_solver,thereAre%MTLNbundles)
 #endif
 
 
