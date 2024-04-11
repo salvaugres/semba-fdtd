@@ -21,9 +21,16 @@ module mtln_types_mod
    integer, parameter :: PROBE_TYPE_VOLTAGE   =  1
    integer, parameter :: PROBE_TYPE_CURRENT   =  2
 
+   integer, parameter :: DIRECTION_X_POS   =  1
+   integer, parameter :: DIRECTION_X_NEG   =  -1
+   integer, parameter :: DIRECTION_Y_POS   =  2
+   integer, parameter :: DIRECTION_Y_NEG   =  -2
+   integer, parameter :: DIRECTION_Z_POS   =  3
+   integer, parameter :: DIRECTION_Z_NEG   =  -3
+
    type :: segment_relative_position_t
       integer, dimension(3) ::position
-      integer :: directon
+      integer :: direction
    contains
       private
       procedure :: segment_relative_positions_eq
@@ -302,7 +309,8 @@ contains
    elemental logical function segment_relative_positions_eq(a,b)
       class(segment_relative_position_t), intent(in) :: a,b
       segment_relative_positions_eq = &
-         all(a%position == b%position)
+         all(a%position == b%position) .and. &
+         a%direction == b%direction
    end function
 
    subroutine terminal_connection_add_node(this, node)

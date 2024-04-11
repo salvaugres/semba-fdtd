@@ -2115,13 +2115,13 @@ contains
 
          res = [(curr_pos, i = 1, n_segments)]
          res(:)%position(axis) = [(res(i)%position(axis) - i, i = 1, n_segments)]
-         res(:)%directon = -axis
+         res(:)%direction = -axis
       end function
 
       function mapPositiveSegment(c1, c2) result(res)
          type(coordinate_t), intent(in) :: c1, c2
          type(segment_relative_position_t) :: curr_pos
-         integer :: axis, , orientation, i, n_segments
+         integer :: axis, orientation, i, n_segments
          type(segment_relative_position_t), dimension(:), allocatable :: res
 
          axis = findDirection(c2-c1)
@@ -2132,7 +2132,7 @@ contains
 
          res = [(curr_pos, i = 1, n_segments)]
          res(:)%position(axis) = [(res(i)%position(axis) + (i-1), i = 1, n_segments)]
-         res(:)%directon = axis
+         res(:)%direction = axis
       end function
 
       function buildStepSize(j_cable) result(res)

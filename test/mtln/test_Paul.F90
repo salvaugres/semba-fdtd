@@ -759,6 +759,7 @@ integer function test_coaxial_line_paul_8_6_square() bind(C) result(error_cnt)
     cable%capacitance_per_meter = cpul
     do i = 1, 100
         segment_positions(i)%position = (/i, 1, 1/)
+        segment_positions(i)%direction = 1
     end do
     cable%segment_relative_positions = segment_positions
     cable%step_size = [(4.0, i = 1, 100)]
