@@ -72,8 +72,10 @@ contains
 
     subroutine mtln_step(this, currents, voltages)
         class(mtln_t) :: this
-        real, dimension(:,:), intent(in out) :: currents
-        real, dimension(:,:), intent(in) :: voltages
+        ! real, dimension(:,:), intent(inout) :: currents
+        ! real, dimension(:,:), intent(in) :: voltages
+        real, dimension(:,:,:), intent(inout) :: currents
+        real, dimension(:,:,:), intent(in) :: voltages
         integer :: i 
 
         call this%setExternalVoltage(voltages)
@@ -104,20 +106,24 @@ contains
 
     subroutine setExternalVoltage(this, voltages)
         class(mtln_t) :: this
-        real, dimension(:,:), intent(in) :: voltages
+        ! real, dimension(:,:), intent(in) :: voltages
+        real, dimension(:,:,:), intent(in) :: voltages
         integer :: i
         do i = 1, this%number_of_bundles
-            call this%bundles(i)%setExternalVoltage(voltages(i,:))
+            call this%bundles(i)%setExternalVoltage(voltages)
+            ! call this%bundles(i)%setExternalVoltage(voltages(i,:))
         end do
 
     end subroutine
 
     subroutine updateExternalCurrent(this, currents)
         class(mtln_t) :: this
-        real, dimension(:,:), intent(inout) :: currents
+        ! real, dimension(:,:), intent(inout) :: currents
+        real, dimension(:,:,:), intent(inout) :: currents
         integer :: i
         do i = 1, this%number_of_bundles
-            call this%bundles(i)%updateExternalCurrent(currents(i,:))
+            call this%bundles(i)%updateExternalCurrent(currents)
+            ! call this%bundles(i)%updateExternalCurrent(currents(i,:))
         end do
 
 

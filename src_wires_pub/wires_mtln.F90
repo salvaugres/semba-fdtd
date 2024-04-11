@@ -28,17 +28,25 @@ contains
 
    subroutine AdvanceWiresE_mtln() 
         class(mtln_t), pointer :: mtln_wir      
-        real, dimension(:,:), allocatable :: currents
-        real, dimension(:,:), allocatable :: voltages
-!       do n=1,HWires%NumCurrentSegments
-         !segmento => Hwires%segment(n)
+        real, dimension(:,:,:), allocatable :: currents
+        real, dimension(:,:,:), allocatable :: voltages
+        type(CurrentSegments), pointer :: segment
+        integer :: i, j, k
+
+        do n=1,HWires%NumCurrentSegments
+         segment => Hwires%CurrentSegment(n)
+         i = segment%i
+         j = segment%j
+         k = segment%k
+         voltages(i,j,k) = !
+
          !segmento%efield_wire2main = real(segmento%efield_wire2main,kind=rkind_wires) - segmento%cte5 * segmento%current
 !!!...
          !Segmento%Current          = Segmento%Current + Segmento%cte2*real(Segmento%Efield_main2wire,KIND=RKIND_wires)
-!      end do
+        end do
         
-        !!!call mtln_wir%mtln_step(currents, voltages)
-!        call mtln_step(mtln_wir, currents, voltages)
+        call mtln_wir%mtln_step(currents, voltages)
+      !   call mtln_step(mtln_wir, currents, voltages)
         
     return
 
