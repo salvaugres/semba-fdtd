@@ -621,6 +621,7 @@ contains
 
 
       ! probes
+      deallocate(expected%mtln%probes)
       allocate(expected%mtln%probes(7))
       expected%mtln%probes(1)%attached_to_cable => expected%mtln%cables(1) ! to which cable is the probe attached in mtln?
       expected%mtln%probes(1)%index = 1
@@ -653,8 +654,10 @@ contains
 
 
       ! networks
-      ! NETWORK 1
+      deallocate(expected%mtln%networks)
       allocate(expected%mtln%networks(4))
+
+      ! NETWORK 1
       allocate(expected%mtln%networks(1)%connections(10))
 
       allocate(expected%mtln%networks(1)%connections(1)%nodes(1))

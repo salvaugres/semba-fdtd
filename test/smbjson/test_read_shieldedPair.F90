@@ -192,6 +192,7 @@ contains
       expected%mtln%cables(1)%end_connector => null()
 
       ! probes
+      deallocate(expected%mtln%probes)
       allocate(expected%mtln%probes(2))
       expected%mtln%probes(1)%attached_to_cable => expected%mtln%cables(2) ! to which cable is the probe attached in mtln?
       expected%mtln%probes(1)%index = 19
@@ -202,6 +203,7 @@ contains
       expected%mtln%probes(2)%probe_type = PROBE_TYPE_CURRENT
 
       ! networks
+      deallocate(expected%mtln%networks)
       allocate(expected%mtln%networks(2))
       allocate(expected%mtln%networks(1)%connections(3))
 
