@@ -710,11 +710,6 @@ contains
                                inductance_model,wirethickness,groundwires,strictOLD,TAPARRABOS,g2,wiresflavor,SINPML_fullsize,fullsize,wirecrank,dtcritico,eps0,mu0,simu_devia,stochastic,verbose,factorradius,factordelta)
          l_auxinput=thereare%Wires
          l_auxoutput=l_auxinput
-!! 
-!!!#ifdef CompileWithWires_mtln  
-!!!         call InitWires_mtln(mtln_solver)
-!!!#endif
-!!
 #ifdef CompileWithMPI
       call MPI_Barrier(SUBCOMM_MPI,ierr)
       call MPI_AllReduce( l_auxinput, l_auxoutput, 1_4, MPI_LOGICAL, MPI_LOR, MPI_COMM_WORLD, ierr)
@@ -812,6 +807,13 @@ contains
 #ifdef CompileWithMPI
       call MPI_Barrier(SUBCOMM_MPI,ierr)
 #endif
+
+
+#ifdef CompileWithWires_mtln  
+         call InitWires_mtln(mtln_solver,thereAre%MTLNbundles)
+#endif
+
+
 
 #ifdef CompileWithAnisotropic
       !Anisotropic
@@ -1346,10 +1348,7 @@ contains
                if (wirecrank) then
                   call AdvanceWiresEcrank(sgg,n, layoutnumber,wiresflavor,simu_devia,stochastic)
                else
-                  call AdvanceWiresE(sgg,n, layoutnumber,wiresflavor,simu_devia,stochastic,experimentalVideal,wirethickness,eps0,mu0)
-#ifdef CompileWithWires_mtln  
-                  call AdvanceWiresE_mtln(mtln_solver)
-#endif                  
+                  call AdvanceWiresE(sgg,n, layoutnumber,wiresflavor,simu_devia,stochastic,experimentalVideal,wirethickness,eps0,mu0)                 
                endif
             endif
          endif
@@ -1366,6 +1365,9 @@ contains
             call AdvanceWiresE_Slanted(sgg,n) 
          endif
 #endif
+#ifdef CompileWithWires_mtln  
+         if (thereAre%MTLNbundles) call AdvanceWiresE_mtln(sgg,Ex,Ey,Ez,Idxe,Idye,Idze,Idxh,Idyh,Idzh,eps0,mu0,mtln_solver)  
+#endif 
          If (Thereare%PMLbodies) then !waveport absorbers
             call AdvancePMLbodyE
          endif
