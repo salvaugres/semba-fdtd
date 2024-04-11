@@ -53,10 +53,10 @@ integer function test_termination_resistive() bind(C) result(error_cnt)
     node_right%belongs_to_cable => cable
     node_right%conductor_in_cable = 1
     node_right%side = TERMINAL_NODE_SIDE_END
-    node_right%termination = termination_with_source_t(termination_type = TERMINATION_SERIES, &
-                                                  resistance = 50, &
-                                                  inductance = 0.0, &
-                                                  capacitance = 1e22)
+    node_right%termination = termination_t(termination_type = TERMINATION_SERIES, &
+                                           resistance = 50, &
+                                           inductance = 0.0, &
+                                           capacitance = 1e22)
 
     connection_right%nodes = [node_right]
 
@@ -155,10 +155,10 @@ integer function test_termination_resistive_inductive() bind(C) result(error_cnt
     node_right%belongs_to_cable => cable
     node_right%conductor_in_cable = 1
     node_right%side = TERMINAL_NODE_SIDE_END
-    node_right%termination = termination_with_source_t(termination_type = TERMINATION_SERIES, &
-                                                  resistance = 50, &
-                                                  inductance = 1e-5, &
-                                                  capacitance = 1e22)
+    node_right%termination = termination_t(termination_type = TERMINATION_SERIES, &
+                                            resistance = 50, &
+                                            inductance = 1e-5, &
+                                            capacitance = 1e22)
 
     connection_right%nodes = [node_right]
 
@@ -258,7 +258,7 @@ integer function test_termination_resistive_capacitive_parallel() bind(C) result
     node_right%belongs_to_cable => cable
     node_right%conductor_in_cable = 1
     node_right%side = TERMINAL_NODE_SIDE_END
-    node_right%termination = termination_with_source_t(termination_type = TERMINATION_RLsCp, &
+    node_right%termination = termination_t(termination_type = TERMINATION_RLsCp, &
                                                   resistance = 0.1, &
                                                   inductance = 0.0, &
                                                   capacitance = 100e-12)
@@ -361,7 +361,7 @@ integer function test_termination_rls_cp() bind(C) result(error_cnt)
     node_right%belongs_to_cable => cable
     node_right%conductor_in_cable = 1
     node_right%side = TERMINAL_NODE_SIDE_END
-    node_right%termination = termination_with_source_t(termination_type = TERMINATION_RLsCP, &
+    node_right%termination = termination_t(termination_type = TERMINATION_RLsCP, &
                                                   resistance = 10, &
                                                   inductance = 10e-6, &
                                                   capacitance = 100e-12)
@@ -469,7 +469,7 @@ integer function test_termination_rls_cp_ns() bind(C) result(error_cnt)
     node_right%belongs_to_cable => cable
     node_right%conductor_in_cable = 1
     node_right%side = TERMINAL_NODE_SIDE_END
-    node_right%termination = termination_with_source_t(termination_type = TERMINATION_RLsCP, &
+    node_right%termination = termination_t(termination_type = TERMINATION_RLsCP, &
                                                   resistance = 10, &
                                                   inductance = 10e-6, &
                                                   capacitance = 100e-12)
@@ -572,7 +572,7 @@ integer function test_termination_rcp() bind(C) result(error_cnt)
     node_right%belongs_to_cable => cable
     node_right%conductor_in_cable = 1
     node_right%side = TERMINAL_NODE_SIDE_END
-    node_right%termination = termination_with_source_t(termination_type = TERMINATION_RLsCp, &
+    node_right%termination = termination_t(termination_type = TERMINATION_RLsCp, &
                                                   resistance = 10, &
                                                   inductance = 0.0, &
                                                   capacitance = 100e-12)
@@ -675,7 +675,7 @@ integer function test_termination_resistive_capacitive() bind(C) result(error_cn
     node_right%belongs_to_cable => cable
     node_right%conductor_in_cable = 1
     node_right%side = TERMINAL_NODE_SIDE_END
-    node_right%termination = termination_with_source_t(termination_type = TERMINATION_SERIES, &
+    node_right%termination = termination_t(termination_type = TERMINATION_SERIES, &
                                                   resistance = 50, &
                                                   inductance = 0.0, &
                                                   capacitance = 100e-12)

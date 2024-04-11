@@ -67,8 +67,8 @@ integer function test_fhash_arrays() bind(C) result(error_cnt)
     call tbl%set(key(1), p1, pointer=.true.)
     call tbl%set(key(2), p2, pointer=.true.)
 
-    p1_ptr => getPtrFromTable(1)
-    p2_ptr => getPtrFromTable(2)
+    p1_ptr => getPULPtrFromTable(1)
+    p2_ptr => getPULPtrFromTable(2)
 
     if (.not. associated(p1_ptr, p1)) then 
         error_cnt = error_cnt + 1
@@ -78,7 +78,7 @@ integer function test_fhash_arrays() bind(C) result(error_cnt)
     end if
 
     contains 
-        function getPtrFromTable(id) result(res)
+        function getPULPtrFromTable(id) result(res)
             integer, intent(in) :: id
             integer :: mStat
             class(*), pointer :: d
