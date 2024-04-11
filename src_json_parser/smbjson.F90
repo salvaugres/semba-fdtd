@@ -722,8 +722,13 @@ contains
          call setDomain(res, this%getDomain(p, J_PR_DOMAIN))
 
          call this%core%get(p, J_ELEMENTIDS, elemIds, found=elementIdsFound)
-         pixels = getPixelsFromElementIds(this%mesh, elemIds)
-
+         if (.not. elementIdsFound) then
+            write(error_unit, *) "ERROR: element ids entry not found for probe."
+         end if
+         allocate(pixels(size(elemIds)))
+         do i = 1, size(elemIds)
+            pixels(i) = getPixelFromElementId(this%mesh, elemIds(i))
+         end do
          call this%core%get(p, J_TYPE, typeLabel)
          select case (typeLabel)
           case (J_PR_TYPE_WIRE)
@@ -1086,12 +1091,12 @@ contains
       function findSourcePositionInLinels(srcElemIds, linels) result(res)
          integer, dimension(:), intent(in) :: srcElemIds
          type(linel_t), dimension(:), intent(in) :: linels
-         type(pixel_t), dimension(:), allocatable :: pixels
+         type(pixel_t) :: pixel
          integer :: res
          integer :: i
-         pixels = this%mesh%convertNodeToPixels(this%mesh%getNode(srcElemIds(1)))
+         pixel = this%mesh%convertNodeToPixel(this%mesh%getNode(srcElemIds(1)))
          do i = 1, size(linels)
-            if (all(linels(i)%cell ==pixels(1)%cell)) then 
+            if (all(linels(i)%cell ==pixel%cell)) then 
                res = i 
                return
             end if
