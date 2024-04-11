@@ -80,6 +80,9 @@ PROGRAM SEMBA_FDTD_launcher
    !*************************************************
    !*************************************************
    !
+!!!   
+   use mtln_solver_mod, mtln_solver_t => mtln_t
+!!!   
    use interpreta_switches_m
    IMPLICIT NONE
    !
@@ -137,7 +140,9 @@ PROGRAM SEMBA_FDTD_launcher
    !****************************************************************************
 
    type (entrada_t) :: l
-   
+!!!
+   type (mtln_solver_t) :: mtln_solver
+!!!
    logical :: lexis
    integer (kind=4) :: my_iostat
    
@@ -859,7 +864,8 @@ PROGRAM SEMBA_FDTD_launcher
            l%opcionestotales,l%sgbcfreq,l%sgbcresol,l%sgbccrank,l%sgbcdepth,l%fatalerror,l%fieldtotl,l%permitscaling, &
            l%EpsMuTimeScale_input_parameters, &
            l%stochastic,l%mpidir,l%verbose,l%precision,l%hopf,l%ficherohopf,l%niapapostprocess,l%planewavecorr, &
-           l%dontwritevtk,l%experimentalVideal,l%forceresampled,l%factorradius,l%factordelta,l%noconformalmapvtk )
+           l%dontwritevtk,l%experimentalVideal,l%forceresampled,l%factorradius,l%factordelta,l%noconformalmapvtk, &
+           mtln_solver)
 
          deallocate (sggMiEx, sggMiEy, sggMiEz,sggMiHx, sggMiHy, sggMiHz,sggMiNo,sggMtag)
       else
@@ -1160,8 +1166,12 @@ subroutine cargaNFDE(local_nfde,local_parser)
    endif
    l%thereare_stoch=NFDE_FILE%thereare_stoch
    l%mpidir=NFDE_FILE%mpidir !bug 100419
-!!!!!!!!!!!
-   write(dubuf,*) '[OK]';  call print11(l%layoutnumber,dubuf)
+!!!!!!!!!!!                             
+  ! write(dubuf,*) '[OK]';  call print11(l%layoutnumber,dubuf)
+   write(dubuf,*) '[OK] '//trim(adjustl(whoami))//' newparser (NFDE_FILE)';  call print11(0,dubuf)       
+#ifdef CompileWithMPI            
+       CALL MPI_Barrier (SUBCOMM_MPI, l%ierr)
+#endif
    return
 
 end subroutine cargaNFDE
@@ -1303,6 +1313,9 @@ subroutine NFDE2sgg
          CALL read_geomData (sgg,sggMtag,sggMiNo,sggMiEx,sggMiEy,sggMiEz,sggMiHx,sggMiHy,sggMiHz, l%fichin, l%layoutnumber, l%size, SINPML_fullsize, fullsize, parser, &
          l%groundwires,l%attfactorc,l%mibc,l%sgbc,l%sgbcDispersive,l%MEDIOEXTRA,maxSourceValue,l%skindepthpre,l%createmapvtk,l%input_conformal_flag,l%CLIPREGION,l%boundwireradius,l%maxwireradius,l%updateshared,l%run_with_dmma, &
          eps0,mu0,.false.,l%hay_slanted_wires,l%verbose,l%ignoresamplingerrors,tagtype,l%wiresflavor)
+!!!!mtln constructor 100424       
+         mtln_solver = mtlnCtor(parser%mtln)
+!!!!         
          WRITE (dubuf,*) '[OK] ENDED NFDE --------> GEOM'
          CALL print11 (l%layoutnumber, dubuf)
          !writing

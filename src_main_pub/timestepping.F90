@@ -114,6 +114,7 @@ module Solver
 #ifdef CompileWithPrescale
    USE P_rescale
 #endif   
+   use mtln_solver_mod, mtln_solver_t => mtln_t
 !!
 #ifdef CompileWithProfiling
    use nvtx
@@ -140,8 +141,12 @@ contains
    opcionestotales,sgbcFreq,sgbcresol,sgbccrank,sgbcDepth,fatalerror,fieldtotl,permitscaling, &
    EpsMuTimeScale_input_parameters, &
    stochastic,mpidir,verbose,precision,hopf,ficherohopf,niapapostprocess,planewavecorr, &
-   dontwritevtk,experimentalVideal,forceresampled,factorradius,factordelta,noconformalmapvtk )
-
+   dontwritevtk,experimentalVideal,forceresampled,factorradius,factordelta,noconformalmapvtk, &
+   mtln_solver)
+          
+!!!
+   type (mtln_solver_t) :: mtln_solver
+!!!
       logical :: noconformalmapvtk
       logical :: hopf,experimentalVideal,forceresampled
       character (LEN=BUFSIZE) :: ficherohopf
@@ -706,9 +711,9 @@ contains
          l_auxinput=thereare%Wires
          l_auxoutput=l_auxinput
 !! 
-#ifdef CompileWithWires_mtln  
-         call InitWires_mtln()
-#endif
+!!!#ifdef CompileWithWires_mtln  
+!!!         call InitWires_mtln(mtln_solver)
+!!!#endif
 !!
 #ifdef CompileWithMPI
       call MPI_Barrier(SUBCOMM_MPI,ierr)
@@ -1343,7 +1348,7 @@ contains
                else
                   call AdvanceWiresE(sgg,n, layoutnumber,wiresflavor,simu_devia,stochastic,experimentalVideal,wirethickness,eps0,mu0)
 #ifdef CompileWithWires_mtln  
-                  call AdvanceWiresE_mtln()
+                  call AdvanceWiresE_mtln(mtln_solver)
 #endif                  
                endif
             endif
