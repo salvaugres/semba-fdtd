@@ -22,6 +22,8 @@ add_library(semba-types
 	"src_mtln/mtln_types.F90"
 )
 add_subdirectory(external/fhash/)
+set(FHASH_INCLUDES  ${CMAKE_BINARY_DIR}/external/fhash/include/fortran_modules/${CMAKE_Fortran_COMPILER_ID}/${CMAKE_Fortran_COMPILER_VERSION})
+
 add_subdirectory(external/googletest/)
 
 add_subdirectory(src_json_parser)
@@ -67,6 +69,7 @@ if (CompileExecutable)
 	)
 	target_link_libraries(semba-fdtd semba-types smbjson)
 	include_directories(${CMAKE_BINARY_DIR}/mod)
+	include_directories(${FHASH_INCLUDES})
 endif()
 
 if(CMAKE_Fortran_COMPILER_ID MATCHES "GNU")
