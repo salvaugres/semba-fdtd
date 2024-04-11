@@ -9,36 +9,44 @@ module HollandWires_mtln
    use fdetypes
    use wiresHolland_constants
 !!!   
-   use mtln_solver_mod, mtln_solver_t => mtln_t 
+   use mtln_solver_mod 
 !!!
    implicit none
-   type(mtln_solver_t) :: mtln_solver
+
+   type(Thinwires_t)     , target                  ,save  ::  HWires
+   
    private
-!!!   public InitWires_mtln
-   public AdvanceWiresE_mtln
+   public InitWires_mtln,AdvanceWiresE_mtln
 
 
 contains
 
-   !!subroutine InitWires_mtln()     
-   !!     class(mtln_t), pointer :: mtln_wir
-   !!!!!     call initNodes(mtln_wir)
-   !!     return
-   !!endsubroutine InitWires_mtln
+   subroutine InitWires_mtln()   
+   
+        return
+   endsubroutine InitWires_mtln
 
-   subroutine AdvanceWiresE_mtln(mtln_solver) 
-        type (mtln_solver_t) :: mtln_solver
-        !class(mtln_t), pointer :: mtln_wir      
-        real, dimension(:,:), allocatable :: currents
-        real, dimension(:,:), allocatable :: voltages
-!       do n=1,HWires%NumCurrentSegments
-         !segmento => Hwires%segment(n)
+   subroutine AdvanceWiresE_mtln() 
+        class(mtln_t), pointer :: mtln_wir      
+        real, dimension(:,:,:), allocatable :: currents
+        real, dimension(:,:,:), allocatable :: voltages
+        type(CurrentSegments), pointer :: segment
+        integer :: i, j, k
+
+        do n=1,HWires%NumCurrentSegments
+         segment => Hwires%CurrentSegment(n)
+         i = segment%i
+         j = segment%j
+         k = segment%k
+         voltages(i,j,k) = !
+
          !segmento%efield_wire2main = real(segmento%efield_wire2main,kind=rkind_wires) - segmento%cte5 * segmento%current
 !!!...
          !Segmento%Current          = Segmento%Current + Segmento%cte2*real(Segmento%Efield_main2wire,KIND=RKIND_wires)
-!      end do
-
-   !!!     call mtln_step(mtln_wir, currents, voltages)
+        end do
+        
+        call mtln_wir%mtln_step(currents, voltages)
+      !   call mtln_step(mtln_wir, currents, voltages)
         
     return
 

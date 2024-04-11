@@ -317,14 +317,28 @@ contains
 
     subroutine bundle_setExternalVoltage(this, voltage)
         class(mtl_bundle_t) :: this
-        real, dimension(:), intent(in) :: voltage
-        this%v(1,:) = voltage(:)
+        real, dimension(:,:,:), intent(in) :: voltage
+        ! real, dimension(:), intent(in) :: voltage
+        integer, dimension(:), allocatable :: position
+        integer :: i
+        do i = 1, size(this%v,2) 
+            position = this%segment_relative_positions(i)%position
+            this%v(1, i) = voltage(position(1), position(2), position(3))
+        end do
+        ! this%v(1,:) = voltage(:)
     end subroutine
 
     subroutine bundle_updateExternalCurrent(this, current)
         class(mtl_bundle_t) :: this
-        real, dimension(:), intent(inout) :: current
-        current(:) =  this%i(1,:)
+        real, dimension(:,:,:), intent(inout) :: current
+        ! real, dimension(:), intent(inout) :: current
+        integer, dimension(:), allocatable :: position
+        integer :: i
+        do i = 1, size(this%i,2)
+            position = this%segment_relative_positions(i)%position
+            current(position(1), position(2), position(3)) = this%i(1,i)
+        end do
+        ! current(:) =  this%i(1,:)
     end subroutine
 
 end module mtl_bundle_mod

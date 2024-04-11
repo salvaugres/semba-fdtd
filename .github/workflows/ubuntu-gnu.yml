@@ -40,4 +40,6 @@ jobs:
 
     - name: Run wrapper tests
       run: |
-        python -m pytest test/pyWrapper/test_pyWrapper.py
+        python -m pytest test
+       
+      

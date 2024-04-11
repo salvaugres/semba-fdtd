@@ -21,6 +21,7 @@ integer function test_mtl_bundle_init() bind(C) result(error_cnt)
         integer :: i
         do i = 1, 5
             segment_positions(i)%position = (/i, 1, 1/)
+            segment_positions(i)%direction = 1
         end do
     end block
 

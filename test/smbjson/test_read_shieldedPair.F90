@@ -151,6 +151,7 @@ contains
       allocate(expected%mtln%cables(2)%segment_relative_positions(18))
       do i = 1, 18
          expected%mtln%cables(2)%segment_relative_positions(i)%position = (/1,1,i/)
+         expected%mtln%cables(2)%segment_relative_positions(i)%direction = DIRECTION_Z_POS
       end do
 
       allocate(expected%mtln%cables(2)%transfer_impedance%poles(0))
@@ -180,6 +181,7 @@ contains
       allocate(expected%mtln%cables(1)%segment_relative_positions(18))
       do i = 1, 18
          expected%mtln%cables(1)%segment_relative_positions(i)%position = (/1,1,i/)
+         expected%mtln%cables(1)%segment_relative_positions(i)%direction = DIRECTION_Z_POS
       end do
       expected%mtln%cables(1)%transfer_impedance%direction = TRANSFER_IMPEDANCE_DIRECTION_INWARDS
       expected%mtln%cables(1)%transfer_impedance%resistive_term = 0.0

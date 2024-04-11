@@ -43,20 +43,26 @@ TEST(mtln, mtl_inhomogeneous) { EXPECT_EQ(0, test_mtl_init_inhomogeneous()); }
 TEST(mtln, mtl_time_step) { EXPECT_EQ(0, test_mtl_time_step()); }
 TEST(mtln, mtl_wrong_dt) { EXPECT_EQ(0, test_mtl_wrong_dt()); }
 TEST(mtln, mtl_bundle_init) { EXPECT_EQ(0, test_mtl_bundle_init()); }
+
 TEST(mtln, mtln_types) {EXPECT_EQ(0, test_mtln_types()); }
+
 TEST(mtln, fhash_arrays) { EXPECT_EQ(0, test_fhash_arrays()); }
 TEST(mtln, fhash_cables) { EXPECT_EQ(0, test_fhash_cables()); }
 TEST(mtln, fhash) { EXPECT_EQ(0, test_fhash()); }
+
 TEST(mtln, preprocess_conductors_before_cable) { EXPECT_EQ(0, test_preprocess_conductors_before_cable()); }
 TEST(mtln, preprocess_conductors_in_level) { EXPECT_EQ(0, test_preprocess_conductors_in_level()); }
 TEST(mtln, preprocess_zt_conductor_ranges_2) { EXPECT_EQ(0, test_preprocess_zt_conductor_ranges_2()); }
 TEST(mtln, preprocess_zt_conductor_ranges) { EXPECT_EQ(0, test_preprocess_zt_conductor_ranges()); }
+
 TEST(mtln, math_eigvals) { EXPECT_EQ(0, test_math_eigvals()); }
 TEST(mtln, math_matmul_broadcast) { EXPECT_EQ(0, test_math_matmul_broadcast()); }
+
 TEST(mtln, dispersive_init_1_pole) { EXPECT_EQ(0, test_dispersive_init_1_pole()); }
 TEST(mtln, dispersive_init_2_poles) { EXPECT_EQ(0, test_dispersive_init_2_poles()); }
 TEST(mtln, dispersive_init_1_pole_3_levels) { EXPECT_EQ(0, test_dispersive_init_1_pole_3_levels()); }
 TEST(mtln, dispersive_init_1_pole_lines_with_lumped) { EXPECT_EQ(0, test_dispersive_init_1_pole_lines_with_lumped()); }
+
 TEST(mtln, spice_tran) { EXPECT_EQ(0, test_spice_tran()); }
 TEST(mtln, spice_tran_2) { EXPECT_EQ(0, test_spice_tran_2()); }
 TEST(mtln, spice_multiple) { EXPECT_EQ(0, test_spice_multiple()); }
