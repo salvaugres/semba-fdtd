@@ -70,15 +70,11 @@ contains
         end do
     end subroutine
 
-    subroutine mtln_step(this, currents, voltages)
+    subroutine mtln_step(this)
         class(mtln_t) :: this
-        ! real, dimension(:,:), intent(inout) :: currents
-        ! real, dimension(:,:), intent(in) :: voltages
-        real, dimension(:,:,:), intent(inout) :: currents
-        real, dimension(:,:,:), intent(in) :: voltages
         integer :: i 
 
-        call this%setExternalVoltage(voltages)
+        call this%setExternalVoltage()
 
         call this%advanceBundlesVoltage()
         call this%advanceNWVoltage()
@@ -87,7 +83,7 @@ contains
         call this%advanceTime()
         call this%updateProbes()
 
-        call this%updateExternalCurrent(currents)
+        ! call this%updateExternalCurrent()
     end subroutine
 
     subroutine step_alone(this)
@@ -104,14 +100,11 @@ contains
 
     end subroutine
 
-    subroutine setExternalVoltage(this, voltages)
+    subroutine setExternalVoltage(this)
         class(mtln_t) :: this
-        ! real, dimension(:,:), intent(in) :: voltages
-        real, dimension(:,:,:), intent(in) :: voltages
         integer :: i
         do i = 1, this%number_of_bundles
-            call this%bundles(i)%setExternalVoltage(voltages)
-            ! call this%bundles(i)%setExternalVoltage(voltages(i,:))
+            call this%bundles(i)%setExternalVoltage()
         end do
 
     end subroutine

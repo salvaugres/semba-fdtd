@@ -1367,7 +1367,7 @@ contains
          endif
 #endif
 #ifdef CompileWithWires_mtln  
-         if (thereAre%MTLNbundles) call AdvanceWiresE_mtln(sgg,Ex,Ey,Ez,Idxe,Idye,Idze,Idxh,Idyh,Idzh,eps0,mu0,mtln_solver)  
+         if (thereAre%MTLNbundles) call AdvanceWiresE_mtln(sgg, Idxe,Idye,Idze,Idxh,Idyh,Idzh,eps0,mu0,mtln_solver)  
 #endif 
          If (Thereare%PMLbodies) then !waveport absorbers
             call AdvancePMLbodyE
