@@ -1912,7 +1912,7 @@ contains
          end if
 
          res%step_size = buildStepSize(j_cable)
-         res%segment_relative_positions = mapSegmentsToGridCoordinates(j_cable)
+         res%external_field_segments = mapSegmentsToGridCoordinates(j_cable)
          ! write(*,*) 'id: ', this%getIntAt(j_cable, J_MATERIAL_ID, found)
          material = this%matTable%getId(this%getIntAt(j_cable, J_MATERIAL_ID, found))
          if (.not. found) &
@@ -2075,7 +2075,7 @@ contains
 
       function mapSegmentsToGridCoordinates(j_cable) result(res)
          type(json_value), pointer :: j_cable
-         type(segment_relative_position_t), dimension(:), allocatable :: res
+         type(external_field_segment_t), dimension(:), allocatable :: res
          integer, dimension(:), allocatable :: elemIds
          type(polyline_t) :: p_line
 
@@ -2104,14 +2104,16 @@ contains
 
       function mapNegativeSegment(c1, c2) result(res)
          type(coordinate_t), intent(in) :: c1, c2
-         type(segment_relative_position_t) :: curr_pos
+         type(external_field_segment_t) :: curr_pos
          integer :: axis, i, n_segments
-         type(segment_relative_position_t), dimension(:), allocatable :: res
+         type(external_field_segment_t), dimension(:), allocatable :: res
 
          axis = findDirection(c2-c1)
          n_segments = abs(ceiling(c2%position(axis)) - floor(c1%position(axis)))
          allocate(res(n_segments))
          curr_pos%position = [(c1%position(i), i = 1, 3)]
+         curr_pos%Efield_main2wire => null()
+         curr_pos%Efield_wire2main => null()
 
          res = [(curr_pos, i = 1, n_segments)]
          res(:)%position(axis) = [(res(i)%position(axis) - i, i = 1, n_segments)]
@@ -2120,15 +2122,17 @@ contains
 
       function mapPositiveSegment(c1, c2) result(res)
          type(coordinate_t), intent(in) :: c1, c2
-         type(segment_relative_position_t) :: curr_pos
+         type(external_field_segment_t) :: curr_pos
          integer :: axis, orientation, i, n_segments
-         type(segment_relative_position_t), dimension(:), allocatable :: res
+         type(external_field_segment_t), dimension(:), allocatable :: res
 
          axis = findDirection(c2-c1)
 
          n_segments = abs(floor(c2%position(axis)) - ceiling(c1%position(axis)))
          allocate(res(n_segments))
          curr_pos%position = [(c1%position(i), i = 1, 3)]
+         curr_pos%Efield_main2wire => null()
+         curr_pos%Efield_wire2main => null()
 
          res = [(curr_pos, i = 1, n_segments)]
          res(:)%position(axis) = [(res(i)%position(axis) + (i-1), i = 1, n_segments)]
