@@ -40951,6 +40951,16 @@
                 "numberOfFrequencies": 5,
                 "frequencySpacing": "logarithmic"
             }
+        },
+        {
+            "name": "electric_field_movie",
+            "type": "movie",
+            "field": "electric",
+            "elementIds": [2],
+            "domain": {
+                "type": "time",
+                "samplingPeriod": 1e-9
+            }
         }
     ]
 }

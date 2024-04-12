@@ -96,7 +96,7 @@ contains
       ex%oldSonda%probes(1)%n_FarField = 1
       ex%oldSonda%probes(1)%n_FarField_max = 1
       allocate(ex%oldSonda%probes(1)%FarField(1))
-      ex%oldSonda%probes(1)%FarField(1)%probe%outputrequest = "Far field_log_"
+      ex%oldSonda%probes(1)%FarField(1)%probe%outputrequest = "FarField_log_"
       ex%oldSonda%probes(1)%FarField(1)%probe%fstart = 1e6
       ex%oldSonda%probes(1)%FarField(1)%probe%fstop = 1e9
       ex%oldSonda%probes(1)%FarField(1)%probe%fstep = 1e6*5
@@ -116,6 +116,23 @@ contains
       ex%oldSonda%probes(1)%FarField(1)%probe%phistop    = 360.0
       ex%oldSonda%probes(1)%FarField(1)%probe%phistep    = 90.0   
       
+      allocate(ex%VolPrb)
+      ex%VolPrb%length = 1
+      ex%VolPrb%length_max = 1
+      ex%VolPrb%len_cor_max = 2
+      allocate(ex%VolPrb%collection(1))
+      allocate(ex%VolPrb%collection(1)%cordinates(1))
+      ex%VolPrb%collection(1)%cordinates(1)%Xi = 2
+      ex%VolPrb%collection(1)%cordinates(1)%Xe = 78
+      ex%VolPrb%collection(1)%cordinates(1)%Yi = 2
+      ex%VolPrb%collection(1)%cordinates(1)%Ye = 78
+      ex%VolPrb%collection(1)%cordinates(1)%Zi = 2
+      ex%VolPrb%collection(1)%cordinates(1)%Ze = 78
+      ex%VolPrb%collection(1)%tstart = 0.0
+      ex%VolPrb%collection(1)%tstop = 0.0
+      ex%VolPrb%collection(1)%tstep = 1e-9
+      ex%VolPrb%collection(1)%outputrequest = "electric_field_movie"
+
    end function
 end function
 
