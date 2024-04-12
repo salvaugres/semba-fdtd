@@ -152,6 +152,9 @@ contains
       do i = 1, 18
          expected%mtln%cables(2)%external_field_segments(i)%position = (/1,1,i/)
          expected%mtln%cables(2)%external_field_segments(i)%direction = DIRECTION_Z_POS
+         expected%mtln%cables(2)%external_field_segments(i)%Efield_wire2main => null()
+         expected%mtln%cables(2)%external_field_segments(i)%Efield_main2wire => null()
+
       end do
 
       allocate(expected%mtln%cables(2)%transfer_impedance%poles(0))
@@ -182,6 +185,8 @@ contains
       do i = 1, 18
          expected%mtln%cables(1)%external_field_segments(i)%position = (/1,1,i/)
          expected%mtln%cables(1)%external_field_segments(i)%direction = DIRECTION_Z_POS
+         expected%mtln%cables(1)%external_field_segments(i)%Efield_wire2main => null()
+         expected%mtln%cables(1)%external_field_segments(i)%Efield_main2wire => null()
       end do
       expected%mtln%cables(1)%transfer_impedance%direction = TRANSFER_IMPEDANCE_DIRECTION_INWARDS
       expected%mtln%cables(1)%transfer_impedance%resistive_term = 0.0
