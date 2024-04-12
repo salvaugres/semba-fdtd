@@ -931,6 +931,10 @@ contains
 
    elemental logical function volprobes_eq(a, b)
       type(VolProbes), intent(in) :: a, b
+      if (.not. associated(a%collection) .or. .not. associated(b%collection)) then
+         volprobes_eq = .false.
+         return
+      end if
       volprobes_eq = &
          (a%length == b%length) .and. &
          (a%length_max == b%length_max) .and. &

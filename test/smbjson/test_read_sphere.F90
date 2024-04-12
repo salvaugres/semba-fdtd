@@ -14,16 +14,7 @@ integer function test_read_sphere() bind (C) result(err)
    parser = parser_t(filename)
    pr = parser%readProblemDescription()
    
-   if (.not. ex%general == pr%general) call testFails(err, 'Expected and read "general" do not match')
-   if (.not. ex%matriz == pr%matriz)   call testFails(err, 'Expected and read "media matrix" do not match')
-   if (.not. ex%despl == pr%despl)     call testFails(err, 'Expected and read "grid" do not match')
-   if (.not. ex%front == pr%front)     call testFails(err, 'Expected and read "boundary" do not match')
-   if (.not. ex%Mats == pr%Mats)       call testFails(err, 'Expected and read "materials" do not match')
-   ! -- specific surfs not included DO NOT use comparison --
-   if (.not. ex%plnSrc == pr%plnSrc) call testFails(err, 'Expected and read "planewave sources" do not match')
-   if (.not. ex%nodSrc == pr%nodSrc) call testFails(err, 'Expected and read "nodal sources" do not match')
-   if (.not. ex%sonda == pr%sonda)         call testFails(err, 'Expected and read "new probes" do not match')
-   if (.not. ex%BloquePrb == pr%BloquePrb) call testFails(err, 'Expected and read "block probes" do not match')
+   call expect_eq(err, ex, pr, ignoreRegions=.true.)
    
    if (err == 0) write(*,*) "Read and expected inputs are equal."   
    

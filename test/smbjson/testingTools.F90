@@ -11,20 +11,34 @@ contains
       if (ex /= pr) call testFails(err, msg)
    end subroutine
 
-   subroutine expect_eq(err, ex, pr)
+   subroutine expect_eq(err, ex, pr, ignoreRegions)
       integer, intent(inout) :: err
       type(Parseador), intent(in) :: ex, pr
+      logical, optional, intent(in) :: ignoreRegions
+      logical :: checkRegions
 
+      if (.not. present(ignoreRegions)) then 
+         checkRegions = .true.
+      else
+         if (ignoreRegions) then
+            checkRegions = .false.
+         else
+            checkRegions = .true.
+         end if
+      end if
       ! Basics
       if (.not. ex%general == pr%general) call testFails(err, 'Expected and read "general" do not match')
       if (.not. ex%matriz == pr%matriz)   call testFails(err, 'Expected and read "media matrix" do not match')
       if (.not. ex%despl == pr%despl)     call testFails(err, 'Expected and read "grid" do not match')
       if (.not. ex%front == pr%front)     call testFails(err, 'Expected and read "boundary" do not match')
+      
       ! Materials
       if (.not. ex%Mats == pr%Mats)       call testFails(err, 'Expected and read "materials" do not match')
-      if (.not. ex%pecRegs == pr%pecRegs) call testFails(err, 'Expected and read "pec regions" do not match')
-      if (.not. ex%pmcRegs == pr%pmcRegs) call testFails(err, 'Expected and read "pmc regions" do not match')
-      ! if (.not. ex%DielRegs == pr%DielRegs)             &
+      if (checkRegions) then
+         if (.not. ex%pecRegs == pr%pecRegs) call testFails(err, 'Expected and read "pec regions" do not match')
+         if (.not. ex%pmcRegs == pr%pmcRegs) call testFails(err, 'Expected and read "pmc regions" do not match')
+         ! if (.not. ex%DielRegs == pr%DielRegs)             &
+      end if
       !    call testFails(err, 'Expected and read "dielectric regions" do not match')
       ! if (.not. ex%LossyThinSurfs == pr%LossyThinSurfs) &
       !    call testFails(err, 'Expected and read "lossy thin surfs" do not match')
@@ -32,10 +46,12 @@ contains
       !    call testFails(err, 'Expected and read "frq. dep. materials" do not match')
       ! if (.not. ex%aniMats == pr%aniMats)               &
       !    call testFails(err, 'Expected and read "anisotropic materials" do not match')
+      
       ! Sources
       ! if (.not. ex%boxSrc == pr%boxSrc) call testFails(err, 'Expected and read "box sources" do not match')
       if (.not. ex%plnSrc == pr%plnSrc) call testFails(err, 'Expected and read "planewave sources" do not match')
       if (.not. ex%nodSrc == pr%nodSrc) call testFails(err, 'Expected and read "nodal sources" do not match')
+      
       ! Probes
       if (.not. ex%oldSONDA == pr%oldSonda)   call testFails(err, 'Expected and read "old probes" do not match')
       if (.not. ex%sonda == pr%sonda)         call testFails(err, 'Expected and read "new probes" do not match')
