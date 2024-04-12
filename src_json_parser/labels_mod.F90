@@ -9,6 +9,7 @@ module labels_mod
    character (len=*), parameter :: J_DIR_X = "x"
    character (len=*), parameter :: J_DIR_Y = "y"
    character (len=*), parameter :: J_DIR_Z = "z"
+   character (len=*), parameter :: J_DIR_M = 'magnitude'
 
    character (len=*), parameter :: J_FIELD = "field"
    character (len=*), parameter :: J_FIELD_ELECTRIC = "electric"
@@ -138,6 +139,8 @@ module labels_mod
    character (len=*), parameter :: J_PR_TYPE_MOVIE = "movie"
    
    character (len=*), parameter :: J_PR_POINT_DIRECTIONS = "directions"
+
+   character (len=*), parameter :: J_PR_MOVIE_COMPONENTS = "components"
 
    character (len=*), parameter :: J_PR_FAR_FIELD_THETA = "theta"
    character (len=*), parameter :: J_PR_FAR_FIELD_PHI = "phi"

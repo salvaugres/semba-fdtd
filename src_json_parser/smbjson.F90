@@ -44,7 +44,8 @@ module smbjson
       procedure :: readProbes
       procedure :: readMoreProbes
       procedure :: readBlockProbes
-      procedure :: readVolumeProbes
+      procedure :: readVolumicProbes
+      procedure :: readThinWires
       !
       procedure :: readMesh
       !
@@ -834,7 +835,7 @@ contains
          call setDomain(res, this%getDomain(bp, J_PR_DOMAIN))
 
          res%skip = 1
-         res%tag = trim(adjustl(this%getStrAt(bp, J_NAME)))
+         res%tag = trim(adjustl(this%getStrAt(bp, J_NAME, default=" ")))
          res%t = BcELECT
 
       end function
@@ -873,7 +874,7 @@ contains
       end if
 
       ps = this%jsonValueFilterByKeyValues(probes, J_TYPE, [J_PR_TYPE_MOVIE])
-      if (size(bps) == 0) then
+      if (size(ps) == 0) then
          res = buildNoVolProbes()
          return
       end if
@@ -896,10 +897,13 @@ contains
 
       function readVolProbe(p) result(res)
          type(VolProbe) :: res
-         type(json_value), pointer :: p
+         type(json_value), pointer :: p, componentsPointer, componentPointer
          type(coords), dimension(:), allocatable :: cs
          type(cell_region_t), dimension(:), allocatable :: cRs
-         logical :: nameFound
+         character(len=:), allocatable :: fieldType, component
+         integer :: i
+         integer :: numberOfComponents
+         logical :: componentsFound
 
          cRs = this%mesh%getCellRegions(this%getIntsAt(p, J_ELEMENTIDS))
          if (size(cRs) /= 1) then
@@ -910,20 +914,66 @@ contains
             write(error_unit, *) "Movie probe must be defined by a single cell interval."
          end if
          cs = cellIntervalsToCoords(cRs(1)%intervals)
-         allocate(res%cordinates(1))
-         res%cordinates(1)%Xi  = cs(1)%xi
-         res%cordinates(1)%Xe  = cs(1)%xe
-         res%cordinates(1)%Yi  = cs(1)%yi
-         res%cordinates(1)%Ye  = cs(1)%ye
-         res%cordinates(1)%Zi  = cs(1)%zi
-         res%cordinates(1)%Ze  = cs(1)%ze
-         res%cordinates(1)%nml = cs(1)%Or
 
-         res%outputrequest = trim(adjustl(this%getStrAt(bp, J_NAME)))
-         
-         call setDomain(res, this%getDomain(bp, J_PR_DOMAIN))
+         fieldType = this%getStrAt(p, J_FIELD, default=J_FIELD_ELECTRIC)
+         componentsPointer = this%core%get(p, J_PR_MOVIE_COMPONENTS, found=componentsFound)
+         if (componentsFound) then
+            numberOfComponents = this%core%count(componentPointer)
+            allocate(res%cordinates(numberOfComponents))
+            do i = 1, numberOfComponents
+               call this%core%get_child(componentsPointer, i, componentPointer)
+               component = this%getStrAt(componentPointer)
+               res%cordinates(i) = cs(1)
+               res%cordinates(i)%Or  = buildVolProbeType(fieldType, component)
+            end do
+         else 
+            res%cordinates(i) = cs(1)
+            res%cordinates(i)%Or  = buildVolProbeType(fieldType, J_DIR_M)
+         endif
 
+         res%outputrequest = trim(adjustl(this%getStrAt(p, J_NAME, default=" ")))
+         ! call setDomain(res, this%getDomain(p, J_PR_DOMAIN))
+      end function
 
+      integer function buildVolProbeType(fieldType, componentType) result(res)
+         character(len=:), allocatable, intent(in) :: fieldType, componentType
+         select case (fieldType)
+         case (J_FIELD_ELECTRIC)
+            select case (componentType)
+            case (J_DIR_X)
+               res = iExC
+            case (J_DIR_Y)
+               res = iEyC
+            case (J_DIR_Z)
+               res = iEzC
+            case (J_DIR_M)
+               res = iMEC
+            end select
+         case (J_FIELD_MAGNETIC)
+            select case (componentType)
+            case (J_DIR_X)
+               res = iHxC
+            case (J_DIR_Y)
+               res = iHyC
+            case (J_DIR_Z)
+               res = iHzC
+            case (J_DIR_M)
+               res = iMHC
+            end select
+         case (J_FIELD_CURRENT_DENSITY)
+            select case (componentType)
+            case (J_DIR_X)
+               res = iCurX
+            case (J_DIR_Y)
+               res = iCurY
+            case (J_DIR_Z)
+               res = iCurZ
+            case (J_DIR_M)
+               res = iCur
+            end select
+         case default
+            write(error_unit,*) "ERROR Determining vol probe type: invalid field type."
+         end select
       end function
 
       subroutine setDomain(res, domain)
