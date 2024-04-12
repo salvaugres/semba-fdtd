@@ -811,7 +811,7 @@ contains
 
 
 #ifdef CompileWithWires_mtln  
-         call InitWires_mtln(sgg,Ex,Ey,Ez,mtln_solver,thereAre%MTLNbundles)
+         call InitWires_mtln(sgg,Ex,Ey,Ez,thereAre%MTLNbundles,mtln_solver)
 #endif
 
 
@@ -1367,7 +1367,7 @@ contains
          endif
 #endif
 #ifdef CompileWithWires_mtln  
-         if (thereAre%MTLNbundles) call AdvanceWiresE_mtln(sgg, Idxe,Idye,Idze,Idxh,Idyh,Idzh,eps0,mu0,mtln_solver)  
+         if (thereAre%MTLNbundles) call AdvanceWiresE_mtln(sgg,Idxh,Idyh,Idzh,eps0,mu0,mtln_solver)  
 #endif 
          If (Thereare%PMLbodies) then !waveport absorbers
             call AdvancePMLbodyE
