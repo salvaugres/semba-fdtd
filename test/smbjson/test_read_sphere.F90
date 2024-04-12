@@ -119,11 +119,12 @@ contains
       ex%VolPrb%collection(1)%cordinates(1)%Ye = 78
       ex%VolPrb%collection(1)%cordinates(1)%Zi = 2
       ex%VolPrb%collection(1)%cordinates(1)%Ze = 78
+      ex%VolPrb
       ex%VolPrb%collection(1)%tstart = 0.0
       ex%VolPrb%collection(1)%tstop = 0.0
       ex%VolPrb%collection(1)%tstep = 1e-9
       ex%VolPrb%collection(1)%outputrequest = "electric_field_movie"
-
+      ex%VolPrb%collection(1)%type2 = 
    end function
 end function
 

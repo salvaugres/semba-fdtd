@@ -40956,6 +40956,7 @@
             "name": "electric_field_movie",
             "type": "movie",
             "field": "electric",
+            "directions": ["x"],
             "elementIds": [2],
             "domain": {
                 "type": "time",
