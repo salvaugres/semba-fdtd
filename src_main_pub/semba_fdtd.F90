@@ -357,7 +357,7 @@ PROGRAM SEMBA_FDTD_launcher
 #ifdef CompilePrivateVersion   
        call cargaNFDE(l%filefde,parser)
 #else
-       print *,'Not compiled with cargaNFDEINDEX'
+       print *,'Not compiled with carga NFDE'
        stop
 #endif   
    elseif (trim(adjustl(l%extension))=='.json') then
@@ -472,19 +472,21 @@ PROGRAM SEMBA_FDTD_launcher
          conf_parameter%output_file_report_id = 47;
          !......................................................................
         write(dubuf,*) 'Init Searching for Conformal Mesh ...';  call print11(l%layoutnumber,dubuf)
-#ifdef CompileWithMPI
-         CALL MPI_Barrier (SUBCOMM_MPI, l%ierr)
-         CALL conformal_ini (TRIM(l%conformal_file_input_name),trim(l%fileFDE),parser,&
-            &sgg, sggMiEx,sggMiEy,sggMiEz,sggMiHx,sggMiHy,sggMiHz,l%run_with_abrezanjas,&
+
+        CALL MPI_Barrier (SUBCOMM_MPI, l%ierr)
+        CALL conformal_ini (TRIM(l%conformal_file_input_name),trim(l%fileFDE),parser,    &
+            &sgg, sggMiEx,sggMiEy,sggMiEz,sggMiHx,sggMiHy,sggMiHz,                       &
             &fullsize,l%layoutnumber,l%mpidir, l%input_conformal_flag,conf_err,l%verbose)
-#endif
-         !......................................................................
-#ifndef CompileWithMPI
-         !CALL conformal_ini (TRIM(l%conformal_file_input_name),trim(l%fileFDE),sgg,fullsize,0,conf_err,l%verbose)
-        CALL conformal_ini (TRIM(l%conformal_file_input_name),trim(l%fileFDE),parser,&
-            &sgg, sggMiEx,sggMiEy,sggMiEz,sggMiHx,sggMiHy,sggMiHz,&
-            &l%run_with_abrezanjas,fullsize,0,l%mpidir,l%input_conformal_flag,conf_err,l%verbose)
-#endif
+
+!!         !......................................................................
+
+! inutil a 130424 !sgg  
+!!#ifndef CompileWithMPI
+!!         !CALL conformal_ini (TRIM(l%conformal_file_input_name),trim(l%fileFDE),sgg,fullsize,0,conf_err,l%verbose)
+!!        CALL conformal_ini (TRIM(l%conformal_file_input_name),trim(l%fileFDE),parser,&
+!!            &sgg, sggMiEx,sggMiEy,sggMiEz,sggMiHx,sggMiHy,sggMiHz,&
+!!            &l%fullsize,0,l%mpidir,l%input_conformal_flag,conf_err,l%verbose)
+!!#endif
          if(conf_err/=0)then
             call WarnErrReport(Trim(buff),.true.)
          end if
@@ -698,9 +700,6 @@ PROGRAM SEMBA_FDTD_launcher
           do jmed=1,sgg%NumMedia
              if (sgg%Med(jmed)%Is%ThinSlot) ThereArethinslots=.true.
           end do
-         if (l%resume.and.l%run_with_abrezanjas.and.ThereArethinslots) then   
-             CALL stoponerror (l%layoutnumber, l%size, 'l%resume -r currently unsupported by conformal solver',.true.); statuse=-1; !return
-         end if
 !fin niapa  
    !
 !!!SOME FINAL REPORTING
@@ -732,8 +731,6 @@ PROGRAM SEMBA_FDTD_launcher
         write(dubuf,*) l%flag_conf_sgg
         CALL print11 (l%layoutnumber, '---> Conformal file external: '//trim(adjustl(dubuf)))
         write(dubuf,*) l%input_conformal_flag      
-        CALL print11 (l%layoutnumber, '---> Conformal solver: '//trim(adjustl(dubuf)))
-        write(dubuf,*) l%run_with_abrezanjas
         CALL print11 (l%layoutnumber, '---> Conformal thin-gap solver: '//trim(adjustl(dubuf)))
         write(dubuf,*) l%run_with_dmma
         CALL print11 (l%layoutnumber, '---> DMMA thin-gap solver: '//trim(adjustl(dubuf)))
@@ -1314,7 +1311,7 @@ subroutine NFDE2sgg
          l%groundwires,l%attfactorc,l%mibc,l%sgbc,l%sgbcDispersive,l%MEDIOEXTRA,maxSourceValue,l%skindepthpre,l%createmapvtk,l%input_conformal_flag,l%CLIPREGION,l%boundwireradius,l%maxwireradius,l%updateshared,l%run_with_dmma, &
          eps0,mu0,.false.,l%hay_slanted_wires,l%verbose,l%ignoresamplingerrors,tagtype,l%wiresflavor)
 !!!!mtln constructor 100424       
-         mtln_solver = mtlnCtor(parser%mtln)
+         if (associated(parser%mtln)) mtln_solver = mtlnCtor(parser%mtln)
 !!!!         
          WRITE (dubuf,*) '[OK] ENDED NFDE --------> GEOM'
          CALL print11 (l%layoutnumber, dubuf)

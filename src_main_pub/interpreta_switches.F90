@@ -34,7 +34,6 @@ module interpreta_switches_m
             createmapvtk                    , &
             hopf                            , &
             run_with_dmma                   , &
-            run_with_abrezanjas             , &
             input_conformal_flag            , &
             pausar                          , &
             relaunching                     , &
@@ -458,26 +457,10 @@ CONTAINS
 #ifdef CompileWithDMMA
           CASE ('-dmma')
               l%run_with_dmma = .TRUE.
-              l%run_with_abrezanjas = .FALSE.
               l%opcionespararesumeo = trim (adjustl(l%opcionespararesumeo)) // ' ' // trim (adjustl(l%chain))
 !!              i = i + 1;
 #endif
 #ifdef CompileWithConformal
-          CASE ('-abrezanjas') !Provisional FEB-2018
-
-            !NOTE: Comento lo de abajo para debugear 
-            !   print *,'Abrezanjas not available (290521).  '
-            !   stop
-
-            l%run_with_dmma = .FALSE.
-            l%run_with_abrezanjas = .true.
-            if (.NOT.l%input_conformal_flag) then
-                l%conformal_file_input_name = char(0)
-                l%input_conformal_flag = .true. 
-            end if
-            l%opcionespararesumeo = trim (adjustl(l%opcionespararesumeo)) // ' ' // trim (adjustl(l%chain))
-
-!!            i = i + 1;
           CASE ('-activateconf') !Provisional FEB-2018
             if (.NOT.l%input_conformal_flag) then
                 l%conformal_file_input_name = char(0)
@@ -1048,9 +1031,6 @@ CONTAINS
    IF ((l%flushminutesFields /= 0) .AND. (l%deleteintermediates)) THEN
       CALL stoponerror (l%layoutnumber, l%size, '-delete is not compatible with -flush',.true.); statuse=-1; !goto 668
    END IF
-   if (l%run_with_abrezanjas.and.l%run_with_dmma) then
-      CALL stoponerror (l%layoutnumber, l%size, '-abrezanjas is not compatible with -dmma',.true.); statuse=-1; !goto 668
-   END IF
    if (l%stochastic.and.(trim(adjustl(l%wiresflavor))/='holland')) then
       CALL stoponerror (l%layoutnumber, l%size, 'Old wires flavor is the only supported with l%stochastic',.true.); statuse=-1; !goto 668
    END IF
@@ -1173,17 +1153,6 @@ CONTAINS
          !TODO: under test
          !26-sep-2018: lo comento 
          !CALL stoponerror (l%layoutnumber, l%size, 'CONFORMAL -conf  unsupported with -l%mpidir {x,y}',.true.); statuse=-1; !goto 668
-   endif
-   if (l%run_with_abrezanjas.AND.(l%mpidir/=3)) then
-        continue !arreglado l%mpidir conformal 2019
-         !under test
-         !26-sep-2018: lo comento 
-         !CALL stoponerror (l%layoutnumber, l%size, 'New abrezanjas thin gaps unsupported with -l%mpidir {x,y}',.true.); statuse=-1; !goto 668
-   endif
-   if (l%run_with_abrezanjas.AND.l%flag_conf_sgg) then
-      !pass Mayo-2018
-         !CALL stoponerror (l%layoutnumber, l%size, 'CONFORMAL -conf currently unsupported with new abrezanjas thin gaps (unsupported 2 simultaneous conformal meshes at this moment',.true.); statuse=-1; !goto 668
-         !se hace en otro sitio
    endif
 
 
@@ -1626,7 +1595,6 @@ CONTAINS
       CALL print11 (l%layoutnumber, '-mapvtk                : Creates .VTK map of the PEC/wires/Surface geometry')
 #ifdef CompileWithConformal
       CALL print11 (l%layoutnumber, '-conf file             : conformal file  ')
-      CALL print11 (l%layoutnumber, '-abrezanjas            : Thin-gaps treated in conformal manner  ')
 #endif
 #ifdef CompileWithDMMA
       CALL print11 (l%layoutnumber, '-dmma                  : Thin-gaps treated in DMMA manner  ')
@@ -2135,7 +2103,6 @@ CONTAINS
       !**************************************************************************************************
       !**************************************************************************************************
       !**************************************************************************************************
-      !added 2701418 para prevenir conflictos de dobles mallas conformal si se usa -l%run_with_abrezanjas
       l%flag_conf_sgg=.false.
       !
 
@@ -2202,19 +2169,11 @@ CONTAINS
 #endif    
 #ifdef CompileWithConformal
       l%run_with_dmma = .false.
-! todo esto para el abrezanjas. se precisa tambien el l%input_conformal_flag  
-!!!!quitado sgg ojo 290521 esto no se ha arreglado aim... quito el abrezanjas !290521 bug     
-  !!!    l%run_with_abrezanjas = .true. !OJO 0323 A VECES DA ERROR. PONER A FALSE SI SUCEDE
-      l%run_with_abrezanjas = .false. !OJO 0323 A VECES DA ERROR. PONER A FALSE SI SUCEDE
-      !!!!l%run_with_abrezanjas = .false.
       if (.NOT.l%input_conformal_flag) then
             l%conformal_file_input_name = char(0)
             l%input_conformal_flag = .true.
       end if
-#else
-      l%run_with_abrezanjas = .false.
 #endif
-
 !fin thin gaps
 
       input_conformal_flag=l%input_conformal_flag    !ojooo 051223 es un flag globaaaallll
