@@ -568,6 +568,7 @@ contains
          allocate(res%FarField(1))
          ff => res%FarField(1)%probe
 
+         ff%grname = " "
          call this%core%get(p, J_NAME, outputName)
          ff%outputrequest = trim(adjustl(outputName))
 
@@ -1388,12 +1389,6 @@ contains
 
          write(error_unit, *) "Error parsing domain."
       end function
-   end function
-
-   function readThinSlots(this) result (res)
-      class(parser_t) :: this
-      type(ThinSlots) :: res
-      ! TODO
    end function
 
    function readMTLN(this, grid) result (mtln_res)

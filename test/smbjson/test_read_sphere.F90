@@ -87,6 +87,7 @@ contains
       ex%oldSonda%probes(1)%n_FarField = 1
       ex%oldSonda%probes(1)%n_FarField_max = 1
       allocate(ex%oldSonda%probes(1)%FarField(1))
+      ex%oldSonda%probes(1)%FarField(1)%probe%grname = " "
       ex%oldSonda%probes(1)%FarField(1)%probe%outputrequest = "FarField_log_"
       ex%oldSonda%probes(1)%FarField(1)%probe%tstart = 0.0
       ex%oldSonda%probes(1)%FarField(1)%probe%tstop = 0.0
@@ -131,6 +132,9 @@ contains
       ex%VolPrb%collection(1)%tstart = 0.0
       ex%VolPrb%collection(1)%tstop = 0.0
       ex%VolPrb%collection(1)%tstep = 1e-9
+      ex%VolPrb%collection(1)%fstart = 0.0
+      ex%VolPrb%collection(1)%fstop = 0.0
+      ex%VolPrb%collection(1)%fstep = 0.0
       ex%VolPrb%collection(1)%outputrequest = "electric_field_movie"
       ex%VolPrb%collection(1)%filename = " "
       ex%VolPrb%collection(1)%type2 = NP_T2_TIME
