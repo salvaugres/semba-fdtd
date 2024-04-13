@@ -95,9 +95,10 @@ contains
       allocate(ex%oldSonda%probes(1)%FarField(1)%probe%i(2))
       allocate(ex%oldSonda%probes(1)%FarField(1)%probe%j(2))
       allocate(ex%oldSonda%probes(1)%FarField(1)%probe%k(2))
-      ex%oldSonda%probes(1)%FarField(1)%probe%i = [2, 78]
-      ex%oldSonda%probes(1)%FarField(1)%probe%j = [2, 78]
-      ex%oldSonda%probes(1)%FarField(1)%probe%k = [2, 78]
+      allocate(ex%oldSonda%probes(1)%FarField(1)%probe%node(0))
+      ex%oldSonda%probes(1)%FarField(1)%probe%i = [2, 77]
+      ex%oldSonda%probes(1)%FarField(1)%probe%j = [2, 77]
+      ex%oldSonda%probes(1)%FarField(1)%probe%k = [2, 77]
       ex%oldSonda%probes(1)%FarField(1)%probe%n_cord = 2
       ex%oldSonda%probes(1)%FarField(1)%probe%n_cord_max = 2
       ex%oldSonda%probes(1)%FarField(1)%probe%thetastart = 0.0
@@ -119,7 +120,7 @@ contains
       ex%VolPrb%collection(1)%cordinates(1)%Ye = 78
       ex%VolPrb%collection(1)%cordinates(1)%Zi = 2
       ex%VolPrb%collection(1)%cordinates(1)%Ze = 78
-      ex%VolPrb%collection(1)%or(1) = iExC
+      ex%VolPrb%collection(1)%cordinates(1)%or = iExC
       ex%VolPrb%collection(1)%tstart = 0.0
       ex%VolPrb%collection(1)%tstop = 0.0
       ex%VolPrb%collection(1)%tstep = 1e-9

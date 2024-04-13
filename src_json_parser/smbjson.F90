@@ -16,7 +16,6 @@ module smbjson
 
    implicit none
 
-   character (len=*), parameter :: SMBJSON_LOG_SUFFIX = "_log_"
    integer, private, parameter  ::  MAX_LINE = 256
 
    type, public :: parser_t
@@ -606,7 +605,7 @@ contains
          end block
 
          if (domain%isLogarithmicFrequencySpacing) then
-            ff%outputrequest = ff%outputrequest // SMBJSON_LOG_SUFFIX
+            call appendLogSufix(ff%outputrequest)
          end if
 
          block
@@ -618,6 +617,7 @@ contains
             allocate(ff%i(2))
             allocate(ff%j(2))
             allocate(ff%k(2))
+            allocate(ff%node(0))
             ff%i(1) = nfdeCoords(1)%Xi
             ff%i(2) = nfdeCoords(1)%Xe
             ff%j(1) = nfdeCoords(1)%Yi
@@ -743,7 +743,7 @@ contains
          res%type2  = domain%type2
 
          if (domain%isLogarithmicFrequencySpacing) then
-            res%outputrequest = res%outputrequest // SMBJSON_LOG_SUFFIX
+            call appendLogSufix(res%outputrequest)
          end if
       end subroutine
 
@@ -854,7 +854,7 @@ contains
          res%type2 = domain%type2
 
          if (domain%isLogarithmicFrequencySpacing) then
-            res%outputrequest = res%outputrequest // SMBJSON_LOG_SUFFIX
+            call appendLogSufix(res%outputrequest)
          end if
       end subroutine
    end function
@@ -875,7 +875,7 @@ contains
 
       ps = this%jsonValueFilterByKeyValues(probes, J_TYPE, [J_PR_TYPE_MOVIE])
       if (size(ps) == 0) then
-         res = buildNoVolProbes()
+         res = buildNoVolProbes()      
          return
       end if
 
@@ -897,7 +897,7 @@ contains
 
       function readVolProbe(p) result(res)
          type(VolProbe) :: res
-         type(json_value), pointer :: p, componentsPointer, componentPointer
+         type(json_value), pointer :: p, compsPtr, compPtr
          type(coords), dimension(:), allocatable :: cs
          type(cell_region_t), dimension(:), allocatable :: cRs
          character(len=:), allocatable :: fieldType, component
@@ -916,30 +916,31 @@ contains
          cs = cellIntervalsToCoords(cRs(1)%intervals)
 
          fieldType = this%getStrAt(p, J_FIELD, default=J_FIELD_ELECTRIC)
-         componentsPointer = this%core%get(p, J_PR_MOVIE_COMPONENTS, found=componentsFound)
+         call this%core%get(p, J_PR_MOVIE_COMPONENTS, compsPtr, found=componentsFound)
          if (componentsFound) then
-            numberOfComponents = this%core%count(componentPointer)
+            numberOfComponents = this%core%count(compPtr)
             allocate(res%cordinates(numberOfComponents))
             do i = 1, numberOfComponents
-               call this%core%get_child(componentsPointer, i, componentPointer)
-               component = this%getStrAt(componentPointer)
+               call this%core%get_child(compsPtr, i, compPtr)
+               call this%core%get(compPtr, component)
                res%cordinates(i) = cs(1)
                res%cordinates(i)%Or  = buildVolProbeType(fieldType, component)
             end do
          else 
             res%cordinates(i) = cs(1)
-            res%cordinates(i)%Or  = buildVolProbeType(fieldType, J_DIR_M)
+            component = J_DIR_M
+            res%cordinates(i)%Or  = buildVolProbeType(fieldType, component)
          endif
 
          res%outputrequest = trim(adjustl(this%getStrAt(p, J_NAME, default=" ")))
-         ! call setDomain(res, this%getDomain(p, J_PR_DOMAIN))
+         call setDomain(res, this%getDomain(p, J_PR_DOMAIN))
       end function
 
-      integer function buildVolProbeType(fieldType, componentType) result(res)
-         character(len=:), allocatable, intent(in) :: fieldType, componentType
+      integer function buildVolProbeType(fieldType, component) result(res)
+         character(len=:), allocatable, intent(in) :: fieldType, component
          select case (fieldType)
          case (J_FIELD_ELECTRIC)
-            select case (componentType)
+            select case (component)
             case (J_DIR_X)
                res = iExC
             case (J_DIR_Y)
@@ -950,7 +951,7 @@ contains
                res = iMEC
             end select
          case (J_FIELD_MAGNETIC)
-            select case (componentType)
+            select case (component)
             case (J_DIR_X)
                res = iHxC
             case (J_DIR_Y)
@@ -961,7 +962,7 @@ contains
                res = iMHC
             end select
          case (J_FIELD_CURRENT_DENSITY)
-            select case (componentType)
+            select case (component)
             case (J_DIR_X)
                res = iCurX
             case (J_DIR_Y)
@@ -977,7 +978,7 @@ contains
       end function
 
       subroutine setDomain(res, domain)
-         type(BloqueProbe), intent(inout) :: res
+         type(VolProbe), intent(inout) :: res
          type(domain_t), intent(in) :: domain
 
          res%tstart = domain%tstart
@@ -986,15 +987,20 @@ contains
          res%fstart = domain%fstart
          res%fstep = domain%fstep
          res%fstop = domain%fstop
-         res%FileNormalize = domain%filename
+         res%filename = domain%filename
          res%type2 = domain%type2
 
          if (domain%isLogarithmicFrequencySpacing) then
-            res%outputrequest = res%outputrequest // SMBJSON_LOG_SUFFIX
+            call appendLogSufix(res%outputrequest)
          end if
       end subroutine
    end function
 
+   subroutine appendLogSufix(fn) 
+      character(len=BUFSIZE), intent(inout) :: fn
+      character (len=*), parameter :: SMBJSON_LOG_SUFFIX = "_log_"
+      fn = trim(fn) // SMBJSON_LOG_SUFFIX
+   end subroutine
 
    function readThinWires(this) result (res)
       class(parser_t) :: this
