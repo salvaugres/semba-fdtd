@@ -917,8 +917,8 @@ contains
 
    elemental logical function volprobe_eq(a, b)
       type(VolProbe), intent(in) :: a, b
-      volprobe_eq = &
-         all(a%cordinates == b%cordinates(1:b%len_cor)) .and. &
+      volprobe_eq = all(a%cordinates == b%cordinates)
+      volprobe_eq = volprobe_eq .and. &
          (a%tstart == b%tstart) .and. &
          (a%tstop == b%tstop) .and. &
          (a%tstep == b%tstep) .and. &

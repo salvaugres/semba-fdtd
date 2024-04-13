@@ -575,7 +575,9 @@ contains
          domain = this%getDomain(p, J_PR_DOMAIN)
          if (domain%type2 /= NP_T2_FREQ) &
             write(error_unit, *) "ERROR at far field probe: Only accepted domain is frequency."
-
+         ff%tstart = 0.0
+         ff%tstop = 0.0
+         ff%tstep = 0.0
          ff%fstart = domain%fstart
          ff%fstop = domain%fstop
          ff%fstep = domain%fstep
@@ -881,6 +883,7 @@ contains
 
       res%length = size(ps)
       res%length_max = size(ps)
+      res%len_cor_max = 2*size(ps)
       allocate(res%collection(size(ps)))
       do i = 1, size(ps)
          res%collection(i) = readVolProbe(ps(i)%p)
@@ -918,7 +921,7 @@ contains
          fieldType = this%getStrAt(p, J_FIELD, default=J_FIELD_ELECTRIC)
          call this%core%get(p, J_PR_MOVIE_COMPONENTS, compsPtr, found=componentsFound)
          if (componentsFound) then
-            numberOfComponents = this%core%count(compPtr)
+            numberOfComponents = this%core%count(compsPtr)
             allocate(res%cordinates(numberOfComponents))
             do i = 1, numberOfComponents
                call this%core%get_child(compsPtr, i, compPtr)
@@ -1290,12 +1293,6 @@ contains
 
          isThinWire = .true.
       end function
-   end function
-
-   function readSlantedWires(this) result (res)
-      class(parser_t) :: this
-      type(SlantedWires) :: res
-      ! TODO
    end function
 
    function getDomain(this, place, path) result(res)

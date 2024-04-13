@@ -88,6 +88,9 @@ contains
       ex%oldSonda%probes(1)%n_FarField_max = 1
       allocate(ex%oldSonda%probes(1)%FarField(1))
       ex%oldSonda%probes(1)%FarField(1)%probe%outputrequest = "FarField_log_"
+      ex%oldSonda%probes(1)%FarField(1)%probe%tstart = 0.0
+      ex%oldSonda%probes(1)%FarField(1)%probe%tstop = 0.0
+      ex%oldSonda%probes(1)%FarField(1)%probe%tstep = 0.0
       ex%oldSonda%probes(1)%FarField(1)%probe%fstart = 1e6
       ex%oldSonda%probes(1)%FarField(1)%probe%fstop = 1e9
       ex%oldSonda%probes(1)%FarField(1)%probe%fstep = 1e6*5
@@ -115,16 +118,21 @@ contains
       allocate(ex%VolPrb%collection(1))
       allocate(ex%VolPrb%collection(1)%cordinates(1))
       ex%VolPrb%collection(1)%cordinates(1)%Xi = 2
-      ex%VolPrb%collection(1)%cordinates(1)%Xe = 78
+      ex%VolPrb%collection(1)%cordinates(1)%Xe = 77
       ex%VolPrb%collection(1)%cordinates(1)%Yi = 2
-      ex%VolPrb%collection(1)%cordinates(1)%Ye = 78
+      ex%VolPrb%collection(1)%cordinates(1)%Ye = 77
       ex%VolPrb%collection(1)%cordinates(1)%Zi = 2
-      ex%VolPrb%collection(1)%cordinates(1)%Ze = 78
+      ex%VolPrb%collection(1)%cordinates(1)%Ze = 77
       ex%VolPrb%collection(1)%cordinates(1)%or = iExC
+      ex%VolPrb%collection(1)%cordinates(1)%xtrancos = 1
+      ex%VolPrb%collection(1)%cordinates(1)%ytrancos = 1
+      ex%VolPrb%collection(1)%cordinates(1)%ztrancos = 1
+      ex%VolPrb%collection(1)%cordinates(1)%tag = ""
       ex%VolPrb%collection(1)%tstart = 0.0
       ex%VolPrb%collection(1)%tstop = 0.0
       ex%VolPrb%collection(1)%tstep = 1e-9
       ex%VolPrb%collection(1)%outputrequest = "electric_field_movie"
+      ex%VolPrb%collection(1)%filename = " "
       ex%VolPrb%collection(1)%type2 = NP_T2_TIME
    end function
 end function
