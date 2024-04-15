@@ -99,9 +99,14 @@ def test_read_far_field_probe(tmp_path):
     solver = FDTD(input_filename = fn, path_to_exe=SEMBA_EXE)
     solver.run()  
 
-    probe_files = solver.getSolvedProbeFilenames("Far")
-    p_ff = Probe(probe_files[0])
+    p = Probe(solver.getSolvedProbeFilenames("Far")[0])
+    assert p.case_name == 'sphere'
+    assert p.type == 'farField'
+    assert np.all(p.cell_init == np.array([2,2,2]))
     
-    assert p_ff.case_name == 'sphere'
-    assert p_ff.type == 'farField'
-    assert np.all(p_ff.cell_init == np.array([2,2,2]))
+    p = Probe(solver.getSolvedProbeFilenames("electric_field_movie")[0])
+    assert p.case_name == 'sphere'
+    assert p.type == 'movie'
+    assert np.all(p.cell_init == np.array([2,2,2]))
+    
+    

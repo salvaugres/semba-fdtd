@@ -16,7 +16,6 @@ module smbjson
 
    implicit none
 
-   character (len=*), parameter :: SMBJSON_LOG_SUFFIX = "_log_"
    integer, private, parameter  ::  MAX_LINE = 256
 
    type, public :: parser_t
@@ -44,9 +43,8 @@ module smbjson
       procedure :: readProbes
       procedure :: readMoreProbes
       procedure :: readBlockProbes
+      procedure :: readVolumicProbes
       procedure :: readThinWires
-      procedure :: readSlantedWires
-      procedure :: readThinSlots
       !
       procedure :: readMesh
       !
@@ -97,8 +95,8 @@ contains
 
    subroutine initializeJson(this)
       class(parser_t) :: this
-      integer :: stat 
-      
+      integer :: stat
+
       allocate(this%jsonfile)
       call this%jsonfile%initialize()
       if (this%jsonfile%failed()) then
@@ -120,8 +118,8 @@ contains
    function readProblemDescription(this) result (res)
       class(parser_t) :: this
       type(Parseador) :: res
-      integer :: stat 
-      
+      integer :: stat
+
       allocate(this%jsonfile)
       call this%jsonfile%initialize()
       if (this%jsonfile%failed()) then
@@ -142,8 +140,6 @@ contains
       this%mesh = this%readMesh()
       this%matTable = IdChildTable_t(this%core, this%root, J_MATERIALS)
 
-
-      
       call initializeProblemDescription(res)
 
       ! Basics
@@ -155,25 +151,19 @@ contains
       ! Materials
       res%pecRegs = this%readPECRegions()
       res%pmcRegs = this%readPMCRegions()
-      ! res%DielRegs = this%readDielectricRegions()
-      ! res%LossyThinSurfs = this%readLossyThinSurfaces()
-      ! res%frqDepMats = this%readFrequencyDependentMaterials()
-      ! res%aniMats = this%readAnisotropicMaterials()
 
       ! Sources
-      ! res%boxSrc = this%readBoxSources()
       res%plnSrc = this%readPlanewaves()
       res%nodSrc = this%readNodalSources()
+
       ! Probes
       res%oldSonda = this%readProbes()
       res%sonda = this%readMoreProbes()
       res%BloquePrb = this%readBlockProbes()
-      ! res%VolPrb = this%readVolumicProbes()
+      res%VolPrb = this%readVolumicProbes()
+
       ! Thin elements
       res%tWires = this%readThinWires()
-      res%sWires = this%readSlantedWires()
-      res%tSlots = this%readThinSlots()
-      
 
       ! mtln
       res%mtln = this%readMTLN(res%despl)
@@ -182,7 +172,6 @@ contains
       call this%core%destroy()
       call this%jsonfile%destroy()
       nullify(this%root)
-
 
    end function
 
@@ -195,7 +184,7 @@ contains
       type(coordinate_t) :: c
       integer :: stat
       logical :: found
-    
+
       call this%core%get(this%root, J_MESH//'.'//J_COORDINATES, jcs, found=found)
       if (found) then
          call res%allocateCoordinates(10*this%core%count(jcs))
@@ -411,23 +400,6 @@ contains
       res%nVols_max = size(res%Vols)
    end function
 
-   function readDielectricRegions() result (res)
-      type(DielectricRegions) :: res
-      ! TODO
-   end function
-
-   function readLossyThinSurfaces() result (res)
-      type(LossyThinSurfaces) :: res
-      ! TODO
-   end function
-
-   function readFrequencyDependentMaterials() result (res)
-      type(FreqDepenMaterials) :: res
-
-
-      ! TODO
-   end function
-
    function readPlanewaves(this) result (res)
       class(parser_t) :: this
       type(PlaneWaves) :: res
@@ -596,6 +568,7 @@ contains
          allocate(res%FarField(1))
          ff => res%FarField(1)%probe
 
+         ff%grname = " "
          call this%core%get(p, J_NAME, outputName)
          ff%outputrequest = trim(adjustl(outputName))
 
@@ -603,20 +576,22 @@ contains
          domain = this%getDomain(p, J_PR_DOMAIN)
          if (domain%type2 /= NP_T2_FREQ) &
             write(error_unit, *) "ERROR at far field probe: Only accepted domain is frequency."
-
+         ff%tstart = 0.0
+         ff%tstop = 0.0
+         ff%tstep = 0.0
          ff%fstart = domain%fstart
          ff%fstop = domain%fstop
          ff%fstep = domain%fstep
-         
+
          block
             logical :: sourcesFound
             type(json_value), pointer :: sources, src
             character (len=:), allocatable :: fn
-            
+
             fn = this%getStrAt(p, J_PR_DOMAIN//J_PR_DOMAIN_MAGNITUDE_FILE, found=transferFunctionFound)
             if (.not. transferFunctionFound) then
                call this%core%get(this%root, J_SOURCES, sources, sourcesFound)
-               if (sourcesFound) then 
+               if (sourcesFound) then
                   if (this%core%count(sources) == 1) then
                      call this%core%get_child(sources, 1, src)
                      call this%core%get(src, J_SRC_MAGNITUDE_FILE, fn, found=transferFunctionFound)
@@ -624,16 +599,16 @@ contains
                end if
             end if
 
-            if (transferFunctionFound) then   
+            if (transferFunctionFound) then
                ff%FileNormalize = trim(adjustl(fn))
             else
                ff%FileNormalize = " "
             end if
-            
+
          end block
-            
+
          if (domain%isLogarithmicFrequencySpacing) then
-            ff%outputrequest = ff%outputrequest // SMBJSON_LOG_SUFFIX
+            call appendLogSufix(ff%outputrequest)
          end if
 
          block
@@ -645,6 +620,7 @@ contains
             allocate(ff%i(2))
             allocate(ff%j(2))
             allocate(ff%k(2))
+            allocate(ff%node(0))
             ff%i(1) = nfdeCoords(1)%Xi
             ff%i(2) = nfdeCoords(1)%Xe
             ff%j(1) = nfdeCoords(1)%Yi
@@ -770,7 +746,7 @@ contains
          res%type2  = domain%type2
 
          if (domain%isLogarithmicFrequencySpacing) then
-            res%outputrequest = res%outputrequest // SMBJSON_LOG_SUFFIX
+            call appendLogSufix(res%outputrequest)
          end if
       end subroutine
 
@@ -845,9 +821,9 @@ contains
          type(cell_region_t), dimension(:), allocatable :: cRs
 
          cRs = this%mesh%getCellRegions(this%getIntsAt(bp, J_ELEMENTIDS))
-         if (size(cRs) /= 1) write(error_unit, *) "Block probe must be defined by a single cell region."
+         if (size(cRs) /= 1) write(error_unit, *) "Bulk current probe must be defined by a single cell region."
 
-         if (size(cRs(1)%intervals) /= 1) write(error_unit, *) "Block probe must be defined by a single cell interval."
+         if (size(cRs(1)%intervals) /= 1) write(error_unit, *) "Bulk current probe must be defined by a single cell interval."
          cs = cellIntervalsToCoords(cRs(1)%intervals)
 
          res%i1  = cs(1)%xi
@@ -862,7 +838,7 @@ contains
          call setDomain(res, this%getDomain(bp, J_PR_DOMAIN))
 
          res%skip = 1
-         res%tag = trim(adjustl(this%getStrAt(bp, J_NAME)))
+         res%tag = trim(adjustl(this%getStrAt(bp, J_NAME, default=" ")))
          res%t = BcELECT
 
       end function
@@ -881,15 +857,155 @@ contains
          res%type2 = domain%type2
 
          if (domain%isLogarithmicFrequencySpacing) then
-            res%outputrequest = res%outputrequest // SMBJSON_LOG_SUFFIX
+            call appendLogSufix(res%outputrequest)
          end if
       end subroutine
    end function
 
-   function readVolumicProbes() result (res)
+   function readVolumicProbes(this) result (res)
+      class(parser_t) :: this
       type(VolProbes) :: res
-      ! TODO
+      type(json_value_ptr), dimension(:), allocatable :: ps
+      type(json_value), pointer :: probes
+      logical :: found
+      integer :: i
+
+      call this%core%get(this%root, J_PROBES, probes, found)
+      if (.not. found) then
+         res = buildNoVolProbes()
+         return
+      end if
+
+      ps = this%jsonValueFilterByKeyValues(probes, J_TYPE, [J_PR_TYPE_MOVIE])
+      if (size(ps) == 0) then
+         res = buildNoVolProbes()      
+         return
+      end if
+
+      res%length = size(ps)
+      res%length_max = size(ps)
+      res%len_cor_max = 2*size(ps)
+      allocate(res%collection(size(ps)))
+      do i = 1, size(ps)
+         res%collection(i) = readVolProbe(ps(i)%p)
+      end do
+
+   contains
+      function buildNoVolProbes() result(res)
+         type(VolProbes) :: res
+         allocate(res%collection(0))
+         res%length = 0
+         res%length_max = 0
+         res%len_cor_max = 0
+      end function
+
+      function readVolProbe(p) result(res)
+         type(VolProbe) :: res
+         type(json_value), pointer :: p, compsPtr, compPtr
+         type(coords), dimension(:), allocatable :: cs
+         type(cell_region_t), dimension(:), allocatable :: cRs
+         character(len=:), allocatable :: fieldType, component
+         integer :: i
+         integer :: numberOfComponents
+         logical :: componentsFound
+
+         cRs = this%mesh%getCellRegions(this%getIntsAt(p, J_ELEMENTIDS))
+         if (size(cRs) /= 1) then
+            write(error_unit, *) "Movie probe must be defined over a single cell region."
+         end if
+
+         if (size(cRs(1)%intervals) /= 1) then
+            write(error_unit, *) "Movie probe must be defined by a single cell interval."
+         end if
+         cs = cellIntervalsToCoords(cRs(1)%intervals)
+
+         fieldType = this%getStrAt(p, J_FIELD, default=J_FIELD_ELECTRIC)
+         call this%core%get(p, J_PR_MOVIE_COMPONENTS, compsPtr, found=componentsFound)
+         if (componentsFound) then
+            numberOfComponents = this%core%count(compsPtr)
+            allocate(res%cordinates(numberOfComponents))
+            do i = 1, numberOfComponents
+               call this%core%get_child(compsPtr, i, compPtr)
+               call this%core%get(compPtr, component)
+               res%cordinates(i) = cs(1)
+               res%cordinates(i)%Or  = buildVolProbeType(fieldType, component)
+            end do
+         else 
+            res%cordinates(i) = cs(1)
+            component = J_DIR_M
+            res%cordinates(i)%Or  = buildVolProbeType(fieldType, component)
+         endif
+         res%len_cor = size(res%cordinates)
+         
+         res%outputrequest = trim(adjustl(this%getStrAt(p, J_NAME, default=" ")))
+         call setDomain(res, this%getDomain(p, J_PR_DOMAIN))
+      end function
+
+      integer function buildVolProbeType(fieldType, component) result(res)
+         character(len=:), allocatable, intent(in) :: fieldType, component
+         select case (fieldType)
+         case (J_FIELD_ELECTRIC)
+            select case (component)
+            case (J_DIR_X)
+               res = iExC
+            case (J_DIR_Y)
+               res = iEyC
+            case (J_DIR_Z)
+               res = iEzC
+            case (J_DIR_M)
+               res = iMEC
+            end select
+         case (J_FIELD_MAGNETIC)
+            select case (component)
+            case (J_DIR_X)
+               res = iHxC
+            case (J_DIR_Y)
+               res = iHyC
+            case (J_DIR_Z)
+               res = iHzC
+            case (J_DIR_M)
+               res = iMHC
+            end select
+         case (J_FIELD_CURRENT_DENSITY)
+            select case (component)
+            case (J_DIR_X)
+               res = iCurX
+            case (J_DIR_Y)
+               res = iCurY
+            case (J_DIR_Z)
+               res = iCurZ
+            case (J_DIR_M)
+               res = iCur
+            end select
+         case default
+            write(error_unit,*) "ERROR Determining vol probe type: invalid field type."
+         end select
+      end function
+
+      subroutine setDomain(res, domain)
+         type(VolProbe), intent(inout) :: res
+         type(domain_t), intent(in) :: domain
+
+         res%tstart = domain%tstart
+         res%tstep = domain%tstep
+         res%tstop = domain%tstop
+         res%fstart = domain%fstart
+         res%fstep = domain%fstep
+         res%fstop = domain%fstop
+         res%filename = domain%filename
+         res%type2 = domain%type2
+
+         if (domain%isLogarithmicFrequencySpacing) then
+            call appendLogSufix(res%outputrequest)
+         end if
+      end subroutine
    end function
+
+   subroutine appendLogSufix(fn) 
+      character(len=BUFSIZE), intent(inout) :: fn
+      character (len=*), parameter :: SMBJSON_LOG_SUFFIX = "_log_"
+      fn = trim(fn) // SMBJSON_LOG_SUFFIX
+   end subroutine
 
    function readThinWires(this) result (res)
       class(parser_t) :: this
@@ -1039,7 +1155,7 @@ contains
          if (.not. found) then
             return
          end if
-  
+
          genSrcs = this%jsonValueFilterByKeyValues(sources, J_TYPE, [J_SRC_TYPE_GEN])
          if (size(genSrcs) == 0) then
             return
@@ -1054,27 +1170,27 @@ contains
                call this%core%get(genSrcs(i)%p, J_ELEMENTIDS, sourceElemIds)
                srcCoord = this%mesh%getNode(sourceElemIds(1))
                polylineCoords = this%mesh%getPolyline(plineElemIds(1))
-               if (.not. any(polylineCoords%coordIds == srcCoord%coordIds(1))) then 
+               if (.not. any(polylineCoords%coordIds == srcCoord%coordIds(1))) then
                   cycle ! generator is not in this polyline
                end if
 
                position = findSourcePositionInLinels(sourceElemIds, linels)
-      
-               if (.not. this%existsAt(genSrcs(i)%p, J_SRC_MAGNITUDE_FILE)) then 
+
+               if (.not. this%existsAt(genSrcs(i)%p, J_SRC_MAGNITUDE_FILE)) then
                   write(error_unit, *) 'magnitudeFile of source missing'
                   return
                end if
 
                select case(this%getStrAt(genSrcs(i)%p, J_FIELD))
-               case (J_FIELD_VOLTAGE)
+                case (J_FIELD_VOLTAGE)
                   res(position)%srctype = "VOLT"
                   res(position)%srcfile = this%getStrAt(genSrcs(i)%p, J_SRC_MAGNITUDE_FILE)
                   res(position)%multiplier = 1.0
-               case (J_FIELD_CURRENT)
+                case (J_FIELD_CURRENT)
                   res(position)%srctype = "CURR"
                   res(position)%srcfile = this%getStrAt(genSrcs(i)%p, J_SRC_MAGNITUDE_FILE)
                   res(position)%multiplier = 1.0
-               case default 
+                case default
                   write(error_unit, *) 'Field block of source of type generator must be current or voltage'
                end select
 
@@ -1091,8 +1207,8 @@ contains
          integer :: i
          pixels = this%mesh%convertNodeToPixels(this%mesh%getNode(srcElemIds(1)))
          do i = 1, size(linels)
-            if (all(linels(i)%cell ==pixels(1)%cell)) then 
-               res = i 
+            if (all(linels(i)%cell ==pixels(1)%cell)) then
+               res = i
                return
             end if
          end do
@@ -1123,11 +1239,11 @@ contains
          end if
 
          select case(label)
-         case(J_MAT_TERM_TYPE_OPEN)
+          case(J_MAT_TERM_TYPE_OPEN)
             res%r = 0.0
             res%l = 0.0
             res%c = 0.0
-         case default
+          case default
             call this%core%get(tm, J_MAT_TERM_RESISTANCE, res%r, default=0.0)
             call this%core%get(tm, J_MAT_TERM_INDUCTANCE, res%l, default=0.0)
             call this%core%get(tm, J_MAT_TERM_CAPACITANCE, res%c, default=1e22)
@@ -1181,12 +1297,6 @@ contains
       end function
    end function
 
-   function readSlantedWires(this) result (res)
-      class(parser_t) :: this
-      type(SlantedWires) :: res
-      ! TODO
-   end function
-
    function getDomain(this, place, path) result(res)
       class(parser_t) :: this
       type(domain_t) :: res
@@ -1211,7 +1321,7 @@ contains
       endif
 
       res%type1 = NP_T1_PLAIN
-      
+
       call this%core%get(domain, J_TYPE, domainType)
       res%type2 = getNPDomainType(domainType, transferFunctionFound)
 
@@ -1220,7 +1330,7 @@ contains
       call this%core%get(domain, J_PR_DOMAIN_TIME_STEP,  res%tstep,  default=0.0)
       call this%core%get(domain, J_PR_DOMAIN_FREQ_START, res%fstart, default=0.0)
       call this%core%get(domain, J_PR_DOMAIN_FREQ_STOP,  res%fstop,  default=0.0)
-      
+
       call this%core%get(domain, J_PR_DOMAIN_FREQ_NUMBER,  numberOfFrequencies,  default=0)
       if (numberOfFrequencies == 0) then
          res%fstep = 0.0
@@ -1280,12 +1390,6 @@ contains
 
          write(error_unit, *) "Error parsing domain."
       end function
-   end function
-
-   function readThinSlots(this) result (res)
-      class(parser_t) :: this
-      type(ThinSlots) :: res
-      ! TODO
    end function
 
    function readMTLN(this, grid) result (mtln_res)
@@ -1352,7 +1456,7 @@ contains
             end do
          end if
       end block
-    
+
       mtln_res%probes = readWireProbes()
       mtln_res%networks = buildNetworks()
 
@@ -1477,8 +1581,8 @@ contains
 
          end do
          allocate(res(size(networks_coordinates)))
-        
-         
+
+
          do i = 1, size(networks_coordinates)
             res(i) = buildNetwork(networks_coordinates(i), aux_nodes)
          end do
@@ -1567,7 +1671,7 @@ contains
          found_end = .false.
          polyline = this%mesh%getPolyline(conductor_index)
          coord_ini = this%mesh%getCoordinate(polyline%coordIds(1))
-         
+
          ub = ubound(polyline%coordIds,1)
          coord_end = this%mesh%getCoordinate(polyline%coordIds(ub))
 
@@ -1631,7 +1735,7 @@ contains
          res%node%termination%resistance = readTerminationRLC(termination, J_MAT_TERM_RESISTANCE, default = 0.0)
          res%node%termination%inductance = readTerminationRLC(termination, J_MAT_TERM_INDUCTANCE, default=0.0)
          res%node%conductor_in_cable = index
-         
+
          call elemIdToCable%get(key(id), value=cable_index)
          res%node%belongs_to_cable => mtln_res%cables(cable_index)
 
@@ -2088,16 +2192,16 @@ contains
             type(coordinate_t) :: c1, c2
             integer :: i
             do i = 2, size(p_line%coordIds)
-                  c2 = this%mesh%getCoordinate(p_line%coordIds(i))
-                  c1 = this%mesh%getCoordinate(p_line%coordIds(i-1))
+               c2 = this%mesh%getCoordinate(p_line%coordIds(i))
+               c1 = this%mesh%getCoordinate(p_line%coordIds(i-1))
 
-                  if (findOrientation(c2-c1) > 0) then 
-                     res = [res, mapPositiveSegment(c1,c2)]
-                  else if (findOrientation(c2-c1) < 0) then 
-                     res = [res, mapNegativeSegment(c1,c2)]
-                  else 
-                     write(error_unit, *) 'Error: polyline first and last coordinate are identical'
-                  end if
+               if (findOrientation(c2-c1) > 0) then
+                  res = [res, mapPositiveSegment(c1,c2)]
+               else if (findOrientation(c2-c1) < 0) then
+                  res = [res, mapNegativeSegment(c1,c2)]
+               else
+                  write(error_unit, *) 'Error: polyline first and last coordinate are identical'
+               end if
             end do
          end block
       end function
@@ -2154,23 +2258,23 @@ contains
             real :: f1, f2
             real, dimension(:), allocatable :: displacement
             do j = 2, size(p_line%coordIds)
-                  c2 = this%mesh%getCoordinate(p_line%coordIds(j))
-                  c1 = this%mesh%getCoordinate(p_line%coordIds(j-1))
-                  axis = findDirection(c2-c1)
-                  f1 = abs(ceiling(c1%position(axis))-c1%position(axis))
-                  f2 = abs(c2%position(axis)-floor(c2%position(axis)))
-                  displacement = assignDisplacement(desp, axis)
-                  if (f1 /= 0) then 
-                     res = [res, f1*displacement(floor(c1%position(axis)))]
-                  end if
-                  index_1 = ceiling(min(abs(c1%position(axis)), abs(c2%position(axis))))
-                  index_2 = floor(max(abs(c1%position(axis)), abs(c2%position(axis))))
-                  do i = 1, index_2 - index_1
-                     res = [res, displacement(i)]
-                  enddo
-                  if (f2 /= 0) then 
-                     res = [res, f2*displacement(floor(c2%position(axis)))]
-                  end if
+               c2 = this%mesh%getCoordinate(p_line%coordIds(j))
+               c1 = this%mesh%getCoordinate(p_line%coordIds(j-1))
+               axis = findDirection(c2-c1)
+               f1 = abs(ceiling(c1%position(axis))-c1%position(axis))
+               f2 = abs(c2%position(axis)-floor(c2%position(axis)))
+               displacement = assignDisplacement(desp, axis)
+               if (f1 /= 0) then
+                  res = [res, f1*displacement(floor(c1%position(axis)))]
+               end if
+               index_1 = ceiling(min(abs(c1%position(axis)), abs(c2%position(axis))))
+               index_2 = floor(max(abs(c1%position(axis)), abs(c2%position(axis))))
+               do i = 1, index_2 - index_1
+                  res = [res, displacement(i)]
+               enddo
+               if (f2 /= 0) then
+                  res = [res, f2*displacement(floor(c2%position(axis)))]
+               end if
             end do
          end block
       end function
@@ -2236,11 +2340,11 @@ contains
          integer :: res
          integer :: i
          do i = 1, 3
-            if (coordDiference%position(i) /= 0) then 
+            if (coordDiference%position(i) /= 0) then
                res = coordDiference%position(i)/abs(coordDiference%position(i))
             end if
          end do
-      end function  
+      end function
 
 
       function findDirection(coordDiference) result(res)
