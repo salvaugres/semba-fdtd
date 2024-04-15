@@ -118,6 +118,7 @@ contains
       ex%VolPrb%len_cor_max = 2
       allocate(ex%VolPrb%collection(1))
       allocate(ex%VolPrb%collection(1)%cordinates(1))
+      ex%VolPrb%collection(1)%len_cor = 1
       ex%VolPrb%collection(1)%cordinates(1)%Xi = 2
       ex%VolPrb%collection(1)%cordinates(1)%Xe = 77
       ex%VolPrb%collection(1)%cordinates(1)%Yi = 2

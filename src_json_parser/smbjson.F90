@@ -935,7 +935,8 @@ contains
             component = J_DIR_M
             res%cordinates(i)%Or  = buildVolProbeType(fieldType, component)
          endif
-
+         res%len_cor = size(res%cordinates)
+         
          res%outputrequest = trim(adjustl(this%getStrAt(p, J_NAME, default=" ")))
          call setDomain(res, this%getDomain(p, J_PR_DOMAIN))
       end function
