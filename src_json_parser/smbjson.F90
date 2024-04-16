@@ -931,9 +931,10 @@ contains
                res%cordinates(i)%Or  = buildVolProbeType(fieldType, component)
             end do
          else 
-            res%cordinates(i) = cs(1)
+            allocate(res%cordinates(1))
+            res%cordinates(1) = cs(1)
             component = J_DIR_M
-            res%cordinates(i)%Or  = buildVolProbeType(fieldType, component)
+            res%cordinates(1)%Or  = buildVolProbeType(fieldType, component)
          endif
          res%len_cor = size(res%cordinates)
          
