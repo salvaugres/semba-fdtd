@@ -931,9 +931,10 @@ contains
                res%cordinates(i)%Or  = buildVolProbeType(fieldType, component)
             end do
          else 
-            res%cordinates(i) = cs(1)
+            allocate(res%cordinates(1))
+            res%cordinates(1) = cs(1)
             component = J_DIR_M
-            res%cordinates(i)%Or  = buildVolProbeType(fieldType, component)
+            res%cordinates(1)%Or  = buildVolProbeType(fieldType, component)
          endif
          res%len_cor = size(res%cordinates)
          
@@ -1205,13 +1206,15 @@ contains
          type(pixel_t), dimension(:), allocatable :: pixels
          integer :: res
          integer :: i
+
          pixels = this%mesh%convertNodeToPixels(this%mesh%getNode(srcElemIds(1)))
          do i = 1, size(linels)
-            if (all(linels(i)%cell ==pixels(1)%cell)) then
+            if (linels(i)%tag == pixels(1)%tag) then
                res = i
                return
             end if
          end do
+         write (error_unit, * ) "ERROR: Source could not be found in linels."
 
       end function
 
