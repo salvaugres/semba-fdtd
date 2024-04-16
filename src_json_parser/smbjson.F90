@@ -1206,13 +1206,15 @@ contains
          type(pixel_t), dimension(:), allocatable :: pixels
          integer :: res
          integer :: i
+
          pixels = this%mesh%convertNodeToPixels(this%mesh%getNode(srcElemIds(1)))
          do i = 1, size(linels)
-            if (all(linels(i)%cell ==pixels(1)%cell)) then
+            if (linels(i)%tag == pixels(1)%tag) then
                res = i
                return
             end if
          end do
+         write (error_unit, * ) "ERROR: Source could not be found in linels."
 
       end function
 
