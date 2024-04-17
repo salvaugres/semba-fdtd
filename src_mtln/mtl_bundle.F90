@@ -21,7 +21,7 @@ module mtl_bundle_mod
         real, dimension(:,:,:), allocatable :: v_term, i_term
         real, dimension(:,:,:), allocatable :: v_diff, i_diff
 
-        type(external_field_segment_t), dimension(:), allocatable :: external_field_segments
+        type(segment_relative_position_t), dimension(:), allocatable :: segment_relative_positions
 
 
     contains
@@ -37,6 +37,7 @@ module mtl_bundle_mod
         procedure :: advanceCurrent => bundle_advanceCurrent
         procedure :: addTransferImpedance => bundle_addTransferImpedance
         ! procedure :: setConnectorTransferImpedance
+        procedure :: setExternalCurrent => bundle_setExternalCurrent
         procedure :: setExternalVoltage => bundle_setExternalVoltage
         procedure :: updateExternalCurrent => bundle_updateExternalCurrent
 
@@ -63,7 +64,7 @@ contains
         res%dt = levels(1)%lines(1)%dt
         res%step_size = levels(1)%lines(1)%step_size
         res%number_of_divisions = size(res%step_size,1)
-        res%external_field_segments = levels(1)%lines(1)%external_field_segments
+        res%segment_relative_positions = levels(1)%lines(1)%segment_relative_positions
         call res%initialAllocation()
         call res%mergePULMatrices(levels)
         call res%mergeDispersiveMatrices(levels)
@@ -308,25 +309,22 @@ contains
         ! call this%transfer_impedance%updatePhi(i_prev, i_now)
     end subroutine
 
-    subroutine bundle_setExternalVoltage(this)
+    subroutine bundle_setExternalCurrent(this, current)
         class(mtl_bundle_t) :: this
-        integer :: i
-        do i = 1, size(this%v,2) 
-            this%v(1, i) = this%external_field_segments(i)%Efield_main2wire * this%step_size(i)
-        end do
+        real, dimension(:), intent(in) :: current
+        this%i(1,:) = current(:)
+    end subroutine
+
+    subroutine bundle_setExternalVoltage(this, voltage)
+        class(mtl_bundle_t) :: this
+        real, dimension(:), intent(in) :: voltage
+        this%v(1,:) = voltage(:)
     end subroutine
 
     subroutine bundle_updateExternalCurrent(this, current)
         class(mtl_bundle_t) :: this
-        real, dimension(:,:,:), intent(inout) :: current
-        ! real, dimension(:), intent(inout) :: current
-        integer, dimension(:), allocatable :: position
-        integer :: i
-        do i = 1, size(this%i,2)
-            position = this%external_field_segments(i)%position
-            current(position(1), position(2), position(3)) = this%i(1,i)
-        end do
-        ! current(:) =  this%i(1,:)
+        real, dimension(:), intent(inout) :: current
+        current(:) =  this%i(1,:)
     end subroutine
 
 end module mtl_bundle_mod
