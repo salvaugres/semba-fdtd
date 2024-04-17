@@ -14,16 +14,7 @@ integer function test_read_sphere() bind (C) result(err)
    parser = parser_t(filename)
    pr = parser%readProblemDescription()
    
-   if (.not. ex%general == pr%general) call testFails(err, 'Expected and read "general" do not match')
-   if (.not. ex%matriz == pr%matriz)   call testFails(err, 'Expected and read "media matrix" do not match')
-   if (.not. ex%despl == pr%despl)     call testFails(err, 'Expected and read "grid" do not match')
-   if (.not. ex%front == pr%front)     call testFails(err, 'Expected and read "boundary" do not match')
-   if (.not. ex%Mats == pr%Mats)       call testFails(err, 'Expected and read "materials" do not match')
-   ! -- specific surfs not included DO NOT use comparison --
-   if (.not. ex%plnSrc == pr%plnSrc) call testFails(err, 'Expected and read "planewave sources" do not match')
-   if (.not. ex%nodSrc == pr%nodSrc) call testFails(err, 'Expected and read "nodal sources" do not match')
-   if (.not. ex%sonda == pr%sonda)         call testFails(err, 'Expected and read "new probes" do not match')
-   if (.not. ex%BloquePrb == pr%BloquePrb) call testFails(err, 'Expected and read "block probes" do not match')
+   call expect_eq(err, ex, pr, ignoreRegions=.true.)
    
    if (err == 0) write(*,*) "Read and expected inputs are equal."   
    
@@ -96,7 +87,11 @@ contains
       ex%oldSonda%probes(1)%n_FarField = 1
       ex%oldSonda%probes(1)%n_FarField_max = 1
       allocate(ex%oldSonda%probes(1)%FarField(1))
-      ex%oldSonda%probes(1)%FarField(1)%probe%outputrequest = "Far field_log_"
+      ex%oldSonda%probes(1)%FarField(1)%probe%grname = " "
+      ex%oldSonda%probes(1)%FarField(1)%probe%outputrequest = "FarField_log_"
+      ex%oldSonda%probes(1)%FarField(1)%probe%tstart = 0.0
+      ex%oldSonda%probes(1)%FarField(1)%probe%tstop = 0.0
+      ex%oldSonda%probes(1)%FarField(1)%probe%tstep = 0.0
       ex%oldSonda%probes(1)%FarField(1)%probe%fstart = 1e6
       ex%oldSonda%probes(1)%FarField(1)%probe%fstop = 1e9
       ex%oldSonda%probes(1)%FarField(1)%probe%fstep = 1e6*5
@@ -104,9 +99,10 @@ contains
       allocate(ex%oldSonda%probes(1)%FarField(1)%probe%i(2))
       allocate(ex%oldSonda%probes(1)%FarField(1)%probe%j(2))
       allocate(ex%oldSonda%probes(1)%FarField(1)%probe%k(2))
-      ex%oldSonda%probes(1)%FarField(1)%probe%i = [2, 78]
-      ex%oldSonda%probes(1)%FarField(1)%probe%j = [2, 78]
-      ex%oldSonda%probes(1)%FarField(1)%probe%k = [2, 78]
+      allocate(ex%oldSonda%probes(1)%FarField(1)%probe%node(0))
+      ex%oldSonda%probes(1)%FarField(1)%probe%i = [2, 77]
+      ex%oldSonda%probes(1)%FarField(1)%probe%j = [2, 77]
+      ex%oldSonda%probes(1)%FarField(1)%probe%k = [2, 77]
       ex%oldSonda%probes(1)%FarField(1)%probe%n_cord = 2
       ex%oldSonda%probes(1)%FarField(1)%probe%n_cord_max = 2
       ex%oldSonda%probes(1)%FarField(1)%probe%thetastart = 0.0
@@ -116,6 +112,33 @@ contains
       ex%oldSonda%probes(1)%FarField(1)%probe%phistop    = 360.0
       ex%oldSonda%probes(1)%FarField(1)%probe%phistep    = 90.0   
       
+      allocate(ex%VolPrb)
+      ex%VolPrb%length = 1
+      ex%VolPrb%length_max = 1
+      ex%VolPrb%len_cor_max = 2
+      allocate(ex%VolPrb%collection(1))
+      allocate(ex%VolPrb%collection(1)%cordinates(1))
+      ex%VolPrb%collection(1)%len_cor = 1
+      ex%VolPrb%collection(1)%cordinates(1)%Xi = 2
+      ex%VolPrb%collection(1)%cordinates(1)%Xe = 77
+      ex%VolPrb%collection(1)%cordinates(1)%Yi = 2
+      ex%VolPrb%collection(1)%cordinates(1)%Ye = 77
+      ex%VolPrb%collection(1)%cordinates(1)%Zi = 2
+      ex%VolPrb%collection(1)%cordinates(1)%Ze = 77
+      ex%VolPrb%collection(1)%cordinates(1)%or = iExC
+      ex%VolPrb%collection(1)%cordinates(1)%xtrancos = 1
+      ex%VolPrb%collection(1)%cordinates(1)%ytrancos = 1
+      ex%VolPrb%collection(1)%cordinates(1)%ztrancos = 1
+      ex%VolPrb%collection(1)%cordinates(1)%tag = ""
+      ex%VolPrb%collection(1)%tstart = 0.0
+      ex%VolPrb%collection(1)%tstop = 0.0
+      ex%VolPrb%collection(1)%tstep = 1e-9
+      ex%VolPrb%collection(1)%fstart = 0.0
+      ex%VolPrb%collection(1)%fstop = 0.0
+      ex%VolPrb%collection(1)%fstep = 0.0
+      ex%VolPrb%collection(1)%outputrequest = "electric_field_movie"
+      ex%VolPrb%collection(1)%filename = " "
+      ex%VolPrb%collection(1)%type2 = NP_T2_TIME
    end function
 end function
 

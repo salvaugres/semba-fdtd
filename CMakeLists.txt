@@ -19,7 +19,6 @@ include("${CMAKE_CURRENT_SOURCE_DIR}/set_precompiled_libraries.cmake")
 add_library(semba-types 
 	"src_main_pub/nfde_types.F90"
 	"src_main_pub/fdetypes.F90"
-	"src_main_pub/nfde_rotate.F90"
 	"src_mtln/mtln_types.F90"
 )
 add_subdirectory(external/fhash/)
@@ -50,6 +49,7 @@ if (CompileExecutable)
 		"src_main_pub/magneticdispersive.F90"
 		"src_main_pub/maloney_nostoch.F90"
 		"src_main_pub/mpicomm.F90"
+		"src_main_pub/nfde_rotate.F90"
 		"src_main_pub/nodalsources.F90"
 		"src_main_pub/observation.F90"
 		"src_main_pub/planewaves.F90"
@@ -71,12 +71,12 @@ endif()
 
 if(CMAKE_Fortran_COMPILER_ID MATCHES "GNU")
 	message(STATUS "Gfortran found...")
-	set(CMAKE_Fortran_FLAGS "-ffree-form -ffree-line-length-none -fdec -fcheck=bounds")
+	set(CMAKE_Fortran_FLAGS "-ffree-form -ffree-line-length-none -fdec -fcheck=bounds -fopenmp")
 	add_definitions(-DCompileWithIncludeMpifh)
 endif()
 if(CMAKE_Fortran_COMPILER_ID MATCHES "^Intel")
 	message(STATUS "INTEL FORTRAN found...")
-	set(CMAKE_Fortran_FLAGS "-fpp -check all,nouninit -debug full -traceback ")
+	set(CMAKE_Fortran_FLAGS "-fpp -check all,nouninit -debug full -traceback")
 endif()
 
 if (CompileWithHDF)
