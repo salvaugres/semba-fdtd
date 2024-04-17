@@ -91,7 +91,7 @@ module Solver
    use HollandWires        
 #endif       
 #ifdef CompileWithWires_mtln  
-   use HollandWires_mtln             
+   use Wire_bundles_mtln_mod             
 #endif       
 #ifdef CompileWithBerengerWires
    use WiresBerenger
@@ -113,7 +113,9 @@ module Solver
    USE CALC_CONSTANTS
 #ifdef CompileWithPrescale
    USE P_rescale
-#endif   
+#endif              
+   use mtln_solver_mod, mtln_solver_t => mtln_t
+   use Wire_bundles_mtln_mod
 !!
 #ifdef CompileWithProfiling
    use nvtx
@@ -140,8 +142,12 @@ contains
    opcionestotales,sgbcFreq,sgbcresol,sgbccrank,sgbcDepth,fatalerror,fieldtotl,permitscaling, &
    EpsMuTimeScale_input_parameters, &
    stochastic,mpidir,verbose,precision,hopf,ficherohopf,niapapostprocess,planewavecorr, &
-   dontwritevtk,experimentalVideal,forceresampled,factorradius,factordelta,noconformalmapvtk )
-
+   dontwritevtk,experimentalVideal,forceresampled,factorradius,factordelta,noconformalmapvtk, &
+   mtln_solver)
+          
+!!!                          
+   type (mtln_solver_t) :: mtln_solver
+!!!
       logical :: noconformalmapvtk
       logical :: hopf,experimentalVideal,forceresampled
       character (LEN=BUFSIZE) :: ficherohopf
@@ -705,11 +711,6 @@ contains
                                inductance_model,wirethickness,groundwires,strictOLD,TAPARRABOS,g2,wiresflavor,SINPML_fullsize,fullsize,wirecrank,dtcritico,eps0,mu0,simu_devia,stochastic,verbose,factorradius,factordelta)
          l_auxinput=thereare%Wires
          l_auxoutput=l_auxinput
-!! 
-#ifdef CompileWithWires_mtln  
-         call InitWires_mtln()
-#endif
-!!
 #ifdef CompileWithMPI
       call MPI_Barrier(SUBCOMM_MPI,ierr)
       call MPI_AllReduce( l_auxinput, l_auxoutput, 1_4, MPI_LOGICAL, MPI_LOR, MPI_COMM_WORLD, ierr)
@@ -807,6 +808,13 @@ contains
 #ifdef CompileWithMPI
       call MPI_Barrier(SUBCOMM_MPI,ierr)
 #endif
+
+
+#ifdef CompileWithWires_mtln  
+         call InitWires_mtln(sgg,Ex,Ey,Ez,thereAre%MTLNbundles,mtln_solver)
+#endif
+
+
 
 #ifdef CompileWithAnisotropic
       !Anisotropic
@@ -1341,10 +1349,7 @@ contains
                if (wirecrank) then
                   call AdvanceWiresEcrank(sgg,n, layoutnumber,wiresflavor,simu_devia,stochastic)
                else
-                  call AdvanceWiresE(sgg,n, layoutnumber,wiresflavor,simu_devia,stochastic,experimentalVideal,wirethickness,eps0,mu0)
-#ifdef CompileWithWires_mtln  
-                  call AdvanceWiresE_mtln()
-#endif                  
+                  call AdvanceWiresE(sgg,n, layoutnumber,wiresflavor,simu_devia,stochastic,experimentalVideal,wirethickness,eps0,mu0)                 
                endif
             endif
          endif
@@ -1361,6 +1366,9 @@ contains
             call AdvanceWiresE_Slanted(sgg,n) 
          endif
 #endif
+#ifdef CompileWithWires_mtln  
+         if (thereAre%MTLNbundles) call AdvanceWiresE_mtln(sgg,Idxh,Idyh,Idzh,eps0,mu0,mtln_solver)  
+#endif 
          If (Thereare%PMLbodies) then !waveport absorbers
             call AdvancePMLbodyE
          endif
