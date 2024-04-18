@@ -66,7 +66,7 @@ if (CompileExecutable)
 		"src_wires_pub/wires.F90"
 		"src_wires_pub/wires_mtln.F90"
 	)
-	target_link_libraries(semba-fdtd semba-types smbjson mtlnsolver ngspice_interface ${NGSPICE_LIB} stdc++)
+	target_link_libraries(semba-fdtd semba-types smbjson mtlnsolver ngspice_interface ${NGSPICE_LIB})
 	include_directories(${CMAKE_BINARY_DIR}/mod)
 endif()
 
