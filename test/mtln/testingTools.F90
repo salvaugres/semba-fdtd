@@ -60,7 +60,7 @@ contains
         integer, intent(in), optional :: conductor_in_parent
         real, allocatable, dimension(:,:) :: lpul, cpul, rpul, gpul
         real, dimension(5) :: step_size = [20.0, 20.0, 20.0, 20.0, 20.0]
-        type(segment_relative_position_t), dimension(5) :: segment_positions
+        type(external_field_segment_t), dimension(5) :: external_field_segments
         integer :: i,j
 
         allocate(lpul(n,n), source = 0.0)
@@ -69,7 +69,10 @@ contains
         allocate(rpul(n,n), source = 0.0)
 
         do i = 1, 5
-            segment_positions(i)%position =(/i,1,1/)            
+            external_field_segments(i)%position =(/i,1,1/)            
+            external_field_segments(i)%direction = DIRECTION_X_POS  
+            external_field_segments(i)%Efield_main2wire => null()
+            external_field_segments(i)%Efield_wire2main => null()
         end do
 
         do i = 1, n
@@ -87,20 +90,20 @@ contains
         end do
         if (present(dt) .and. .not.present(parent_name)) then
             res = mtl_t(lpul, cpul, rpul, gpul, step_size, name, dt = dt, &
-                        segment_relative_positions = segment_positions)
+                        external_field_segments = external_field_segments)
         else if (.not.present(dt) .and. present(parent_name) ) then
             res = mtl_t(lpul, cpul, rpul, gpul, step_size, name, & 
                         parent_name= parent_name, &
                         conductor_in_parent=conductor_in_parent, &
-                        segment_relative_positions = segment_positions)
+                        external_field_segments = external_field_segments)
         else if (present(dt) .and. present(parent_name) ) then
             res = mtl_t(lpul, cpul, rpul, gpul, step_size, name, & 
                         parent_name= parent_name, &
                         conductor_in_parent=conductor_in_parent, &
-                        dt = dt, segment_relative_positions = segment_positions)
+                        dt = dt, external_field_segments = external_field_segments)
         else 
             res = mtl_t(lpul, cpul, rpul, gpul, step_size, name, &
-                        segment_relative_positions = segment_positions)
+                        external_field_segments = external_field_segments)
         end if
     end function    
 

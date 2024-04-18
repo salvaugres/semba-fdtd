@@ -749,7 +749,7 @@ integer function test_coaxial_line_paul_8_6_square() bind(C) result(error_cnt)
 
     character(20) :: charR, charL, charC, lineC
     integer :: i
-    type(segment_relative_position_t), dimension(100) :: segment_positions
+    type(external_field_segment_t), dimension(100) :: external_field_segments
     error_cnt = 0
 
     cable%name = "wire0"
@@ -758,9 +758,12 @@ integer function test_coaxial_line_paul_8_6_square() bind(C) result(error_cnt)
     cable%resistance_per_meter = rpul
     cable%capacitance_per_meter = cpul
     do i = 1, 100
-        segment_positions(i)%position = (/i, 1, 1/)
+        external_field_segments(i)%position = (/i, 1, 1/)
+        external_field_segments(i)%direction = 1
+        external_field_segments(i)%Efield_main2wire => null()
+        external_field_segments(i)%Efield_wire2main => null()
     end do
-    cable%segment_relative_positions = segment_positions
+    cable%external_field_segments = external_field_segments
     cable%step_size = [(4.0, i = 1, 100)]
 
     parsed%time_step = 2e-8
