@@ -1407,19 +1407,23 @@ contains
       mtln_res%number_of_steps = this%getRealAt(this%root, J_GENERAL//'.'//J_GEN_NUMBER_OF_STEPS)
 
       cables = readCables()
-      mtln_res%connectors => readConnectors()
-      call addConnIdToConnectorMap(connIdToConnector, mtln_res%connectors)
 
       block
          integer :: nW, nMW
          nMW = countNumberOfMultiwires(cables)
          if (nMW == 0) then 
             allocate(mtln_res%cables(0))
+            allocate(mtln_res%probes(0))
+            allocate(mtln_res%networks(0))
             return
          end if
          nW =  countNumberOfWires(cables)
          nWs = nW + nMW
       end block
+
+      mtln_res%connectors => readConnectors()
+      call addConnIdToConnectorMap(connIdToConnector, mtln_res%connectors)
+
 
       allocate (mtln_res%cables(nWs))
       block
