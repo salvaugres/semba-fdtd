@@ -47,6 +47,11 @@ contains
         type(preprocess_t) :: pre
 
         pre = preprocess(parsed)
+        if (size(pre%bundles) == 0) then
+            res%number_of_bundles = 0
+            return
+        end if
+
         res%dt = pre%dt
         res%time  = 0.0
         

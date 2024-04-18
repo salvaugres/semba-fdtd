@@ -60,8 +60,8 @@ def test_probes_output_number_of_steps(tmp_path):
 
 def test_holland(tmp_path):
     case = 'holland1981'
-    makeTemporaryCopy(tmp_path, EXCITATIONS_FOLDER+'gauss.exc')
-    makeTemporaryCopy(tmp_path, CASE_FOLDER + case + '.fdtd.json')
+    makeCopy(tmp_path, EXCITATIONS_FOLDER+'gauss.exc')
+    makeCopy(tmp_path, CASE_FOLDER + case + '.fdtd.json')
     fn = tmp_path._str + '/' + case + '.fdtd.json'
 
     solver = FDTD(input_filename = fn, path_to_exe=SEMBA_EXE)
