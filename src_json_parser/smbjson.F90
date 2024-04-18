@@ -1413,7 +1413,10 @@ contains
       block
          integer :: nW, nMW
          nMW = countNumberOfMultiwires(cables)
-         if (nMW == 0) return
+         if (nMW == 0) then 
+            allocate(mtln_res%cables(0))
+            return
+         end if
          nW =  countNumberOfWires(cables)
          nWs = nW + nMW
       end block
