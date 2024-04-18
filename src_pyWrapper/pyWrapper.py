@@ -16,12 +16,13 @@ class Probe():
         
         current_probe_tags = ['_Wx_', '_Wy_', '_Wz_']
         far_field_tag = ['_FF_']
-        all_tags = current_probe_tags + far_field_tag
-        self.df = pd.read_csv(self.filename, sep='\s+')
+        movie_tags = ['_ExC_', '_EyC_', '_EzC_', '_HxC_', '_HyC_', '_HzC_']
+        all_tags = current_probe_tags + far_field_tag + movie_tags
+      
         
         basename = os.path.basename(self.filename)
         self.case_name, basename_with_no_case_name = basename.split('.fdtd_')
-        basename_with_no_case_name = basename_with_no_case_name.split('.dat')[0]
+        basename_with_no_case_name = os.path.splitext(basename_with_no_case_name)[0]
         
         
         for tag in all_tags:
@@ -34,8 +35,17 @@ class Probe():
                     self.name, position_str = basename_with_no_case_name.split(tag)
                     self.cell = positionStrToCell(position_str)
                     self.segment_tag = int(position_str.split('_s')[1])
+                    self.df = pd.read_csv(self.filename, sep='\s+')
+                    self.df = self.df.rename(columns={'t': 'time', basename: 'current'})
                 elif tag in far_field_tag:
                     self.type = 'farField'
+                    self.name, positions_str = basename_with_no_case_name.split(tag)
+                    init_str, end_str = pos = positions_str.split('__')
+                    self.cell_init = positionStrToCell(init_str)
+                    self.cell_end = positionStrToCell(end_str)
+                    self.df = pd.read_csv(self.filename, sep='\s+')
+                elif tag in movie_tags:
+                    self.type = 'movie'
                     self.name, positions_str = basename_with_no_case_name.split(tag)
                     init_str, end_str = pos = positions_str.split('__')
                     self.cell_init = positionStrToCell(init_str)
@@ -47,9 +57,7 @@ class Probe():
             self.name
         except:
             raise ValueError('Unable to determine type for probe' + basename)
-        
-        if self.type == 'wire':
-            self.df = self.df.rename(columns={'t': 'time', basename: 'current'})
+           
     
     def __getitem__(self, key):
         return self.df[key]
@@ -77,9 +85,13 @@ class FDTD():
         if not "probes" in input_json:
             raise ValueError('Solver does not contain probes.')
         
-        for probe in input_json["probes"]:
-            probeFiles = [x for x in glob.glob('*dat') if re.match(self.case + '_' + probe_name + '.*dat',x)]
-            return probeFiles
+        file_extensions = ('*.dat', '*.bin')
+        probeFiles = []
+        for ext in file_extensions:
+            newProbes = [x for x in glob.glob(ext) if re.match(self.case + '_' + probe_name, x)]
+            probeFiles.extend(newProbes)
+            
+        return probeFiles
     
     def hasFinishedSuccessfully(self):
         if self.hasRun:
