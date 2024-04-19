@@ -3,6 +3,7 @@ name: automatic-release-ubuntu-gnu
 on:
   push:
     branches:
+      - main
       - feature/automatic-releases
      
 
@@ -10,9 +11,7 @@ jobs:
   
   builds-and-test:
     runs-on: ubuntu-latest
-    strategy:
-      matrix: 
-        build-type: ["Release"]
+
     steps:       
     - name: Checkout
       uses: actions/checkout@v4
@@ -24,7 +23,7 @@ jobs:
       
     - name: Build application
       run: |       
-        cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=${{matrix.build-type}}
+        cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
         cmake --build build -j
       
     - name: Run fdtd unit tests 
@@ -43,11 +42,8 @@ jobs:
       uses: "marvinpinto/action-automatic-releases@latest"
       with:
         repo_token: "${{ secrets.GITHUB_TOKEN }}"
-        automatic_release_tag: "latest"
-        prerelease: true
-        title: "Testing releases"
+        automatic_release_tag: "latest-ubuntu-gnu"
+        prerelease: false
         files: |
-          build/bin/semba-fdtd
+          build/bin/*
           LICENSE
-
-      
