@@ -64,6 +64,7 @@ if (CompileExecutable)
 		"src_main_pub/version.F90"
 		"src_wires_pub/wires_types.F90"
 		"src_wires_pub/wires.F90"
+		"src_wires_pub/wires_mtln.F90"
 	)
 	target_link_libraries(semba-fdtd semba-types smbjson)
 	include_directories(${CMAKE_BINARY_DIR}/mod)
