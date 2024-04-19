@@ -16,6 +16,23 @@ def test_holland(tmp_path):
     
     assert np.allclose(p_expected.df.to_numpy(), p_solved.df.to_numpy())
 
+def test_holland_mltn_mode(tmp_path):
+
+    case = 'holland1981_mtln'
+    makeCopy(tmp_path, EXCITATIONS_FOLDER+'gauss.exc')
+    makeCopy(tmp_path, CASE_FOLDER + case + '.fdtd.json')
+    fn = tmp_path._str + '/' + case + '.fdtd.json'
+
+    solver = FDTD(input_filename = fn, path_to_exe=SEMBA_EXE)
+    solver.run()
+    assert solver.hasFinishedSuccessfully() == True
+
+    probe_files = solver.getSolvedProbeFilenames("mid_point")
+    p_expected = Probe(OUTPUT_FOLDER+'holland1981.fdtd_mid_point_Wz_11_11_12_s2.dat')
+    p_solved = Probe(probe_files[0])
+    
+    assert np.allclose(p_expected.df.to_numpy(), p_solved.df.to_numpy())
+
     
 def test_sphere(tmp_path):    
     case = 'sphere'
