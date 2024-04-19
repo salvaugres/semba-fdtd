@@ -1,13 +1,10 @@
 name: automatic-release-ubuntu-gnu
 
-permissions:
-  actions: write
-
 on:
   push:
     branches:
       - feature/automatic-releases
-      
+     
 
 jobs:
   
