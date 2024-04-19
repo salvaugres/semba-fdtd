@@ -95,8 +95,8 @@ contains
 
    subroutine initializeJson(this)
       class(parser_t) :: this
-      integer :: stat 
-      
+      integer :: stat
+
       allocate(this%jsonfile)
       call this%jsonfile%initialize()
       if (this%jsonfile%failed()) then
@@ -119,7 +119,7 @@ contains
       class(parser_t) :: this
       type(Parseador) :: res
       integer :: stat 
-      
+
       allocate(this%jsonfile)
       call this%jsonfile%initialize()
       if (this%jsonfile%failed()) then
@@ -155,6 +155,7 @@ contains
       ! Sources
       res%plnSrc = this%readPlanewaves()
       res%nodSrc = this%readNodalSources()
+
       ! Probes
       res%oldSonda = this%readProbes()
       res%sonda = this%readMoreProbes()
@@ -172,7 +173,6 @@ contains
       call this%jsonfile%destroy()
       nullify(this%root)
 
-
    end function
 
    function readMesh(this) result(res)
@@ -184,7 +184,7 @@ contains
       type(coordinate_t) :: c
       integer :: stat
       logical :: found
-    
+
       call this%core%get(this%root, J_MESH//'.'//J_COORDINATES, jcs, found=found)
       if (found) then
          call res%allocateCoordinates(10*this%core%count(jcs))
@@ -582,16 +582,16 @@ contains
          ff%fstart = domain%fstart
          ff%fstop = domain%fstop
          ff%fstep = domain%fstep
-         
+
          block
             logical :: sourcesFound
             type(json_value), pointer :: sources, src
             character (len=:), allocatable :: fn
-            
+
             fn = this%getStrAt(p, J_PR_DOMAIN//J_PR_DOMAIN_MAGNITUDE_FILE, found=transferFunctionFound)
             if (.not. transferFunctionFound) then
                call this%core%get(this%root, J_SOURCES, sources, sourcesFound)
-               if (sourcesFound) then 
+               if (sourcesFound) then
                   if (this%core%count(sources) == 1) then
                      call this%core%get_child(sources, 1, src)
                      call this%core%get(src, J_SRC_MAGNITUDE_FILE, fn, found=transferFunctionFound)
@@ -599,14 +599,14 @@ contains
                end if
             end if
 
-            if (transferFunctionFound) then   
+            if (transferFunctionFound) then
                ff%FileNormalize = trim(adjustl(fn))
             else
                ff%FileNormalize = " "
             end if
-            
+
          end block
-            
+
          if (domain%isLogarithmicFrequencySpacing) then
             call appendLogSufix(ff%outputrequest)
          end if
@@ -892,7 +892,7 @@ contains
 
    contains
       function buildNoVolProbes() result(res)
-      type(VolProbes) :: res
+         type(VolProbes) :: res
          allocate(res%collection(0))
          res%length = 0
          res%length_max = 0
@@ -1156,7 +1156,7 @@ contains
          if (.not. found) then
             return
          end if
-  
+
          genSrcs = this%jsonValueFilterByKeyValues(sources, J_TYPE, [J_SRC_TYPE_GEN])
          if (size(genSrcs) == 0) then
             return
@@ -1171,27 +1171,27 @@ contains
                call this%core%get(genSrcs(i)%p, J_ELEMENTIDS, sourceElemIds)
                srcCoord = this%mesh%getNode(sourceElemIds(1))
                polylineCoords = this%mesh%getPolyline(plineElemIds(1))
-               if (.not. any(polylineCoords%coordIds == srcCoord%coordIds(1))) then 
+               if (.not. any(polylineCoords%coordIds == srcCoord%coordIds(1))) then
                   cycle ! generator is not in this polyline
                end if
 
                position = findSourcePositionInLinels(sourceElemIds, linels)
-      
-               if (.not. this%existsAt(genSrcs(i)%p, J_SRC_MAGNITUDE_FILE)) then 
+
+               if (.not. this%existsAt(genSrcs(i)%p, J_SRC_MAGNITUDE_FILE)) then
                   write(error_unit, *) 'magnitudeFile of source missing'
                   return
                end if
 
                select case(this%getStrAt(genSrcs(i)%p, J_FIELD))
-               case (J_FIELD_VOLTAGE)
+                case (J_FIELD_VOLTAGE)
                   res(position)%srctype = "VOLT"
                   res(position)%srcfile = this%getStrAt(genSrcs(i)%p, J_SRC_MAGNITUDE_FILE)
                   res(position)%multiplier = 1.0
-               case (J_FIELD_CURRENT)
+                case (J_FIELD_CURRENT)
                   res(position)%srctype = "CURR"
                   res(position)%srcfile = this%getStrAt(genSrcs(i)%p, J_SRC_MAGNITUDE_FILE)
                   res(position)%multiplier = 1.0
-               case default 
+                case default
                   write(error_unit, *) 'Field block of source of type generator must be current or voltage'
                end select
 
@@ -1206,10 +1206,11 @@ contains
          type(pixel_t), dimension(:), allocatable :: pixels
          integer :: res
          integer :: i
+
          pixels = this%mesh%convertNodeToPixels(this%mesh%getNode(srcElemIds(1)))
          do i = 1, size(linels)
             if (linels(i)%tag == pixels(1)%tag) then
-               res = i 
+               res = i
                return
             end if
          end do
@@ -1241,11 +1242,11 @@ contains
          end if
 
          select case(label)
-         case(J_MAT_TERM_TYPE_OPEN)
+          case(J_MAT_TERM_TYPE_OPEN)
             res%r = 0.0
             res%l = 0.0
             res%c = 0.0
-         case default
+          case default
             call this%core%get(tm, J_MAT_TERM_RESISTANCE, res%r, default=0.0)
             call this%core%get(tm, J_MAT_TERM_INDUCTANCE, res%l, default=0.0)
             call this%core%get(tm, J_MAT_TERM_CAPACITANCE, res%c, default=1e22)
@@ -1323,7 +1324,7 @@ contains
       endif
 
       res%type1 = NP_T1_PLAIN
-      
+
       call this%core%get(domain, J_TYPE, domainType)
       res%type2 = getNPDomainType(domainType, transferFunctionFound)
 
@@ -1332,7 +1333,7 @@ contains
       call this%core%get(domain, J_PR_DOMAIN_TIME_STEP,  res%tstep,  default=0.0)
       call this%core%get(domain, J_PR_DOMAIN_FREQ_START, res%fstart, default=0.0)
       call this%core%get(domain, J_PR_DOMAIN_FREQ_STOP,  res%fstop,  default=0.0)
-      
+
       call this%core%get(domain, J_PR_DOMAIN_FREQ_NUMBER,  numberOfFrequencies,  default=0)
       if (numberOfFrequencies == 0) then
          res%fstep = 0.0
@@ -1406,16 +1407,23 @@ contains
       mtln_res%number_of_steps = this%getRealAt(this%root, J_GENERAL//'.'//J_GEN_NUMBER_OF_STEPS)
 
       cables = readCables()
-      mtln_res%connectors => readConnectors()
-      call addConnIdToConnectorMap(connIdToConnector, mtln_res%connectors)
 
       block
          integer :: nW, nMW
          nMW = countNumberOfMultiwires(cables)
-         if (nMW == 0) return
+         if (nMW == 0) then 
+            allocate(mtln_res%cables(0))
+            allocate(mtln_res%probes(0))
+            allocate(mtln_res%networks(0))
+            return
+         end if
          nW =  countNumberOfWires(cables)
          nWs = nW + nMW
       end block
+
+      mtln_res%connectors => readConnectors()
+      call addConnIdToConnectorMap(connIdToConnector, mtln_res%connectors)
+
 
       allocate (mtln_res%cables(nWs))
       block
@@ -1458,7 +1466,7 @@ contains
             end do
          end if
       end block
-    
+
       mtln_res%probes = readWireProbes()
       mtln_res%networks = buildNetworks()
 
@@ -1583,8 +1591,8 @@ contains
 
          end do
          allocate(res(size(networks_coordinates)))
-        
-         
+
+
          do i = 1, size(networks_coordinates)
             res(i) = buildNetwork(networks_coordinates(i), aux_nodes)
          end do
@@ -1673,7 +1681,7 @@ contains
          found_end = .false.
          polyline = this%mesh%getPolyline(conductor_index)
          coord_ini = this%mesh%getCoordinate(polyline%coordIds(1))
-         
+
          ub = ubound(polyline%coordIds,1)
          coord_end = this%mesh%getCoordinate(polyline%coordIds(ub))
 
@@ -1737,7 +1745,7 @@ contains
          res%node%termination%resistance = readTerminationRLC(termination, J_MAT_TERM_RESISTANCE, default = 0.0)
          res%node%termination%inductance = readTerminationRLC(termination, J_MAT_TERM_INDUCTANCE, default=0.0)
          res%node%conductor_in_cable = index
-         
+
          call elemIdToCable%get(key(id), value=cable_index)
          res%node%belongs_to_cable => mtln_res%cables(cable_index)
 
@@ -2018,7 +2026,7 @@ contains
          end if
 
          res%step_size = buildStepSize(j_cable)
-         res%segment_relative_positions = mapSegmentsToGridCoordinates(j_cable)
+         res%external_field_segments = mapSegmentsToGridCoordinates(j_cable)
          ! write(*,*) 'id: ', this%getIntAt(j_cable, J_MATERIAL_ID, found)
          material = this%matTable%getId(this%getIntAt(j_cable, J_MATERIAL_ID, found))
          if (.not. found) &
@@ -2181,7 +2189,7 @@ contains
 
       function mapSegmentsToGridCoordinates(j_cable) result(res)
          type(json_value), pointer :: j_cable
-         type(segment_relative_position_t), dimension(:), allocatable :: res
+         type(external_field_segment_t), dimension(:), allocatable :: res
          integer, dimension(:), allocatable :: elemIds
          type(polyline_t) :: p_line
 
@@ -2194,50 +2202,55 @@ contains
             type(coordinate_t) :: c1, c2
             integer :: i
             do i = 2, size(p_line%coordIds)
-                  c2 = this%mesh%getCoordinate(p_line%coordIds(i))
-                  c1 = this%mesh%getCoordinate(p_line%coordIds(i-1))
+               c2 = this%mesh%getCoordinate(p_line%coordIds(i))
+               c1 = this%mesh%getCoordinate(p_line%coordIds(i-1))
 
-                  if (findOrientation(c2-c1) > 0) then 
-                     res = [res, mapPositiveSegment(c1,c2)]
-                  else if (findOrientation(c2-c1) < 0) then 
-                     res = [res, mapNegativeSegment(c1,c2)]
-                  else 
-                     write(error_unit, *) 'Error: polyline first and last coordinate are identical'
-                  end if
+               if (findOrientation(c2-c1) > 0) then
+                  res = [res, mapPositiveSegment(c1,c2)]
+               else if (findOrientation(c2-c1) < 0) then
+                  res = [res, mapNegativeSegment(c1,c2)]
+               else
+                  write(error_unit, *) 'Error: polyline first and last coordinate are identical'
+               end if
             end do
          end block
       end function
 
       function mapNegativeSegment(c1, c2) result(res)
          type(coordinate_t), intent(in) :: c1, c2
-         type(segment_relative_position_t) :: curr_pos
+         type(external_field_segment_t) :: curr_pos
          integer :: axis, i, n_segments
-         type(segment_relative_position_t), dimension(:), allocatable :: res
+         type(external_field_segment_t), dimension(:), allocatable :: res
 
          axis = findDirection(c2-c1)
          n_segments = abs(ceiling(c2%position(axis)) - floor(c1%position(axis)))
          allocate(res(n_segments))
          curr_pos%position = [(c1%position(i), i = 1, 3)]
+         curr_pos%Efield_main2wire => null()
+         curr_pos%Efield_wire2main => null()
 
          res = [(curr_pos, i = 1, n_segments)]
          res(:)%position(axis) = [(res(i)%position(axis) - i, i = 1, n_segments)]
-
+         res(:)%direction = -axis
       end function
 
       function mapPositiveSegment(c1, c2) result(res)
          type(coordinate_t), intent(in) :: c1, c2
-         type(segment_relative_position_t) :: curr_pos
-         integer :: axis, i, n_segments
-         type(segment_relative_position_t), dimension(:), allocatable :: res
+         type(external_field_segment_t) :: curr_pos
+         integer :: axis, orientation, i, n_segments
+         type(external_field_segment_t), dimension(:), allocatable :: res
 
          axis = findDirection(c2-c1)
 
          n_segments = abs(floor(c2%position(axis)) - ceiling(c1%position(axis)))
          allocate(res(n_segments))
          curr_pos%position = [(c1%position(i), i = 1, 3)]
+         curr_pos%Efield_main2wire => null()
+         curr_pos%Efield_wire2main => null()
 
          res = [(curr_pos, i = 1, n_segments)]
          res(:)%position(axis) = [(res(i)%position(axis) + (i-1), i = 1, n_segments)]
+         res(:)%direction = axis
       end function
 
       function buildStepSize(j_cable) result(res)
@@ -2261,23 +2274,23 @@ contains
             real :: f1, f2
             real, dimension(:), allocatable :: displacement
             do j = 2, size(p_line%coordIds)
-                  c2 = this%mesh%getCoordinate(p_line%coordIds(j))
-                  c1 = this%mesh%getCoordinate(p_line%coordIds(j-1))
-                  axis = findDirection(c2-c1)
-                  f1 = abs(ceiling(c1%position(axis))-c1%position(axis))
-                  f2 = abs(c2%position(axis)-floor(c2%position(axis)))
-                  displacement = assignDisplacement(desp, axis)
-                  if (f1 /= 0) then 
-                     res = [res, f1*displacement(floor(c1%position(axis)))]
-                  end if
-                  index_1 = ceiling(min(abs(c1%position(axis)), abs(c2%position(axis))))
-                  index_2 = floor(max(abs(c1%position(axis)), abs(c2%position(axis))))
-                  do i = 1, index_2 - index_1
-                     res = [res, displacement(i)]
-                  enddo
-                  if (f2 /= 0) then 
-                     res = [res, f2*displacement(floor(c2%position(axis)))]
-                  end if
+               c2 = this%mesh%getCoordinate(p_line%coordIds(j))
+               c1 = this%mesh%getCoordinate(p_line%coordIds(j-1))
+               axis = findDirection(c2-c1)
+               f1 = abs(ceiling(c1%position(axis))-c1%position(axis))
+               f2 = abs(c2%position(axis)-floor(c2%position(axis)))
+               displacement = assignDisplacement(desp, axis)
+               if (f1 /= 0) then
+                  res = [res, f1*displacement(floor(c1%position(axis)))]
+               end if
+               index_1 = ceiling(min(abs(c1%position(axis)), abs(c2%position(axis))))
+               index_2 = floor(max(abs(c1%position(axis)), abs(c2%position(axis))))
+               do i = 1, index_2 - index_1
+                  res = [res, displacement(i)]
+               enddo
+               if (f2 /= 0) then
+                  res = [res, f2*displacement(floor(c2%position(axis)))]
+               end if
             end do
          end block
       end function
@@ -2343,11 +2356,11 @@ contains
          integer :: res
          integer :: i
          do i = 1, 3
-            if (coordDiference%position(i) /= 0) then 
+            if (coordDiference%position(i) /= 0) then
                res = coordDiference%position(i)/abs(coordDiference%position(i))
             end if
          end do
-      end function  
+      end function
 
 
       function findDirection(coordDiference) result(res)

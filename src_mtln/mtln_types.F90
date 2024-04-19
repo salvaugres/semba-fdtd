@@ -31,7 +31,7 @@ module mtln_types_mod
    type :: external_field_segment_t
       integer, dimension(3) ::position
       integer :: direction     
-      real (kind=rkind) , pointer                 ::  Efield_wire2main,Efield_main2wire   !sggmtln
+      real (kind=rkind) , pointer  ::  Efield_wire2main, Efield_main2wire
    contains
       private
       procedure :: external_field_segments_eq 

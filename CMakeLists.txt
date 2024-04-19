@@ -1,6 +1,6 @@
 cmake_minimum_required (VERSION 3.18)
 
-ENABLE_LANGUAGE(Fortran)
+enable_language (CXX Fortran)
 project(semba-fdtd Fortran)
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
@@ -66,7 +66,7 @@ if (CompileExecutable)
 		"src_wires_pub/wires.F90"
 		"src_wires_pub/wires_mtln.F90"
 	)
-	target_link_libraries(semba-fdtd semba-types smbjson)
+	target_link_libraries(semba-fdtd semba-types smbjson mtlnsolver ngspice_interface ${NGSPICE_LIB})
 	include_directories(${CMAKE_BINARY_DIR}/mod)
 endif()
 
