@@ -44,7 +44,7 @@ jobs:
 
     - name: Creating archive
       run: |
-        tar -czvf ubuntu-gnu-${{ steps.date.outputs.date }}.tar.gz build/bin/* LICENSE
+        tar -czvf semba-fdtd-ubuntu-gnu.tar.gz build/bin/* LICENSE
 
     - name: Generating release
       uses: "marvinpinto/action-automatic-releases@latest"
@@ -52,5 +52,6 @@ jobs:
         repo_token: "${{ secrets.GITHUB_TOKEN }}"
         automatic_release_tag: "latest-ubuntu-gnu"
         prerelease: false
+        title: "${{ steps.date.outputs.date }} Ubuntu GNU  dev. build"
         files: |
-          ubuntu-gnu-${{ steps.date.outputs.date }}.tar.gz
+          semba-fdtd-ubuntu-gnu.tar.gz

@@ -68,7 +68,7 @@ jobs:
 
     - name: Creating archive
       run: |
-          tar -czvf windows-intelLLVM-${{ steps.date.outputs.date }}.tar.gz build/bin/* LICENSE
+          tar -czvf semba-fdtd-windows-intelLLVM.tar.gz build/bin/* LICENSE
 
     - name: Generating release
       uses: "marvinpinto/action-automatic-releases@latest"
@@ -76,6 +76,7 @@ jobs:
         repo_token: "${{ secrets.GITHUB_TOKEN }}"
         automatic_release_tag: "latest-windows-intelLLVM"
         prerelease: false
+        title: "${{ steps.date.outputs.date }} Windows Intel LLVM dev. build"
         files: |
-          windows-intelLLVM-${{ steps.date.outputs.date }}.tar.gz
+          semba-fdtd-windows-intelLLVM.tar.gz
 
