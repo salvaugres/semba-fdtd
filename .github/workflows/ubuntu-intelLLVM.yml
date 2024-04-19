@@ -65,7 +65,8 @@ jobs:
         cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=${{matrix.build-type}}
         cmake --build build -j
         
-    - name: Run fdtd unit tests 
+    - name: Run fdtd unit tests
+      timeout-minutes: 30
       run: |
         build/bin/fdtd_tests
 
@@ -74,6 +75,7 @@ jobs:
         python -m pip install -r requirements.txt
 
     - name: Run wrapper tests
+      timeout-minutes: 30
       run: |
         python -m pytest test    
         
