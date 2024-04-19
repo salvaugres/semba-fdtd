@@ -61,6 +61,14 @@ jobs:
       if: steps.cache-install.outputs.cache-hit != 'true'
       shell: bash
       run: .github/workflows/oneapi_cache_exclude_windows.sh
+    
+    - name: Get current date
+      id: date
+      run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
+
+    - name: Creating archive
+      run: |
+          tar -czvf windows-intelLLVM-${{ steps.date.outputs.date }}.tar.gz build/bin/* LICENSE
 
     - name: Generating release
       uses: "marvinpinto/action-automatic-releases@latest"
@@ -69,6 +77,5 @@ jobs:
         automatic_release_tag: "latest-windows-intelLLVM"
         prerelease: false
         files: |
-          build/bin/*
-          LICENSE
+          windows-intelLLVM-${{ steps.date.outputs.date }}.tar.gz
 
