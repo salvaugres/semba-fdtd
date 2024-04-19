@@ -114,11 +114,8 @@ module Solver
 #ifdef CompileWithPrescale
    USE P_rescale
 #endif              
- 
-#ifdef CompileWithWires_mtln 
    use mtln_solver_mod, mtln_solver_t => mtln_t
    use Wire_bundles_mtln_mod
-#endif   
 !!
 #ifdef CompileWithProfiling
    use nvtx
@@ -145,16 +142,11 @@ contains
    opcionestotales,sgbcFreq,sgbcresol,sgbccrank,sgbcDepth,fatalerror,fieldtotl,permitscaling, &
    EpsMuTimeScale_input_parameters, &
    stochastic,mpidir,verbose,precision,hopf,ficherohopf,niapapostprocess,planewavecorr, &
-   dontwritevtk,experimentalVideal,forceresampled,factorradius,factordelta,noconformalmapvtk &
-#ifdef CompileWithWires_mtln  
-   ,mtln_solver &  
-#endif                       
-       )
-!!!           
+   dontwritevtk,experimentalVideal,forceresampled,factorradius,factordelta,noconformalmapvtk, &
+   mtln_solver)
 
-#ifdef CompileWithWires_mtln   
+!!!           
    type (mtln_solver_t) :: mtln_solver
-#endif   
 !!!
       logical :: noconformalmapvtk
       logical :: hopf,experimentalVideal,forceresampled

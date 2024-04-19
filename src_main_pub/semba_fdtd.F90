@@ -49,9 +49,7 @@ PROGRAM SEMBA_FDTD_launcher
    USE ParseadorClass
 #endif
 
-#ifdef CompileWithWires_mtln
    USE smbjson, only: fdtdjson_parser_t => parser_t
-#endif   
    USE Preprocess_m
    USE storeData
 
@@ -83,9 +81,7 @@ PROGRAM SEMBA_FDTD_launcher
    !*************************************************
    !
 !!!   
-#ifdef CompileWithWires_mtln 
    use mtln_solver_mod, mtln_solver_t => mtln_t
-#endif            
 !!!   
    use interpreta_switches_m
    IMPLICIT NONE
@@ -145,9 +141,7 @@ PROGRAM SEMBA_FDTD_launcher
 
    type (entrada_t) :: l
 !!!
-#ifdef CompileWithWires_mtln
    type (mtln_solver_t) :: mtln_solver
-#endif   
 !!!
    logical :: lexis
    integer (kind=4) :: my_iostat
@@ -367,9 +361,7 @@ PROGRAM SEMBA_FDTD_launcher
        stop
 #endif   
    elseif (trim(adjustl(l%extension))=='.json') then
-#ifdef CompileWithWires_mtln
         call cargaFDTDJSON(l%fichin, parser)
-#endif        
    else
        print *, 'Neither .nfde nor .json files used as input after -i'
        stop
@@ -872,11 +864,8 @@ PROGRAM SEMBA_FDTD_launcher
            l%opcionestotales,l%sgbcfreq,l%sgbcresol,l%sgbccrank,l%sgbcdepth,l%fatalerror,l%fieldtotl,l%permitscaling, &
            l%EpsMuTimeScale_input_parameters, &
            l%stochastic,l%mpidir,l%verbose,l%precision,l%hopf,l%ficherohopf,l%niapapostprocess,l%planewavecorr, &
-           l%dontwritevtk,l%experimentalVideal,l%forceresampled,l%factorradius,l%factordelta,l%noconformalmapvtk &
-#ifdef CompileWithWires_mtln  
-   ,mtln_solver &  
-#endif    
-       )     
+           l%dontwritevtk,l%experimentalVideal,l%forceresampled,l%factorradius,l%factordelta,l%noconformalmapvtk, &
+           mtln_solver)
 
          deallocate (sggMiEx, sggMiEy, sggMiEz,sggMiHx, sggMiHy, sggMiHz,sggMiNo,sggMtag)
       else
@@ -1188,7 +1177,6 @@ subroutine cargaNFDE(local_nfde,local_parser)
 end subroutine cargaNFDE
 #endif
 
-#ifdef CompileWithWires_mtln
    subroutine cargaFDTDJSON(filename, parsed)
       character(len=1024), intent(in) :: filename
       type(Parseador), pointer :: parsed
@@ -1202,7 +1190,7 @@ end subroutine cargaNFDE
       allocate(parsed)
       parsed = parser%readProblemDescription()
    end subroutine cargaFDTDJSON
-#endif
+
 !!!!!!!!!!!!!!!!!
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -1325,10 +1313,8 @@ subroutine NFDE2sgg
          CALL read_geomData (sgg,sggMtag,sggMiNo,sggMiEx,sggMiEy,sggMiEz,sggMiHx,sggMiHy,sggMiHz, l%fichin, l%layoutnumber, l%size, SINPML_fullsize, fullsize, parser, &
          l%groundwires,l%attfactorc,l%mibc,l%sgbc,l%sgbcDispersive,l%MEDIOEXTRA,maxSourceValue,l%skindepthpre,l%createmapvtk,l%input_conformal_flag,l%CLIPREGION,l%boundwireradius,l%maxwireradius,l%updateshared,l%run_with_dmma, &
          eps0,mu0,.false.,l%hay_slanted_wires,l%verbose,l%ignoresamplingerrors,tagtype,l%wiresflavor)
-!!!!mtln constructor 100424  !!!solo si es json, si no no existe parser!!     
-#ifdef CompileWithWires_mtln  
+!!!!mtln constructor 100424       
          if (trim(adjustl(l%extension))=='.json')  mtln_solver = mtlnCtor(parser%mtln)   
-#endif          
 !!!!         
          WRITE (dubuf,*) '[OK] ENDED NFDE --------> GEOM'
          CALL print11 (l%layoutnumber, dubuf)

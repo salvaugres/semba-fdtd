@@ -25,9 +25,7 @@
 MODULE NFDETypes
    !
    USE FDETYPES
-#ifdef CompileWithWires_mtln   
    USE mtln_types_mod
-#endif
    !
    IMPLICIT NONE
    INTEGER (KIND=4), PARAMETER :: RK = RKIND
@@ -782,9 +780,7 @@ MODULE NFDETypes
       TYPE (ThinWires), POINTER ::             tWires => NULL ()
       TYPE (SlantedWires), POINTER ::          sWires => NULL ()
       TYPE (ThinSlots), POINTER ::             tSlots => NULL ()
-#ifdef CompileWithWires_mtln   
       TYPE (mtln_t), POINTER ::                mtln => NULL ()
-#endif      
    END TYPE Parseador
    
    !---> definicion de tipos
