@@ -1314,7 +1314,7 @@ subroutine NFDE2sgg
          l%groundwires,l%attfactorc,l%mibc,l%sgbc,l%sgbcDispersive,l%MEDIOEXTRA,maxSourceValue,l%skindepthpre,l%createmapvtk,l%input_conformal_flag,l%CLIPREGION,l%boundwireradius,l%maxwireradius,l%updateshared,l%run_with_dmma, &
          eps0,mu0,.false.,l%hay_slanted_wires,l%verbose,l%ignoresamplingerrors,tagtype,l%wiresflavor)
 !!!!mtln constructor 100424       
-         mtln_solver = mtlnCtor(parser%mtln)
+         if (trim(adjustl(l%extension))=='.json')  mtln_solver = mtlnCtor(parser%mtln)   
 !!!!         
          WRITE (dubuf,*) '[OK] ENDED NFDE --------> GEOM'
          CALL print11 (l%layoutnumber, dubuf)

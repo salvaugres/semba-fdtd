@@ -118,7 +118,7 @@ contains
    function readProblemDescription(this) result (res)
       class(parser_t) :: this
       type(Parseador) :: res
-      integer :: stat
+      integer :: stat 
 
       allocate(this%jsonfile)
       call this%jsonfile%initialize()
