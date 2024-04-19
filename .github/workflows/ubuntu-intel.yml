@@ -11,11 +11,12 @@ env:
 on:
   push:
     branches:
-      - main
       - dev
+      
   pull_request:
     branches:
       - main
+      - dev
 
 jobs:
 
@@ -34,11 +35,11 @@ jobs:
       with:
         path: |
           /opt/intel/oneapi
-        key: install-apt
+        key: install-apt-classic
 
     - name: non-cache install oneAPI
       if: steps.cache-install.outputs.cache-hit != 'true'
-      timeout-minutes: 10
+      timeout-minutes: 30
       run: |
         sh -c .github/workflows/oneapi_setup_apt_repo_linux.sh
         sudo apt install ${{ env.LINUX_CPP_COMPONENTS }} ${{ env.LINUX_FORTRAN_COMPONENTS }}
@@ -51,13 +52,6 @@ jobs:
         LATEST_VERSION=$(ls -1 /opt/intel/oneapi/compiler/ | grep -v latest | sort | tail -1)
         source /opt/intel/oneapi/compiler/"$LATEST_VERSION"/env/vars.sh
         printenv >> $GITHUB_ENV
-
-    - name: print config log
-      if: ${{ failure() }}
-      run: cat build/CMakeFiles/CMakeConfigureLog.yaml
-    
-    # - name: Setup upterm session
-    #   uses: lhotari/action-upterm@v1
     
     - name: CMake build
       run: |
@@ -67,9 +61,17 @@ jobs:
         cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
         cmake --build build -j
 
-    - name: Run json-parser tests 
+        - name: Run fdtd unit tests 
+        run: |
+          build/bin/fdtd_tests
+  
+    - name: Install python wrapper requirements
       run: |
-        ctest --test-dir build/src_json_parser/test/ --output-on-failure
+        python -m pip install -r requirements.txt
+
+    - name: Run wrapper tests
+      run: |
+        python -m pytest test    
 
     - name: exclude unused files from cache
       if: steps.cache-install.outputs.cache-hit != 'true'
