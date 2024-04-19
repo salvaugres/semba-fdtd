@@ -4,17 +4,17 @@ integer function test_read_planewave() bind (C) result(err)
 
    implicit none
 
-   character(len=*),parameter :: filename = PATH_TO_TEST_DATA//'cases/planewave.fdtd.json'
-   type(Parseador) :: problem, expected
+   character(len=*), parameter :: filename = PATH_TO_TEST_DATA//'cases/planewave.fdtd.json'
+   type(Parseador) :: pr, ex
    type(parser_t) :: parser
    logical :: areSame
    err = 0
 
-   expected = expectedProblemDescription()
+   ex = expectedProblemDescription()
    parser = parser_t(filename)
-   problem = parser%readProblemDescription()
-   call expect_eq(err, expected, problem)
-   
+   pr = parser%readProblemDescription()
+   call expect_eq(err, ex, pr)
+
 contains
    function expectedProblemDescription() result (expected)
       type(Parseador) :: expected

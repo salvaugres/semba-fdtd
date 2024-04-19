@@ -49,7 +49,9 @@ IEEE Transactions on Electromagnetic Compatibility. 2016. https://doi.org/10.110
 
 # Usage
 
-## Compilation
+## Compilation and testing
+
+Tests must be run from the root folder. `python` wrapper test assumes that `semba-fdtd` has been compiled successfully and is located in folder `build/bin/`. For intel compilation it also assumes that the intel runtime libraries are accessible.
 
 ## Running cases
 

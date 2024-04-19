@@ -1,5 +1,5 @@
 module mtln_types_mod
-
+   use fdetypes, ONLY: RKIND   !sggmtln
    implicit none
 
    integer, parameter :: TERMINATION_UNDEFINED  = -1
@@ -21,12 +21,21 @@ module mtln_types_mod
    integer, parameter :: PROBE_TYPE_VOLTAGE   =  1
    integer, parameter :: PROBE_TYPE_CURRENT   =  2
 
-   type :: segment_relative_position_t
+   integer, parameter :: DIRECTION_X_POS   =  1
+   integer, parameter :: DIRECTION_X_NEG   =  -1
+   integer, parameter :: DIRECTION_Y_POS   =  2
+   integer, parameter :: DIRECTION_Y_NEG   =  -2
+   integer, parameter :: DIRECTION_Z_POS   =  3
+   integer, parameter :: DIRECTION_Z_NEG   =  -3
+
+   type :: external_field_segment_t
       integer, dimension(3) ::position
+      integer :: direction     
+      real (kind=rkind) , pointer  ::  Efield_wire2main, Efield_main2wire
    contains
       private
-      procedure :: segment_relative_positions_eq
-      generic, public :: operator(==) => segment_relative_positions_eq
+      procedure :: external_field_segments_eq 
+      generic, public :: operator(==) => external_field_segments_eq
    end type
 
    type :: termination_t
@@ -111,7 +120,7 @@ module mtln_types_mod
       integer :: conductor_in_parent = -1
       type(connector_t), pointer :: initial_connector => null()
       type(connector_t), pointer :: end_connector => null()
-      type(segment_relative_position_t), allocatable, dimension(:) :: segment_relative_positions
+      type(external_field_segment_t), allocatable, dimension(:) :: external_field_segments
 
    contains
       private
@@ -175,7 +184,7 @@ contains
       cable_eq = cable_eq .and.  all(a%step_size == b%step_size)
       cable_eq = cable_eq .and.  (a%transfer_impedance == b%transfer_impedance)
       cable_eq = cable_eq .and.  (a%conductor_in_parent == b%conductor_in_parent)
-      cable_eq = cable_eq .and.  all(a%segment_relative_positions == b%segment_relative_positions)
+      cable_eq = cable_eq .and.  all(a%external_field_segments == b%external_field_segments)
 
 
       if (.not. cable_eq) then
@@ -298,10 +307,31 @@ contains
          all(a%connections == b%connections)
    end function
 
-   elemental logical function segment_relative_positions_eq(a,b)
-      class(segment_relative_position_t), intent(in) :: a,b
-      segment_relative_positions_eq = &
-         all(a%position == b%position)
+   elemental logical function external_field_segments_eq(a,b)
+      class(external_field_segment_t), intent(in) :: a,b
+      external_field_segments_eq = &
+         all(a%position == b%position) .and. &
+         a%direction == b%direction
+
+      if (.not. associated(a%Efield_main2wire) .and. .not. associated(b%Efield_main2wire)) then
+         external_field_segments_eq = external_field_segments_eq .and. .true.
+      else if ((associated(a%Efield_main2wire) .and. .not. associated(b%Efield_main2wire)) .or. &
+         (.not. associated(a%Efield_main2wire) .and. associated(b%Efield_main2wire))) then
+            external_field_segments_eq = external_field_segments_eq .and. .false.
+      else
+         external_field_segments_eq = external_field_segments_eq .and. (a%Efield_main2wire == b%Efield_main2wire)
+      end if
+
+      if (.not. associated(a%Efield_wire2main) .and. .not. associated(b%Efield_wire2main)) then
+         external_field_segments_eq = external_field_segments_eq .and. .true.
+      else if ((associated(a%Efield_wire2main) .and. .not. associated(b%Efield_wire2main)) .or. &
+         (.not. associated(a%Efield_wire2main) .and. associated(b%Efield_wire2main))) then
+            external_field_segments_eq = external_field_segments_eq .and. .false.
+      else
+         external_field_segments_eq = external_field_segments_eq .and. (a%Efield_wire2main == b%Efield_wire2main)
+      end if
+
+
    end function
 
    subroutine terminal_connection_add_node(this, node)

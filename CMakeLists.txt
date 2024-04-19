@@ -1,6 +1,6 @@
 cmake_minimum_required (VERSION 3.18)
 
-ENABLE_LANGUAGE(Fortran)
+enable_language (CXX Fortran)
 project(semba-fdtd Fortran)
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
@@ -49,6 +49,7 @@ if (CompileExecutable)
 		"src_main_pub/magneticdispersive.F90"
 		"src_main_pub/maloney_nostoch.F90"
 		"src_main_pub/mpicomm.F90"
+		"src_main_pub/nfde_rotate.F90"
 		"src_main_pub/nodalsources.F90"
 		"src_main_pub/observation.F90"
 		"src_main_pub/planewaves.F90"
@@ -63,19 +64,20 @@ if (CompileExecutable)
 		"src_main_pub/version.F90"
 		"src_wires_pub/wires_types.F90"
 		"src_wires_pub/wires.F90"
+		"src_wires_pub/wires_mtln.F90"
 	)
-	target_link_libraries(semba-fdtd semba-types smbjson)
+	target_link_libraries(semba-fdtd semba-types smbjson mtlnsolver ngspice_interface ${NGSPICE_LIB})
 	include_directories(${CMAKE_BINARY_DIR}/mod)
 endif()
 
 if(CMAKE_Fortran_COMPILER_ID MATCHES "GNU")
 	message(STATUS "Gfortran found...")
-	set(CMAKE_Fortran_FLAGS "-ffree-form -ffree-line-length-none -fdec -fcheck=bounds")
+	set(CMAKE_Fortran_FLAGS "-ffree-form -ffree-line-length-none -fdec -fcheck=bounds -fopenmp")
 	add_definitions(-DCompileWithIncludeMpifh)
 endif()
 if(CMAKE_Fortran_COMPILER_ID MATCHES "^Intel")
 	message(STATUS "INTEL FORTRAN found...")
-	set(CMAKE_Fortran_FLAGS "-fpp -check all,nouninit -debug full -traceback ")
+	set(CMAKE_Fortran_FLAGS "-fpp -check all,nouninit -debug full -traceback")
 endif()
 
 if (CompileWithHDF)

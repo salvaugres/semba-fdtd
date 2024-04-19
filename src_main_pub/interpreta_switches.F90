@@ -151,6 +151,7 @@ module interpreta_switches_m
                                    chain,     &
                                    chain2,     &
                                    fichin,         &
+                                   extension,         &
                                    nresumeable2,   &
                                    fileFDE,          &
                                    fileH5,           &
@@ -1901,6 +1902,7 @@ CONTAINS
                IF ((p-4) >= 1) THEN
                   IF (f((p-4) :(p-4)) == NFDEEXTENSION(1:1)) THEN
                      NFDEEXTENSION= f((p-4) :p)
+                     l%extension=NFDEEXTENSION 
                      l%fichin = f (1:p-5)
                   ELSE
                      l%fichin = f (1:p)
@@ -1992,6 +1994,7 @@ CONTAINS
                IF ((p-4) >= 1) THEN
                   IF (f((p-4) :(p-4)) == NFDEEXTENSION(1:1)) THEN
                      NFDEEXTENSION= f((p-4) :p)
+                     l%extension=NFDEEXTENSION 
                      l%fichin = f (1:p-5)
                   ELSE
                      l%fichin = f (1:p)
