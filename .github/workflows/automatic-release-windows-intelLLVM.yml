@@ -1,4 +1,4 @@
-name: windows-intelLLVM
+name: automatic-release-windows-intelLLVM
 
 env:
   WINDOWS_BASEKIT_URL: https://registrationcenter-download.intel.com/akdlm/IRC_NAS/62641e01-1e8d-4ace-91d6-ae03f7f8a71f/w_BaseKit_p_2024.0.0.49563_offline.exe
@@ -11,12 +11,7 @@ on:
   push:
     branches:
       - main
-      - dev
-      
-  pull_request:
-    branches:
-      - main
-      - dev
+      - feature/automatic-releases
 
 jobs:
 
@@ -61,9 +56,27 @@ jobs:
       timeout-minutes: 30
       run: |
         .github/workflows/run_tests_windows.bat
-         
-         
+                 
     - name: exclude unused files from cache
       if: steps.cache-install.outputs.cache-hit != 'true'
       shell: bash
       run: .github/workflows/oneapi_cache_exclude_windows.sh
+    
+    - name: Get current date
+      id: date
+      run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
+
+    - name: Creating archive
+      run: |
+          tar -czvf semba-fdtd-windows-intelLLVM.tar.gz build/bin/* LICENSE
+
+    - name: Generating release
+      uses: "marvinpinto/action-automatic-releases@latest"
+      with:
+        repo_token: "${{ secrets.GITHUB_TOKEN }}"
+        automatic_release_tag: "latest-windows-intelLLVM"
+        prerelease: false
+        title: "${{ steps.date.outputs.date }} Windows Intel LLVM dev. build"
+        files: |
+          semba-fdtd-windows-intelLLVM.tar.gz
+
