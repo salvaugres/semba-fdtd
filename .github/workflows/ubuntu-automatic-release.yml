@@ -1,0 +1,56 @@
+name: ubuntu-gnu-prerelease
+
+permissions:
+  actions: write
+
+on:
+  push:
+    branches:
+      - feature/automatic-releases
+      
+
+jobs:
+  
+  builds-and-test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: 
+        build-type: ["Release"]
+    steps:       
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        submodules: 'recursive'
+
+    - name: Setup ninja
+      uses: seanmiddleditch/gha-setup-ninja@master
+      
+    - name: Build application
+      run: |       
+        cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=${{matrix.build-type}}
+        cmake --build build -j
+      
+    - name: Run fdtd unit tests 
+      run: |
+        build/bin/fdtd_tests
+
+    - name: Install python wrapper requirements
+      run: |
+        python -m pip install -r requirements.txt
+
+    - name: Run wrapper tests
+      run: |
+        python -m pytest test
+       
+    - name: Generating release
+      uses: "marvinpinto/action-automatic-releases@latest"
+      with:
+        repo_token: "${{ secrets.GITHUB_TOKEN }}"
+        automatic_release_tag: "latest"
+        prerelease: true
+        title: "Testing releases"
+        files: |
+          build/bin/semba-fdtd
+          LICENSE
+
+      
