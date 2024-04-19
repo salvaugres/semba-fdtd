@@ -1,4 +1,4 @@
-name: ubuntu-gnu-prerelease
+name: automatic-release-ubuntu-gnu
 
 permissions:
   actions: write
