@@ -144,8 +144,8 @@ contains
    stochastic,mpidir,verbose,precision,hopf,ficherohopf,niapapostprocess,planewavecorr, &
    dontwritevtk,experimentalVideal,forceresampled,factorradius,factordelta,noconformalmapvtk, &
    mtln_solver)
-          
-!!!                          
+
+!!!           
    type (mtln_solver_t) :: mtln_solver
 !!!
       logical :: noconformalmapvtk
@@ -1367,7 +1367,7 @@ contains
          endif
 #endif
 #ifdef CompileWithWires_mtln  
-         if (thereAre%MTLNbundles) call AdvanceWiresE_mtln(sgg, Idxe,Idye,Idze,Idxh,Idyh,Idzh,eps0,mu0,mtln_solver)  
+         if (thereAre%MTLNbundles) call AdvanceWiresE_mtln(sgg,Idxh,Idyh,Idzh,eps0,mu0,mtln_solver)  
 #endif 
          If (Thereare%PMLbodies) then !waveport absorbers
             call AdvancePMLbodyE
