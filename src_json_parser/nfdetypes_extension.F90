@@ -128,7 +128,9 @@ contains
 
       allocate(pD%BloquePrb)
       allocate(pD%BloquePrb%bp(0))
+      
       allocate(pD%VolPrb)
+      allocate(pD%VolPrb%collection(0))
       !
       allocate(pD%tWires)
       allocate(pD%tWires%tw(0))
@@ -770,28 +772,28 @@ contains
       res = .false.
 
       if (a%n_FarField /= b%n_FarField) return
-      if (a%n_Electric /= b%n_Electric) return
-      if (a%n_Magnetic /= b%n_Magnetic) return
-      if (a%n_NormalElectric /= b%n_NormalElectric) return
-      if (a%n_NormalMagnetic /= b%n_NormalMagnetic) return
-      if (a%n_SurfaceElectricCurrent /= b%n_SurfaceElectricCurrent) return
-      if (a%n_SurfaceMagneticCurrent /= b%n_SurfaceMagneticCurrent) return
+      ! if (a%n_Electric /= b%n_Electric) return
+      ! if (a%n_Magnetic /= b%n_Magnetic) return
+      ! if (a%n_NormalElectric /= b%n_NormalElectric) return
+      ! if (a%n_NormalMagnetic /= b%n_NormalMagnetic) return
+      ! if (a%n_SurfaceElectricCurrent /= b%n_SurfaceElectricCurrent) return
+      ! if (a%n_SurfaceMagneticCurrent /= b%n_SurfaceMagneticCurrent) return
 
       if (.not. associated(a%FarField)               .or. .not. associated(b%FarField)) return
-      if (.not. associated(a%Electric)               .or. .not. associated(b%Electric)) return
-      if (.not. associated(a%Magnetic)               .or. .not. associated(b%Magnetic)) return
-      if (.not. associated(a%NormalElectric)         .or. .not. associated(b%NormalElectric)) return
-      if (.not. associated(a%NormalMagnetic)         .or. .not. associated(b%NormalMagnetic)) return
-      if (.not. associated(a%SurfaceElectricCurrent) .or. .not. associated(b%SurfaceElectricCurrent)) return
-      if (.not. associated(a%SurfaceMagneticCurrent) .or. .not. associated(b%SurfaceMagneticCurrent)) return
+      ! if (.not. associated(a%Electric)               .or. .not. associated(b%Electric)) return
+      ! if (.not. associated(a%Magnetic)               .or. .not. associated(b%Magnetic)) return
+      ! if (.not. associated(a%NormalElectric)         .or. .not. associated(b%NormalElectric)) return
+      ! if (.not. associated(a%NormalMagnetic)         .or. .not. associated(b%NormalMagnetic)) return
+      ! if (.not. associated(a%SurfaceElectricCurrent) .or. .not. associated(b%SurfaceElectricCurrent)) return
+      ! if (.not. associated(a%SurfaceMagneticCurrent) .or. .not. associated(b%SurfaceMagneticCurrent)) return
 
       if (any(.not. a%FarField == b%FarField)) return
-      if (any(.not. a%Electric == b%Electric)) return
-      if (any(.not. a%Magnetic == b%Magnetic)) return
-      if (any(.not. a%NormalElectric == b%NormalElectric)) return
-      if (any(.not. a%NormalMagnetic == b%NormalMagnetic)) return
-      if (any(.not. a%SurfaceElectricCurrent == b%SurfaceElectricCurrent)) return
-      if (any(.not. a%SurfaceMagneticCurrent == b%SurfaceMagneticCurrent)) return
+      ! if (any(.not. a%Electric == b%Electric)) return
+      ! if (any(.not. a%Magnetic == b%Magnetic)) return
+      ! if (any(.not. a%NormalElectric == b%NormalElectric)) return
+      ! if (any(.not. a%NormalMagnetic == b%NormalMagnetic)) return
+      ! if (any(.not. a%SurfaceElectricCurrent == b%SurfaceElectricCurrent)) return
+      ! if (any(.not. a%SurfaceMagneticCurrent == b%SurfaceMagneticCurrent)) return
 
       res = .true.
    end function abstractSonda_eq
@@ -919,8 +921,8 @@ contains
 
    elemental logical function volprobe_eq(a, b)
       type(VolProbe), intent(in) :: a, b
-      volprobe_eq = &
-         all(a%cordinates == b%cordinates(1:b%len_cor)) .and. &
+      volprobe_eq = all(a%cordinates == b%cordinates)
+      volprobe_eq = volprobe_eq .and. &
          (a%tstart == b%tstart) .and. &
          (a%tstop == b%tstop) .and. &
          (a%tstep == b%tstep) .and. &
@@ -935,6 +937,10 @@ contains
 
    elemental logical function volprobes_eq(a, b)
       type(VolProbes), intent(in) :: a, b
+      if (.not. associated(a%collection) .or. .not. associated(b%collection)) then
+         volprobes_eq = .false.
+         return
+      end if
       volprobes_eq = &
          (a%length == b%length) .and. &
          (a%length_max == b%length_max) .and. &

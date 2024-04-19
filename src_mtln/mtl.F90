@@ -3,7 +3,7 @@ module mtl_mod
     ! use NFDETypes
     use utils_mod
     use dispersive_mod
-    use mtln_types_mod, only: segment_relative_position_t
+    use mtln_types_mod, only: external_field_segment_t
 
     implicit none
 
@@ -20,7 +20,7 @@ module mtl_mod
         integer :: conductor_in_parent
 
         type(transfer_impedance_per_meter_t) :: transfer_impedance
-        type(segment_relative_position_t), allocatable, dimension(:) :: segment_relative_positions
+        type(external_field_segment_t), allocatable, dimension(:) :: external_field_segments
 
     contains
         procedure :: setTimeStep
@@ -84,7 +84,7 @@ contains
                             step_size, name, &
                             dt, parent_name, conductor_in_parent, &
                             transfer_impedance, &
-                            segment_relative_positions) result(res)
+                            external_field_segments) result(res)
         type(mtl_t) :: res
         real, intent(in), dimension(:,:) :: lpul, cpul, rpul, gpul
         real, intent(in), dimension(:) :: step_size
@@ -95,7 +95,7 @@ contains
         character(len=*), intent(in), optional :: parent_name
         integer, intent(in), optional :: conductor_in_parent
         type(transfer_impedance_per_meter_t), intent(in), optional :: transfer_impedance
-        type(segment_relative_position_t), intent(in), dimension(:), optional :: segment_relative_positions
+        type(external_field_segment_t), intent(in), dimension(:), optional :: external_field_segments
 
         res%name = name
         res%step_size =  step_size
@@ -130,15 +130,16 @@ contains
             res%transfer_impedance = transfer_impedance
         end if
 
-        if (present(segment_relative_positions)) then 
-            res%segment_relative_positions = segment_relative_positions
+        if (present(external_field_segments)) then 
+            res%external_field_segments = external_field_segments
         end if
     end function
 
     function mtlInhomogeneous(lpul, cpul, rpul, gpul, &
                             step_size, name, &
                             dt, parent_name, conductor_in_parent, &
-                            transfer_impedance) result(res)
+                            transfer_impedance, &
+                            external_field_segments) result(res)
         type(mtl_t) :: res
         real, intent(in), dimension(:,:,:) :: lpul, cpul, rpul, gpul
         real, intent(in), dimension(:) :: step_size
@@ -148,6 +149,7 @@ contains
         character(len=*), intent(in), optional :: parent_name
         integer, intent(in), optional :: conductor_in_parent
         type(transfer_impedance_per_meter_t), intent(in), optional :: transfer_impedance
+        type(external_field_segment_t), intent(in), dimension(:), optional :: external_field_segments
 
         res%name = name
         res%step_size = step_size
@@ -179,6 +181,10 @@ contains
         end if
         if (present(transfer_impedance)) then
             res%transfer_impedance = transfer_impedance
+        end if
+
+        if (present(external_field_segments)) then 
+            res%external_field_segments = external_field_segments
         end if
 
     end function
