@@ -51,6 +51,7 @@ jobs:
         cmake --build build -j
       
     - name: Run fdtd unit tests 
+      timeout-minutes: 10 
       run: |
         build/bin/fdtd_tests
 
