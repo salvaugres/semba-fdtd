@@ -1245,7 +1245,7 @@ contains
          integer :: i
          pixel = this%mesh%convertNodeToPixel(this%mesh%getNode(srcElemIds(1)))
          do i = 1, size(linels)
-            if (linels(i)%tag == pixels(1)%tag) then
+            if (linels(i)%tag == pixel%tag) then
                res = i
                return
             end if
