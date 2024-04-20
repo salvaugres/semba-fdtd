@@ -388,8 +388,17 @@ contains
    subroutine terminal_connection_add_node(this, node)
       class(terminal_connection_t) :: this
       type(terminal_node_t) :: node
+      type(terminal_node_t), dimension(:), allocatable :: newNodes
+      integer :: newNodesSize
+
       if (.not. allocated(this%nodes))  allocate(this%nodes(0))
-      this%nodes = [this%nodes, node]
+
+      allocate(newNodes( size(this%nodes) + 1 ) )
+      newNodesSize = size(newNodes)
+      newNodes(1:newNodesSize-1) = this%nodes
+      newNodes(newNodesSize) = node
+      call MOVE_ALLOC(from=newNodes, to=this%nodes)
+
    end subroutine
 
    subroutine terminal_network_add_connection(this, connection)
@@ -397,6 +406,7 @@ contains
       type(terminal_connection_t) :: connection
       type(terminal_connection_t), dimension(:), allocatable :: newConnections
       integer :: newConnectionsSize
+      
       if (.not. allocated(this%connections))  allocate(this%connections(0))
       
       allocate(newConnections( size(this%connections) + 1 ) )
