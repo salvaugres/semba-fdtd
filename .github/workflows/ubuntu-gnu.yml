@@ -27,7 +27,7 @@ jobs:
         submodules: 'recursive'
 
     
-    - name: Install required packageds
+    - name: Install required packages
       run: |
         sudo apt install libhdf5-dev libopenmpi-dev
 

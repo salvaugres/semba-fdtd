@@ -36,8 +36,8 @@ contains
       expected%despl%nY = 7
       expected%despl%nZ = 2
 
-      allocate(expected%despl%desX(2))
-      allocate(expected%despl%desY(2))
+      allocate(expected%despl%desX(100))
+      allocate(expected%despl%desY(7))
       allocate(expected%despl%desZ(2))
       expected%despl%desX = 0.1
       expected%despl%desY = 0.1

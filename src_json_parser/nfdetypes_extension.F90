@@ -674,9 +674,12 @@ contains
       if (.not. associated(b%desY)) return
       if (.not. associated(b%desZ)) return
 
-      if (any(a%desX /=  b%desX)) return
-      if (any(a%desY /=  b%desY)) return
-      if (any(a%desZ /=  b%desZ)) return
+      if (size(a%desX) /= size(b%desX)) return
+      if (size(a%desY) /= size(b%desY)) return
+      if (size(a%desZ) /= size(b%desZ)) return
+      if (any(a%desX /= b%desX)) return
+      if (any(a%desY /= b%desY)) return
+      if (any(a%desZ /= b%desZ)) return
 
       if (a%nX /=  b%nX) return
       if (a%nY /=  b%nY) return

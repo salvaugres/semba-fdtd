@@ -38,7 +38,7 @@ contains
 
       allocate(expected%despl%desX(2))
       allocate(expected%despl%desY(2))
-      allocate(expected%despl%desZ(2))
+      allocate(expected%despl%desZ(20))
       expected%despl%desX = 1.0
       expected%despl%desY = 1.0
       expected%despl%desZ = 0.03
