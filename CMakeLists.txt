@@ -27,22 +27,10 @@ if(CMAKE_Fortran_COMPILER_ID MATCHES "^Intel")
 	set(CMAKE_CXX_FLAGS "-diag-disable=10448")
 endif()
 
-if (CompileWithHDF)
-	add_definitions(-DCompileWithHDF)
-	find_package(HDF5 REQUIRED COMPONENTS Fortran HL)
-	if (HDF5_FOUND)
-		message(STATUS "HDF5 found at: ${HDF5_Fortran_INCLUDE_DIRS}")
-	endif()
-	include_directories(${HDF5_INCLUDE_DIRS})
-	
-endif()
+
 
 if (CompileWithMPI)
 	add_definitions(-DCompileWithMPI)
-	# if(CMAKE_Fortran_COMPILER_ID MATCHES "GNU")
-	# 	message(STATUS "MPI: At your own risk open MPI may not currently work or even compile with Gfortran.")
-	# 	add_definitions(-DCompileWithGfortranMPIfix)
-	# endif()
 	find_package(MPI REQUIRED COMPONENTS Fortran)
 	if (MPI_FOUND)
 		message(STATUS "MPI found at: ${MPI_Fortran_INCLUDE_DIRS}")
@@ -113,6 +101,7 @@ if (CompileExecutable)
 	target_link_libraries(semba-fdtd ${MPI_Fortran_LIBRARIES})
 
 	include_directories(${CMAKE_BINARY_DIR}/mod)
+	include_directories(${HDF5_INCLUDE_DIRS})
 	include_directories(${FHASH_INCLUDES})
 endif()
 
