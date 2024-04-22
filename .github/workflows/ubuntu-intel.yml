@@ -71,6 +71,7 @@ jobs:
         python -m pip install -r requirements.txt
 
     - name: Run wrapper tests
+      timeout-minutes: 10    
       run: |
         python -m pytest test    
 
