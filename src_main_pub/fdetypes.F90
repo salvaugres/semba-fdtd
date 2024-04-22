@@ -282,7 +282,7 @@ module  FDETYPES
       NodalH  , &
       PeriodicBorders, &
       MagneticMedia, PMLMagneticMedia, &
-      MTLNbundles    
+      MTLNbundles
 
    end type
    !computational limits
