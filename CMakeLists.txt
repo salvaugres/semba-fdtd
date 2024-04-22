@@ -17,6 +17,44 @@ option(CompileWithMTLN "Use MTLN modules" ON)
 
 include("${CMAKE_CURRENT_SOURCE_DIR}/set_precompiled_libraries.cmake")
 
+
+if(CMAKE_Fortran_COMPILER_ID MATCHES "GNU")
+	set(CMAKE_Fortran_FLAGS "-ffree-form -ffree-line-length-none -fdec -fcheck=bounds -fopenmp -fallow-argument-mismatch")
+	add_definitions(-DCompileWithIncludeMpifh)
+endif()
+if(CMAKE_Fortran_COMPILER_ID MATCHES "^Intel")
+	set(CMAKE_Fortran_FLAGS "-fpp -check all,nouninit -debug full -traceback -diag-disable=10441")
+	set(CMAKE_CXX_FLAGS "-diag-disable=10448")
+endif()
+
+if (CompileWithHDF)
+	add_definitions(-DCompileWithHDF)
+	find_package(HDF5 REQUIRED COMPONENTS Fortran HL)
+	if (HDF5_FOUND)
+		message(STATUS "HDF5 found at: ${HDF5_Fortran_INCLUDE_DIRS}")
+	endif()
+	include_directories(${HDF5_INCLUDE_DIRS})
+	
+endif()
+
+if (CompileWithMPI)
+	add_definitions(-DCompileWithMPI)
+	# if(CMAKE_Fortran_COMPILER_ID MATCHES "GNU")
+	# 	message(STATUS "MPI: At your own risk open MPI may not currently work or even compile with Gfortran.")
+	# 	add_definitions(-DCompileWithGfortranMPIfix)
+	# endif()
+	find_package(MPI REQUIRED COMPONENTS Fortran)
+	if (MPI_FOUND)
+		message(STATUS "MPI found at: ${MPI_Fortran_INCLUDE_DIRS}")
+	endif()
+
+	add_definitions(${MPI_Fortran_COMPILE_OPTIONS})
+	include_directories(${MPI_Fortran_INCLUDE_DIRS})
+	link_directories(${MPI_Fortran_LIBRARIES})
+	add_compile_options (${MPI_Fortran_COMPILER_FLAGS})
+endif()
+
+
 add_library(semba-types 
 	"src_main_pub/nfde_types.F90"
 	"src_main_pub/fdetypes.F90"
@@ -69,47 +107,14 @@ if (CompileExecutable)
 		"src_wires_pub/wires.F90"
 		"src_wires_pub/wires_mtln.F90"
 	)
+
 	target_link_libraries(semba-fdtd semba-types smbjson mtlnsolver ngspice_interface ${NGSPICE_LIB})
+	target_link_libraries(semba-fdtd ${HDF5_LIBRARIES} ${HDF5_HL_LIBRARIES})
+	target_link_libraries(semba-fdtd ${MPI_Fortran_LIBRARIES})
+
 	include_directories(${CMAKE_BINARY_DIR}/mod)
 	include_directories(${FHASH_INCLUDES})
 endif()
-
-if(CMAKE_Fortran_COMPILER_ID MATCHES "GNU")
-	set(CMAKE_Fortran_FLAGS "-ffree-form -ffree-line-length-none -fdec -fcheck=bounds -fopenmp")
-	add_definitions(-DCompileWithIncludeMpifh)
-endif()
-if(CMAKE_Fortran_COMPILER_ID MATCHES "^Intel")
-	set(CMAKE_Fortran_FLAGS "-fpp -check all,nouninit -debug full -traceback -diag-disable=10441")
-	set(CMAKE_CXX_FLAGS "-diag-disable=10448")
-endif()
-
-if (CompileWithHDF)
-	message(STATUS "Compiling with HDF")
-	add_definitions(-DCompileWithHDF)
-	find_package(HDF5 REQUIRED COMPONENTS Fortran HL)
-	include_directories(${HDF5_INCLUDE_DIRS})
-	target_link_libraries(semba-fdtd ${HDF5_LIBRARIES} ${HDF5_HL_LIBRARIES})
-endif()
-
-if (CompileWithMPI)
-	message(STATUS "Compiling with MPI")
-	add_definitions(-DCompileWithMPI)
-	# if(CMAKE_Fortran_COMPILER_ID MATCHES "GNU")
-	# 	message(STATUS "MPI: At your own risk open MPI may not currently work or even compile with Gfortran.")
-	# 	add_definitions(-DCompileWithGfortranMPIfix)
-	# endif()
-	find_package(MPI REQUIRED COMPONENTS Fortran)
-	if (MPI_FOUND)
-		message(STATUS "Using MPI found at: ${MPI_Fortran_INCLUDE_DIRS}")
-	endif()
-
-	add_definitions(${MPI_Fortran_COMPILE_OPTIONS})
-	include_directories(${MPI_Fortran_INCLUDE_DIRS})
-	link_directories(${MPI_Fortran_LIBRARIES})
-	target_link_libraries(semba-fdtd ${MPI_Fortran_LIBRARIES})
-	add_compile_options (${MPI_Fortran_COMPILER_FLAGS})
-endif()
-
 
 add_definitions(		
 -DCompileWithInt2 

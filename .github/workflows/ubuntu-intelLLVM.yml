@@ -23,8 +23,6 @@ jobs:
       matrix: 
         optimization-type: ["Debug", "Release"]
         mpi-build: ["No", "Yes"]
-        # optimization-type: ["Debug"]
-        # mpi-build: ["Yes"]
 
     steps:
 
@@ -71,7 +69,7 @@ jobs:
         cmake --build build -j
         
     - name: Run fdtd unit tests
-      timeout-minutes: 30
+      timeout-minutes: 10
       run: |
         build/bin/fdtd_tests
 
@@ -80,7 +78,7 @@ jobs:
         python -m pip install -r requirements.txt
 
     - name: Run wrapper tests
-      timeout-minutes: 30
+      timeout-minutes: 10
       run: |
         python -m pytest test    
         
