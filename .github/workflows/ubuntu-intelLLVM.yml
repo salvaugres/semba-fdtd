@@ -2,7 +2,7 @@ name: ubuntu-intelLLVM
 
 env:
   LINUX_CPP_COMPONENTS: intel-oneapi-compiler-dpcpp-cpp
-  LINUX_FORTRAN_COMPONENTS: intel-oneapi-compiler-fortran
+  LINUX_FORTRAN_COMPONENTS: intel-oneapi-compiler-fortran intel-oneapi-mpi-2021.3.0 intel-oneapi-mpi-devel-2021.3.0
 # https://github.com/oneapi-src/oneapi-ci/blob/master/.github/workflows/build_all.yml
   CTEST_NO_TESTS_ACTION: error
 
@@ -22,7 +22,9 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix: 
-        build-type: ["Debug", "Release"]
+        optimization-type: ["Debug", "Release"]
+        mpi-build: ["No", "Yes"]
+
     steps:
 
     - uses: actions/checkout@v4
@@ -62,7 +64,7 @@ jobs:
         export FC=ifx
         export CC=icx
         export CXX=icpx
-        cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=${{matrix.build-type}}
+        cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=${{matrix.optimization-type}} -DCompileWithMPI=${{matrix.mpi-build}}
         cmake --build build -j
         
     - name: Run fdtd unit tests
