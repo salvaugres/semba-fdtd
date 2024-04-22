@@ -4,7 +4,6 @@ env:
   LINUX_CPP_COMPONENTS: intel-oneapi-compiler-dpcpp-cpp
   LINUX_FORTRAN_COMPONENTS: intel-oneapi-compiler-fortran intel-oneapi-mpi-2021.3.0 intel-oneapi-mpi-devel-2021.3.0
 # https://github.com/oneapi-src/oneapi-ci/blob/master/.github/workflows/build_all.yml
-  CTEST_NO_TESTS_ACTION: error
 
 on:
   push:
@@ -53,9 +52,6 @@ jobs:
         source /opt/intel/oneapi/setvars.sh
         printenv >> $GITHUB_ENV
 
-    - name: Setup ninja
-      uses: seanmiddleditch/gha-setup-ninja@master
-
     - name: print config log
       if: ${{ failure() }}
       run: cat build/CMakeFiles/CMakeConfigureLog.yaml
@@ -65,7 +61,7 @@ jobs:
         export FC=ifx
         export CC=icx
         export CXX=icpx
-        cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=${{matrix.optimization-type}} -DCompileWithMPI=${{matrix.mpi-build}}
+        cmake -S . -B build -DCMAKE_BUILD_TYPE=${{matrix.optimization-type}} -DCompileWithMPI=${{matrix.mpi-build}}
         cmake --build build -j
         
     - name: Run fdtd unit tests
