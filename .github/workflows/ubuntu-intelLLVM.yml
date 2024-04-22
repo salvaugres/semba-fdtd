@@ -21,8 +21,10 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix: 
-        optimization-type: ["Debug", "Release"]
-        mpi-build: ["No", "Yes"]
+        # optimization-type: ["Debug", "Release"]
+        # mpi-build: ["No", "Yes"]
+        optimization-type: ["Debug"]
+        mpi-build: ["Yes"]
 
     steps:
 
@@ -55,6 +57,9 @@ jobs:
     - name: print config log
       if: ${{ failure() }}
       run: cat build/CMakeFiles/CMakeConfigureLog.yaml
+
+    - name: Setup upterm session
+      uses: lhotari/action-upterm@v1
 
     - name: CMake build
       run: |
