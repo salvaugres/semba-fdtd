@@ -27,9 +27,9 @@ jobs:
         submodules: 'recursive'
 
     
-    - name: Install HDF5
+    - name: Install required packageds
       run: |
-        sudo apt install libhdf5-dev
+        sudo apt install libhdf5-dev libopenmpi-dev
 
     - name: Setup ninja
       uses: seanmiddleditch/gha-setup-ninja@master

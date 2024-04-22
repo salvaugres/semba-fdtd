@@ -65,7 +65,7 @@ jobs:
         export FC=ifx
         export CC=icx
         export CXX=icpx
-        cmake -S . -B build -DCMAKE_BUILD_TYPE=${{matrix.optimization-type}} -DCompileWithMPI=${{matrix.mpi-build}}
+        cmake -S . -B build -DCMAKE_BUILD_TYPE=${{matrix.optimization-type}} -DCompileWithMPI=${{matrix.mpi-build}} -DCompileWithHDF=YES
         cmake --build build -j
         
     - name: Run fdtd unit tests
