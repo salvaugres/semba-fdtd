@@ -54,6 +54,20 @@ contains
       expected%front%tipoFrontera(:) = F_MUR
 
       ! Expected sources.
+      allocate(expected%plnSrc%collection(1))
+      expected%plnSrc%collection(1)%nombre_fichero = "double_exp.exc"
+      expected%plnSrc%collection(1)%atributo = ""
+      expected%plnSrc%collection(1)%coor1 = [1, 1, 1]
+      expected%plnSrc%collection(1)%coor2 = [1, 1, 18]
+      expected%plnSrc%collection(1)%theta = 3.1416
+      expected%plnSrc%collection(1)%phi = 1.5708
+      expected%plnSrc%collection(1)%alpha = 1.5708
+      expected%plnSrc%collection(1)%beta = 0.0
+      expected%plnSrc%collection(1)%isRC=.false.
+      expected%plnSrc%collection(1)%nummodes=1
+      expected%plnSrc%collection(1)%INCERTMAX=0.0
+      expected%plnSrc%nc = 1
+      expected%plnSrc%nC_max = 1
 
       ! Expected probes
       ! oldSonda

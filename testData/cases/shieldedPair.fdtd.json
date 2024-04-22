@@ -73,10 +73,28 @@
 			{ "id": 1, "type": "polyline", "coordinateIds": [1, 2]},
 			{ "id": 2, "type": "polyline", "coordinateIds": [3, 5]},
 			{ "id": 3, "type": "polyline", "coordinateIds": [4, 6]},
-			{ "id": 4, "type": "node",     "coordinateIds": [2] }
+			{ "id": 4, "type": "node",     "coordinateIds": [2] },
+            { "id": 5, "type": "cell", "intervals": [[[1, 1, 1], [1, 1, 19]]] }
 		]
 	},
 	
+    "sources": [
+        {
+            "type": "planewave",
+            "magnitudeFile": "double_exp.exc",
+            "elementIds": [5],
+            "direction": {
+                "theta": 3.1416,
+                "phi": 1.5708
+            },
+            "polarization": {
+                "theta": 1.5708,
+                "phi": 0.0
+            }
+        }
+    ],
+
+
 	"probes": [
 		{
 			"name": "voltage_at_wire_end",
