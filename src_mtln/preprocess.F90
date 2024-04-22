@@ -683,7 +683,7 @@ contains
         character(20) :: sTime, sdt
         write(sTime, '(E10.2)') final_time
         write(sdt, '(E10.2)') dt
-        description = [description, trim(".tran "//sdt//" "//sTime)]
+        description = [description, trim(".tran "//sdt//" "//sTime//" 0 "//sdt)]
 
     end subroutine
 
