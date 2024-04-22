@@ -15,7 +15,7 @@ integer function test_spice_read_message() bind(C) result(error_cnt)
     names(4) = string_t("v-sweep", 7)
 
     allocate(input(0))
-    input = [input, "* Multiple dc sources"]
+    input = ["* Multiple dc sources"]
     input = [input, "vn1 node1 0 dc 24"]
     input = [input, "vn2 node3 0 dc 15"]
     input = [input, "rn1 node1 node2 10k"]

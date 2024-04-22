@@ -368,6 +368,7 @@ contains
         class(termination_t), intent(in) :: termination
         character(len=*), intent(in) :: end_node
         character(len=256), allocatable :: res(:)
+        character(len=256) :: buff
         character(20) :: termination_r, termination_l, termination_c, line_c
 
         write(termination_c, *) termination%capacitance
@@ -377,17 +378,24 @@ contains
         
         allocate(res(0))
 
-        res = [res, trim("R" // node%name // " " // node%name // " "   // node%name //"_R " // termination_r)]
-        res = [res, trim("L" // node%name // " " // node%name // "_R " // node%name //"_L " // termination_l)]
+        buff = trim("R" // node%name // " " // node%name // " "   // node%name //"_R " // termination_r)
+        res = [res, buff]
+        buff = trim("L" // node%name // " " // node%name // "_R " // node%name //"_L " // termination_l)
+        res = [res, buff]
         select type(termination)
         type is(termination_with_source_t)
-            res = [res, trim("C" // node%name // " " // node%name // "_L " // node%name //"_V "// termination_c)]
-            res = [res, trim("V" // node%name // " " // node%name // "_V " // end_node //" dc 0" )]
+            buff = trim("C" // node%name // " " // node%name // "_L " // node%name //"_V "// termination_c)
+            res = [res, buff]
+            buff = trim("V" // node%name // " " // node%name // "_V " // end_node //" dc 0" )
+            res = [res, buff]
         type is(termination_t)
-            res = [res, trim("C" // node%name // " " // node%name // "_L " // end_node //" "// termination_c)]
+            buff = trim("C" // node%name // " " // node%name // "_L " // end_node //" "// termination_c)
+            res = [res, buff]
         end select
-        res = [res, trim("I" // node%name // " " // node%name// " 0 " // " dc 0")]
-        res = [res, trim("CL" // node%name // " " // node%name // " 0 " // line_c)]
+        buff = trim("I" // node%name // " " // node%name// " 0 " // " dc 0")
+        res = [res, buff]
+        buff = trim("CL" // node%name // " " // node%name // " 0 " // line_c)
+        res = [res, buff]
 
     end function
 
@@ -396,6 +404,7 @@ contains
         class(termination_t), intent(in) :: termination
         character(len=*), intent(in) :: end_node
         character(len=256), allocatable :: res(:)
+        character(len=256) :: buff
         character(20) :: termination_r, termination_l, line_c
 
         write(termination_r, *) termination%resistance
@@ -404,16 +413,21 @@ contains
 
         allocate(res(0))
 
-        res = [res, trim("R" // node%name // " " // node%name // "_R "   // node%name //" ")//" "//trim(termination_r)]
+        res = [trim("R" // node%name // " " // node%name // "_R "   // node%name //" ")//" "//trim(termination_r)]
         select type(termination)
         type is(termination_with_source_t)
-            res = [res, trim("L" // node%name // " " // node%name // "_R " // node%name //"_L")//" "//trim(termination_l)]
-            res = [res, trim("V" // node%name // " " // node%name // "_L " // end_node //" dc 0" )]
+            buff = trim("L" // node%name // " " // node%name // "_R " // node%name //"_L")//" "//trim(termination_l)
+            res = [res, buff]
+            buff = trim("V" // node%name // " " // node%name // "_L " // end_node //" dc 0" )
+            res = [res, buff]
         type is(termination_t)
-            res = [res, trim("L" // node%name // " " // node%name // "_R " // end_node)//" "//trim(termination_l)]
+            buff = trim("L" // node%name // " " // node%name // "_R " // end_node)//" "//trim(termination_l)
+            res = [res, buff]
         end select
-        res = [res, trim("I" // node%name // " " // node%name// " 0 " // " dc 0")]
-        res = [res, trim("CL" // node%name // " " // node%name // " 0 " // line_c)]
+        buff = trim("I" // node%name // " " // node%name// " 0 " // " dc 0")
+        res = [res, buff]
+        buff = trim("CL" // node%name // " " // node%name // " 0 " // line_c)
+        res = [res, buff]
         
     end function
 
@@ -422,6 +436,7 @@ contains
         class(termination_t), intent(in) :: termination
         character(len=*), intent(in) :: end_node
         character(len=256), allocatable :: res(:)
+        character(len=256) :: buff
         character(20) :: termination_r, termination_l, termination_c, line_c
 
         write(termination_r, *) termination%resistance
@@ -431,18 +446,26 @@ contains
 
         allocate(res(0))
 
-        res = [res, trim("R" // node%name // " " // node%name // " "   // node%name //"_R " // termination_r)]
+        buff = trim("R" // node%name // " " // node%name // " "   // node%name //"_R " // termination_r)
+        res = [res, buff]
         select type(termination)
         type is(termination_with_source_t)
-            res = [res, trim("L" // node%name // " " // node%name // "_R " // node%name //"_V " // termination_l)]
-            res = [res, trim("C" // node%name // " " // node%name // " " // node%name //"_V " // termination_c)]
-            res = [res, trim("V" // node%name // " " // node%name // "_V " // end_node //" dc 0" )]
+            buff = trim("L" // node%name // " " // node%name // "_R " // node%name //"_V " // termination_l)
+            res = [res, buff]
+            buff = trim("C" // node%name // " " // node%name // " " // node%name //"_V " // termination_c)
+            res = [res, buff]
+            buff = trim("V" // node%name // " " // node%name // "_V " // end_node //" dc 0" )
+            res = [res, buff]
         type is(termination_t)
-            res = [res, trim("L" // node%name // " " // node%name // "_R " // end_node //" "// termination_l)]
-            res = [res, trim("C" // node%name // " " // node%name // " " // end_node //" "// termination_c)]
+            buff = trim("L" // node%name // " " // node%name // "_R " // end_node //" "// termination_l)
+            res = [res, buff]
+            buff = trim("C" // node%name // " " // node%name // " " // end_node //" "// termination_c)
+            res = [res, buff]
         end select
-        res = [res, trim("I" // node%name // " " // node%name// " 0 " // " dc 0")]
-        res = [res, trim("CL" // node%name // " " // node%name // " 0 " // line_c)]
+        buff = trim("I" // node%name // " " // node%name// " 0 " // " dc 0")
+        res = [res, buff]
+        buff = trim("CL" // node%name // " " // node%name // " 0 " // line_c)
+        res = [res, buff]
 
 
     end function
@@ -466,6 +489,7 @@ contains
         class(termination_t), intent(in) :: termination
         character(len=*), intent(in) :: end_node
         character(len=256), allocatable :: res(:)
+        character(len=256) :: buff
         character(20) :: short_R, line_c
 
         write(short_r, *) 1e-10
@@ -474,13 +498,18 @@ contains
         allocate(res(0))
         select type(termination)
         type is(termination_with_source_t)
-            res = [res, trim("R" // node%name // " " // node%name // " " // node%name //"_R")//" "//trim(short_R)]
-            res = [res, trim("V" // node%name // " " // node%name // "_R " // end_node//" dc 0")]
+            buff = trim("R" // node%name // " " // node%name // " " // node%name //"_R")//" "//trim(short_R)
+            res = [res, buff]
+            buff = trim("V" // node%name // " " // node%name // "_R " // end_node//" dc 0")
+            res = [res, buff]
         type is(termination_t)
-            res = [res, trim("R" // node%name // " " // node%name // " " // end_node)//" "//trim(short_R)]
+            buff = trim("R" // node%name // " " // node%name // " " // end_node)//" "//trim(short_R)
+            res = [res, buff]
         end select
-        res = [res, trim("I" // node%name // " " // node%name// " 0 " // " dc 0")]
-        res = [res, trim("CL" // node%name // " " // node%name // " 0 " // line_c)]
+        buff = trim("I" // node%name // " " // node%name// " 0 " // " dc 0")
+        res = [res, buff]
+        buff = trim("CL" // node%name // " " // node%name // " 0 " // line_c)
+        res = [res, buff]
         
     end function
 
@@ -489,13 +518,16 @@ contains
         class(termination_t), intent(in) :: termination
         character(len=*), intent(in) :: end_node
         character(len=256), allocatable :: res(:)
+        character(len=256) :: buff
         character(20) :: line_c
 
         write(line_c, *) node%line_c_per_meter*node%step/2
 
         allocate(res(0))
-        res = [res, trim("I" // node%name // " " // node%name// " 0 " // " dc 0")]
-        res = [res, trim("CL" // node%name // " " // node%name // " 0 " // line_c)]
+        buff = trim("I" // node%name // " " // node%name// " 0 " // " dc 0")
+        res = [res, buff]
+        buff = trim("CL" // node%name // " " // node%name // " 0 " // line_c)
+        res = [res, buff]
         
     end function
 
