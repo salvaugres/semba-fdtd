@@ -1,6 +1,6 @@
 integer function test_json_to_solver_input_shielded_pair() bind (C) result(err)
    use smbjson
-   use testingTools
+   use system_testingTools_mod
    use mtln_solver_mod, mtln_solver_t => mtln_t
    
    implicit none

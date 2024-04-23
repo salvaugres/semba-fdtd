@@ -1,6 +1,6 @@
 integer function test_map_wires_to_bundles() bind (C) result(err)
    use smbjson
-   use testingTools
+   use system_testingTools_mod
    use mtln_solver_mod, mtln_solver_t => mtln_t
    
    implicit none

@@ -1,6 +1,6 @@
 integer function test_mesh_add_get() bind(C) result(error_cnt)
    use mesh_mod
-   use testingTools
+   use smbjson_testingTools
 
    implicit none
 
@@ -42,7 +42,7 @@ end function
 
 integer function test_mesh_add_get_long_list() bind(C) result(error_cnt)
    use mesh_mod
-   use testingTools
+   use smbjson_testingTools
 
    implicit none
 
@@ -109,7 +109,7 @@ end function
 integer function test_mesh_node_to_pixel() bind(C) result(err)
    use mesh_mod
    use cells_mod
-   use testingTools
+   use smbjson_testingTools
 
    implicit none
 
@@ -130,7 +130,7 @@ end function
 integer function test_mesh_polyline_to_linel() bind(C) result(err)
    use mesh_mod
    use cells_mod
-   use testingTools
+   use smbjson_testingTools
 
    implicit none
 

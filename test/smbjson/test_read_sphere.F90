@@ -1,6 +1,6 @@
 integer function test_read_sphere() bind (C) result(err)
    use smbjson
-   use testingTools
+   use smbjson_testingTools
 
    implicit none
 

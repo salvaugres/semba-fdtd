@@ -8,7 +8,7 @@ enable_testing ()
 set(CMAKE_Fortran_MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/mod)
 
 add_library (smbjson_test_fortran 
-    "testingTools.F90" 
+    "smbjson_testingTools.F90" 
     "test_idchildtable.F90"
     "test_cells.F90"
     "test_mesh.F90"
