@@ -49,8 +49,8 @@ jobs:
         sh -c .github/workflows/oneapi_setup_apt_repo_linux.sh
         sudo apt install ${{ env.LINUX_CPP_COMPONENTS }} ${{ env.LINUX_FORTRAN_COMPONENTS }}
 
-    - name: Setup ninja
-      uses: seanmiddleditch/gha-setup-ninja@master
+    # - name: Setup ninja
+    #   uses: seanmiddleditch/gha-setup-ninja@master
 
     - name: Setup Intel oneAPI environment
       run: |

@@ -29,20 +29,6 @@ endif()
 
 
 
-if (CompileWithMPI)
-	add_definitions(-DCompileWithMPI)
-	find_package(MPI REQUIRED COMPONENTS Fortran)
-	if (MPI_FOUND)
-		message(STATUS "MPI found at: ${MPI_Fortran_INCLUDE_DIRS}")
-	endif()
-
-	add_definitions(${MPI_Fortran_COMPILE_OPTIONS})
-	include_directories(${MPI_Fortran_INCLUDE_DIRS})
-	link_directories(${MPI_Fortran_LIBRARIES})
-	add_compile_options (${MPI_Fortran_COMPILER_FLAGS})
-endif()
-
-
 add_library(semba-types 
 	"src_main_pub/nfde_types.F90"
 	"src_main_pub/fdetypes.F90"
