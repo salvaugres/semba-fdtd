@@ -56,6 +56,7 @@ jobs:
       run: |
         LATEST_VERSION=$(ls -1 /opt/intel/oneapi/compiler/ | grep -v latest | sort | tail -1)
         source /opt/intel/oneapi/setvars.sh
+        source /opt/intel/oneapi/mpi/2021.3.0/env/vars.sh
         printenv >> $GITHUB_ENV
     
     - name: CMake build
