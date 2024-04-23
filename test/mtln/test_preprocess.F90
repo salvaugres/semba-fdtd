@@ -1,4 +1,4 @@
-function test_preprocess_conductors_before_cable() bind(C) result(error_cnt)
+integer function test_preprocess_conductors_before_cable() bind(C) result(error_cnt)
 
     use mtl_mod 
     use preprocess_mod, only: conductorsInLevel, findConductorsBeforeCable
@@ -35,7 +35,7 @@ function test_preprocess_conductors_before_cable() bind(C) result(error_cnt)
 
 end function
 
-function test_preprocess_conductors_in_level() bind(C) result(error_cnt)
+integer function test_preprocess_conductors_in_level() bind(C) result(error_cnt)
 
     use mtl_mod 
     use preprocess_mod, only: conductorsInLevel, findConductorsBeforeCable
