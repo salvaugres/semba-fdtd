@@ -2379,10 +2379,13 @@ contains
          real, dimension(:), allocatable :: res
 
          if (axis == 1) then
+            allocate(res(size(desp%desX)))
             res = desp%desX
          else if (axis == 2) then
+            allocate(res(size(desp%desY)))
             res = desp%desY
          else if (axis == 3) then
+            allocate(res(size(desp%desZ)))
             res = desp%desZ
          end if
       end function

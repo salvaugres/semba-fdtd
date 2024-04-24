@@ -5,7 +5,7 @@ module mtln_testingTools_mod
     ! use mtl_bundle_mod
     implicit none
     
-    character(len=*, kind=c_char), parameter :: PATH_TO_TEST_DATA = c_char_'testData/'
+    character(len=*, kind=c_char), parameter :: PATH_TO_TEST_DATA = c_char_'./testData/'
 
 contains
     

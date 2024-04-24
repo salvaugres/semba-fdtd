@@ -622,7 +622,7 @@ contains
         tbundle = this%bundles(d)
         write(sConductor,'(I0)') node%conductor_in_cable
         res%name = trim(node%belongs_to_cable%name)//"_"//trim(sConductor)//"_"//nodeSideToString(node%side)
-
+        write(*,*) res%name
         res%v = 0.0
         res%i = 0.0
         res%bundle_number = d
@@ -643,10 +643,12 @@ contains
             res%side = TERMINAL_NODE_SIDE_END
         end if
 
-        res%source = ""
         select type(termination => node%termination)
         type is(termination_with_source_t)
             res%source = termination%path_to_excitation
+            write(*,*) res%source
+        type is(termination_t)
+            res%source = ""
         end select
     contains
         function nodeSideToString(side) result(cSide)
@@ -671,7 +673,8 @@ contains
 
         type(node_t) :: new_node
         integer :: stat
-        
+
+        allocate(nodes(0))
         new_node = this%addNodeWithId(terminal_nodes(1))
         nodes = [nodes, new_node]
 
