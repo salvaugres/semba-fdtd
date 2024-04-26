@@ -114,7 +114,8 @@ module Solver
 #ifdef CompileWithPrescale
    USE P_rescale
 #endif              
-   use mtln_solver_mod, mtln_solver_t => mtln_t
+   ! use mtln_solver_mod, mtln_solver_t => mtln_t
+   use mtln_types_mod, only: mtln_t
    use Wire_bundles_mtln_mod
 !!
 #ifdef CompileWithProfiling
@@ -143,10 +144,10 @@ contains
    EpsMuTimeScale_input_parameters, &
    stochastic,mpidir,verbose,precision,hopf,ficherohopf,niapapostprocess,planewavecorr, &
    dontwritevtk,experimentalVideal,forceresampled,factorradius,factordelta,noconformalmapvtk, &
-   mtln_solver)
+   mtln_parsed)
 
 !!!           
-   type (mtln_solver_t) :: mtln_solver
+   type (mtln_t) :: mtln_parsed
 !!!
       logical :: noconformalmapvtk
       logical :: hopf,experimentalVideal,forceresampled
@@ -811,7 +812,7 @@ contains
 
 
 #ifdef CompileWithWires_mtln  
-         call InitWires_mtln(sgg,Ex,Ey,Ez,mtln_solver,thereAre%MTLNbundles)
+         call InitWires_mtln(sgg,Ex,Ey,Ez,eps0, mu0, mtln_parsed,thereAre%MTLNbundles)
 #endif
 
 
@@ -1367,7 +1368,7 @@ contains
          endif
 #endif
 #ifdef CompileWithWires_mtln  
-         if (thereAre%MTLNbundles) call AdvanceWiresE_mtln(sgg,Idxh,Idyh,Idzh,eps0,mu0,mtln_solver)  
+         if (thereAre%MTLNbundles) call AdvanceWiresE_mtln(sgg,Idxh,Idyh,Idzh,eps0,mu0)  
 #endif 
          If (Thereare%PMLbodies) then !waveport absorbers
             call AdvancePMLbodyE
