@@ -1411,12 +1411,13 @@ contains
       block
          integer :: nW, nMW
          nMW = countNumberOfMultiwires(cables)
-         if (nMW == 0) then 
-            allocate(mtln_res%cables(0))
-            allocate(mtln_res%probes(0))
-            allocate(mtln_res%networks(0))
-            return
-         end if
+         ! even if there are no multiwires, problem is solved by mtln
+         ! if (nMW == 0) then 
+         !    allocate(mtln_res%cables(0))
+         !    allocate(mtln_res%probes(0))
+         !    allocate(mtln_res%networks(0))
+         !    return
+         ! end if
          nW =  countNumberOfWires(cables)
          nWs = nW + nMW
       end block
@@ -1436,12 +1437,12 @@ contains
                if (isWire(cables(i)%p) .or. isMultiwire(cables(i)%p)) then
                   is_read = .true.
                   read_cable = readMTLNCable(cables(i)%p, is_read)
-                  if (is_read) then
-                     ncc = ncc + 1
-                     mtln_res%cables(ncc) = read_cable
-                     call addElemIdToCableMap(elemIdToCable, getCableElemIds(cables(i)%p), ncc)
-                     call addElemIdToPositionMap(elemIdToPosition, cables(i)%p)
-                  end if
+                  ! if (is_read) then
+                  ncc = ncc + 1
+                  mtln_res%cables(ncc) = read_cable
+                  call addElemIdToCableMap(elemIdToCable, getCableElemIds(cables(i)%p), ncc)
+                  call addElemIdToPositionMap(elemIdToPosition, cables(i)%p)
+                  ! end if
                end if
             end do
          end if
@@ -2027,16 +2028,16 @@ contains
 
          res%step_size = buildStepSize(j_cable)
          res%external_field_segments = mapSegmentsToGridCoordinates(j_cable)
-         ! write(*,*) 'id: ', this%getIntAt(j_cable, J_MATERIAL_ID, found)
          material = this%matTable%getId(this%getIntAt(j_cable, J_MATERIAL_ID, found))
          if (.not. found) &
             write(error_unit, *) "Error reading material region: materialId label not found."
-         if (isWire(j_cable)) then
-            if(.not. this%existsAt(material%p, J_MAT_WIRE_REF_CAPACITANCE)) then
-               is_read = .false.
-               return
-            end if
-         end if
+         ! removed to read all cables
+         ! if (isWire(j_cable)) then
+         !    if(.not. this%existsAt(material%p, J_MAT_WIRE_REF_CAPACITANCE)) then
+         !       is_read = .false.
+         !       return
+         !    end if
+         ! end if
 
          if (isWire(j_cable)) then
             call assignReferenceProperties(res, material)
@@ -2115,13 +2116,17 @@ contains
          if (this%existsAt(mat%p, J_MAT_WIRE_REF_CAPACITANCE)) then
             res%capacitance_per_meter(1,1) = this%getRealAt(mat%p, J_MAT_WIRE_REF_CAPACITANCE)
          else
-            write(error_unit, *) "Error reading material region: __referenceCapacitancePerMeter label not found."
+            write(error_unit, *) "Capacitance per meter will be assigned in module Wire_bundles_mtln"
+            res%capacitance_per_meter(1,1) = 0.0
+            ! write(error_unit, *) "Error reading material region: __referenceCapacitancePerMeter label not found."
          end if
-
+         
          if (this%existsAt(mat%p, J_MAT_WIRE_REF_INDUCTANCE)) then
             res%inductance_per_meter(1,1) = this%getRealAt(mat%p, J_MAT_WIRE_REF_INDUCTANCE)
          else
-            write(error_unit, *) "Error reading material region: __referenceInductancePerMeter label not found."
+            write(error_unit, *) "Inductance per meter will be assigned in module Wire_bundles_mtln"
+            res%inductance_per_meter(1,1) = 0.0
+            ! write(error_unit, *) "Error reading material region: __referenceInductancePerMeter label not found."
          end if
 
          if (this%existsAt(mat%p, J_MAT_WIRE_RESISTANCE)) then
