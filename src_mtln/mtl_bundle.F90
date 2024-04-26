@@ -11,7 +11,7 @@ module mtl_bundle_mod
         real, allocatable, dimension(:,:,:) :: lpul, cpul, rpul, gpul
         integer  :: number_of_conductors = 0, number_of_divisions = 0
         real, dimension(:), allocatable :: step_size
-        real, allocatable, dimension(:,:) :: v, i
+        real, allocatable, dimension(:,:) :: v, i, e_L
         real, allocatable, dimension(:,:,:) :: du(:,:,:)
         real :: time = 0.0, dt = 1e10
         type(probe_t), allocatable, dimension(:) :: probes
@@ -81,6 +81,7 @@ contains
         
         allocate(this%v(this%number_of_conductors, this%number_of_divisions + 1), source = 0.0)
         allocate(this%i(this%number_of_conductors, this%number_of_divisions), source = 0.0)
+        allocate(this%e_L(this%number_of_conductors, this%number_of_divisions), source = 0.0)
 
         allocate(this%i_term(this%number_of_divisions,this%number_of_conductors,this%number_of_conductors), source = 0.0)
         allocate(this%v_diff(this%number_of_divisions,this%number_of_conductors,this%number_of_conductors), source = 0.0)
@@ -286,7 +287,9 @@ contains
 
 
         ! this%v(:,2:this%number_of_divisions) = &
-        !          reshape(source=[(matmul(this%v_term(i,:,:), this%v(:,i)), i = 2, this%number_of_divisions - 1)], &
+        !          reshape(source=[(matmul(this%v_term(i,:,:), this%v(:,i)) - &
+        !                           matmul(this%i_diff(i,:,:), this%i(:,i) - this%i(:,i-1)), &
+        !                           i = 2, this%number_of_divisions - 1)], &
         !                  shape = [this%number_of_divisions -1,this%number_of_conductors], &
         !                  order = [2,1])
     end subroutine
@@ -299,7 +302,8 @@ contains
         ! i_prev = this%i
         do i = 1, this%number_of_divisions 
             this%i(:,i) = matmul(this%i_term(i,:,:), this%i(:,i)) - &
-                          matmul(this%v_diff(i,:,:), (this%v(:,i+1) - this%v(:,i))) !- &
+                          matmul(this%v_diff(i,:,:), (this%v(:,i+1) - this%v(:,i)) + this%e_L(:,i))
+                          !- &
                                 !  matmul(0.5*this%du_length(i,:,:), this%el))
                         !   matmul(this%v_diff(i,:,:), matmul(this%du(i,:,:), this%transfer_impedance%q3_phi(i,:)))
         enddo
@@ -311,8 +315,9 @@ contains
     subroutine bundle_setExternalVoltage(this)
         class(mtl_bundle_t) :: this
         integer :: i
-        do i = 1, size(this%v,2) 
-            this%v(1, i) = this%external_field_segments(i)%Efield_main2wire * this%step_size(i)
+        do i = 1, size(this%e_L,2)
+            this%e_L(1,i) = this%external_field_segments(i)%Efield_main2wire * this%step_size(i)
+            ! this%v(1, i) = this%external_field_segments(i)%Efield_main2wire * this%step_size(i)
         end do
     end subroutine
 
