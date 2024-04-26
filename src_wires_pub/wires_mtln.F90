@@ -8,18 +8,18 @@ module Wire_bundles_mtln_mod
    use report
    use fdetypes
    use mtln_solver_mod , mtln_solver_t => mtln_t 
-
+   use mtln_types_mod, only: mtln_t
    implicit none
    
    REAL (KIND=RKIND_wires)           ::  eps0,mu0
    private   
    public InitWires_mtln,AdvanceWiresE_mtln
-     
+   type(mtln_solver_t) :: mtln_solver
 
 contains
 
 
-   subroutine InitWires_mtln(sgg,Ex,Ey,Ez,mtln_solver,thereAreMTLNbundles)         
+   subroutine InitWires_mtln(sgg,Ex,Ey,Ez, eps00, mu00, mtln_parsed,thereAreMTLNbundles)         
       type (SGGFDTDINFO), intent(IN), target    :: sgg 
       REAL (KIND=RKIND), intent(inout), target :: &
          Ex(sgg%Alloc(iEx)%XI : sgg%Alloc(iEx)%XE,  &
@@ -30,10 +30,17 @@ contains
             sgg%Alloc(iEy)%ZI : sgg%Alloc(iEy)%ZE), &
          Ez(sgg%Alloc(iEz)%XI : sgg%Alloc(iEz)%XE,  &
             sgg%Alloc(iEz)%YI : sgg%Alloc(iEz)%YE,  &
-            sgg%Alloc(iEz)%ZI : sgg%Alloc(iEz)%ZE)   
-      class(mtln_solver_t) :: mtln_solver  
-        logical :: thereAreMTLNbundles
+            sgg%Alloc(iEz)%ZI : sgg%Alloc(iEz)%ZE)
+      real(KIND=RKIND) :: eps00,mu00
+   
+      type(mtln_t) :: mtln_parsed
+      logical :: thereAreMTLNbundles
       
+      eps0 = eps00
+      mu0 = mu00
+
+      mtln_solver = mtlnCtor(mtln_parsed)
+
       if (mtln_solver%number_of_bundles>=1) then 
            thereAreMTLNbundles=.true.
         else    
@@ -61,11 +68,23 @@ contains
             end do
         end do
       end block
+      block
+      ! assign L and C to external conductor
+         integer(kind=4) :: n
+         real(kind=rkind) :: l_cell, c_cell
+         do n = 1, ubound(mtln_solver%bundles(0)%lpul,1)
+            !l_cell =
+            c_cell =  l_cell/(mu0*eps0)
+            mtln_solver%bundles(0)%lpul(n,1,1) = l_cell
+            mtln_solver%bundles(0)%cpul(n,1,1) = c_cell
+         end do
+      end block
+
+      call mtln_solver%updatePULTerms()
 
    endsubroutine InitWires_mtln
 
-   subroutine AdvanceWiresE_mtln(sgg,Idxh, Idyh, Idzh, eps00,mu00,mtln_solver)  
-      class(mtln_solver_t) :: mtln_solver  
+   subroutine AdvanceWiresE_mtln(sgg,Idxh, Idyh, Idzh, eps00,mu00)  
       type (SGGFDTDINFO), intent(IN), target    :: sgg      
        real (kind=RKIND), dimension (:), intent(in) :: &
          Idxh(sgg%ALLOC(iEx)%XI : sgg%ALLOC(iEx)%XE),&

@@ -1,5 +1,25 @@
 from utils import *
 
+def test_shielded_pair(tmp_path):
+    case = "shieldedPair"
+
+    makeCopy(tmp_path, CASE_FOLDER + case + '.fdtd.json')
+    fn = tmp_path._str + '/' + case + '.fdtd.json'
+
+    solver = FDTD(input_filename = fn, path_to_exe=SEMBA_EXE)
+    solver.run()
+    
+    assert solver.hasFinishedSuccessfully() == True
+
+    p_v_expected = Probe(OUTPUT_FOLDER+'shieldedPair.fdtd_mid_point_Wz_11_11_12_s2.dat')
+    p_v_solved = Probe(solver.getSolvedProbeFilenames("voltage_at_wire_end")[0])
+
+    # p_i_expected = Probe(OUTPUT_FOLDER+'shieldedPair.fdtd_mid_point_Wz_11_11_12_s2.dat')
+    p_i_solved = Probe(solver.getSolvedProbeFilenames("current_at_wire_end")[0])
+    
+    assert np.allclose(p_v_expected.df.to_numpy(), p_v_solved.df.to_numpy())
+    # assert np.allclose(p_i_expected.df.to_numpy(), p_i_solved.df.to_numpy())
+
 def test_holland(tmp_path):
     case = 'holland1981'
     makeCopy(tmp_path, EXCITATIONS_FOLDER+'gauss.exc')
@@ -11,6 +31,23 @@ def test_holland(tmp_path):
     probe_files = solver.getSolvedProbeFilenames("mid_point")
     
     assert solver.hasFinishedSuccessfully() == True
+    p_expected = Probe(OUTPUT_FOLDER+'holland1981.fdtd_mid_point_Wz_11_11_12_s2.dat')
+    p_solved = Probe(probe_files[0])
+    
+    assert np.allclose(p_expected.df.to_numpy(), p_solved.df.to_numpy())
+
+def test_holland_mltn_mode(tmp_path):
+
+    case = 'holland1981_mtln'
+    makeCopy(tmp_path, EXCITATIONS_FOLDER+'gauss.exc')
+    makeCopy(tmp_path, CASE_FOLDER + case + '.fdtd.json')
+    fn = tmp_path._str + '/' + case + '.fdtd.json'
+
+    solver = FDTD(input_filename = fn, path_to_exe=SEMBA_EXE)
+    solver.run()
+    assert solver.hasFinishedSuccessfully() == True
+
+    probe_files = solver.getSolvedProbeFilenames("mid_point")
     p_expected = Probe(OUTPUT_FOLDER+'holland1981.fdtd_mid_point_Wz_11_11_12_s2.dat')
     p_solved = Probe(probe_files[0])
     

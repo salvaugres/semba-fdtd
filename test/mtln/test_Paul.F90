@@ -82,7 +82,7 @@ integer function test_termination_resistive() bind(C) result(error_cnt)
     parsed%probes = [probe_v, probe_i, probe_v_r]    ! pre = preprocess(parsed)
 
     solver = mtlnCtor(parsed)
-    call solver%runUntil(parsed%time_step * parsed%number_of_steps)
+    call solver%run()
     write(*,*) error_cnt
     ! p = Parser(file)
     ! p.run(finalTime = 18e-6)
@@ -184,7 +184,7 @@ integer function test_termination_resistive_inductive() bind(C) result(error_cnt
     parsed%probes = [probe_v, probe_i, probe_v_R]    ! pre = preprocess(parsed)
 
     solver = mtlnCtor(parsed)
-    call solver%runUntil(parsed%time_step * parsed%number_of_steps)
+    call solver%run()
     write(*,*) error_cnt
     ! p = Parser(file)
     ! p.run(finalTime = 18e-6)
@@ -287,7 +287,7 @@ integer function test_termination_resistive_capacitive_parallel() bind(C) result
     parsed%probes = [probe_v, probe_i, probe_v_r]    ! pre = preprocess(parsed)
 
     solver = mtlnCtor(parsed)
-    call solver%runUntil(parsed%time_step * parsed%number_of_steps)
+    call solver%run()
     write(*,*) error_cnt
     ! p = Parser(file)
     ! p.run(finalTime = 18e-6)
@@ -390,7 +390,7 @@ integer function test_termination_rls_cp() bind(C) result(error_cnt)
     parsed%probes = [probe_v, probe_i, probe_v_r]    ! pre = preprocess(parsed)
 
     solver = mtlnCtor(parsed)
-    call solver%runUntil(parsed%time_step * parsed%number_of_steps)
+    call solver%run()
     write(*,*) error_cnt
     ! p = Parser(file)
     ! p.run(finalTime = 18e-6)
@@ -498,7 +498,7 @@ integer function test_termination_rls_cp_ns() bind(C) result(error_cnt)
     parsed%probes = [probe_v, probe_i, probe_v_r]    ! pre = preprocess(parsed)
 
     solver = mtlnCtor(parsed)
-    call solver%runUntil(parsed%time_step * parsed%number_of_steps)
+    call solver%run()
     write(*,*) error_cnt
     ! p = Parser(file)
     ! p.run(finalTime = 18e-6)
@@ -601,7 +601,7 @@ integer function test_termination_rcp() bind(C) result(error_cnt)
     parsed%probes = [probe_v, probe_i, probe_v_r]    ! pre = preprocess(parsed)
 
     solver = mtlnCtor(parsed)
-    call solver%runUntil(parsed%time_step * parsed%number_of_steps)
+    call solver%run()
     write(*,*) error_cnt
     ! p = Parser(file)
     ! p.run(finalTime = 18e-6)
@@ -704,7 +704,7 @@ integer function test_termination_resistive_capacitive() bind(C) result(error_cn
     parsed%probes = [probe_v, probe_i, probe_v_r]    ! pre = preprocess(parsed)
 
     solver = mtlnCtor(parsed)
-    call solver%runUntil(parsed%time_step * parsed%number_of_steps)
+    call solver%run()
     write(*,*) error_cnt
     ! p = Parser(file)
     ! p.run(finalTime = 18e-6)
@@ -729,7 +729,7 @@ integer function test_coaxial_line_paul_8_6_square() bind(C) result(error_cnt)
     implicit none
 
     ! character(len=*), parameter :: filename = PATH_TO_TEST_DATA//'excitations/coaxial_line_paul_8_6_0.5_square.smb.json'
-    character(len=*), parameter :: square_excitation = PATH_TO_TEST_DATA//'excitations/coaxial_line_paul_8_6_0.05_square.exc'
+    character(len=*), parameter :: square_excitation = PATH_TO_TEST_DATA//'excitations/coaxial_line_paul_8_6_0.25_square.exc'
     
     type(cable_t), target :: cable
     type(terminal_node_t) :: node_left, node_right
@@ -813,7 +813,8 @@ integer function test_coaxial_line_paul_8_6_square() bind(C) result(error_cnt)
     parsed%probes = [probe_v, probe_i]
 
     solver = mtlnCtor(parsed)
-    call solver%runUntil(parsed%time_step * parsed%number_of_steps)
+    call solver%updatePULTerms()
+    call solver%run()
     write(*,*) error_cnt
 
     block
@@ -923,7 +924,8 @@ integer function test_coaxial_line_paul_8_6_triangle() bind(C) result(error_cnt)
     parsed%probes = [probe_v, probe_i]
 
     solver = mtlnCtor(parsed)
-    call solver%runUntil(parsed%time_step * parsed%number_of_steps)
+    call solver%updatePULTerms()
+    call solver%run()
     write(*,*) error_cnt
     block
         integer :: i
@@ -1058,7 +1060,7 @@ integer function test_2_conductor_line_paul_9_6_1c() bind(C) result(error_cnt)
                      probe_i_left, probe_i_right]
 
     solver = mtlnCtor(parsed)
-    call solver%runUntil(parsed%time_step * parsed%number_of_steps)
+    call solver%run()
     write(*,*) error_cnt
 
     block
@@ -1204,7 +1206,7 @@ integer function test_2_conductor_line_paul_9_6() bind(C) result(error_cnt)
                      probe_i_left, probe_i_mid, probe_i_right]    ! pre = preprocess(parsed)
 
     solver = mtlnCtor(parsed)
-    call solver%runUntil(parsed%time_step * parsed%number_of_steps)
+    call solver%run()
     write(*,*) error_cnt
     ! p = Parser(file)
     ! p.run(finalTime = 18e-6)
@@ -1330,7 +1332,7 @@ integer function test_2_conductor_line_paul_9_11_20ns() bind(C) result(error_cnt
     parsed%probes = [probe_v_101]
 
        solver = mtlnCtor(parsed)
-    call solver%runUntil(parsed%time_step * parsed%number_of_steps)
+    call solver%run()
     write(*,*) error_cnt
 
     block
@@ -1445,7 +1447,7 @@ integer function test_2_conductor_line_paul_9_11_1ns() bind(C) result(error_cnt)
     parsed%probes = [probe_v_101]
 
     solver = mtlnCtor(parsed)
-    call solver%runUntil(parsed%time_step * parsed%number_of_steps)
+    call solver%run()
     write(*,*) error_cnt
 
     block
