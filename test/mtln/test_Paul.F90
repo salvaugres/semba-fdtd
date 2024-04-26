@@ -729,7 +729,7 @@ integer function test_coaxial_line_paul_8_6_square() bind(C) result(error_cnt)
     implicit none
 
     ! character(len=*), parameter :: filename = PATH_TO_TEST_DATA//'excitations/coaxial_line_paul_8_6_0.5_square.smb.json'
-    character(len=*), parameter :: square_excitation = PATH_TO_TEST_DATA//'excitations/coaxial_line_paul_8_6_0.05_square.exc'
+    character(len=*), parameter :: square_excitation = PATH_TO_TEST_DATA//'excitations/coaxial_line_paul_8_6_0.25_square.exc'
     
     type(cable_t), target :: cable
     type(terminal_node_t) :: node_left, node_right
@@ -813,6 +813,7 @@ integer function test_coaxial_line_paul_8_6_square() bind(C) result(error_cnt)
     parsed%probes = [probe_v, probe_i]
 
     solver = mtlnCtor(parsed)
+    call solver%updatePULTerms()
     call solver%run()
     write(*,*) error_cnt
 
@@ -923,6 +924,7 @@ integer function test_coaxial_line_paul_8_6_triangle() bind(C) result(error_cnt)
     parsed%probes = [probe_v, probe_i]
 
     solver = mtlnCtor(parsed)
+    call solver%updatePULTerms()
     call solver%run()
     write(*,*) error_cnt
     block
