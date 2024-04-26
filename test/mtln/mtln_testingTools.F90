@@ -2,7 +2,7 @@ module mtln_testingTools_mod
     use iso_c_binding
     use mtl_mod, only: mtl_t
     use network_mod
-    ! use mtl_bundle_mod
+    use mtln_types_mod, only: terminal_node_t, termination_t
     implicit none
     
     character(len=*, kind=c_char), parameter :: PATH_TO_TEST_DATA = c_char_'./testData/'
@@ -193,7 +193,22 @@ contains
 
     end function 
 
- 
+    function read_path(node, err) result(res)
+        type(terminal_node_t), intent(in) :: node
+        integer, intent(in) :: err
+        integer :: res
+        class(termination_t), allocatable :: termination
+        select type(termination => node%termination)
+        type is(termination_with_source_t)
+           if (termination%path_to_excitation /= "path") then 
+              res = err + 1
+           end if
+        class default
+           res = err + 1
+        end select
+  
+     end function
+  
 
  end module mtln_testingTools_mod
  

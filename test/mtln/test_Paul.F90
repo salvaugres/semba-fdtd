@@ -750,6 +750,9 @@ integer function test_coaxial_line_paul_8_6_square() bind(C) result(error_cnt)
     character(20) :: charR, charL, charC, lineC
     integer :: i
     type(external_field_segment_t), dimension(100) :: external_field_segments
+    class(termination_t), allocatable :: d
+   
+
     error_cnt = 0
 
     cable%name = "wire0"
@@ -769,15 +772,17 @@ integer function test_coaxial_line_paul_8_6_square() bind(C) result(error_cnt)
     parsed%time_step = 2e-8
     parsed%number_of_steps = 20e-6/parsed%time_step
 
+    allocate(termination_with_source_t :: node_left%termination)
     node_left%belongs_to_cable => cable
     node_left%conductor_in_cable = 1
     node_left%side = TERMINAL_NODE_SIDE_INI
-
     node_left%termination = termination_with_source_t(path_to_excitation=square_excitation, & 
                                                  termination_type = TERMINATION_SERIES, &
                                                  resistance = 150, &
                                                  inductance = 0.0, &
                                                  capacitance = 1e22)
+
+                                             
 
     write(charR, '(F10.6)') node_left%termination%resistance
 
@@ -812,6 +817,18 @@ integer function test_coaxial_line_paul_8_6_square() bind(C) result(error_cnt)
     parsed%cables = [cable]
     allocate(parsed%probes(2))
     parsed%probes = [probe_v, probe_i]
+
+    select type(d => node_left%termination)
+    type is (termination_t)
+        write(*,*) 'no source'
+    type is (termination_with_source_t)
+        write(*,*) 'source'
+        if (d%path_to_excitation /= square_excitation) then 
+            write(*,*) 'wrong source'
+        else
+            write(*,*) d%path_to_excitation
+        end if
+    end select
 
     solver = mtlnCtor(parsed)
     call solver%runUntil(parsed%time_step * parsed%number_of_steps)

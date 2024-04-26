@@ -35,7 +35,6 @@ module preprocess_mod
 
     type, public :: cable_array_t
         type(cable_ptr_t), dimension(:), allocatable :: cables
-        ! type(cable_t), dimension(:), pointer :: cables
     end type
 
     type, public :: cable_bundle_t
@@ -55,6 +54,8 @@ contains
         type(fhash_tbl_t) :: cable_name_to_bundle_id
         type(line_bundle_t), dimension(:), allocatable :: line_bundles
         type(cable_bundle_t), dimension(:), allocatable :: cable_bundles
+
+        class(termination_t), allocatable :: t
 
         res%final_time = parsed%time_step * parsed%number_of_steps
         res%dt = parsed%time_step
@@ -643,10 +644,10 @@ contains
             res%side = TERMINAL_NODE_SIDE_END
         end if
 
+        
         select type(termination => node%termination)
         type is(termination_with_source_t)
             res%source = termination%path_to_excitation
-            write(*,*) res%source
         type is(termination_t)
             res%source = ""
         end select

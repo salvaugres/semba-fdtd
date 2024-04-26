@@ -38,7 +38,7 @@ module mtln_types_mod
       generic, public :: operator(==) => external_field_segments_eq
    end type
 
-   type :: termination_t
+   type, public :: termination_t
       integer :: termination_type = TERMINATION_UNDEFINED
       real :: resistance = 0.0
       real :: inductance = 0.0
@@ -49,7 +49,7 @@ module mtln_types_mod
       generic, public :: operator(==) => termination_eq
    end type
 
-   type, extends(termination_t) :: termination_with_source_t
+   type, public, extends(termination_t) :: termination_with_source_t
       character(len=:), allocatable :: path_to_excitation
    contains
       private
