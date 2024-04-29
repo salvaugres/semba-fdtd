@@ -36,7 +36,6 @@ add_library(mtlnsolver
 target_link_libraries(mtlnsolver PRIVATE
 	${LAPACK_LIB} 
 	${BLAS_LIB} 
-	${NGSPICE_LIB}
 	fhash
 	ngspice_interface
 	semba-types
