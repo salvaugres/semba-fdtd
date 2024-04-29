@@ -1784,7 +1784,7 @@ contains
          res%node%termination%resistance = readTerminationRLC(termination, J_MAT_TERM_RESISTANCE, default = 0.0)
          res%node%termination%inductance = readTerminationRLC(termination, J_MAT_TERM_INDUCTANCE, default=0.0)
          res%node%termination%path_to_excitation = readPathToExcitation(termination, default = "")
-
+         
          res%node%conductor_in_cable = index
 
          call elemIdToCable%get(key(id), value=cable_index)

@@ -23,6 +23,7 @@ target_link_libraries(mtln_solver_tests_fortran
     mtlnsolver 
     fhash
     ngspice_interface
+    ${NGSPICE_LIB}
 )
 
 add_library(mtln_tests "mtln_tests.cpp")

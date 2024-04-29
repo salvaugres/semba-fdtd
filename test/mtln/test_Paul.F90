@@ -826,12 +826,12 @@ integer function test_coaxial_line_paul_8_6_square() bind(C) result(error_cnt)
         real, dimension(:), allocatable :: start_times, end_times, expected_voltages, aux_times
         integer :: j, start, end, idx
 
-        open(unit = 1, file =  'testData/outputs/paul/paul_8.6_square.txt')
-        do i = 1, size(solver%bundles(1)%probes(1)%t)
-            write(1,*) solver%bundles(1)%probes(1)%t(i)," ", &
-                       solver%bundles(1)%probes(1)%val(i,1) ," ", &
-                       solver%bundles(1)%probes(2)%val(i,1)
-        end do
+        ! open(unit = 1, file =  'testData/outputs/paul/paul_8.6_square.txt')
+        ! do i = 1, size(solver%bundles(1)%probes(1)%t)
+        !     write(1,*) solver%bundles(1)%probes(1)%t(i)," ", &
+        !                solver%bundles(1)%probes(1)%val(i,1) ," ", &
+        !                solver%bundles(1)%probes(2)%val(i,1)
+        ! end do
 
         
         start_times = [0.1, 4.1, 6.1, 8.1, 10.1, 12.1, 14.1, 16.1]
@@ -846,7 +846,7 @@ integer function test_coaxial_line_paul_8_6_square() bind(C) result(error_cnt)
             end if
         end do
 
-        close(unit =1 , status='delete')
+        ! close(unit =1 , status='delete')
     end block
 
 
@@ -945,12 +945,12 @@ integer function test_coaxial_line_paul_8_6_triangle() bind(C) result(error_cnt)
         real, dimension(:), allocatable :: times, expected_voltages, aux_times
         integer :: j, start, end, idx
 
-        open(unit = 1, file =  'testData/outputs/paul/paul_8.6_triangle.txt')
-        do i = 1, size(solver%bundles(1)%probes(1)%t)
-            write(1,*) solver%bundles(1)%probes(1)%t(i)," ", &
-                       solver%bundles(1)%probes(1)%val(i,1) ," ", &
-                       solver%bundles(1)%probes(2)%val(i,1)
-        end do
+        ! open(unit = 1, file =  'testData/outputs/paul/paul_8.6_triangle.txt')
+        ! do i = 1, size(solver%bundles(1)%probes(1)%t)
+        !     write(1,*) solver%bundles(1)%probes(1)%t(i)," ", &
+        !                solver%bundles(1)%probes(1)%val(i,1) ," ", &
+        !                solver%bundles(1)%probes(2)%val(i,1)
+        ! end do
         
         times = [4.0, 5.9, 6.1, 8.0, 10.1, 12.0]
         expected_voltages = [16.67, 12.5, -12.5, -25.0, 6.25, 12.5]
@@ -964,7 +964,7 @@ integer function test_coaxial_line_paul_8_6_triangle() bind(C) result(error_cnt)
             end if
         end do
 
-        close(unit =1 , status='delete')
+        ! close(unit =1 , status='delete')
 
     end block
 
