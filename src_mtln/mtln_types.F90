@@ -38,30 +38,32 @@ module mtln_types_mod
       generic, public :: operator(==) => external_field_segments_eq
    end type
 
-   type :: termination_t
+   type, public :: termination_t
       integer :: termination_type = TERMINATION_UNDEFINED
       real :: resistance = 0.0
       real :: inductance = 0.0
       real :: capacitance = 1e22
+      character(len=256) :: path_to_excitation = ""
    contains
       private
       procedure :: termination_eq
       generic, public :: operator(==) => termination_eq
    end type
 
-   type, extends(termination_t) :: termination_with_source_t
-      character(len=:), allocatable :: path_to_excitation
-   contains
-      private
-      procedure :: termination_with_source_eq
-      generic, public :: operator(==) => termination_with_source_eq
-   end type
+   ! type, public, extends(termination_t) :: termination_with_source_t
+   !    character(len=:), allocatable :: path_to_excitation
+   ! contains
+   !    private
+   !    procedure :: termination_with_source_eq
+   !    generic, public :: operator(==) => termination_with_source_eq
+   ! end type
 
    type :: terminal_node_t
       type(cable_t), pointer :: belongs_to_cable => null()
       integer :: conductor_in_cable
       integer :: side = TERMINAL_NODE_SIDE_UNDEFINED
-      class(termination_t), allocatable :: termination
+      type(termination_t) :: termination
+      ! class(termination_t), allocatable :: termination
    contains
       private
       procedure :: terminal_node_eq
@@ -277,16 +279,17 @@ contains
          (a%termination_type == b%termination_type) .and. &
          (a%resistance == b%resistance) .and. &
          (a%inductance == b%inductance) .and. &
-         (a%capacitance == b%capacitance)
-   end function
-
-   elemental logical function termination_with_source_eq(a, b)
-      class(termination_with_source_t), intent(in) :: a
-      type(termination_with_source_t), intent(in) :: b
-      termination_with_source_eq = &
-         a%termination_t == b%termination_t .and. &
+         (a%capacitance == b%capacitance) .and. &
          a%path_to_excitation == b%path_to_excitation
    end function
+
+   ! elemental logical function termination_with_source_eq(a, b)
+   !    class(termination_with_source_t), intent(in) :: a
+   !    type(termination_with_source_t), intent(in) :: b
+   !    termination_with_source_eq = &
+   !       a%termination_t == b%termination_t .and. &
+   !       a%path_to_excitation == b%path_to_excitation
+   ! end function
 
    logical function probe_eq(a,b)
       class(probe_t), intent(in) :: a,b

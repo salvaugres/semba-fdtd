@@ -2,7 +2,7 @@ module mtln_testingTools_mod
     use iso_c_binding
     use mtl_mod, only: mtl_t
     use network_mod
-    ! use mtl_bundle_mod
+    use mtln_types_mod, only: terminal_node_t, termination_t
     implicit none
     
     character(len=*, kind=c_char), parameter :: PATH_TO_TEST_DATA = c_char_'./testData/'
@@ -14,8 +14,8 @@ contains
     type(network_t) function buildNetwork(name, r1, c1, r2, c2, target_v_nodes, target_i_nodes) result(res)
         character(len=*), intent(in) :: name, r1, c1, r2, c2
         character(100), dimension(:), allocatable :: description
-        type(node_t), dimension(3) :: nodes
-        type(node_t) :: node_int, node_out, node_in
+        type(nw_node_t), dimension(3) :: nodes
+        type(nw_node_t) :: node_int, node_out, node_in
         real, dimension(:),intent(in), target :: target_v_nodes, target_i_nodes
 
         ! node_int%values%v => target_v_nodes(1)
@@ -193,7 +193,6 @@ contains
 
     end function 
 
- 
 
  end module mtln_testingTools_mod
  

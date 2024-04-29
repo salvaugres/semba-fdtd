@@ -204,7 +204,8 @@ contains
          character (len=:), allocatable :: elementType
          type(json_value), pointer :: jes, je
          integer :: id, i
-         type(node_t) :: e
+         type(node_t) :: node
+         type(polyline_t) :: polyline
          integer, dimension(:), allocatable :: coordIds
          logical :: found
          call this%core%get(this%root, J_MESH//'.'//J_ELEMENTS, jes, found=found)
@@ -216,10 +217,12 @@ contains
                select case (elementType)
                 case (J_ELEM_TYPE_NODE)
                   call this%core%get(je, J_COORDINATE_IDS, coordIds)
-                  call mesh%addElement(id, node_t(coordIds))
+                  node%coordIds = coordIds
+                  call mesh%addElement(id, node)
                 case (J_ELEM_TYPE_POLYLINE)
                   call this%core%get(je, J_COORDINATE_IDS, coordIds)
-                  call mesh%addElement(id, polyline_t(coordIds))
+                  polyline%coordIds = coordIds
+                  call mesh%addElement(id, polyline)
                 CASE (J_ELEM_TYPE_CELL)
                   block
                      type(cell_region_t) :: cR
@@ -1774,12 +1777,14 @@ contains
          type(aux_node_t) :: res
          integer :: cable_index
          call this%core%get_child(termination_list, index, termination)
-         allocate(termination_t :: res%node%termination)
          res%node%side = label
+         
          res%node%termination%termination_type = readTerminationType(termination)
          res%node%termination%capacitance = readTerminationRLC(termination,J_MAT_TERM_CAPACITANCE, default = 1e22)
          res%node%termination%resistance = readTerminationRLC(termination, J_MAT_TERM_RESISTANCE, default = 0.0)
          res%node%termination%inductance = readTerminationRLC(termination, J_MAT_TERM_INDUCTANCE, default=0.0)
+         res%node%termination%path_to_excitation = readPathToExcitation(termination, default = "")
+
          res%node%conductor_in_cable = index
 
          call elemIdToCable%get(key(id), value=cable_index)
@@ -1794,6 +1799,18 @@ contains
             res%cId = polyline%coordIds(ubound(polyline%coordIds,1))
             res%relPos = this%mesh%getCoordinate(polyline%coordIds(ubound(polyline%coordIds,1)))
          end if
+      end function
+
+      function readPathToExcitation(termination, default) result(res)
+         type(json_value), pointer :: termination
+         character(len=*), intent(in) :: default
+         character(len=256) :: res
+         if (this%existsAt(termination, J_SRC_MAGNITUDE_FILE)) then
+            res = trim(this%getStrAt(termination, J_SRC_MAGNITUDE_FILE))
+         else
+            res = trim(default)
+         end if
+
       end function
 
       function readTerminationType(termination) result(res)
