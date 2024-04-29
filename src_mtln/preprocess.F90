@@ -55,7 +55,6 @@ contains
         type(line_bundle_t), dimension(:), allocatable :: line_bundles
         type(cable_bundle_t), dimension(:), allocatable :: cable_bundles
 
-        class(termination_t), allocatable :: t
 
         res%final_time = parsed%time_step * parsed%number_of_steps
         res%dt = parsed%time_step
@@ -365,8 +364,8 @@ contains
     end function
 
     function writeSeriesRLCnode(node, termination, end_node) result(res)
-        type(node_t), intent(in) :: node
-        class(termination_t), intent(in) :: termination
+        type(nw_node_t), intent(in) :: node
+        type(termination_t), intent(in) :: termination
         character(len=*), intent(in) :: end_node
         character(len=256), allocatable :: res(:)
         character(len=256) :: buff
@@ -383,16 +382,15 @@ contains
         call appendToStringArray(res, buff)
         buff = trim("L" // node%name // " " // node%name // "_R " // node%name //"_L " // termination_l)
         call appendToStringArray(res, buff)
-        select type(termination)
-        type is(termination_with_source_t)
+        if (termination%path_to_excitation /= "") then
             buff = trim("C" // node%name // " " // node%name // "_L " // node%name //"_V "// termination_c)
             call appendToStringArray(res, buff)
             buff = trim("V" // node%name // " " // node%name // "_V " // end_node //" dc 0" )
             call appendToStringArray(res, buff)
-        type is(termination_t)
+        else
             buff = trim("C" // node%name // " " // node%name // "_L " // end_node //" "// termination_c)
             call appendToStringArray(res, buff)
-        end select
+        end if
         buff = trim("I" // node%name // " " // node%name// " 0 " // " dc 0")
         call appendToStringArray(res, buff)
         buff = trim("CL" // node%name // " " // node%name // " 0 " // line_c)
@@ -401,8 +399,8 @@ contains
     end function
 
     function writeSeriesRLnode(node, termination, end_node) result(res)
-        type(node_t), intent(in) :: node
-        class(termination_t), intent(in) :: termination
+        type(nw_node_t), intent(in) :: node
+        type(termination_t), intent(in) :: termination
         character(len=*), intent(in) :: end_node
         character(len=256), allocatable :: res(:)
         character(len=256) :: buff
@@ -415,16 +413,15 @@ contains
         allocate(res(0))
 
         res = [trim("R" // node%name // " " // node%name // "_R "   // node%name //" ")//" "//trim(termination_r)]
-        select type(termination)
-        type is(termination_with_source_t)
+        if (termination%path_to_excitation /= "") then
             buff = trim("L" // node%name // " " // node%name // "_R " // node%name //"_L")//" "//trim(termination_l)
             call appendToStringArray(res, buff)
             buff = trim("V" // node%name // " " // node%name // "_L " // end_node //" dc 0" )
             call appendToStringArray(res, buff)
-        type is(termination_t)
+        else
             buff = trim("L" // node%name // " " // node%name // "_R " // end_node)//" "//trim(termination_l)
             call appendToStringArray(res, buff)
-        end select
+        end if
         buff = trim("I" // node%name // " " // node%name// " 0 " // " dc 0")
         call appendToStringArray(res, buff)
         buff = trim("CL" // node%name // " " // node%name // " 0 " // line_c)
@@ -433,8 +430,8 @@ contains
     end function
 
     function writeRLsCpnode(node, termination, end_node) result(res)
-        type(node_t), intent(in) :: node
-        class(termination_t), intent(in) :: termination
+        type(nw_node_t), intent(in) :: node
+        type(termination_t), intent(in) :: termination
         character(len=*), intent(in) :: end_node
         character(len=256), allocatable :: res(:)
         character(len=256) :: buff
@@ -449,20 +446,19 @@ contains
 
         buff = trim("R" // node%name // " " // node%name // " "   // node%name //"_R " // termination_r)
         call appendToStringArray(res, buff)
-        select type(termination)
-        type is(termination_with_source_t)
+        if (termination%path_to_excitation /= "") then
             buff = trim("L" // node%name // " " // node%name // "_R " // node%name //"_V " // termination_l)
             call appendToStringArray(res, buff)
             buff = trim("C" // node%name // " " // node%name // " " // node%name //"_V " // termination_c)
             call appendToStringArray(res, buff)
             buff = trim("V" // node%name // " " // node%name // "_V " // end_node //" dc 0" )
             call appendToStringArray(res, buff)
-        type is(termination_t)
+        else 
             buff = trim("L" // node%name // " " // node%name // "_R " // end_node //" "// termination_l)
             call appendToStringArray(res, buff)
             buff = trim("C" // node%name // " " // node%name // " " // end_node //" "// termination_c)
             call appendToStringArray(res, buff)
-        end select
+        end if
         buff = trim("I" // node%name // " " // node%name// " 0 " // " dc 0")
         call appendToStringArray(res, buff)
         buff = trim("CL" // node%name // " " // node%name // " 0 " // line_c)
@@ -472,8 +468,8 @@ contains
     end function
 
     function writeSeriesNode(node, termination, end_node) result(res)
-        type(node_t), intent(in) :: node
-        class(termination_t), intent(in) :: termination
+        type(nw_node_t), intent(in) :: node
+        type(termination_t), intent(in) :: termination
         character(len=*), intent(in) :: end_node
         character(len=256), allocatable :: res(:)
 
@@ -501,8 +497,8 @@ contains
     end subroutine
 
     function writeShortNode(node, termination, end_node) result(res)
-        type(node_t), intent(in) :: node
-        class(termination_t), intent(in) :: termination
+        type(nw_node_t), intent(in) :: node
+        type(termination_t), intent(in) :: termination
         character(len=*), intent(in) :: end_node
         character(len=256), allocatable :: res(:)
         character(len=256) :: buff
@@ -512,16 +508,15 @@ contains
         write(line_c, *) node%line_c_per_meter*node%step/2
 
         allocate(res(0))
-        select type(termination)
-        type is(termination_with_source_t)
+        if (termination%path_to_excitation /= "") then
             buff = trim("R" // node%name // " " // node%name // " " // node%name //"_R")//" "//trim(short_R)
             call appendToStringArray(res, buff)
             buff = trim("V" // node%name // " " // node%name // "_R " // end_node//" dc 0")
             call appendToStringArray(res, buff)
-        type is(termination_t)
+        else
             buff = trim("R" // node%name // " " // node%name // " " // end_node)//" "//trim(short_R)
             call appendToStringArray(res, buff)
-        end select
+        end if
         buff = trim("I" // node%name // " " // node%name// " 0 " // " dc 0")
         call appendToStringArray(res, buff)
         buff = trim("CL" // node%name // " " // node%name // " 0 " // line_c)
@@ -530,8 +525,8 @@ contains
     end function
 
     function writeOpenNode(node, termination, end_node) result(res)
-        type(node_t), intent(in) :: node
-        class(termination_t), intent(in) :: termination
+        type(nw_node_t), intent(in) :: node
+        type(termination_t), intent(in) :: termination
         character(len=*), intent(in) :: end_node
         character(len=256), allocatable :: res(:)
         character(len=256) :: buff
@@ -548,8 +543,8 @@ contains
     end function
 
     function writeLCpRsNode(node, termination, end_node) result(res)
-        type(node_t), intent(in) :: node
-        class(termination_t), intent(in) :: termination
+        type(nw_node_t), intent(in) :: node
+        type(termination_t), intent(in) :: termination
         character(len=*), intent(in) :: end_node
         character(len=256), allocatable :: res(:)
         character(len=256) :: buff
@@ -563,20 +558,19 @@ contains
        
         allocate(res(0))
         res = [trim("R" // node%name // " " // node%name // " "   // node%name //"_p " // termination_r)]
-        select type(termination)
-        type is(termination_with_source_t)
+        if (termination%path_to_excitation /= "") then
             buff = trim("L" // node%name // " " // node%name // "_p " // node%name //"_V "// termination_l)
             call appendToStringArray(res, buff)
             buff = trim("C" // node%name // " " // node%name // "_p " // node%name //"_V "// termination_c)
             call appendToStringArray(res, buff)
             buff = trim("V" // node%name // " " // node%name // "_V " // end_node //" dc 0" )
             call appendToStringArray(res, buff)
-        type is(termination_t)
+        else
             buff =  trim("L" // node%name // " " // node%name // "_p " // end_node //" "// termination_l)
             call appendToStringArray(res, buff)
             buff =  trim("C" // node%name // " " // node%name // "_p " // end_node //" "// termination_c)
             call appendToStringArray(res, buff)
-        end select
+        end if
         buff =  trim("I" // node%name // " " // node%name// " 0 " // " dc 0")
         call appendToStringArray(res, buff)
         buff = trim("CL" // node%name // " " // node%name // " 0 " // line_c)
@@ -585,8 +579,8 @@ contains
     end function
 
     function writeNodeDescription(node, termination, end_node) result(res)
-        type(node_t), intent(in) :: node
-        class(termination_t), intent(in) :: termination
+        type(nw_node_t), intent(in) :: node
+        type(termination_t), intent(in) :: termination
         character(len=256), allocatable :: res(:)
         character(len=*), intent(in) :: end_node
 
@@ -610,10 +604,9 @@ contains
         integer :: stat
         type(mtl_bundle_t), target :: tbundle
         integer :: d
-        type(node_t) :: res
+        type(nw_node_t) :: res
         character(len=4) :: sConductor
         integer :: conductor_number
-        class(termination_t), allocatable :: termination
 
         call this%conductors_before_cable%get(key(node%belongs_to_cable%name), conductor_number)
         conductor_number = conductor_number + node%conductor_in_cable
@@ -643,14 +636,9 @@ contains
             res%step = tbundle%du(ubound(tbundle%du,1), conductor_number, conductor_number)
             res%side = TERMINAL_NODE_SIDE_END
         end if
-
         
-        select type(termination => node%termination)
-        type is(termination_with_source_t)
-            res%source = termination%path_to_excitation
-        type is(termination_t)
-            res%source = ""
-        end select
+        res%source = node%termination%path_to_excitation
+
     contains
         function nodeSideToString(side) result(cSide)
             character (len=:), allocatable :: cSide
@@ -668,11 +656,11 @@ contains
     subroutine connectNodeToGround(this, terminal_nodes, nodes, description)
         class(preprocess_t) :: this
         type(terminal_node_t), dimension(:), allocatable :: terminal_nodes
-        type(node_t),  dimension(:), allocatable, intent(inout) :: nodes
+        type(nw_node_t),  dimension(:), allocatable, intent(inout) :: nodes
         character(256), dimension(:), allocatable, intent(inout) :: description
         character(256), dimension(:), allocatable :: node_description, old_description
 
-        type(node_t) :: new_node
+        type(nw_node_t) :: new_node
         integer :: stat
 
         allocate(nodes(0))
@@ -690,9 +678,9 @@ contains
     subroutine connectNodes(this, terminal_nodes, nodes, description)
         class(preprocess_t) :: this
         type(terminal_node_t), dimension(:), allocatable :: terminal_nodes
-        type(node_t),  dimension(:), intent(inout) :: nodes
+        type(nw_node_t),  dimension(:), intent(inout) :: nodes
         character(256), dimension(:), intent(inout) :: description
-        type(node_t) :: new_node
+        type(nw_node_t) :: new_node
         integer :: i, stat
         character(len=:), allocatable :: interior_node
 
@@ -709,7 +697,7 @@ contains
     function buildNetwork(this,terminal_network) result(res)
         class(preprocess_t) :: this
         type(terminal_network_t), intent(in) :: terminal_network
-        type(node_t), dimension(:), allocatable :: nodes
+        type(nw_node_t), dimension(:), allocatable :: nodes
         character(256), dimension(:), allocatable :: description
         type(network_t) :: res
         integer :: i

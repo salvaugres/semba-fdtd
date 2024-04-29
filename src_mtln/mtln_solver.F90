@@ -40,31 +40,11 @@ module mtln_solver_mod
 
 contains
 
-    function testPath(parsed, path, err) result(res)
-        type(parsed_mtln_t) :: parsed
-        character(len=*) :: path
-        integer :: res, err
-        class(termination_t), allocatable :: t
-        write(*,*) 'Inside module:'
-        res = 0
-        select type (t => parsed%networks(1)%connections(1)%nodes(1)%termination)
-        type is (termination_t)
-            res = err + 1
-        type is (termination_with_source_t)
-            write(*,*) '  path_to_excitation:'
-            write(*,*) '  ', t%path_to_excitation
-            if (t%path_to_excitation /= path) then
-                res = err + 1
-            end if
-        end select
-    end function
-
     function mtlnCtor(parsed) result(res)
         type(parsed_mtln_t) :: parsed
         type(mtln_t) :: res
         integer :: i
         type(preprocess_t) :: pre
-        class(termination_t), allocatable :: t
 
         pre = preprocess(parsed)
         if (size(pre%bundles) == 0) then

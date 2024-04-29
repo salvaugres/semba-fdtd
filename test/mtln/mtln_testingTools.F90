@@ -14,8 +14,8 @@ contains
     type(network_t) function buildNetwork(name, r1, c1, r2, c2, target_v_nodes, target_i_nodes) result(res)
         character(len=*), intent(in) :: name, r1, c1, r2, c2
         character(100), dimension(:), allocatable :: description
-        type(node_t), dimension(3) :: nodes
-        type(node_t) :: node_int, node_out, node_in
+        type(nw_node_t), dimension(3) :: nodes
+        type(nw_node_t) :: node_int, node_out, node_in
         real, dimension(:),intent(in), target :: target_v_nodes, target_i_nodes
 
         ! node_int%values%v => target_v_nodes(1)
@@ -193,22 +193,6 @@ contains
 
     end function 
 
-    function read_path(node, err) result(res)
-        type(terminal_node_t), intent(in) :: node
-        integer, intent(in) :: err
-        integer :: res
-        class(termination_t), allocatable :: termination
-        select type(termination => node%termination)
-        type is(termination_with_source_t)
-           if (termination%path_to_excitation /= "path") then 
-              res = err + 1
-           end if
-        class default
-           res = err + 1
-        end select
-  
-     end function
-  
 
  end module mtln_testingTools_mod
  

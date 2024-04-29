@@ -772,15 +772,15 @@ integer function test_coaxial_line_paul_8_6_square() bind(C) result(error_cnt)
     parsed%time_step = 2e-8
     parsed%number_of_steps = 20e-6/parsed%time_step
 
-    allocate(termination_with_source_t :: node_left%termination)
     node_left%belongs_to_cable => cable
     node_left%conductor_in_cable = 1
     node_left%side = TERMINAL_NODE_SIDE_INI
-    node_left%termination = termination_with_source_t(path_to_excitation=square_excitation, & 
-                                                 termination_type = TERMINATION_SERIES, &
-                                                 resistance = 150, &
-                                                 inductance = 0.0, &
-                                                 capacitance = 1e22)
+
+    node_left%termination%path_to_excitation=square_excitation
+    node_left%termination%termination_type = TERMINATION_SERIES
+    node_left%termination%resistance = 150
+    node_left%termination%inductance = 0.0 
+    node_left%termination%capacitance = 1e22
 
                                              
 
@@ -818,23 +818,14 @@ integer function test_coaxial_line_paul_8_6_square() bind(C) result(error_cnt)
     allocate(parsed%probes(2))
     parsed%probes = [probe_v, probe_i]
 
-    select type(d => node_left%termination)
-    type is (termination_t)
-        write(*,*) 'no source'
-    type is (termination_with_source_t)
-        write(*,*) 'source'
-        if (d%path_to_excitation /= square_excitation) then 
-            write(*,*) 'wrong source'
-        else
-            write(*,*) d%path_to_excitation
-        end if
-    end select
-
     solver = mtlnCtor(parsed)
     call solver%runUntil(parsed%time_step * parsed%number_of_steps)
 
     block
         integer :: i
+        real, dimension(:), allocatable :: start_times, end_times, expected_voltages, aux_times
+        integer :: j, start, end, idx
+
         open(unit = 1, file =  'testData/outputs/paul/paul_8.6_square.txt')
         do i = 1, size(solver%bundles(1)%probes(1)%t)
             write(1,*) solver%bundles(1)%probes(1)%t(i)," ", &
@@ -842,11 +833,6 @@ integer function test_coaxial_line_paul_8_6_square() bind(C) result(error_cnt)
                        solver%bundles(1)%probes(2)%val(i,1)
         end do
 
-    end block
-
-    block
-        real, dimension(:), allocatable :: start_times, end_times, expected_voltages, aux_times
-        integer :: j, start, end, idx
         
         start_times = [0.1, 4.1, 6.1, 8.1, 10.1, 12.1, 14.1, 16.1]
         end_times = [3.9, 5.9, 7.9, 9.9, 11.9, 13.9, 15.9, 18.9]
@@ -855,11 +841,12 @@ integer function test_coaxial_line_paul_8_6_square() bind(C) result(error_cnt)
         do j = 1, size(start_times) 
             aux_times = 0.5*(start_times(j)*1e-6 + end_times(j)*1e-6)
             idx = minloc(abs(solver%bundles(1)%probes(1)%t - aux_times),1)
-            ! write(*,*) 'expected: ', expected_voltages(j), ' simulated: ', solver%bundles(1)%probes(1)%val(idx,1)
             if (.not. (abs((solver%bundles(1)%probes(1)%val(idx,1) - expected_voltages(j))/expected_voltages(j)) <= 5e-2)) then 
                 error_cnt =  error_cnt + 1
             end if
         end do
+
+        close(unit =1 , status='delete')
     end block
 
 
@@ -893,7 +880,6 @@ integer function test_coaxial_line_paul_8_6_triangle() bind(C) result(error_cnt)
     character(20) :: charR, charL, charC, lineC
     integer :: i
     type(external_field_segment_t), dimension(100) :: external_field_segments
-    type(termination_with_source_t) :: termination_source_left
     error_cnt = 0
 
     cable%name = "wire0"
@@ -918,15 +904,12 @@ integer function test_coaxial_line_paul_8_6_triangle() bind(C) result(error_cnt)
     node_left%conductor_in_cable = 1
     node_left%side = TERMINAL_NODE_SIDE_INI
 
-    allocate(termination_with_source_t :: node_left%termination)
-    node_left%termination = termination_with_source_t(path_to_excitation=square_excitation, & 
-                                                 termination_type = TERMINATION_SERIES, &
-                                                 resistance = 150, &
-                                                 inductance = 0.0, &
-                                                 capacitance = 1e22)
+    node_left%termination%path_to_excitation=square_excitation
+    node_left%termination%termination_type = TERMINATION_SERIES
+    node_left%termination%resistance = 150
+    node_left%termination%inductance = 0.0 
+    node_left%termination%capacitance = 1e22
 
-    write(charR, '(F10.6)') node_left%termination%resistance
-    write(*,*) charR
 
     connection_left%nodes = [node_left]
 
@@ -959,18 +942,15 @@ integer function test_coaxial_line_paul_8_6_triangle() bind(C) result(error_cnt)
     call solver%runUntil(parsed%time_step * parsed%number_of_steps)
     block
         integer :: i
+        real, dimension(:), allocatable :: times, expected_voltages, aux_times
+        integer :: j, start, end, idx
+
         open(unit = 1, file =  'testData/outputs/paul/paul_8.6_triangle.txt')
         do i = 1, size(solver%bundles(1)%probes(1)%t)
             write(1,*) solver%bundles(1)%probes(1)%t(i)," ", &
                        solver%bundles(1)%probes(1)%val(i,1) ," ", &
                        solver%bundles(1)%probes(2)%val(i,1)
         end do
-
-    end block
-
-    block
-        real, dimension(:), allocatable :: times, expected_voltages, aux_times
-        integer :: j, start, end, idx
         
         times = [4.0, 5.9, 6.1, 8.0, 10.1, 12.0]
         expected_voltages = [16.67, 12.5, -12.5, -25.0, 6.25, 12.5]
@@ -983,6 +963,9 @@ integer function test_coaxial_line_paul_8_6_triangle() bind(C) result(error_cnt)
                 error_cnt =  error_cnt + 1
             end if
         end do
+
+        close(unit =1 , status='delete')
+
     end block
 
 
