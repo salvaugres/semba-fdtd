@@ -101,7 +101,6 @@ add_definitions(
 -DCompileWithDMMA
 -DCompileWithSGBC
 -DCompileWithWires
--DCompileWithMTLN
 )
 
 
