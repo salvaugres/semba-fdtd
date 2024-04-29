@@ -663,7 +663,6 @@ contains
         type(nw_node_t) :: new_node
         integer :: stat
 
-        allocate(nodes(0))
         new_node = this%addNodeWithId(terminal_nodes(1))
         nodes = [nodes, new_node]
 
