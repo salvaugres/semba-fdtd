@@ -21,7 +21,6 @@ integer function test_termination_resistive() bind(C) result(error_cnt)
     real,dimension(1,1) :: gpul = 0.0
     real,dimension(1,1) :: rpul = 0.0
     real,dimension(1,1) :: cpul = 100.0e-12
-
     error_cnt = 0
 
     cable%name = "wire0"
@@ -826,25 +825,30 @@ integer function test_coaxial_line_paul_8_6_square() bind(C) result(error_cnt)
 
     block
         integer :: i
-        open(unit = 1, file =  'testData/outputs/paul/paul_8.6_square.txt')
-        do i = 1, size(solver%bundles(1)%probes(1)%t)
-            write(1,*) solver%bundles(1)%probes(1)%t(i)," ", &
-                       solver%bundles(1)%probes(1)%val(i,1) ," ", &
-                       solver%bundles(1)%probes(2)%val(i,1)
+        real, dimension(:), allocatable :: start_times, end_times, expected_voltages, aux_times
+        integer :: j, start, end, idx
+
+        ! open(unit = 1, file =  'testData/outputs/paul/paul_8.6_square.txt')
+        ! do i = 1, size(solver%bundles(1)%probes(1)%t)
+        !     write(1,*) solver%bundles(1)%probes(1)%t(i)," ", &
+        !                solver%bundles(1)%probes(1)%val(i,1) ," ", &
+        !                solver%bundles(1)%probes(2)%val(i,1)
+        ! end do
+
+        
+        start_times = [0.1, 4.1, 6.1, 8.1, 10.1, 12.1, 14.1, 16.1]
+        end_times = [3.9, 5.9, 7.9, 9.9, 11.9, 13.9, 15.9, 18.9]
+        expected_voltages = [25.0, -12.5, -37.5, -18.75, 18.75, 9.375, -9.375, -4.6875]
+        allocate(aux_times(size(solver%bundles(1)%probes(1)%t)), source = 0.0)
+        do j = 1, size(start_times) 
+            aux_times = 0.5*(start_times(j)*1e-6 + end_times(j)*1e-6)
+            idx = minloc(abs(solver%bundles(1)%probes(1)%t - aux_times),1)
+            if (.not. (abs((solver%bundles(1)%probes(1)%val(idx,1) - expected_voltages(j))/expected_voltages(j)) <= 5e-2)) then 
+                error_cnt =  error_cnt + 1
+            end if
         end do
 
     end block
-
-    ! block
-    !     real, dimension(:), allocatable :: start_times, end_times, expected_voltages
-    !     integer :: i, start, end
-    
-    !     start_times = [0.1, 4.1, 6.1, 8.1, 10.1, 12.1, 14.1, 16.1]
-    !     end_times = [3.9, 5.9, 7.9, 9.9, 11.9, 13.9, 15.9, 18.9]
-    !     expected_voltages = [25.0, -12.5, -37.5, -18.75, 18.75, 9.375, -9.375, -4.6875]
-    !     do i = 1, size(start_times) 
-    !     end do
-    ! end block
 
 
 
@@ -856,7 +860,7 @@ integer function test_coaxial_line_paul_8_6_triangle() bind(C) result(error_cnt)
     use preprocess_mod
     implicit none
 
-    character(len=*), parameter :: square_excitation = PATH_TO_TEST_DATA//'excitations/coaxial_line_paul_8_6_0.1_triangle.exc'
+    character(len=*), parameter :: square_excitation = PATH_TO_TEST_DATA//'excitations/coaxial_line_paul_8_6_0.05_triangle.exc'
     
     type(cable_t), target :: cable
     type(terminal_node_t) :: node_left, node_right
@@ -875,6 +879,8 @@ integer function test_coaxial_line_paul_8_6_triangle() bind(C) result(error_cnt)
     real,dimension(1,1) :: cpul = 100.0e-12
 
     character(20) :: charR, charL, charC, lineC
+    integer :: i 
+    type(external_field_segment_t), dimension(100) :: external_field_segments
 
     error_cnt = 0
 
@@ -883,13 +889,18 @@ integer function test_coaxial_line_paul_8_6_triangle() bind(C) result(error_cnt)
     cable%conductance_per_meter = gpul
     cable%resistance_per_meter = rpul
     cable%capacitance_per_meter = cpul
-    block
-        integer :: i
-        cable%step_size = [(4.0, i = 1, 100)]
-    end block
+    do i = 1, 100
+        external_field_segments(i)%position = (/i, 1, 1/)
+        external_field_segments(i)%direction = 1
+        external_field_segments(i)%Efield_main2wire => null()
+        external_field_segments(i)%Efield_wire2main => null()
+    end do
+    cable%external_field_segments = external_field_segments
+    cable%step_size = [(4.0, i = 1, 100)]
 
     parsed%time_step = 2e-8
     parsed%number_of_steps = 20e-6/parsed%time_step
+
 
 
     node_left%belongs_to_cable => cable
@@ -925,41 +936,44 @@ integer function test_coaxial_line_paul_8_6_triangle() bind(C) result(error_cnt)
     probe_i%index = 100
     probe_i%probe_type = PROBE_TYPE_CURRENT
 
-
+    allocate(parsed%networks(2))
     parsed%networks = [network_left, network_right]
+    allocate(parsed%cables(1))
     parsed%cables = [cable]
+    allocate(parsed%probes(2))
     parsed%probes = [probe_v, probe_i]
 
     solver = mtlnCtor(parsed)
     call solver%updatePULTerms()
     call solver%run()
     write(*,*) error_cnt
+
     block
         integer :: i
-        open(unit = 1, file =  './testData/outputs/paul/paul_8.6_triangle.txt')
-        do i = 1, size(solver%bundles(1)%probes(1)%t)
-            write(1,*) solver%bundles(1)%probes(1)%t(i)," ", &
-                       solver%bundles(1)%probes(1)%val(i,1) ," ", &
-                       solver%bundles(1)%probes(2)%val(i,1)
+        real, dimension(:), allocatable :: times, expected_voltages, aux_times
+        integer :: j, start, end, idx
+
+        ! open(unit = 1, file =  'testData/outputs/paul/paul_8.6_triangle.txt')
+        ! do i = 1, size(solver%bundles(1)%probes(1)%t)
+        !     write(1,*) solver%bundles(1)%probes(1)%t(i)," ", &
+        !                solver%bundles(1)%probes(1)%val(i,1) ," ", &
+        !                solver%bundles(1)%probes(2)%val(i,1)
+        ! end do
+        
+        times = [4.0, 5.9, 6.1, 8.0, 10.1, 12.0]
+        expected_voltages = [16.67, 12.5, -12.5, -25.0, 6.25, 12.5]
+        allocate(aux_times(size(solver%bundles(1)%probes(1)%t)), source = 0.0)
+        do j = 1, size(times) 
+            aux_times = times(j)*1e-6
+            idx = minloc(abs(solver%bundles(1)%probes(1)%t - aux_times),1)
+            ! write(*,*) 'expected: ', expected_voltages(j), ' simulated: ', solver%bundles(1)%probes(1)%val(idx,1)
+            if (.not. (abs((solver%bundles(1)%probes(1)%val(idx,1) - expected_voltages(j))/expected_voltages(j)) <= 5e-2)) then 
+                error_cnt =  error_cnt + 1
+            end if
         end do
 
-    end block
 
-    block
-        real, dimension(:), allocatable :: start_times, end_times, expected_voltages
-        integer :: i, start, end
-    
-        start_times = [0.1, 4.1, 6.1, 8.1, 10.1, 12.1, 14.1, 16.1]
-        end_times = [3.9, 5.9, 7.9, 9.9, 11.9, 13.9, 15.9, 18.9]
-        expected_voltages = [25.0, -12.5, -37.5, -18.75, 18.75, 9.375, -9.375, -4.6875]
-        do i = 1, size(start_times) 
-        end do
-    ! for (t_start, t_end, v) in zip(start_times, end_times, check_voltages):
-    !     start = np.argmin(np.abs(p.probes["v_source"].t - t_start*1e-6))
-    !     end = np.argmin(np.abs(p.probes["v_source"].t - t_end*1e-6))
-    !     assert np.all(np.isclose(p.probes["v_source"].val[start:end], v))
     end block
-
 
 
 end function

@@ -1567,9 +1567,9 @@ contains
             do i = 1, size(cables)
                if (isWire(cables(i)%p)) then
                   material = this%matTable%getId(this%getIntAt(cables(i)%p, J_MATERIAL_ID))
-                  if(this%existsAt(material%p, J_MAT_WIRE_REF_CAPACITANCE)) then
+                  ! if(this%existsAt(material%p, J_MAT_WIRE_REF_CAPACITANCE)) then
                      res = res + 1
-                  end if
+                  ! end if
                end if
             end do
          end if
@@ -2077,6 +2077,8 @@ contains
          if (this%existsAt(j_cable,J_NAME)) then
             res%name = trim(adjustl(this%getStrAt(j_cable,J_NAME)))
             ! write(*,*) 'name: ', res%name
+         else
+            res%name  = ""
          end if
 
          res%step_size = buildStepSize(j_cable)
