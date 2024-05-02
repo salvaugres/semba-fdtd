@@ -22,7 +22,7 @@ def test_shielded_pair(tmp_path):
 
 def test_holland(tmp_path):
     case = 'holland1981'
-    makeCopy(tmp_path, EXCITATIONS_FOLDER+'gauss.exc')
+    makeCopy(tmp_path, EXCITATIONS_FOLDER+'double_exp_pulse.exc')
     makeCopy(tmp_path, CASE_FOLDER + case + '.fdtd.json')
     fn = tmp_path._str + '/' + case + '.fdtd.json'
 
@@ -39,7 +39,7 @@ def test_holland(tmp_path):
 def test_holland_mltn_mode(tmp_path):
 
     case = 'holland1981_mtln'
-    makeCopy(tmp_path, EXCITATIONS_FOLDER+'gauss.exc')
+    makeCopy(tmp_path, EXCITATIONS_FOLDER+'double_exp_pulse.exc')
     makeCopy(tmp_path, CASE_FOLDER + case + '.fdtd.json')
     fn = tmp_path._str + '/' + case + '.fdtd.json'
 

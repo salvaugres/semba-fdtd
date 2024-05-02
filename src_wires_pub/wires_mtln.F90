@@ -97,7 +97,6 @@ contains
         
       eps0 = eps00 
       mu0 = mu00
-      
       call mtln_solver%step()
         
       do m = 1, mtln_solver%number_of_bundles

@@ -26,7 +26,7 @@ def test_probes_output_exists(tmp_path):
     with open(fn, 'w') as modified_json:
         json.dump(input_json, modified_json) 
 
-    makeCopy(tmp_path, EXCITATIONS_FOLDER+'gauss.exc')
+    makeCopy(tmp_path, EXCITATIONS_FOLDER+'double_exp_pulse.exc')
 
     solver = FDTD(input_filename = fn, path_to_exe=SEMBA_EXE)
     solver.run()
@@ -47,7 +47,7 @@ def test_probes_output_number_of_steps(tmp_path):
     with open(fn, 'w') as modified_json:
         json.dump(input_json, modified_json) 
 
-    makeCopy(tmp_path, EXCITATIONS_FOLDER+'gauss.exc')
+    makeCopy(tmp_path, EXCITATIONS_FOLDER+'double_exp_pulse.exc')
 
     solver = FDTD(input_filename = fn, path_to_exe=SEMBA_EXE)
     solver.run()
@@ -60,7 +60,7 @@ def test_probes_output_number_of_steps(tmp_path):
 
 def test_holland(tmp_path):
     case = 'holland1981'
-    makeCopy(tmp_path, EXCITATIONS_FOLDER+'gauss.exc')
+    makeCopy(tmp_path, EXCITATIONS_FOLDER+'double_exp_pulse.exc')
     makeCopy(tmp_path, CASE_FOLDER + case + '.fdtd.json')
     fn = tmp_path._str + '/' + case + '.fdtd.json'
 
