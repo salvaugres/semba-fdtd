@@ -11,11 +11,11 @@ def test_read_wire_probe():
     
     assert len(p['time']) == 1001
     assert p['time'][0] == 0.0
-    assert p['time'].iat[-1] == 0.99999999600419720E-009
+    assert p['time'].iat[-1] == 0.2999999901276417E-007
     
     assert len(p['current']) == 1001
     assert p['current'][0] == 0.0
-    assert p['current'].iat[-1] == -0.228888888E-021
+    assert p['current'].iat[-1] == -0.513576742E-004
   
 
 def test_probes_output_exists(tmp_path):

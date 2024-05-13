@@ -811,7 +811,7 @@ contains
 #endif
 
 
-#ifdef CompileWithWires_mtln  
+#ifdef CompileWithMTLN
          call InitWires_mtln(sgg,Ex,Ey,Ez,eps0, mu0, mtln_parsed,thereAre%MTLNbundles)
 #endif
 
@@ -1350,7 +1350,7 @@ contains
                if (wirecrank) then
                   call AdvanceWiresEcrank(sgg,n, layoutnumber,wiresflavor,simu_devia,stochastic)
                else
-                  call AdvanceWiresE(sgg,n, layoutnumber,wiresflavor,simu_devia,stochastic,experimentalVideal,wirethickness,eps0,mu0)                 
+                  ! call AdvanceWiresE(sgg,n, layoutnumber,wiresflavor,simu_devia,stochastic,experimentalVideal,wirethickness,eps0,mu0)                 
                endif
             endif
          endif
@@ -1367,7 +1367,8 @@ contains
             call AdvanceWiresE_Slanted(sgg,n) 
          endif
 #endif
-#ifdef CompileWithWires_mtln  
+#ifdef CompileWithWires
+         ! write(*,*) HWires%NullNode%IsPEC
          if (thereAre%MTLNbundles) call AdvanceWiresE_mtln(sgg,Idxh,Idyh,Idzh,eps0,mu0)  
 #endif 
          If (Thereare%PMLbodies) then !waveport absorbers

@@ -9,6 +9,8 @@ module Wire_bundles_mtln_mod
    use fdetypes
    use mtln_solver_mod , mtln_solver_t => mtln_t 
    use mtln_types_mod, only: mtln_t
+   use HollandWires
+   use wiresHolland_constants
    implicit none
    
    REAL (KIND=RKIND_wires)           ::  eps0,mu0
@@ -19,7 +21,7 @@ module Wire_bundles_mtln_mod
 contains
 
 
-   subroutine InitWires_mtln(sgg,Ex,Ey,Ez, eps00, mu00, mtln_parsed,thereAreMTLNbundles)         
+   subroutine InitWires_mtln(sgg,Ex,Ey,Ez, eps00, mu00, mtln_parsed,thereAreMTLNbundles)
       type (SGGFDTDINFO), intent(IN), target    :: sgg 
       REAL (KIND=RKIND), intent(inout), target :: &
          Ex(sgg%Alloc(iEx)%XI : sgg%Alloc(iEx)%XE,  &
@@ -50,7 +52,7 @@ contains
       
       block
          integer (kind=4) :: i, j, k, m, n
-         do m = 1, mtln_solver%NUMBER_OF_BUNDLES
+         do m = 1, mtln_solver%number_of_bundles
             do n = 1, ubound(mtln_solver%bundles(m)%external_field_segments,1)
                call readGridIndices(i, j, k, mtln_solver%bundles(m)%external_field_segments(n))                          
                select case (abs(mtln_solver%bundles(m)%external_field_segments(n)%direction))  
@@ -70,17 +72,54 @@ contains
       end block
       block
       ! assign L and C to external conductor
-         integer(kind=4) :: n
-         real(kind=rkind) :: l_cell, c_cell
-         do n = 1, ubound(mtln_solver%bundles(0)%lpul,1)
-            !l_cell =
-            c_cell =  l_cell/(mu0*eps0)
-            mtln_solver%bundles(0)%lpul(n,1,1) = l_cell
-            mtln_solver%bundles(0)%cpul(n,1,1) = c_cell
+         integer(kind=4) :: m, n, wIndex
+         type(Thinwires_t), pointer  ::  hwires
+         integer, dimension(:,:), allocatable :: indexMap
+         hwires => GetHwires()
+         indexMap = mapFieldToCurrentSegments(hwires, mtln_solver%bundles)
+         do m = 1, mtln_solver%number_of_bundles
+            do n = 1, ubound(mtln_solver%bundles(m)%lpul,1)
+               wIndex = indexMap(m,n)
+               mtln_solver%bundles(m)%lpul(n,1,1) = hwires%CurrentSegment(wIndex)%Lind
+               mtln_solver%bundles(m)%cpul(n,1,1) = hwires%CurrentSegment(wIndex)%Lind/(mu0*eps0)
+            end do
+            mtln_solver%bundles(m)%cpul(ubound(mtln_solver%bundles(m)%cpul,1),1,1) = &
+               mtln_solver%bundles(m)%cpul(ubound(mtln_solver%bundles(m)%cpul,1)-1,1,1)
          end do
       end block
 
       call mtln_solver%updatePULTerms()
+
+   contains
+
+
+   function mapFieldToCurrentSegments(wires, bundles) result (indexMap)
+      type(Thinwires_t), pointer  ::  wires
+      type(mtl_bundle_t), allocatable, dimension(:) :: bundles
+      integer, dimension(:,:), allocatable :: indexMap
+      integer :: m, n, nmax, iw
+      integer :: i, j, k
+      nmax = 0
+      do m = 1, mtln_solver%number_of_bundles
+         if (ubound(mtln_solver%bundles(m)%lpul,1) > nmax) then 
+            nmax = ubound(mtln_solver%bundles(m)%lpul,1)
+         end if 
+      end do
+      allocate(indexMap(m,nmax))
+      do m = 1, mtln_solver%number_of_bundles
+         do n = 1, ubound(mtln_solver%bundles(m)%lpul,1)
+            call readGridIndices(i, j, k, mtln_solver%bundles(m)%external_field_segments(n))                          
+            do iw = 1, wires%NumCurrentSegments
+               if ((i == wires%CurrentSegment(iw)%i) .and. &
+                   (j == wires%CurrentSegment(iw)%j) .and. &
+                   (k == wires%CurrentSegment(iw)%k)) then
+                     indexMap(m,n) = iw
+               end if
+            end do
+         end do
+      end do
+   end function
+
 
    endsubroutine InitWires_mtln
 
@@ -107,13 +146,14 @@ contains
             current = mtln_solver%bundles(m)%i(1, n)
                 select case (abs(direction))  
                 case(1)   
-                    cte=sgg%dt /eps0 *Idyh(j)*idzh(k)
+                    cte=sgg%dt /eps0 /(Idyh(j)*idzh(k))
                 case(2)     
-                    cte=sgg%dt /eps0 *Idzh(k)*idxh(i)
+                    cte=sgg%dt /eps0 /(Idzh(k)*idxh(i))
                 case(3)   
-                    cte=sgg%dt /eps0 *Idxh(i)*idyh(j)
+                    cte=sgg%dt /eps0 /(Idxh(i)*idyh(j))
                 end select
             punt = punt - sign(cte,real(direction,kind=rkind)) * current
+            ! punt = cte * current
             end do
         end do
 

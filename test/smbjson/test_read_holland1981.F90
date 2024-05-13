@@ -24,7 +24,7 @@ contains
       call initializeProblemDescription(expected)
 
       ! Expected general info.
-      expected%general%dt = 1e-12
+      expected%general%dt = 30e-12
       expected%general%nmax = 1000
 
       ! Excected media matrix.
