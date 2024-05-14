@@ -146,9 +146,9 @@ contains
    dontwritevtk,experimentalVideal,forceresampled,factorradius,factordelta,noconformalmapvtk, &
    mtln_parsed)
 
-!!!           
-   type (mtln_t) :: mtln_parsed
-!!!
+   !!!           
+      type (mtln_t) :: mtln_parsed
+   !!!
       logical :: noconformalmapvtk
       logical :: hopf,experimentalVideal,forceresampled
       character (LEN=BUFSIZE) :: ficherohopf
@@ -1369,7 +1369,8 @@ contains
 #endif
 #ifdef CompileWithWires
          ! write(*,*) HWires%NullNode%IsPEC
-         if (thereAre%MTLNbundles) call AdvanceWiresE_mtln(sgg,Idxh,Idyh,Idzh,eps0,mu0)  
+         if (thereAre%MTLNbundles) call AdvanceWiresE_mtln(sgg,Idxh,Idyh,Idzh,eps0,mu0, still_planewave_time)
+
 #endif 
          If (Thereare%PMLbodies) then !waveport absorbers
             call AdvancePMLbodyE

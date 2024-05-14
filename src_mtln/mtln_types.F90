@@ -30,7 +30,8 @@ module mtln_types_mod
 
    type :: external_field_segment_t
       integer, dimension(3) ::position
-      integer :: direction     
+      integer :: direction
+      real (kind=rkind) :: external_field = 0, prev_external_field = 0
       real (kind=rkind) , pointer  ::  Efield_wire2main, Efield_main2wire
    contains
       private

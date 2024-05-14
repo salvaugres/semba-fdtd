@@ -210,16 +210,16 @@ contains
         enddo
         this%i_term = reshape(source=this%i_term, shape=[this%number_of_divisions,this%number_of_conductors, this%number_of_conductors],order=[2,3,1])
         this%v_diff = reshape(source=this%v_diff, shape=[this%number_of_divisions,this%number_of_conductors, this%number_of_conductors],order=[2,3,1])
-        write(*,*) size(F1,1), ' ',size(F1,2), ' ', size(F1,3)
-        write(*,*) F1(1,1,1)
-        write(*,*) size(F2,1), ' ',size(F2,2), ' ', size(F2,3)
-        write(*,*) F2(1,1,1)
-        write(*,*) size(IF1,1), ' ',size(IF1,2), ' ', size(IF1,3)
-        write(*,*) IF1(1,1,1)
-        write(*,*) size(this%i_term,1), ' ',size(this%i_term,2), ' ', size(this%i_term,3)
-        write(*,*) this%i_term(1,1,1)
-        write(*,*) size(this%v_diff,1), ' ',size(this%v_diff,2), ' ', size(this%v_diff,3)
-        write(*,*) this%v_diff(1,1,1)
+        ! write(*,*) size(F1,1), ' ',size(F1,2), ' ', size(F1,3)
+        ! write(*,*) F1(1,1,1)
+        ! write(*,*) size(F2,1), ' ',size(F2,2), ' ', size(F2,3)
+        ! write(*,*) F2(1,1,1)
+        ! write(*,*) size(IF1,1), ' ',size(IF1,2), ' ', size(IF1,3)
+        ! write(*,*) IF1(1,1,1)
+        ! write(*,*) size(this%i_term,1), ' ',size(this%i_term,2), ' ', size(this%i_term,3)
+        ! write(*,*) this%i_term(1,1,1)
+        ! write(*,*) size(this%v_diff,1), ' ',size(this%v_diff,2), ' ', size(this%v_diff,3)
+        ! write(*,*) this%v_diff(1,1,1)
 
         ! ! IF1 = reshape(source=[(inv(F1(i,:,:)), i = 1, this%number_of_divisions)], &
         ! !         shape=[this%number_of_divisions,this%number_of_conductors, this%number_of_conductors], &
@@ -336,7 +336,7 @@ contains
         ! i_prev = this%i
         do i = 1, this%number_of_divisions 
             this%i(:,i) = matmul(this%i_term(i,:,:), this%i(:,i)) - &
-                          matmul(this%v_diff(i,:,:), (this%v(:,i+1) - this%v(:,i)) + this%e_L(:,i))
+                          matmul(this%v_diff(i,:,:), (this%v(:,i+1) - this%v(:,i)) - this%e_L(:,i))
                           !- &
                                 !  matmul(0.5*this%du_length(i,:,:), this%el))
                         !   matmul(this%v_diff(i,:,:), matmul(this%du(i,:,:), this%transfer_impedance%q3_phi(i,:)))
@@ -350,8 +350,12 @@ contains
         class(mtl_bundle_t) :: this
         integer :: i
         do i = 1, size(this%e_L,2)
-            this%e_L(1,i) = this%external_field_segments(i)%Efield_main2wire * this%step_size(i)
-            ! this%v(1, i) = this%external_field_segments(i)%Efield_main2wire * this%step_size(i)
+            ! this%e_L(1,i) = 0.5*(this%external_field_segments(i)%prev_external_field + &
+            !                      this%external_field_segments(i)%external_field) &
+            !                      * this%step_size(i)
+            ! this%e_L(1,i) = this%external_field_segments(i)%external_field * this%step_size(i)
+            this%e_L(1,i) = this%external_field_segments(i)%Efield_wire2main * this%step_size(i)
+            ! this%e_L(1,i) = this%external_field_segments(i)%Efield_main2wire * this%step_size(i)
         end do
     end subroutine
 
