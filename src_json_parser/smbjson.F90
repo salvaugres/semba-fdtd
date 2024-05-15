@@ -2288,6 +2288,7 @@ contains
          curr_pos%position = [(c1%position(i), i = 1, 3)]
          curr_pos%Efield_main2wire => null()
          curr_pos%Efield_wire2main => null()
+         curr_pos%field => null()
 
          res = [(curr_pos, i = 1, n_segments)]
          res(:)%position(axis) = [(res(i)%position(axis) - i, i = 1, n_segments)]
@@ -2307,6 +2308,7 @@ contains
          curr_pos%position = [(c1%position(i), i = 1, 3)]
          curr_pos%Efield_main2wire => null()
          curr_pos%Efield_wire2main => null()
+         curr_pos%field => null()
 
          res = [(curr_pos, i = 1, n_segments)]
          res(:)%position(axis) = [(res(i)%position(axis) + (i-1), i = 1, n_segments)]

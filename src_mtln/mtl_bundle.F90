@@ -336,7 +336,7 @@ contains
         ! i_prev = this%i
         do i = 1, this%number_of_divisions 
             this%i(:,i) = matmul(this%i_term(i,:,:), this%i(:,i)) - &
-                          matmul(this%v_diff(i,:,:), (this%v(:,i+1) - this%v(:,i)) - this%e_L(:,i))
+                          matmul(this%v_diff(i,:,:), (this%v(:,i+1) - this%v(:,i)) - this%e_L(:,i) * this%step_size(i))
                           !- &
                                 !  matmul(0.5*this%du_length(i,:,:), this%el))
                         !   matmul(this%v_diff(i,:,:), matmul(this%du(i,:,:), this%transfer_impedance%q3_phi(i,:)))
@@ -350,11 +350,12 @@ contains
         class(mtl_bundle_t) :: this
         integer :: i
         do i = 1, size(this%e_L,2)
-            ! this%e_L(1,i) = 0.5*(this%external_field_segments(i)%prev_external_field + &
-            !                      this%external_field_segments(i)%external_field) &
-            !                      * this%step_size(i)
+            this%e_L(1,i) = 0.5*(this%external_field_segments(i)%prev_external_field + &
+                                 this%external_field_segments(i)%external_field)
+                                 
+            ! this%e_L(1,i) = this%external_field_segments(i)%field
             ! this%e_L(1,i) = this%external_field_segments(i)%external_field * this%step_size(i)
-            this%e_L(1,i) = this%external_field_segments(i)%Efield_wire2main * this%step_size(i)
+            ! this%e_L(1,i) = this%external_field_segments(i)%Efield_wire2main * this%step_size(i)
             ! this%e_L(1,i) = this%external_field_segments(i)%Efield_main2wire * this%step_size(i)
         end do
     end subroutine

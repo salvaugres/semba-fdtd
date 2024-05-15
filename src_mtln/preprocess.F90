@@ -375,6 +375,8 @@ contains
         write(termination_r, *) termination%resistance
         write(termination_l, *) termination%inductance
         write(line_c, *) node%line_c_per_meter * node%step/2
+                
+
         
         allocate(res(0))
 
@@ -409,7 +411,6 @@ contains
         write(termination_r, *) termination%resistance
         write(termination_l, *) termination%inductance
         write(line_c, *) node%line_c_per_meter * node%step/2
-
         allocate(res(0))
 
         res = [trim("R" // node%name // " " // node%name // "_R "   // node%name //" ")//" "//trim(termination_r)]
@@ -535,8 +536,9 @@ contains
         write(line_c, *) node%line_c_per_meter*node%step/2
 
         allocate(res(0))
-        buff = trim("I" // node%name // " " // node%name// " 0 " // " dc 0")
+        buff = trim("R" // node%name // " " // node%name // " " // end_node//" 0")
         call appendToStringArray(res, buff)
+        buff = trim("I" // node%name // " " // node%name// " 0 " // " dc 0")
         buff = trim("CL" // node%name // " " // node%name // " 0 " // line_c)
         call appendToStringArray(res, buff)
         

@@ -59,35 +59,59 @@ contains
                call readGridIndices(i, j, k, mtln_solver%bundles(m)%external_field_segments(n))                          
                select case (abs(mtln_solver%bundles(m)%external_field_segments(n)%direction))  
                 case(1)                                
-                  mtln_solver%bundles(m)%external_field_segments(n)%Efield_wire2main => Ex(i, j, k) 
-                  mtln_solver%bundles(m)%external_field_segments(n)%Efield_main2wire => Ex(i, j, k) 
+                  mtln_solver%bundles(m)%external_field_segments(n)%field => Ex(i, j, k) 
+                  ! mtln_solver%bundles(m)%external_field_segments(n)%Efield_wire2main => Ex(i, j, k) 
+                  ! mtln_solver%bundles(m)%external_field_segments(n)%Efield_main2wire => Ex(i, j, k) 
                 case(2)     
-                  mtln_solver%bundles(m)%external_field_segments(n)%Efield_wire2main => Ey(i, j, k)
-                  mtln_solver%bundles(m)%external_field_segments(n)%Efield_main2wire => Ey(i, j, k)  
+                  mtln_solver%bundles(m)%external_field_segments(n)%field => Ey(i, j, k) 
+                  ! mtln_solver%bundles(m)%external_field_segments(n)%Efield_wire2main => Ey(i, j, k)
+                  ! mtln_solver%bundles(m)%external_field_segments(n)%Efield_main2wire => Ey(i, j, k)  
                 case(3)     
-                  mtln_solver%bundles(m)%external_field_segments(n)%Efield_wire2main => Ez(i, j, k)
-                  mtln_solver%bundles(m)%external_field_segments(n)%Efield_main2wire => Ez(i, j, k)  
+                  mtln_solver%bundles(m)%external_field_segments(n)%field => Ez(i, j, k) 
+                  ! mtln_solver%bundles(m)%external_field_segments(n)%Efield_wire2main => Ez(i, j, k)
+                  ! mtln_solver%bundles(m)%external_field_segments(n)%Efield_main2wire => Ez(i, j, k)  
                 end select
                  
             end do
         end do
       end block
       block
-      ! assign L and C to external conductor
-         integer(kind=4) :: m, n, wIndex
+         integer(kind=4) :: m, n, wIndex, init, end, sep
          type(Thinwires_t), pointer  ::  hwires
-         ! integer, dimension(:,:), allocatable :: indexMap
+         character(20) :: charConductor
          hwires => GetHwires()
          indexMap = mapFieldToCurrentSegments(hwires, mtln_solver%bundles)
          do m = 1, mtln_solver%number_of_bundles
             do n = 1, ubound(mtln_solver%bundles(m)%lpul,1)
                wIndex = indexMap(m,n)
+
                mtln_solver%bundles(m)%lpul(n,1,1) = hwires%CurrentSegment(wIndex)%Lind
                mtln_solver%bundles(m)%cpul(n,1,1) = mu0*eps0/hwires%CurrentSegment(wIndex)%Lind
+               ! mtln_solver%bundles(m)%lpul(n,1,1) = 1.22e-7
+               ! mtln_solver%bundles(m)%cpul(n,1,1) = mu0*eps0/1.22e-7
+               
             end do
             mtln_solver%bundles(m)%cpul(ubound(mtln_solver%bundles(m)%cpul,1),1,1) = &
                mtln_solver%bundles(m)%cpul(ubound(mtln_solver%bundles(m)%cpul,1)-1,1,1)
          end do
+
+         do m = 1, mtln_solver%number_of_bundles
+            do n = 1, mtln_solver%bundles(m)%number_of_conductors
+               write(charConductor, *) n
+               init = lbound(mtln_solver%bundles(m)%cpul,1)
+               end = ubound(mtln_solver%bundles(m)%cpul,1)
+               sep = index(mtln_solver%bundles(m)%name,"_")
+               call mtln_solver%network_manager%circuit%modifyLineCapacitorValue(&
+                  trim(mtln_solver%bundles(m)%name(sep+1:))//"_"//trim(adjustl(charConductor))//"_initial",&
+                  mtln_solver%bundles(m)%cpul(init,n,n)*mtln_solver%bundles(m)%step_size(init)*0.5)
+
+               call mtln_solver%network_manager%circuit%modifyLineCapacitorValue(&
+                  trim(mtln_solver%bundles(m)%name(sep+1:))//"_"//trim(adjustl(charConductor))//"_end",&
+                  mtln_solver%bundles(m)%cpul(end,n,n)*mtln_solver%bundles(m)%step_size(end-1)*0.5)
+
+               end do
+         end do   
+
       end block
 
       call mtln_solver%updatePULTerms()
@@ -152,37 +176,38 @@ contains
       do m = 1, mtln_solver%number_of_bundles
          do n = 1, ubound(mtln_solver%bundles(m)%external_field_segments,1)
             current = mtln_solver%bundles(m)%i(1, n)
-            call readGridIndices(i, j, k, mtln_solver%bundles(m)%external_field_segments(n))      
-            
             direction = mtln_solver%bundles(m)%external_field_segments(n)%direction
+            punt => mtln_solver%bundles(m)%external_field_segments(n)%field
+            ! punt => mtln_solver%bundles(m)%external_field_segments(n)%Efield_wire2main
+            ! segment => hwires%CurrentSegment(indexMap(m,n))
+            
+            call readGridIndices(i, j, k, mtln_solver%bundles(m)%external_field_segments(n))      
+
             ! external_field = Incid(sgg, 1, abs(direction), mtln_solver%time, i,j,k, still_planewave_time, .false.)
             ! mtln_solver%bundles(m)%external_field_segments(n)%prev_external_field = &
             !    mtln_solver%bundles(m)%external_field_segments(n)%external_field
-
             ! mtln_solver%bundles(m)%external_field_segments(n)%external_field = external_field
-            punt => mtln_solver%bundles(m)%external_field_segments(n)%Efield_wire2main
-            segment => hwires%CurrentSegment(indexMap(m,n))
+
 
             cte = sgg%dt / eps0
             select case (abs(direction))  
             case(1)   
-               cte=cte /(idyh(j)*idzh(k))
+               cte=cte *(idyh(j)*idzh(k))
             case(2)     
-               cte=cte /(idxh(i)*idzh(k))
+               cte=cte *(idxh(i)*idzh(k))
             case(3)   
-               cte=cte /(idxh(i)*idyh(j))
+               cte=cte *(idxh(i)*idyh(j))
             end select
             
             ! mtln_solver%bundles(m)%external_field_segments(n)%Efield_wire2main = &
             !    mtln_solver%bundles(m)%external_field_segments(n)%Efield_wire2main - sign(cte,real(direction,kind=rkind)) * current
             ! punt = punt - segment%cte5 * current
-            punt = punt - sign(cte,real(direction,kind=rkind)) * current
+            punt = real(punt, kind=rkind_wires) - sign(cte,real(direction,kind=rkind)) * current
             ! mtln_solver%bundles(m)%external_field_segments(n)%Efield_main2wire = punt
 
             hwires%CurrentSegment(indexMap(m,n))%CurrentPast = current
-            ! hwires%CurrentSegment(indexMap(m,n))%Current = current
-            hwires%CurrentSegment(indexMap(m,n))%Efield_wire2main = &
-               mtln_solver%bundles(m)%external_field_segments(n)%Efield_wire2main
+            hwires%CurrentSegment(indexMap(m,n))%Current = current
+            hwires%CurrentSegment(indexMap(m,n))%Efield_wire2main = punt
             ! hwires%CurrentSegment(indexMap(m,n))%Efield_main2wire = &
             !    mtln_solver%bundles(m)%external_field_segments(n)%Efield_main2wire
 
