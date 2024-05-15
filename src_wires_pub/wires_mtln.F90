@@ -87,8 +87,6 @@ contains
 
                mtln_solver%bundles(m)%lpul(n,1,1) = hwires%CurrentSegment(wIndex)%Lind
                mtln_solver%bundles(m)%cpul(n,1,1) = mu0*eps0/hwires%CurrentSegment(wIndex)%Lind
-               ! mtln_solver%bundles(m)%lpul(n,1,1) = 1.22e-7
-               ! mtln_solver%bundles(m)%cpul(n,1,1) = mu0*eps0/1.22e-7
                
             end do
             mtln_solver%bundles(m)%cpul(ubound(mtln_solver%bundles(m)%cpul,1),1,1) = &
@@ -169,7 +167,6 @@ contains
       mu0 = mu00
 
       
-      call mtln_solver%step()
       
       hwires => GetHwires()
       
@@ -206,8 +203,8 @@ contains
             ! mtln_solver%bundles(m)%external_field_segments(n)%Efield_main2wire = punt
 
             hwires%CurrentSegment(indexMap(m,n))%CurrentPast = current
-            hwires%CurrentSegment(indexMap(m,n))%Current = current
-            hwires%CurrentSegment(indexMap(m,n))%Efield_wire2main = punt
+            ! hwires%CurrentSegment(indexMap(m,n))%Current = current
+            ! hwires%CurrentSegment(indexMap(m,n))%Efield_wire2main = punt
             ! hwires%CurrentSegment(indexMap(m,n))%Efield_main2wire = &
             !    mtln_solver%bundles(m)%external_field_segments(n)%Efield_main2wire
 
@@ -215,6 +212,7 @@ contains
          end do
       end do
 
+      call mtln_solver%step()
 
       ! do m = 1, mtln_solver%number_of_bundles
       !    do n = 1, ubound(mtln_solver%bundles(m)%external_field_segments,1)
