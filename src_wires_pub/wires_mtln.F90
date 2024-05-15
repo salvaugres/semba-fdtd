@@ -165,8 +165,6 @@ contains
 
       eps0 = eps00 
       mu0 = mu00
-
-      
       
       hwires => GetHwires()
       
@@ -175,16 +173,8 @@ contains
             current = mtln_solver%bundles(m)%i(1, n)
             direction = mtln_solver%bundles(m)%external_field_segments(n)%direction
             punt => mtln_solver%bundles(m)%external_field_segments(n)%field
-            ! punt => mtln_solver%bundles(m)%external_field_segments(n)%Efield_wire2main
-            ! segment => hwires%CurrentSegment(indexMap(m,n))
             
             call readGridIndices(i, j, k, mtln_solver%bundles(m)%external_field_segments(n))      
-
-            ! external_field = Incid(sgg, 1, abs(direction), mtln_solver%time, i,j,k, still_planewave_time, .false.)
-            ! mtln_solver%bundles(m)%external_field_segments(n)%prev_external_field = &
-            !    mtln_solver%bundles(m)%external_field_segments(n)%external_field
-            ! mtln_solver%bundles(m)%external_field_segments(n)%external_field = external_field
-
 
             cte = sgg%dt / eps0
             select case (abs(direction))  
@@ -196,142 +186,12 @@ contains
                cte=cte *(idxh(i)*idyh(j))
             end select
             
-            ! mtln_solver%bundles(m)%external_field_segments(n)%Efield_wire2main = &
-            !    mtln_solver%bundles(m)%external_field_segments(n)%Efield_wire2main - sign(cte,real(direction,kind=rkind)) * current
-            ! punt = punt - segment%cte5 * current
             punt = real(punt, kind=rkind_wires) - sign(cte,real(direction,kind=rkind)) * current
-            ! mtln_solver%bundles(m)%external_field_segments(n)%Efield_main2wire = punt
-
             hwires%CurrentSegment(indexMap(m,n))%CurrentPast = current
-            ! hwires%CurrentSegment(indexMap(m,n))%Current = current
-            ! hwires%CurrentSegment(indexMap(m,n))%Efield_wire2main = punt
-            ! hwires%CurrentSegment(indexMap(m,n))%Efield_main2wire = &
-            !    mtln_solver%bundles(m)%external_field_segments(n)%Efield_main2wire
-
-
          end do
       end do
 
       call mtln_solver%step()
-
-      ! do m = 1, mtln_solver%number_of_bundles
-      !    do n = 1, ubound(mtln_solver%bundles(m)%external_field_segments,1)
-      !       call readGridIndices(i, j, k, mtln_solver%bundles(m)%external_field_segments(n))                          
-            
-      !       direction = mtln_solver%bundles(m)%external_field_segments(n)%direction
-      !       external_field = Incid(sgg, 1, abs(direction), mtln_solver%time, i,j,k, still_planewave_time, .false.)
-      !       mtln_solver%bundles(m)%external_field_segments(n)%prev_external_field = &
-      !          mtln_solver%bundles(m)%external_field_segments(n)%external_field
-
-      !       mtln_solver%bundles(m)%external_field_segments(n)%external_field = external_field
-      !       hwires%CurrentSegment(indexMap(m,n))%CurrentPast = mtln_solver%bundles(m)%i(1, n)
-      !    end do
-      ! end do
-      
-      ! call mtln_solver%step()
-
-      ! do m = 1, mtln_solver%number_of_bundles
-      !    do n = 1, ubound(mtln_solver%bundles(m)%external_field_segments,1)
-      !       call readGridIndices(i, j, k, mtln_solver%bundles(m)%external_field_segments(n))                          
-
-      !       direction = mtln_solver%bundles(m)%external_field_segments(n)%direction
-      !       ! external_field = Incid(sgg, 1, abs(direction), mtln_solver%time, i,j,k, still_planewave_time, .false.)
-      !       ! mtln_solver%bundles(m)%external_field_segments(n)%external_field = external_field
-
-
-      !       ! punt => mtln_solver%bundles(m)%external_field_segments(n)%Efield_wire2main
-      !       current = mtln_solver%bundles(m)%i(1, n)
-      !       dx = idxh(i)
-      !       dy = idyh(j)
-      !       dz = idzh(k)
-      !       select case (abs(direction))  
-      !       case(1)   
-      !          cte=sgg%dt /eps0 /(dy*dz)
-      !       case(2)     
-      !          cte=sgg%dt /eps0 /(dx*dz)
-      !       case(3)   
-      !          cte=sgg%dt /eps0 /(dx*dy)
-      !       end select
-      !       ! punt = punt - sign(cte,real(direction,kind=rkind)) * current
-      !       mtln_solver%bundles(m)%external_field_segments(n)%Efield_wire2main = &
-      !          mtln_solver%bundles(m)%external_field_segments(n)%Efield_wire2main - cte * current
-      !       mtln_solver%bundles(m)%external_field_segments(n)%Efield_main2wire = &
-      !          mtln_solver%bundles(m)%external_field_segments(n)%Efield_main2wire - cte * current
-      !       ! punt = punt - cte * current
-
-      !       ! mtln_solver%bundles(m)%external_field_segments(n)%Efield_main2wire = punt
-      !       ! Segmento => hwires%CurrentSegment(indexMap(m,n))
-      !       ! Segmento%Efield_wire2main = &
-      !       !    Segmento%Efield_wire2main - Segmento%cte5 * current
-      !       ! Segmento%Efield_main2wire = &
-      !       !    Segmento%Efield_main2wire - Segmento%cte5 * current
-      !       ! hwires%CurrentSegment(indexMap(m,n))%Efield_main2wire = punt
-      !       ! hwires%CurrentSegment(indexMap(m,n))%Current = current
-      !       ! hwires%CurrentSegment(indexMap(m,n))%CurrentPast = current
-
-      !       ! Segmento%Current = - sign(cte,real(direction,kind=rkind)) * current
-      !       ! Segmento%CurrentPast = - sign(cte,real(direction,kind=rkind)) * current
-      !       ! segmento%efield_wire2main=real(segmento%efield_wire2main,kind=rkind_wires) &
-      !       !    - cte * segmento%current
-
-      !       ! punt = cte * current
-      !    end do
-      ! end do
-
-      ! do m = 1, mtln_solver%number_of_bundles
-      !    do n = 1, ubound(mtln_solver%bundles(m)%external_field_segments,1)
-      !       call readGridIndices(i, j, k, mtln_solver%bundles(m)%external_field_segments(n))                          
-
-      !       direction = mtln_solver%bundles(m)%external_field_segments(n)%direction
-      !       external_field = Incid(sgg, 1, abs(direction), mtln_solver%time, i,j,k, still_planewave_time, .false.)
-      !       mtln_solver%bundles(m)%external_field_segments(n)%external_field = external_field
-
-
-      !       ! punt => mtln_solver%bundles(m)%external_field_segments(n)%Efield_wire2main
-      !       current = mtln_solver%bundles(m)%i(1, n)
-      !       dx = idxh(i)
-      !       dy = idyh(j)
-      !       dz = idzh(k)
-      !       select case (abs(direction))  
-      !       case(1)   
-      !          cte=sgg%dt /eps0 /(dy*dz)
-      !       case(2)     
-      !          cte=sgg%dt /eps0 /(dx*dz)
-      !       case(3)   
-      !          cte=sgg%dt /eps0 /(dx*dy)
-      !       end select
-      !       ! punt = punt - sign(cte,real(direction,kind=rkind)) * current
-      !       ! punt = punt - cte * current
-
-      !       ! mtln_solver%bundles(m)%external_field_segments(n)%Efield_main2wire = punt
-
-      !       hwires%CurrentSegment(indexMap(m,n))%Efield_wire2main = &
-      !          mtln_solver%bundles(m)%external_field_segments(n)%Efield_wire2main
-      !       hwires%CurrentSegment(indexMap(m,n))%Efield_main2wire = &
-      !          mtln_solver%bundles(m)%external_field_segments(n)%Efield_wire2main
-      !       hwires%CurrentSegment(indexMap(m,n))%Current = current
-      !       hwires%CurrentSegment(indexMap(m,n))%CurrentPast = current
-
-      !       ! Segmento%Current = - sign(cte,real(direction,kind=rkind)) * current
-      !       ! Segmento%CurrentPast = - sign(cte,real(direction,kind=rkind)) * current
-      !       ! segmento%efield_wire2main=real(segmento%efield_wire2main,kind=rkind_wires) &
-      !       !    - cte * segmento%current
-
-      !       ! punt = cte * current
-      !    end do
-      ! end do
-
-      ! call mtln_solver%step()
-
-      ! do m = 1, mtln_solver%number_of_bundles
-      !    do n = 1, ubound(mtln_solver%bundles(m)%external_field_segments,1)
-      !       call readGridIndices(i, j, k, mtln_solver%bundles(m)%external_field_segments(n))                          
-      !       current = -mtln_solver%bundles(m)%i(1, n)
-      !       hwires%CurrentSegment(indexMap(m,n))%Current = current
-      !       ! hwires%CurrentSegment(indexMap(m,n))%CurrentPast = current
-      !    end do
-      ! end do
-
 
    end subroutine AdvanceWiresE_mtln
 
