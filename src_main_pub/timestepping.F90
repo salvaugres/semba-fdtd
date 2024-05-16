@@ -1369,7 +1369,7 @@ contains
 #endif
 #ifdef CompileWithWires
          ! write(*,*) HWires%NullNode%IsPEC
-         if (thereAre%MTLNbundles) call AdvanceWiresE_mtln(sgg,Idxh,Idyh,Idzh,eps0,mu0, still_planewave_time)
+         if (thereAre%MTLNbundles) call AdvanceWiresE_mtln(sgg,Idxh,Idyh,Idzh,eps0,mu0)
 
 #endif 
          If (Thereare%PMLbodies) then !waveport absorbers
@@ -1524,6 +1524,8 @@ contains
          endif
 
 !!! no se ganada nada de tiempo                 Call Advance_HxHyHz(Hx,Hy,Hz,Ex,Ey,Ez,IdxE,IdyE,IdzE,sggMiHx,sggMiHy,sggMiHz,b,gm1,gm2)
+
+         ! call updateJ(sgg,Idxh,Idyh,Idzh,eps0,mu0, still_planewave_time)
 
          If (Thereare%PMLbodies) then !waveport absorbers
             call AdvancePMLbodyH

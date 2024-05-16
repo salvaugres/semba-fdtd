@@ -536,7 +536,7 @@ contains
         write(line_c, *) node%line_c_per_meter*node%step/2
 
         allocate(res(0))
-        buff = trim("R" // node%name // " " // node%name // " " // end_node//" 1e-10")
+        buff = trim("R" // node%name // " " // node%name // " " // end_node//" 1e22")
         call appendToStringArray(res, buff)
         buff = trim("I" // node%name // " " // node%name// " 0 " // " dc 0")
         call appendToStringArray(res, buff)
