@@ -32,9 +32,8 @@
 			"name": "Shield",
 			"id": 2,
 			"type": "wire",
-			"radius": 0.0001,
-			"__referenceInductancePerMeter": 5.362505362505362e-07,
-			"__referenceCapacitancePerMeter": 20.72e-12,
+			"radius": 0.02,
+            "inductancePerMeter": 0.0,
 			"resistancePerMeter": 22.9e-3
 		},
 		{
@@ -81,14 +80,14 @@
     "sources": [
         {
             "type": "planewave",
-            "magnitudeFile": "double_exp.exc",
+            "magnitudeFile": "shielded_pair.exc",
             "elementIds": [5],
             "direction": {
-                "theta": 3.1416,
-                "phi": 1.5708
+                "theta": 1.5708,
+                "phi": 0.0
             },
             "polarization": {
-                "theta": 1.5708,
+                "theta": 0.0,
                 "phi": 0.0
             }
         }

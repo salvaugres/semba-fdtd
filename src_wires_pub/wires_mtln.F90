@@ -94,23 +94,19 @@ contains
       end subroutine
 
       subroutine updateNetworksLineCapacitors()
-         integer(kind=4) :: m, n, init, end, sep
-         character(20) :: charConductor
+         integer(kind=4) :: m,init, end, sep
          do m = 1, mtln_solver%number_of_bundles
-            do n = 1, mtln_solver%bundles(m)%number_of_conductors
-               write(charConductor, *) n
-               init = lbound(mtln_solver%bundles(m)%cpul,1)
-               end = ubound(mtln_solver%bundles(m)%cpul,1)
-               sep = index(mtln_solver%bundles(m)%name,"_")
-               call mtln_solver%network_manager%circuit%modifyLineCapacitorValue(&
-                  trim(mtln_solver%bundles(m)%name(sep+1:))//"_"//trim(adjustl(charConductor))//"_initial",&
-                  mtln_solver%bundles(m)%cpul(init,n,n)*mtln_solver%bundles(m)%step_size(init)*0.5)
+            init = lbound(mtln_solver%bundles(m)%cpul,1)
+            end = ubound(mtln_solver%bundles(m)%cpul,1)
+            sep = index(mtln_solver%bundles(m)%name,"_")
+            call mtln_solver%network_manager%circuit%modifyLineCapacitorValue(&
+               trim(mtln_solver%bundles(m)%name(sep+1:))//"_1_initial",&
+               mtln_solver%bundles(m)%cpul(init,1,1)*mtln_solver%bundles(m)%step_size(init)*0.5)
 
-               call mtln_solver%network_manager%circuit%modifyLineCapacitorValue(&
-                  trim(mtln_solver%bundles(m)%name(sep+1:))//"_"//trim(adjustl(charConductor))//"_end",&
-                  mtln_solver%bundles(m)%cpul(end,n,n)*mtln_solver%bundles(m)%step_size(end-1)*0.5)
+            call mtln_solver%network_manager%circuit%modifyLineCapacitorValue(&
+               trim(mtln_solver%bundles(m)%name(sep+1:))//"_1_end",&
+               mtln_solver%bundles(m)%cpul(end,1,1)*mtln_solver%bundles(m)%step_size(end-1)*0.5)
 
-               end do
          end do   
       end subroutine
 
