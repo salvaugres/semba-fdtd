@@ -83,10 +83,15 @@ contains
 
       subroutine assignLCToExternalConductor()
          integer(kind=4) :: m, n
+         real (kind=rkind) :: l,c
          do m = 1, mtln_solver%number_of_bundles
             do n = 1, ubound(mtln_solver%bundles(m)%lpul,1)
-               mtln_solver%bundles(m)%lpul(n,1,1) = hwires%CurrentSegment(indexMap(m,n))%Lind
-               mtln_solver%bundles(m)%cpul(n,1,1) = mu0*eps0/hwires%CurrentSegment(indexMap(m,n))%Lind
+               l = hwires%CurrentSegment(indexMap(m,n))%Lind
+               c = mu0*eps0/l
+               mtln_solver%bundles(m)%lpul(n,1,1) = l
+               mtln_solver%bundles(m)%cpul(n,1,1) = c
+               ! mtln_solver%bundles(m)%lpul(n,1,1) = hwires%CurrentSegment(indexMap(m,n))%Lind
+               ! mtln_solver%bundles(m)%cpul(n,1,1) = mu0*eps0/hwires%CurrentSegment(indexMap(m,n))%Lind
             end do
             mtln_solver%bundles(m)%cpul(ubound(mtln_solver%bundles(m)%cpul,1),1,1) = &
                mtln_solver%bundles(m)%cpul(ubound(mtln_solver%bundles(m)%cpul,1)-1,1,1)

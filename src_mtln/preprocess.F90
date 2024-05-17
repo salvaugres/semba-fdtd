@@ -413,7 +413,8 @@ contains
         write(line_c, *) node%line_c_per_meter * node%step/2
         allocate(res(0))
 
-        res = [trim("R" // node%name // " " // node%name // "_R "   // node%name //" ")//" "//trim(termination_r)]
+        buff = trim("R" // node%name // " " // node%name // "_R "   // node%name //" ")//" "//trim(termination_r)
+        call appendToStringArray(res, buff)
         if (termination%path_to_excitation /= "") then
             buff = trim("L" // node%name // " " // node%name // "_R " // node%name //"_L")//" "//trim(termination_l)
             call appendToStringArray(res, buff)
@@ -605,7 +606,7 @@ contains
         class(preprocess_t) :: this
         type(terminal_node_t) :: node
         integer :: stat
-        type(mtl_bundle_t), target :: tbundle
+        ! type(mtl_bundle_t) :: this%bundles(d)
         integer :: d
         type(nw_node_t) :: res
         character(len=4) :: sConductor
@@ -616,7 +617,7 @@ contains
         
         call this%cable_name_to_bundle_id%get(key(node%belongs_to_cable%name), d, stat)
         if (stat /= 0) return
-        tbundle = this%bundles(d)
+        ! this%bundles(d) = this%bundles(d)
         write(sConductor,'(I0)') node%conductor_in_cable
         res%name = trim(node%belongs_to_cable%name)//"_"//trim(sConductor)//"_"//nodeSideToString(node%side)
         write(*,*) res%name
@@ -625,21 +626,29 @@ contains
         res%bundle_number = d
         res%conductor_number = conductor_number
 
+        block
+            integer :: v_index, i_index
+            real :: line_c_per_meter, step
         if (node%side == TERMINAL_NODE_SIDE_INI) then 
-            res%v_index = lbound(tbundle%v,2)
-            res%i_index = lbound(tbundle%i,2)
-            res%line_c_per_meter = tbundle%cpul(lbound(tbundle%cpul,1), conductor_number, conductor_number)
-            res%step = tbundle%du(lbound(tbundle%du,1), conductor_number, conductor_number)
+            v_index = lbound(this%bundles(d)%v,2)
+            i_index = lbound(this%bundles(d)%i,2)
+            line_c_per_meter = this%bundles(d)%cpul(lbound(this%bundles(d)%cpul,1), conductor_number, conductor_number)
+            step = this%bundles(d)%du(lbound(this%bundles(d)%du,1), conductor_number, conductor_number)
             res%side = TERMINAL_NODE_SIDE_INI
 
         else if (node%side == TERMINAL_NODE_SIDE_END) then 
-            res%v_index = ubound(tbundle%v,2)
-            res%i_index = ubound(tbundle%i,2)
-            res%line_c_per_meter = tbundle%cpul(ubound(tbundle%cpul,1), conductor_number, conductor_number)
-            res%step = tbundle%du(ubound(tbundle%du,1), conductor_number, conductor_number)
+            v_index = ubound(this%bundles(d)%v,2)
+            i_index = ubound(this%bundles(d)%i,2)
+            line_c_per_meter = this%bundles(d)%cpul(ubound(this%bundles(d)%cpul,1), conductor_number, conductor_number)
+            step = this%bundles(d)%du(ubound(this%bundles(d)%du,1), conductor_number, conductor_number)
             res%side = TERMINAL_NODE_SIDE_END
         end if
-        
+            res%v_index = v_index
+            res%i_index = i_index
+            res%line_c_per_meter = line_c_per_meter
+            res%step = step
+        end block
+
         res%source = node%termination%path_to_excitation
 
     contains
@@ -681,16 +690,40 @@ contains
         class(preprocess_t) :: this
         type(terminal_node_t), dimension(:), allocatable :: terminal_nodes
         type(nw_node_t),  dimension(:), intent(inout) :: nodes
-        character(256), dimension(:), intent(inout) :: description
+        character(256), dimension(:), allocatable, intent(inout) :: description
+        character(256), dimension(:), allocatable :: node_description, old_description
+
         type(nw_node_t) :: new_node
         integer :: i, stat
-        character(len=:), allocatable :: interior_node
+        character(len=256) :: interior_node
+        character(len=256) :: buff
 
         interior_node = trim(terminal_nodes(1)%belongs_to_cable%name)//"_"//&
                         trim(terminal_nodes(2)%belongs_to_cable%name)//"_inter"
+        
         do i = 1, 2
+
+            ! new_node =this%addNodeWithId(terminal_nodes(i))
+            ! nodes = [nodes, new_node]
+            ! description = [description, writeNodeDescription(new_node, terminal_nodes(i)%termination, interior_node)]
+
+
             new_node =this%addNodeWithId(terminal_nodes(i))
             nodes = [nodes, new_node]
+            node_description = writeNodeDescription(new_node, terminal_nodes(i)%termination, interior_node)
+
+            if (allocated(old_description)) then 
+                deallocate(old_description)
+                allocate(old_description(size(description)))
+            end if
+            old_description = description
+
+            deallocate(description)
+            allocate(description(size(old_description) + size(node_description)))
+            description(1:size(old_description)) = old_description
+            description((size(old_description)+1):size(description)) = node_description(:)
+    
+            call appendToStringArray(description, buff)
             description = [description, writeNodeDescription(new_node, terminal_nodes(i)%termination, interior_node)]
         end do
     end subroutine
