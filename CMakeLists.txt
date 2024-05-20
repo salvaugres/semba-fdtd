@@ -12,7 +12,6 @@ message(STATUS ${CMAKE_Fortran_COMPILER_ID})
 
 option(CompileWithMPI "Use MPI" OFF)
 option(CompileWithHDF "Use HDF" ON)
-option(CompileSembaFDTDExecutable "Compiles SEMBA-FDTD executable" ON)
 
 include("${CMAKE_CURRENT_SOURCE_DIR}/set_precompiled_libraries.cmake")
 
@@ -25,8 +24,6 @@ if(CMAKE_Fortran_COMPILER_ID MATCHES "^Intel")
 	set(CMAKE_Fortran_FLAGS "-fpp -check all,nouninit -debug full -traceback -diag-disable=10441")
 	set(CMAKE_CXX_FLAGS "-diag-disable=10448")
 endif()
-
-
 
 add_library(semba-types 
 	"src_main_pub/nfde_types.F90"
@@ -44,7 +41,6 @@ add_subdirectory(src_mtln)
 add_subdirectory(test)
 
 add_library(semba-main
-	
 	"src_main_pub/anisotropic.F90"
 	"src_main_pub/borderscpml.F90"
 	"src_main_pub/bordersmur.F90"
@@ -69,27 +65,24 @@ add_library(semba-main
 	"src_main_pub/storegeom.F90"
 	"src_main_pub/snapxdmf.F90"
 	"src_main_pub/version.F90"
+	"src_main_pub/postprocess.F90"
+	"src_main_pub/errorreport.F90"
+	"src_main_pub/interpreta_switches.F90"
+	"src_main_pub/resuming.F90"	
+	"src_main_pub/timestepping.F90"
+	"src_main_pub/observation.F90"
 	"src_wires_pub/wires_types.F90"
 	"src_wires_pub/wires.F90"
 	"src_wires_pub/wires_mtln.F90"
 )
-
 target_link_libraries(semba-main semba-types smbjson mtlnsolver ngspice_interface)
 target_link_libraries(semba-main ${HDF5_LIBRARIES} ${HDF5_HL_LIBRARIES})
 
-if (CompileSembaFDTDExecutable)
-	add_executable(semba-fdtd 
-		"src_main_pub/postprocess.F90"
-		"src_main_pub/errorreport.F90"
-		"src_main_pub/interpreta_switches.F90"
-		"src_main_pub/resuming.F90"	
-		"src_main_pub/timestepping.F90"
-		"src_main_pub/observation.F90"
-		"src_main_pub/semba_fdtd.F90"
-	)
-	target_link_libraries(semba-fdtd semba-main)
-	target_link_libraries(semba-fdtd ${MPI_Fortran_LIBRARIES})
-endif()
+add_executable(semba-fdtd 
+	"src_main_pub/semba_fdtd.F90"
+)
+target_link_libraries(semba-fdtd semba-main)
+target_link_libraries(semba-fdtd ${MPI_Fortran_LIBRARIES})
 
 
 include_directories(${CMAKE_BINARY_DIR}/mod)
