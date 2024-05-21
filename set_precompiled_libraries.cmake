@@ -85,10 +85,16 @@ MESSAGE(STATUS "Using ngspice precompiled libraries at: " ${NGSPICE_DIR})
 
 if (CompileWithHDF AND NOT HDF5_FOUND)
 	add_definitions(-DCompileWithHDF)
-	if(CMAKE_Fortran_COMPILER_ID STREQUAL "GNU" OR ${CMAKE_Fortran_COMPILER_ID} STREQUAL "NVHPC")
-		# System libraries. Install with sudo apt install libhdf5	    
-	elseif(${CMAKE_Fortran_COMPILER_ID} STREQUAL "Intel" OR ${CMAKE_Fortran_COMPILER_ID} STREQUAL "IntelLLVM")
-		set(HDF5_DIR ${PRECOMPILED_DIR}/linux-intel-rls/hdf5/cmake/)
+	if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+		if(CMAKE_Fortran_COMPILER_ID STREQUAL "GNU" OR ${CMAKE_Fortran_COMPILER_ID} STREQUAL "NVHPC")
+			# System libraries. Install with sudo apt install libhdf5	    
+		elseif(${CMAKE_Fortran_COMPILER_ID} STREQUAL "Intel" OR ${CMAKE_Fortran_COMPILER_ID} STREQUAL "IntelLLVM")
+			set(HDF5_DIR ${PRECOMPILED_DIR}/linux-intel-rls/hdf5/cmake/)
+		endif()
+	elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+		if(${CMAKE_Fortran_COMPILER_ID} STREQUAL "Intel" OR ${CMAKE_Fortran_COMPILER_ID} STREQUAL "IntelLLVM")
+			set(HDF5_DIR ${PRECOMPILED_DIR}/windows-intel-rls/hdf5/cmake/)
+		endif()
 	endif()
 	
 	find_package(HDF5 REQUIRED COMPONENTS Fortran HL)
