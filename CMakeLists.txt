@@ -12,6 +12,13 @@ message(STATUS ${CMAKE_Fortran_COMPILER_ID})
 
 option(CompileWithMPI "Use MPI" OFF)
 option(CompileWithHDF "Use HDF" ON)
+option(SEMBA_FDTD_MAIN_LIB   "Compiles main library" ON)
+option(SEMBA_FDTD_EXECUTABLE "Compiles executable" ON)
+if (SEMBA_FDTD_EXECUTABLE)
+	set(SEMBA_FDTD_MAIN_LIB ON)
+else()
+	set(SEMBA_FDTD_MAIN_LIB OFF)
+endif()
 
 include("${CMAKE_CURRENT_SOURCE_DIR}/set_precompiled_libraries.cmake")
 
@@ -40,43 +47,45 @@ add_subdirectory(src_mtln)
 
 add_subdirectory(test)
 
-add_library(semba-main
-	"src_main_pub/anisotropic.F90"
-	"src_main_pub/borderscpml.F90"
-	"src_main_pub/bordersmur.F90"
-	"src_main_pub/bordersother.F90"
-	"src_main_pub/calc_constants.F90"
-	"src_main_pub/dmma_thin_slot.F90"
-	"src_main_pub/electricdispersive.F90"
-	"src_main_pub/EpsMuTimeScale.F90"
-	"src_main_pub/farfield.F90"
-	"src_main_pub/getargs.F90"
-	"src_main_pub/healer.F90"
-	"src_main_pub/lumped_types.F90"
-	"src_main_pub/lumped.F90"
-	"src_main_pub/magneticdispersive.F90"
-	"src_main_pub/maloney_nostoch.F90"
-	"src_main_pub/mpicomm.F90"
-	"src_main_pub/nfde_rotate.F90"
-	"src_main_pub/nodalsources.F90"
-	"src_main_pub/planewaves.F90"
-	"src_main_pub/pml_bodies.F90"
-	"src_main_pub/preprocess_geom.F90"
-	"src_main_pub/storegeom.F90"
-	"src_main_pub/snapxdmf.F90"
-	"src_main_pub/version.F90"
-	"src_main_pub/postprocess.F90"
-	"src_main_pub/errorreport.F90"
-	"src_main_pub/interpreta_switches.F90"
-	"src_main_pub/resuming.F90"	
-	"src_main_pub/timestepping.F90"
-	"src_main_pub/observation.F90"
-	"src_wires_pub/wires_types.F90"
-	"src_wires_pub/wires.F90"
-	"src_wires_pub/wires_mtln.F90"
-)
-target_link_libraries(semba-main semba-types smbjson mtlnsolver ngspice_interface)
-target_link_libraries(semba-main ${HDF5_LIBRARIES} ${HDF5_HL_LIBRARIES})
+if (SEMBA_FDTD_MAIN_LIB)
+	add_library(semba-main
+		"src_main_pub/anisotropic.F90"
+		"src_main_pub/borderscpml.F90"
+		"src_main_pub/bordersmur.F90"
+		"src_main_pub/bordersother.F90"
+		"src_main_pub/calc_constants.F90"
+		"src_main_pub/dmma_thin_slot.F90"
+		"src_main_pub/electricdispersive.F90"
+		"src_main_pub/EpsMuTimeScale.F90"
+		"src_main_pub/farfield.F90"
+		"src_main_pub/getargs.F90"
+		"src_main_pub/healer.F90"
+		"src_main_pub/lumped_types.F90"
+		"src_main_pub/lumped.F90"
+		"src_main_pub/magneticdispersive.F90"
+		"src_main_pub/maloney_nostoch.F90"
+		"src_main_pub/mpicomm.F90"
+		"src_main_pub/nfde_rotate.F90"
+		"src_main_pub/nodalsources.F90"
+		"src_main_pub/planewaves.F90"
+		"src_main_pub/pml_bodies.F90"
+		"src_main_pub/preprocess_geom.F90"
+		"src_main_pub/storegeom.F90"
+		"src_main_pub/snapxdmf.F90"
+		"src_main_pub/version.F90"
+		"src_main_pub/postprocess.F90"
+		"src_main_pub/errorreport.F90"
+		"src_main_pub/interpreta_switches.F90"
+		"src_main_pub/resuming.F90"	
+		"src_main_pub/timestepping.F90"
+		"src_main_pub/observation.F90"
+		"src_wires_pub/wires_types.F90"
+		"src_wires_pub/wires.F90"
+		"src_wires_pub/wires_mtln.F90"
+	)
+	target_link_libraries(semba-main semba-types smbjson mtlnsolver ngspice_interface)
+	target_link_libraries(semba-main ${HDF5_LIBRARIES} ${HDF5_HL_LIBRARIES})
+endif()
 
 add_executable(semba-fdtd 
 	"src_main_pub/semba_fdtd.F90"
