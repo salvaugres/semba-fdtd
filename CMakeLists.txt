@@ -36,6 +36,8 @@ add_library(semba-types
 	"src_main_pub/nfde_types.F90"
 	"src_main_pub/fdetypes.F90"
 	"src_mtln/mtln_types.F90"
+	"src_wires_pub/wires_types.F90"
+	"src_main_pub/lumped_types.F90"
 )
 add_subdirectory(external/fhash/)
 set(FHASH_INCLUDES  ${CMAKE_BINARY_DIR}/external/fhash/include/fortran_modules/${CMAKE_Fortran_COMPILER_ID}/${CMAKE_Fortran_COMPILER_VERSION})
@@ -60,7 +62,6 @@ if (SEMBA_FDTD_MAIN_LIB)
 		"src_main_pub/farfield.F90"
 		"src_main_pub/getargs.F90"
 		"src_main_pub/healer.F90"
-		"src_main_pub/lumped_types.F90"
 		"src_main_pub/lumped.F90"
 		"src_main_pub/magneticdispersive.F90"
 		"src_main_pub/maloney_nostoch.F90"
@@ -79,7 +80,6 @@ if (SEMBA_FDTD_MAIN_LIB)
 		"src_main_pub/resuming.F90"	
 		"src_main_pub/timestepping.F90"
 		"src_main_pub/observation.F90"
-		"src_wires_pub/wires_types.F90"
 		"src_wires_pub/wires.F90"
 		"src_wires_pub/wires_mtln.F90"
 	)
@@ -87,11 +87,13 @@ if (SEMBA_FDTD_MAIN_LIB)
 	target_link_libraries(semba-main ${HDF5_LIBRARIES} ${HDF5_HL_LIBRARIES})
 endif()
 
-add_executable(semba-fdtd 
-	"src_main_pub/semba_fdtd.F90"
-)
-target_link_libraries(semba-fdtd semba-main)
-target_link_libraries(semba-fdtd ${MPI_Fortran_LIBRARIES})
+if (SEMBA_FDTD_EXECUTABLE)
+	add_executable(semba-fdtd 
+		"src_main_pub/semba_fdtd.F90"
+	)
+	target_link_libraries(semba-fdtd semba-main)
+	target_link_libraries(semba-fdtd ${MPI_Fortran_LIBRARIES})
+endif()
 
 
 include_directories(${CMAKE_BINARY_DIR}/mod)

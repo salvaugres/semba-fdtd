@@ -83,11 +83,11 @@ endif()
 
 MESSAGE(STATUS "Using ngspice precompiled libraries at: " ${NGSPICE_DIR})
 
-if (CompileWithHDF)
+if (CompileWithHDF AND NOT HDF5_FOUND)
 	add_definitions(-DCompileWithHDF)
-	if(CMAKE_Fortran_COMPILER_ID MATCHES "GNU" OR ${CMAKE_Fortran_COMPILER_ID} STREQUAL "NVHPC")
+	if(CMAKE_Fortran_COMPILER_ID STREQUAL "GNU" OR ${CMAKE_Fortran_COMPILER_ID} STREQUAL "NVHPC")
 		# System libraries. Install with sudo apt install libhdf5	    
-	elseif(${CMAKE_Fortran_COMPILER_ID} STREQUAL "Intel" OR CMAKE_Fortran_COMPILER_ID MATCHES "IntelLLVM")
+	elseif(${CMAKE_Fortran_COMPILER_ID} STREQUAL "Intel" OR ${CMAKE_Fortran_COMPILER_ID} STREQUAL "IntelLLVM")
 		set(HDF5_DIR ${PRECOMPILED_DIR}/linux-intel-rls/hdf5/cmake/)
 	endif()
 	
