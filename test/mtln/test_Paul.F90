@@ -766,8 +766,7 @@ integer function test_coaxial_line_paul_8_6_square() bind(C) result(error_cnt)
     do i = 1, 100
         external_field_segments(i)%position = (/i, 1, 1/)
         external_field_segments(i)%direction = 1
-        external_field_segments(i)%Efield_main2wire => null()
-        external_field_segments(i)%Efield_wire2main => null()
+        external_field_segments(i)%field => null()
     end do
     cable%external_field_segments = external_field_segments
     cable%step_size = [(4.0, i = 1, 100)]
@@ -892,8 +891,7 @@ integer function test_coaxial_line_paul_8_6_triangle() bind(C) result(error_cnt)
     do i = 1, 100
         external_field_segments(i)%position = (/i, 1, 1/)
         external_field_segments(i)%direction = 1
-        external_field_segments(i)%Efield_main2wire => null()
-        external_field_segments(i)%Efield_wire2main => null()
+        external_field_segments(i)%field => null()
     end do
     cable%external_field_segments = external_field_segments
     cable%step_size = [(4.0, i = 1, 100)]
@@ -1147,8 +1145,7 @@ integer function test_2_conductor_line_paul_9_6() bind(C) result(error_cnt)
     do i = 1, 795
         external_field_segments(i)%position = (/i, 1, 1/)
         external_field_segments(i)%direction = 1
-        external_field_segments(i)%Efield_main2wire => null()
-        external_field_segments(i)%Efield_wire2main => null()
+        external_field_segments(i)%field => null()
     end do
     cable%external_field_segments = external_field_segments
 

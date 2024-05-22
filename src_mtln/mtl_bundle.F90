@@ -88,6 +88,7 @@ contains
 
         allocate(this%v_term(this%number_of_divisions + 1,this%number_of_conductors,this%number_of_conductors), source = 0.0)
         allocate(this%i_diff(this%number_of_divisions + 1,this%number_of_conductors,this%number_of_conductors), source = 0.0)
+
     end subroutine
 
     function countNumberOfConductors(levels) result(res)
@@ -341,13 +342,8 @@ contains
         class(mtl_bundle_t) :: this
         integer :: i
         do i = 1, size(this%e_L,2)
-            ! this%e_L(1,i) = 0.5*(this%external_field_segments(i)%prev_external_field + &
-            !                      this%external_field_segments(i)%external_field)
-                                 
-            this%e_L(1,i) = this%external_field_segments(i)%field
-            ! this%e_L(1,i) = this%external_field_segments(i)%external_field * this%step_size(i)
-            ! this%e_L(1,i) = this%external_field_segments(i)%Efield_wire2main * this%step_size(i)
-            ! this%e_L(1,i) = this%external_field_segments(i)%Efield_main2wire * this%step_size(i)
+            this%e_L(1,i) = this%external_field_segments(i)%eL
+            ! this%e_L(1,i) = this%external_field_segments(i)%field
         end do
     end subroutine
 

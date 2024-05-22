@@ -88,7 +88,7 @@ contains
         call this%advanceBundlesCurrent()
 
         call this%advanceTime()
-        call this%updateProbes()
+        ! call this%updateProbes()
 
         ! call this%updateExternalCurrent()
     end subroutine

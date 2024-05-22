@@ -165,8 +165,7 @@ contains
       do i = 1, 18
          expected%mtln%cables(2)%external_field_segments(i)%position = (/2,2,i/)
          expected%mtln%cables(2)%external_field_segments(i)%direction = DIRECTION_Z_POS
-         expected%mtln%cables(2)%external_field_segments(i)%Efield_wire2main => null()
-         expected%mtln%cables(2)%external_field_segments(i)%Efield_main2wire => null()
+         expected%mtln%cables(2)%external_field_segments(i)%field => null()
 
       end do
 
@@ -198,8 +197,7 @@ contains
       do i = 1, 18
          expected%mtln%cables(1)%external_field_segments(i)%position = (/2,2,i/)
          expected%mtln%cables(1)%external_field_segments(i)%direction = DIRECTION_Z_POS
-         expected%mtln%cables(1)%external_field_segments(i)%Efield_wire2main => null()
-         expected%mtln%cables(1)%external_field_segments(i)%Efield_main2wire => null()
+         expected%mtln%cables(1)%external_field_segments(i)%field => null()
       end do
       expected%mtln%cables(1)%transfer_impedance%direction = TRANSFER_IMPEDANCE_DIRECTION_INWARDS
       expected%mtln%cables(1)%transfer_impedance%resistive_term = 0.0

@@ -65,11 +65,12 @@ contains
    contains
 
       subroutine pointSegmentsToFields()
-         integer (kind=4) :: i, j, k, m, n
+         integer (kind=4) :: i, j, k, m, n, direction
          do m = 1, mtln_solver%number_of_bundles
             do n = 1, ubound(mtln_solver%bundles(m)%external_field_segments,1)
-               call readGridIndices(i, j, k, mtln_solver%bundles(m)%external_field_segments(n))                          
-               select case (abs(mtln_solver%bundles(m)%external_field_segments(n)%direction))  
+               call readGridIndices(i, j, k, mtln_solver%bundles(m)%external_field_segments(n))
+               direction = mtln_solver%bundles(m)%external_field_segments(n)%direction
+               select case (abs(mtln_solver%bundles(m)%external_field_segments(n)%direction))
                   case(1)                                
                   mtln_solver%bundles(m)%external_field_segments(n)%field => Ex(i, j, k) 
                   case(2)     
@@ -90,8 +91,6 @@ contains
                c = mu0*eps0/l
                mtln_solver%bundles(m)%lpul(n,1,1) = l
                mtln_solver%bundles(m)%cpul(n,1,1) = c
-               ! mtln_solver%bundles(m)%lpul(n,1,1) = hwires%CurrentSegment(indexMap(m,n))%Lind
-               ! mtln_solver%bundles(m)%cpul(n,1,1) = mu0*eps0/hwires%CurrentSegment(indexMap(m,n))%Lind
             end do
             mtln_solver%bundles(m)%cpul(ubound(mtln_solver%bundles(m)%cpul,1),1,1) = &
                mtln_solver%bundles(m)%cpul(ubound(mtln_solver%bundles(m)%cpul,1)-1,1,1)
@@ -150,7 +149,7 @@ contains
          Idyh(sgg%ALLOC(iEy)%YI : sgg%ALLOC(iEy)%YE),&
          Idzh(sgg%ALLOC(iEz)%ZI : sgg%ALLOC(iEz)%ZE)  
       real(KIND=RKIND) :: cte,eps00,mu00
-      integer (kind=4) :: m, n
+      integer (kind=4) :: m, n, dir
       REAL (KIND=RKIND),pointer:: punt
       type(Thinwires_t), pointer  ::  hwires
 
@@ -160,8 +159,10 @@ contains
       hwires => GetHwires()
       do m = 1, mtln_solver%number_of_bundles
          do n = 1, ubound(mtln_solver%bundles(m)%external_field_segments,1)
+            dir = mtln_solver%bundles(m)%external_field_segments(n)%direction
             punt => mtln_solver%bundles(m)%external_field_segments(n)%field
             punt = real(punt, kind=rkind_wires) - computeFieldFromCurrent()
+            mtln_solver%bundles(m)%external_field_segments(n)%eL = punt*dir/abs(dir)
             hwires%CurrentSegment(indexMap(m,n))%CurrentPast = mtln_solver%bundles(m)%i(1, n)
          end do
       end do

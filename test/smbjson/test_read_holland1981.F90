@@ -142,8 +142,7 @@ contains
       do i = 1, 10
          expected%mtln%cables(1)%external_field_segments(i)%position = (/11,11,i+6/)
          expected%mtln%cables(1)%external_field_segments(i)%direction = DIRECTION_Z_POS
-         expected%mtln%cables(1)%external_field_segments(i)%Efield_wire2main => null()
-         expected%mtln%cables(1)%external_field_segments(i)%Efield_main2wire => null()
+         expected%mtln%cables(1)%external_field_segments(i)%field => null()
 
       end do
 

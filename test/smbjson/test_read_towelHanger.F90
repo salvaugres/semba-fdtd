@@ -193,29 +193,25 @@ contains
       do i = 1,2
          expected%mtln%cables(1)%external_field_segments(i)%position = (/27,25,29+i/)
          expected%mtln%cables(1)%external_field_segments(i)%direction = DIRECTION_Z_POS
-         expected%mtln%cables(1)%external_field_segments(i)%Efield_wire2main => null()
-         expected%mtln%cables(1)%external_field_segments(i)%Efield_main2wire => null()
+         expected%mtln%cables(1)%external_field_segments(i)%field => null()
       end do
 
       do i = 3, 10
          expected%mtln%cables(1)%external_field_segments(i)%position = (/24+i,25,32/)
          expected%mtln%cables(1)%external_field_segments(i)%direction = DIRECTION_X_POS
-         expected%mtln%cables(1)%external_field_segments(i)%Efield_wire2main => null()
-         expected%mtln%cables(1)%external_field_segments(i)%Efield_main2wire => null()
+         expected%mtln%cables(1)%external_field_segments(i)%field => null()
       end do
 
       do i = 1,8
          expected%mtln%cables(1)%external_field_segments(10+i)%position = (/34+i,25,32/)
          expected%mtln%cables(1)%external_field_segments(10+i)%direction = DIRECTION_X_POS
-         expected%mtln%cables(1)%external_field_segments(10+i)%Efield_wire2main => null()
-         expected%mtln%cables(1)%external_field_segments(10+i)%Efield_main2wire => null()
+         expected%mtln%cables(1)%external_field_segments(10+i)%field => null()
       end do
 
       do i = 9,10
          expected%mtln%cables(1)%external_field_segments(10+i)%position = (/43,25,40-i/)
          expected%mtln%cables(1)%external_field_segments(10+i)%direction = DIRECTION_Z_NEG
-         expected%mtln%cables(1)%external_field_segments(10+i)%Efield_wire2main => null()
-         expected%mtln%cables(1)%external_field_segments(10+i)%Efield_main2wire => null()
+         expected%mtln%cables(1)%external_field_segments(10+i)%field => null()
       end do
 
 

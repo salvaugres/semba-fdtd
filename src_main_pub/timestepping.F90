@@ -1357,7 +1357,7 @@ contains
 #endif
 #ifdef CompileWithBerengerWires
          if (trim(adjustl(wiresflavor))=='berenger') then
-            ! IF (Thereare%Wires) call AdvanceWiresE_Berenger(sgg,n)
+            IF (Thereare%Wires) call AdvanceWiresE_Berenger(sgg,n)
          endif
 #endif
 #ifdef CompileWithSlantedWires

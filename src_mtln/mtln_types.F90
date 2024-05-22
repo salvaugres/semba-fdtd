@@ -32,8 +32,7 @@ module mtln_types_mod
       integer, dimension(3) ::position
       integer :: direction
       real (kind=rkind) , pointer  ::  field
-      real (kind=rkind) ::  external_field, prev_external_field
-      real (kind=rkind) , pointer  ::  Efield_wire2main, Efield_main2wire
+      real (kind=rkind)  ::  eL
    contains
       private
       procedure :: external_field_segments_eq 
@@ -377,24 +376,6 @@ contains
       else
          external_field_segments_eq = external_field_segments_eq .and. (a%field == b%field)
       end if
-
-      ! if (.not. associated(a%Efield_main2wire) .and. .not. associated(b%Efield_main2wire)) then
-      !    external_field_segments_eq = external_field_segments_eq .and. .true.
-      ! else if ((associated(a%Efield_main2wire) .and. .not. associated(b%Efield_main2wire)) .or. &
-      !    (.not. associated(a%Efield_main2wire) .and. associated(b%Efield_main2wire))) then
-      !       external_field_segments_eq = external_field_segments_eq .and. .false.
-      ! else
-      !    external_field_segments_eq = external_field_segments_eq .and. (a%Efield_main2wire == b%Efield_main2wire)
-      ! end if
-
-      ! if (.not. associated(a%Efield_wire2main) .and. .not. associated(b%Efield_wire2main)) then
-      !    external_field_segments_eq = external_field_segments_eq .and. .true.
-      ! else if ((associated(a%Efield_wire2main) .and. .not. associated(b%Efield_wire2main)) .or. &
-      !    (.not. associated(a%Efield_wire2main) .and. associated(b%Efield_wire2main))) then
-      !       external_field_segments_eq = external_field_segments_eq .and. .false.
-      ! else
-      !    external_field_segments_eq = external_field_segments_eq .and. (a%Efield_wire2main == b%Efield_wire2main)
-      ! end if
 
 
    end function

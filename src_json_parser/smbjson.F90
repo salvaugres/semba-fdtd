@@ -1806,8 +1806,9 @@ contains
          type(json_value), pointer :: termination
          character(len=*), intent(in) :: default
          character(len=256) :: res
-         if (this%existsAt(termination, J_SRC_MAGNITUDE_FILE)) then
-            res = trim(this%getStrAt(termination, J_SRC_MAGNITUDE_FILE))
+         if (this%existsAt(termination, J_MAT_TERM_EXCITATION)) then
+         ! if (this%existsAt(termination, J_SRC_MAGNITUDE_FILE)) then
+            res = trim(this%getStrAt(termination, J_MAT_TERM_EXCITATION))
          else
             res = trim(default)
          end if
@@ -2286,8 +2287,6 @@ contains
          n_segments = abs(ceiling(c2%position(axis)) - floor(c1%position(axis)))
          allocate(res(n_segments))
          curr_pos%position = [(c1%position(i), i = 1, 3)]
-         curr_pos%Efield_main2wire => null()
-         curr_pos%Efield_wire2main => null()
          curr_pos%field => null()
 
          res = [(curr_pos, i = 1, n_segments)]
@@ -2306,8 +2305,6 @@ contains
          n_segments = abs(floor(c2%position(axis)) - ceiling(c1%position(axis)))
          allocate(res(n_segments))
          curr_pos%position = [(c1%position(i), i = 1, 3)]
-         curr_pos%Efield_main2wire => null()
-         curr_pos%Efield_wire2main => null()
          curr_pos%field => null()
 
          res = [(curr_pos, i = 1, n_segments)]
