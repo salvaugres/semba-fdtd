@@ -58,7 +58,7 @@ contains
 
       ! Expected sources.
       allocate(expected%plnSrc%collection(1))
-      expected%plnSrc%collection(1)%nombre_fichero = "double_exp_pulse.exc"
+      expected%plnSrc%collection(1)%nombre_fichero = "holland.exc"
       expected%plnSrc%collection(1)%atributo = ""
       expected%plnSrc%collection(1)%coor1 = [1, 1, 1]
       expected%plnSrc%collection(1)%coor2 = [18, 18, 20]
@@ -125,9 +125,12 @@ contains
       expected%tWires%n_tw_max = 1
 
       ! expected mtln bundles
+      expected%mtln%time_step = 30e-12
+      expected%mtln%number_of_steps = 1000
+
       allocate(expected%mtln%cables(1))
 
-      expected%mtln%cables(1)%name = ""
+      expected%mtln%cables(1)%name = "single_wire"
       allocate(expected%mtln%cables(1)%inductance_per_meter(1,1))
       allocate(expected%mtln%cables(1)%capacitance_per_meter(1,1))
       allocate(expected%mtln%cables(1)%resistance_per_meter(1,1))

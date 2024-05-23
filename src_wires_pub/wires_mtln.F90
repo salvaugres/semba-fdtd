@@ -149,7 +149,7 @@ contains
          Idyh(sgg%ALLOC(iEy)%YI : sgg%ALLOC(iEy)%YE),&
          Idzh(sgg%ALLOC(iEz)%ZI : sgg%ALLOC(iEz)%ZE)  
       real(KIND=RKIND) :: cte,eps00,mu00
-      integer (kind=4) :: m, n, dir
+      integer (kind=4) :: m, n
       REAL (KIND=RKIND),pointer:: punt
       type(Thinwires_t), pointer  ::  hwires
 
@@ -159,20 +159,26 @@ contains
       hwires => GetHwires()
       do m = 1, mtln_solver%number_of_bundles
          do n = 1, ubound(mtln_solver%bundles(m)%external_field_segments,1)
-            dir = mtln_solver%bundles(m)%external_field_segments(n)%direction
             punt => mtln_solver%bundles(m)%external_field_segments(n)%field
             punt = real(punt, kind=rkind_wires) - computeFieldFromCurrent()
-            mtln_solver%bundles(m)%external_field_segments(n)%eL = punt*dir/abs(dir)
-            hwires%CurrentSegment(indexMap(m,n))%CurrentPast = mtln_solver%bundles(m)%i(1, n)
+            hwires%CurrentSegment(indexMap(m,n))%CurrentPast = getOrientedCurrent()
          end do
       end do
       call mtln_solver%step()
 
       contains
 
+      function getOrientedCurrent() result(res)
+         real(kind=rkind) :: res
+         integer (kind=4) :: i, j, k, direction
+         direction = mtln_solver%bundles(m)%external_field_segments(n)%direction
+         call readGridIndices(i, j, k, mtln_solver%bundles(m)%external_field_segments(n))      
+         res = mtln_solver%bundles(m)%i(1, n) * sign(1.0, real(direction))
+      end function
+
       function computeFieldFromCurrent() result(res)
          real(kind=rkind) :: dS_inverse, factor
-         real :: res
+         real(kind=rkind) :: res
          integer (kind=4) :: i, j, k, direction
          direction = mtln_solver%bundles(m)%external_field_segments(n)%direction
          call readGridIndices(i, j, k, mtln_solver%bundles(m)%external_field_segments(n))      
@@ -185,7 +191,7 @@ contains
             dS_inverse = (idxh(i)*idyh(j))
          end select
          factor = (sgg%dt / eps0) * dS_inverse
-         res = sign(factor, real(direction,kind=rkind)) * mtln_solver%bundles(m)%i(1, n)
+         res = factor * getOrientedCurrent()
       end function
 
    end subroutine AdvanceWiresE_mtln

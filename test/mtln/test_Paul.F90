@@ -81,7 +81,7 @@ integer function test_termination_resistive() bind(C) result(error_cnt)
     parsed%probes = [probe_v, probe_i, probe_v_r]    ! pre = preprocess(parsed)
 
     solver = mtlnCtor(parsed)
-    call solver%updatePULTerms()
+    
     call solver%run()
     write(*,*) error_cnt
     ! p = Parser(file)
@@ -184,7 +184,7 @@ integer function test_termination_resistive_inductive() bind(C) result(error_cnt
     parsed%probes = [probe_v, probe_i, probe_v_R]    ! pre = preprocess(parsed)
 
     solver = mtlnCtor(parsed)
-    call solver%updatePULTerms()
+    
     call solver%run()
     write(*,*) error_cnt
     ! p = Parser(file)
@@ -288,7 +288,7 @@ integer function test_termination_resistive_capacitive_parallel() bind(C) result
     parsed%probes = [probe_v, probe_i, probe_v_r]    ! pre = preprocess(parsed)
 
     solver = mtlnCtor(parsed)
-    call solver%updatePULTerms()
+    
     call solver%run()
     write(*,*) error_cnt
     ! p = Parser(file)
@@ -392,7 +392,7 @@ integer function test_termination_rls_cp() bind(C) result(error_cnt)
     parsed%probes = [probe_v, probe_i, probe_v_r]    ! pre = preprocess(parsed)
 
     solver = mtlnCtor(parsed)
-    call solver%updatePULTerms()
+    
     call solver%run()
     write(*,*) error_cnt
     ! p = Parser(file)
@@ -501,7 +501,7 @@ integer function test_termination_rls_cp_ns() bind(C) result(error_cnt)
     parsed%probes = [probe_v, probe_i, probe_v_r]    ! pre = preprocess(parsed)
 
     solver = mtlnCtor(parsed)
-    call solver%updatePULTerms()
+    
     call solver%run()
     write(*,*) error_cnt
     ! p = Parser(file)
@@ -605,7 +605,7 @@ integer function test_termination_rcp() bind(C) result(error_cnt)
     parsed%probes = [probe_v, probe_i, probe_v_r]    ! pre = preprocess(parsed)
 
     solver = mtlnCtor(parsed)
-    call solver%updatePULTerms()
+    
     call solver%run()
     write(*,*) error_cnt
     ! p = Parser(file)
@@ -709,7 +709,7 @@ integer function test_termination_resistive_capacitive() bind(C) result(error_cn
     parsed%probes = [probe_v, probe_i, probe_v_r]    ! pre = preprocess(parsed)
 
     solver = mtlnCtor(parsed)
-    call solver%updatePULTerms()
+    
     call solver%run()
     write(*,*) error_cnt
     ! p = Parser(file)
@@ -818,7 +818,7 @@ integer function test_coaxial_line_paul_8_6_square() bind(C) result(error_cnt)
     parsed%probes = [probe_v, probe_i]
 
     solver = mtlnCtor(parsed)
-    call solver%updatePULTerms()
+    
     call solver%run()
     write(*,*) error_cnt
 
@@ -827,12 +827,12 @@ integer function test_coaxial_line_paul_8_6_square() bind(C) result(error_cnt)
         real, dimension(:), allocatable :: start_times, end_times, expected_voltages, aux_times
         integer :: j, start, end, idx
 
-        open(unit = 1, file =  'testData/outputs/paul/paul_8.6_square.txt')
-        do i = 1, size(solver%bundles(1)%probes(1)%t)
-            write(1,*) solver%bundles(1)%probes(1)%t(i)," ", &
-                       solver%bundles(1)%probes(1)%val(i,1) ," ", &
-                       solver%bundles(1)%probes(2)%val(i,1)
-        end do
+        ! open(unit = 1, file =  'testData/outputs/paul/paul_8.6_square.txt')
+        ! do i = 1, size(solver%bundles(1)%probes(1)%t)
+        !     write(1,*) solver%bundles(1)%probes(1)%t(i)," ", &
+        !                solver%bundles(1)%probes(1)%val(i,1) ," ", &
+        !                solver%bundles(1)%probes(2)%val(i,1)
+        ! end do
 
         
         start_times = [0.1, 4.1, 6.1, 8.1, 10.1, 12.1, 14.1, 16.1]
@@ -942,7 +942,7 @@ integer function test_coaxial_line_paul_8_6_triangle() bind(C) result(error_cnt)
     parsed%probes = [probe_v, probe_i]
 
     solver = mtlnCtor(parsed)
-    call solver%updatePULTerms()
+    
     call solver%run()
     write(*,*) error_cnt
 
@@ -951,24 +951,24 @@ integer function test_coaxial_line_paul_8_6_triangle() bind(C) result(error_cnt)
         real, dimension(:), allocatable :: times, expected_voltages, aux_times
         integer :: j, start, end, idx
 
-        open(unit = 1, file =  'testData/outputs/paul/paul_8.6_triangle.txt')
-        do i = 1, size(solver%bundles(1)%probes(1)%t)
-            write(1,*) solver%bundles(1)%probes(1)%t(i)," ", &
-                       solver%bundles(1)%probes(1)%val(i,1) ," ", &
-                       solver%bundles(1)%probes(2)%val(i,1)
-        end do
-        
-        ! times = [4.0, 5.9, 6.1, 8.0, 10.1, 12.0]
-        ! expected_voltages = [16.67, 12.5, -12.5, -25.0, 6.25, 12.5]
-        ! allocate(aux_times(size(solver%bundles(1)%probes(1)%t)), source = 0.0)
-        ! do j = 1, size(times) 
-        !     aux_times = times(j)*1e-6
-        !     idx = minloc(abs(solver%bundles(1)%probes(1)%t - aux_times),1)
-        !     ! write(*,*) 'expected: ', expected_voltages(j), ' simulated: ', solver%bundles(1)%probes(1)%val(idx,1)
-        !     if (.not. (abs((solver%bundles(1)%probes(1)%val(idx,1) - expected_voltages(j))/expected_voltages(j)) <= 5e-2)) then 
-        !         error_cnt =  error_cnt + 1
-        !     end if
+        ! open(unit = 1, file =  'testData/outputs/paul/paul_8.6_triangle.txt')
+        ! do i = 1, size(solver%bundles(1)%probes(1)%t)
+        !     write(1,*) solver%bundles(1)%probes(1)%t(i)," ", &
+        !                solver%bundles(1)%probes(1)%val(i,1) ," ", &
+        !                solver%bundles(1)%probes(2)%val(i,1)
         ! end do
+        
+        times = [4.0, 5.9, 6.1, 8.0, 10.1, 12.0]
+        expected_voltages = [16.67, 12.5, -12.5, -25.0, 6.25, 12.5]
+        allocate(aux_times(size(solver%bundles(1)%probes(1)%t)), source = 0.0)
+        do j = 1, size(times) 
+            aux_times = times(j)*1e-6
+            idx = minloc(abs(solver%bundles(1)%probes(1)%t - aux_times),1)
+            ! write(*,*) 'expected: ', expected_voltages(j), ' simulated: ', solver%bundles(1)%probes(1)%val(idx,1)
+            if (.not. (abs((solver%bundles(1)%probes(1)%val(idx,1) - expected_voltages(j))/expected_voltages(j)) <= 5e-2)) then 
+                error_cnt =  error_cnt + 1
+            end if
+        end do
 
 
     end block
@@ -1085,7 +1085,7 @@ integer function test_2_conductor_line_paul_9_6_1c() bind(C) result(error_cnt)
                      probe_i_left, probe_i_right]
 
     solver = mtlnCtor(parsed)
-    call solver%updatePULTerms()
+    
     call solver%run()
     write(*,*) error_cnt
 
@@ -1253,7 +1253,7 @@ integer function test_2_conductor_line_paul_9_6() bind(C) result(error_cnt)
                      probe_i_left, probe_i_mid, probe_i_right]    ! pre = preprocess(parsed)
 
     solver = mtlnCtor(parsed)
-    call solver%updatePULTerms()
+    
     call solver%run()
     write(*,*) error_cnt
     ! p = Parser(file)
@@ -1380,7 +1380,7 @@ integer function test_2_conductor_line_paul_9_11_20ns() bind(C) result(error_cnt
     parsed%probes = [probe_v_101]
 
     solver = mtlnCtor(parsed)
-    call solver%updatePULTerms()
+    
     call solver%run()
     write(*,*) error_cnt
 
@@ -1496,7 +1496,7 @@ integer function test_2_conductor_line_paul_9_11_1ns() bind(C) result(error_cnt)
     parsed%probes = [probe_v_101]
 
     solver = mtlnCtor(parsed)
-    call solver%updatePULTerms()
+    
     call solver%run()
     write(*,*) error_cnt
 

@@ -31,14 +31,13 @@ module mtl_bundle_mod
         procedure :: addProbe
         procedure :: updateLRTerms
         procedure :: updateCGTerms
-        ! procedure :: get_phase_velocities
+
         procedure :: updateSources => bundle_updateSources
         procedure :: advanceVoltage => bundle_advanceVoltage
         procedure :: advanceCurrent => bundle_advanceCurrent
         procedure :: addTransferImpedance => bundle_addTransferImpedance
         ! procedure :: setConnectorTransferImpedance
-        procedure :: setExternalVoltage => bundle_setExternalVoltage
-        procedure :: updateExternalCurrent => bundle_updateExternalCurrent
+        procedure :: setExternalLongitudinalField => bundle_setExternalLongitudinalField
 
     end type mtl_bundle_t
 
@@ -193,35 +192,6 @@ contains
         real, dimension(this%number_of_divisions,this%number_of_conductors,this%number_of_conductors) :: F1, F2, IF1
         integer :: i
 
-        ! do i = 1, this%number_of_divisions
-        !     F1(i,:,:) = matmul(this%du(i,:,:), &
-        !                        this%lpul(i,:,:)/this%dt + 0.5*this%transfer_impedance%d(i,:,:) + this%transfer_impedance%e(i,:,:)/this%dt + 0.5*this%rpul(i,:,:) + this%transfer_impedance%q1_sum(i,:,:))
-        !     F2(i,:,:) = matmul(this%du(i,:,:), &
-        !                        this%lpul(i,:,:)/this%dt - 0.5*this%transfer_impedance%d(i,:,:) + this%transfer_impedance%e(i,:,:)/this%dt - 0.5*this%rpul(i,:,:) - this%transfer_impedance%q1_sum(i,:,:))
-        !     IF1(i,:,:) = inv(F1(i,:,:))
-        !     ! this%i_term(i,:,:) = matmul(IF1(i,:,:),F2(i,:,:))
-        !     ! this%v_diff(i,:,:) = IF1(i,:,:)
-        ! enddo
-        ! F1 = reshape(source=F1, shape=[this%number_of_divisions,this%number_of_conductors, this%number_of_conductors],order=[2,3,1])
-        ! F2 = reshape(source=F2, shape=[this%number_of_divisions,this%number_of_conductors, this%number_of_conductors],order=[2,3,1])
-        ! IF1 = reshape(source=IF1,shape=[this%number_of_divisions,this%number_of_conductors, this%number_of_conductors])
-        ! do i = 1, this%number_of_divisions
-        !     this%i_term(i,:,:) = matmul(IF1(i,:,:),F2(i,:,:))
-        !     this%v_diff(i,:,:) = IF1(i,:,:)
-        ! enddo
-        ! this%i_term = reshape(source=this%i_term, shape=[this%number_of_divisions,this%number_of_conductors, this%number_of_conductors],order=[2,3,1])
-        ! this%v_diff = reshape(source=this%v_diff, shape=[this%number_of_divisions,this%number_of_conductors, this%number_of_conductors],order=[2,3,1])
-
-
-        ! ! IF1 = reshape(source=[(inv(F1(i,:,:)), i = 1, this%number_of_divisions)], &
-        ! !         shape=[this%number_of_divisions,this%number_of_conductors, this%number_of_conductors], &
-        ! !         order=[2,3,1])
-        ! this%i_term = reshape(&
-        !     source=[(matmul(IF1(i,:,:), F2(i,:,:)), i = 1, this%number_of_divisions)], &
-        !     shape=[this%number_of_divisions,this%number_of_conductors, this%number_of_conductors], &
-        !     order=[2,3,1])
-        ! this%v_diff = IF1
-
         F1 = reshape(source=[(matmul( &
             this%du(i,:,:), &
             this%lpul(i,:,:)/this%dt + &
@@ -232,7 +202,7 @@ contains
             i = 1,this%number_of_divisions)], & 
             shape=[this%number_of_divisions,this%number_of_conductors, this%number_of_conductors], &
             order=[2,3,1])
-        ! write(*,*) F1(1,1,1)
+
         F2 = reshape(source=[(matmul( &
             this%du(i,:,:), &
             this%lpul(i,:,:)/this%dt - &
@@ -243,10 +213,7 @@ contains
             i = 1,this%number_of_divisions)], & 
             shape=[this%number_of_divisions,this%number_of_conductors, this%number_of_conductors], &
             order=[2,3,1])
-        ! write(*,*) F2(1,1,1)
-        ! IF1 = reshape(source=[(inv(F1(i,:,:)), i = 1, 100)], &
-        !             shape=[100,1, 1], &
-        !             order=[2,3,1])
+
         IF1 = reshape(source=[(inv(F1(i,:,:)), i = 1, this%number_of_divisions)], &
                     shape=[this%number_of_divisions,this%number_of_conductors, this%number_of_conductors], &
                     order=[2,3,1])
@@ -338,26 +305,13 @@ contains
         ! call this%transfer_impedance%updatePhi(i_prev, i_now)
     end subroutine
 
-    subroutine bundle_setExternalVoltage(this)
+    subroutine bundle_setExternalLongitudinalField(this)
         class(mtl_bundle_t) :: this
         integer :: i
         do i = 1, size(this%e_L,2)
-            this%e_L(1,i) = this%external_field_segments(i)%eL
-            ! this%e_L(1,i) = this%external_field_segments(i)%field
+            this%e_L(1,i) = this%external_field_segments(i)%field * &
+                            this%external_field_segments(i)%direction/abs(this%external_field_segments(i)%direction)
         end do
-    end subroutine
-
-    subroutine bundle_updateExternalCurrent(this, current)
-        class(mtl_bundle_t) :: this
-        real, dimension(:,:,:), intent(inout) :: current
-        ! real, dimension(:), intent(inout) :: current
-        integer, dimension(:), allocatable :: position
-        integer :: i
-        do i = 1, size(this%i,2)
-            position = this%external_field_segments(i)%position
-            current(position(1), position(2), position(3)) = this%i(1,i)
-        end do
-        ! current(:) =  this%i(1,:)
     end subroutine
 
 end module mtl_bundle_mod
