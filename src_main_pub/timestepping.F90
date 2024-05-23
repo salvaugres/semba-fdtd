@@ -90,7 +90,7 @@ module Solver
 #ifdef CompileWithWires  
    use HollandWires        
 #endif       
-#ifdef CompileWithWires_mtln  
+#ifdef CompileWithWires  
    use Wire_bundles_mtln_mod             
 #endif       
 #ifdef CompileWithBerengerWires
@@ -811,7 +811,7 @@ contains
 #endif
 
 
-#ifdef CompileWithMTLN
+#ifdef CompileWithWires
          call InitWires_mtln(sgg,Ex,Ey,Ez,eps0, mu0, mtln_parsed,thereAre%MTLNbundles)
 #endif
 
@@ -1368,7 +1368,6 @@ contains
          endif
 #endif
 #ifdef CompileWithWires
-         ! write(*,*) HWires%NullNode%IsPEC
          if (thereAre%MTLNbundles) call AdvanceWiresE_mtln(sgg,Idxh,Idyh,Idzh,eps0,mu0)
 
 #endif 
