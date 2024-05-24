@@ -272,19 +272,10 @@ contains
     subroutine bundle_advanceVoltage(this)
         class(mtl_bundle_t) ::this
         integer :: i
-
         do i = 2, this%number_of_divisions
             this%v(:, i) = matmul(this%v_term(i,:,:), this%v(:,i)) - &
                            matmul(this%i_diff(i,:,:), this%i(:,i) - this%i(:,i-1)  )
         end do
-
-
-        ! this%v(:,2:this%number_of_divisions) = &
-        !          reshape(source=[(matmul(this%v_term(i,:,:), this%v(:,i)) - &
-        !                           matmul(this%i_diff(i,:,:), this%i(:,i) - this%i(:,i-1)), &
-        !                           i = 2, this%number_of_divisions - 1)], &
-        !                  shape = [this%number_of_divisions -1,this%number_of_conductors], &
-        !                  order = [2,1])
     end subroutine
 
     subroutine bundle_advanceCurrent(this)

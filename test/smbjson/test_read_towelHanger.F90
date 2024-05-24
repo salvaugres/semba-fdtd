@@ -145,9 +145,9 @@ contains
       expected%tWires%tw(1)%n_twc=20
       expected%tWires%tw(1)%n_twc_max=20
       allocate(expected%tWires%tw(1)%twc(20))
-      expected%tWires%tw(1)%twc(1)%srcfile = 'None'
-      expected%tWires%tw(1)%twc(1)%srctype = 'None'
-      expected%tWires%tw(1)%twc(1)%m = 0.0
+      expected%tWires%tw(1)%twc(1)%srcfile = 'towelHanger.exc'
+      expected%tWires%tw(1)%twc(1)%srctype = 'VOLT'
+      expected%tWires%tw(1)%twc(1)%m = 1.0
       expected%tWires%tw(1)%twc(2)%srcfile = 'None'
       expected%tWires%tw(1)%twc(2)%srctype = 'None'
       expected%tWires%tw(1)%twc(2)%m = 0.0
@@ -193,7 +193,9 @@ contains
       expected%tWires%n_tw = 1
       expected%tWires%n_tw_max = 1
 
-         ! expected mtln bundles
+      ! expected mtln bundles
+      expected%mtln%time_step = 1e-12
+      expected%mtln%number_of_steps = 2000
       allocate(expected%mtln%cables(1))
 
       expected%mtln%cables(1)%name = "wire"

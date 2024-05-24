@@ -267,7 +267,6 @@ contains
                 type(cable_array_t) :: next_level
                 integer :: i,j, next_level_size
                 integer :: n
-                ! allocate(next_level%cables(0))
                 next_level_size = 0
                 do i = 1, size(curr_level%cables) 
                     do j = 1, size(c)
@@ -280,13 +279,9 @@ contains
                 allocate(next_level%cables(next_level_size))
                 n = 0
                 do i = 1, size(curr_level%cables) 
-                    ! tgt = curr_level%cables(i)%p
                     do j = 1, size(c)
                         if (associated(c(j)%parent_cable, curr_level%cables(i)%p)) then 
-                        ! if (associated(c(j)%parent_cable, tgt)) then 
-                            ! next_level%cables = [next_level%cables, c(j)]
                             n = n + 1
-                            ! tgt = c(j)
                             next_level%cables(n)%p => c(j)
                         end if
                     end do
@@ -375,9 +370,6 @@ contains
         write(termination_r, *) termination%resistance
         write(termination_l, *) termination%inductance
         write(line_c, *) node%line_c_per_meter * node%step/2
-                
-
-        
         allocate(res(0))
 
         buff = trim("R" // node%name // " " // node%name // " "   // node%name //"_R " // termination_r)
@@ -506,7 +498,6 @@ contains
         character(len=256) :: buff
         character(20) :: short_R, line_c
 
-        ! write(short_r, *) 0.0
         write(short_r, *) 1e-10
         write(line_c, *) node%line_c_per_meter*node%step/2
 
@@ -607,7 +598,6 @@ contains
         class(preprocess_t) :: this
         type(terminal_node_t) :: node
         integer :: stat
-        ! type(mtl_bundle_t) :: this%bundles(d)
         integer :: d
         type(nw_node_t) :: res
         character(len=4) :: sConductor
@@ -618,7 +608,6 @@ contains
         
         call this%cable_name_to_bundle_id%get(key(node%belongs_to_cable%name), d, stat)
         if (stat /= 0) return
-        ! this%bundles(d) = this%bundles(d)
         write(sConductor,'(I0)') node%conductor_in_cable
         res%name = trim(node%belongs_to_cable%name)//"_"//trim(sConductor)//"_"//nodeSideToString(node%side)
         write(*,*) res%name
@@ -683,7 +672,6 @@ contains
 
         new_node = this%addNodeWithId(terminal_nodes(1))
         nodes(size(aux_nodes) + 1) = new_node
-        ! nodes = [nodes, new_node]
         nodes(1:size(nodes) - 1) = aux_nodes
 
         node_description = writeNodeDescription(new_node, terminal_nodes(1)%termination, "0")
@@ -709,21 +697,14 @@ contains
 
         interior_node = trim(terminal_nodes(1)%belongs_to_cable%name)//"_"//&
                         trim(terminal_nodes(2)%belongs_to_cable%name)//"_inter"
-        ! se esta perdiendo info
         aux_nodes = nodes
         deallocate(nodes)
         allocate(nodes(size(aux_nodes) + 2))
 
         do i = 1, 2
 
-            ! new_node =this%addNodeWithId(terminal_nodes(i))
-            ! nodes = [nodes, new_node]
-            ! description = [description, writeNodeDescription(new_node, terminal_nodes(i)%termination, interior_node)]
-
-
             new_node =this%addNodeWithId(terminal_nodes(i))
             nodes(size(aux_nodes) + i ) = new_node
-            ! nodes = [nodes, new_node]
             node_description = writeNodeDescription(new_node, terminal_nodes(i)%termination, interior_node)
 
             if (allocated(old_description)) then 
@@ -737,8 +718,6 @@ contains
             description(1:size(old_description)) = old_description
             description((size(old_description)+1):size(description)) = node_description(:)
     
-            ! call appendToStringArray(description, buff)
-            ! description = [description, writeNodeDescription(new_node, terminal_nodes(i)%termination, interior_node)]
         end do
         nodes(1:size(aux_nodes)) = aux_nodes
     end subroutine

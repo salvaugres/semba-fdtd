@@ -29,7 +29,6 @@
             "type": "terminal",
             "terminations": [{
                 "type": "series", 
-                "path_to_excitation":"towelHanger.exc",
                 "resistance" : 50.0}]
         },
         {
@@ -82,7 +81,15 @@
             "elementIds": [3]
         }
     ],
-
+    "sources": [
+        {
+            "name" : "terminal_source",
+            "type" : "generator",
+            "magnitudeFile" : "towelHanger.exc",
+            "elementIds" : [1],
+            "field" : "voltage"
+        }
+    ],
 
     "probes": [
         {
