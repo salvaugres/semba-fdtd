@@ -204,7 +204,8 @@ contains
          character (len=:), allocatable :: elementType
          type(json_value), pointer :: jes, je
          integer :: id, i
-         type(node_t) :: e
+         type(node_t) :: node
+         type(polyline_t) :: polyline
          integer, dimension(:), allocatable :: coordIds
          logical :: found
          call this%core%get(this%root, J_MESH//'.'//J_ELEMENTS, jes, found=found)
@@ -216,10 +217,12 @@ contains
                select case (elementType)
                 case (J_ELEM_TYPE_NODE)
                   call this%core%get(je, J_COORDINATE_IDS, coordIds)
-                  call mesh%addElement(id, node_t(coordIds))
+                  node%coordIds = coordIds
+                  call mesh%addElement(id, node)
                 case (J_ELEM_TYPE_POLYLINE)
                   call this%core%get(je, J_COORDINATE_IDS, coordIds)
-                  call mesh%addElement(id, polyline_t(coordIds))
+                  polyline%coordIds = coordIds
+                  call mesh%addElement(id, polyline)
                 CASE (J_ELEM_TYPE_CELL)
                   block
                      type(cell_region_t) :: cR
@@ -684,48 +687,78 @@ contains
    contains
       function readProbe(p) result (res)
          type(MasSonda) :: res
-         type(json_value), pointer :: p
+         type(json_value), pointer :: p, dirLabels, dirLabelPtr
          integer :: i, j, k
-         character (len=:), allocatable :: typeLabel, fieldLabel, outputName
-         character(kind=CK,len=1), dimension(:), allocatable :: dirLabels
-         type(pixel_t), dimension(:), allocatable :: pixels
+         character (len=:), allocatable :: typeLabel, fieldLabel, outputName, dirLabel
+         type(pixel_t) :: pixel
 
          integer, dimension(:), allocatable :: elemIds
-         logical :: elementIdsFound
+         logical :: elementIdsFound, typeLabelFound, dirLabelsFound, fieldLabelFound
 
          call this%core%get(p, J_NAME, outputName)
          res%outputrequest = trim(adjustl(outputName))
          call setDomain(res, this%getDomain(p, J_PR_DOMAIN))
 
          call this%core%get(p, J_ELEMENTIDS, elemIds, found=elementIdsFound)
-         pixels = getPixelsFromElementIds(this%mesh, elemIds)
+         if (.not. elementIdsFound) then
+            write(error_unit, *) "ERROR: element ids entry not found for probe."
+         end if
+         if (size(elemIds) /= 1) then
+            write(error_unit, *) "ERROR: point probe must contain a single element id."
+         end if
 
-         call this%core%get(p, J_TYPE, typeLabel)
+         pixel = getPixelFromElementId(this%mesh, elemIds(1))
+
+         call this%core%get(p, J_TYPE, typeLabel, found=typeLabelFound)
+         if (.not. typeLabelFound) then
+            write(error_unit, *) "ERROR: Point probe type label not found."
+         end if
          select case (typeLabel)
           case (J_PR_TYPE_WIRE)
-            allocate(res%cordinates(size(pixels)))
+            allocate(res%cordinates(1))
             call this%core%get(p, J_FIELD, fieldLabel, default=J_FIELD_VOLTAGE)
-            do i = 1, size(pixels)
-               res%cordinates(i)%tag = outputName
-               res%cordinates(i)%Xi = pixels(i)%tag
-               res%cordinates(i)%Yi = 0
-               res%cordinates(i)%Zi = 0
-               res%cordinates(i)%Or = strToFieldType(fieldLabel)
-            end do
+            res%cordinates(1)%tag = outputName
+            res%cordinates(1)%Xi = pixel%tag
+            res%cordinates(1)%Yi = 0
+            res%cordinates(1)%Zi = 0
+            res%cordinates(1)%Or = strToFieldType(fieldLabel)
           case (J_PR_TYPE_POINT)
-            call this%core%get(p, J_PR_POINT_DIRECTIONS, dirLabels)
-            call this%core%get(p, J_FIELD, fieldLabel, default=J_FIELD_ELECTRIC)
-            allocate(res%cordinates(size(pixels) * size(dirLabels)))
-            do i = 1, size(pixels)
-               k = (i-1) * size(dirLabels)
-               do j = 1, size(dirLabels)
-                  res%cordinates(k+j)%tag = outputName
-                  res%cordinates(k+j)%Xi = int (pixels(i)%cell(1))
-                  res%cordinates(k+j)%Yi = int (pixels(i)%cell(2))
-                  res%cordinates(k+j)%Zi = int (pixels(i)%cell(3))
-                  res%cordinates(k+j)%Or = strToFieldType(fieldLabel, dirLabels(j))
+            call this%core%get(p, J_PR_POINT_DIRECTIONS, dirLabels, found=dirLabelsFound)
+            if (.not. dirLabelsFound) then
+               write(error_unit, *) "ERROR: Point probe direction labels not found."
+            end if
+            call this%core%get(p, J_FIELD, fieldLabel, default=J_FIELD_ELECTRIC, found=fieldLabelFound)
+            if (.not. fieldLabelFound) then
+               write(error_unit, *) "ERROR: Point probe field label not found."
+            end if
+            if (dirLabelsFound) then
+               allocate(res%cordinates(this%core%count(dirLabels)))
+               do j = 1, this%core%count(dirLabels)
+                  res%cordinates(j)%tag = outputName
+                  res%cordinates(j)%Xi = int (pixel%cell(1))
+                  res%cordinates(j)%Yi = int (pixel%cell(2))
+                  res%cordinates(j)%Zi = int (pixel%cell(3))
+                  call this%core%get_child(dirLabels, j, dirLabelPtr)
+                  call this%core%get(dirLabelPtr, dirLabel)
+                  res%cordinates(j)%Or = strToFieldType(fieldLabel, dirLabel)
                end do
-            end do
+            else
+               do j = 1, 3
+                  res%cordinates(j)%tag = outputName
+                  res%cordinates(j)%Xi = int (pixel%cell(1))
+                  res%cordinates(j)%Yi = int (pixel%cell(2))
+                  res%cordinates(j)%Zi = int (pixel%cell(3))
+                  select case (j)
+                  case (1)
+                     dirLabel = J_DIR_X
+                  case (2)
+                     dirLabel = J_DIR_Y
+                  case (3)
+                     dirLabel = J_DIR_Z
+                  end select
+                  res%cordinates(j)%Or = strToFieldType(fieldLabel, dirLabel)
+               end do
+            end if
          end select
 
          res%len_cor = size(res%cordinates)
@@ -750,11 +783,11 @@ contains
          end if
       end subroutine
 
-      function strToFieldType(typeLabel, dirLabel) result(res)
+      function strToFieldType(fieldLabel, dirLabel) result(res)
          integer (kind=4) :: res
-         character (len=:), allocatable :: typeLabel
-         character (len=1), optional :: dirLabel
-         select case (typeLabel)
+         character (len=:), allocatable, intent(in) :: fieldLabel
+         character (len=1), intent(in), optional :: dirLabel
+         select case (fieldLabel)
           case (J_FIELD_ELECTRIC)
             if (.not. present(dirLabel)) then
                write(error_unit, *) "Dir label must be present"
@@ -766,6 +799,8 @@ contains
                res = NP_COR_EY
              case (J_DIR_Z)
                res = NP_COR_EZ
+             case default
+               write(error_unit, *) "Invalid dir label"
             end select
           case (J_FIELD_MAGNETIC)
             if (.not. present(dirLabel)) then
@@ -778,12 +813,17 @@ contains
                res = NP_COR_HY
              case (J_DIR_Z)
                res = NP_COR_HZ
+             case default
+               write(error_unit, *) "Invalid dir label"
             end select
           case (J_FIELD_CURRENT)
             res = NP_COR_WIRECURRENT
           case (J_FIELD_VOLTAGE)
             res = NP_COR_DDP
+          case default
+            write(error_unit,*) "Invalid field label for point/wire probe."
          end select
+
       end function
    end function
 
@@ -1203,13 +1243,12 @@ contains
       function findSourcePositionInLinels(srcElemIds, linels) result(res)
          integer, dimension(:), intent(in) :: srcElemIds
          type(linel_t), dimension(:), intent(in) :: linels
-         type(pixel_t), dimension(:), allocatable :: pixels
+         type(pixel_t) :: pixel
          integer :: res
          integer :: i
-
-         pixels = this%mesh%convertNodeToPixels(this%mesh%getNode(srcElemIds(1)))
+         pixel = this%mesh%convertNodeToPixel(this%mesh%getNode(srcElemIds(1)))
          do i = 1, size(linels)
-            if (linels(i)%tag == pixels(1)%tag) then
+            if (linels(i)%tag == pixel%tag) then
                res = i
                return
             end if
@@ -1401,32 +1440,17 @@ contains
       type(mtln_t) :: mtln_res
       type(fhash_tbl_t) :: elemIdToPosition, elemIdToCable, connIdToConnector
       type(json_value_ptr), dimension(:), allocatable :: cables
-      integer :: nWs
 
       mtln_res%time_step = this%getRealAt(this%root, J_GENERAL//'.'//J_GEN_TIME_STEP)
       mtln_res%number_of_steps = this%getRealAt(this%root, J_GENERAL//'.'//J_GEN_NUMBER_OF_STEPS)
 
       cables = readCables()
 
-      block
-         integer :: nW, nMW
-         nMW = countNumberOfMultiwires(cables)
-         ! even if there are no multiwires, problem is solved by mtln
-         ! if (nMW == 0) then 
-         !    allocate(mtln_res%cables(0))
-         !    allocate(mtln_res%probes(0))
-         !    allocate(mtln_res%networks(0))
-         !    return
-         ! end if
-         nW =  countNumberOfWires(cables)
-         nWs = nW + nMW
-      end block
-
       mtln_res%connectors => readConnectors()
       call addConnIdToConnectorMap(connIdToConnector, mtln_res%connectors)
 
 
-      allocate (mtln_res%cables(nWs))
+      allocate (mtln_res%cables(countNumberOfWires(cables) + countNumberOfMultiwires(cables)))
       block
          logical :: is_read
          integer :: i, j, ncc
@@ -1437,12 +1461,10 @@ contains
                if (isWire(cables(i)%p) .or. isMultiwire(cables(i)%p)) then
                   is_read = .true.
                   read_cable = readMTLNCable(cables(i)%p, is_read)
-                  ! if (is_read) then
                   ncc = ncc + 1
                   mtln_res%cables(ncc) = read_cable
                   call addElemIdToCableMap(elemIdToCable, getCableElemIds(cables(i)%p), ncc)
                   call addElemIdToPositionMap(elemIdToPosition, cables(i)%p)
-                  ! end if
                end if
             end do
          end if
@@ -1528,9 +1550,7 @@ contains
             do i = 1, size(cables)
                if (isWire(cables(i)%p)) then
                   material = this%matTable%getId(this%getIntAt(cables(i)%p, J_MATERIAL_ID))
-                  if(this%existsAt(material%p, J_MAT_WIRE_REF_CAPACITANCE)) then
-                     res = res + 1
-                  end if
+                  res = res + 1
                end if
             end do
          end if
@@ -1739,12 +1759,14 @@ contains
          type(aux_node_t) :: res
          integer :: cable_index
          call this%core%get_child(termination_list, index, termination)
-         allocate(termination_t :: res%node%termination)
          res%node%side = label
+         
          res%node%termination%termination_type = readTerminationType(termination)
          res%node%termination%capacitance = readTerminationRLC(termination,J_MAT_TERM_CAPACITANCE, default = 1e22)
          res%node%termination%resistance = readTerminationRLC(termination, J_MAT_TERM_RESISTANCE, default = 0.0)
          res%node%termination%inductance = readTerminationRLC(termination, J_MAT_TERM_INDUCTANCE, default=0.0)
+         res%node%termination%path_to_excitation = readGeneratorOnTermination(id,label, default = "")
+        
          res%node%conductor_in_cable = index
 
          call elemIdToCable%get(key(id), value=cable_index)
@@ -1759,6 +1781,69 @@ contains
             res%cId = polyline%coordIds(ubound(polyline%coordIds,1))
             res%relPos = this%mesh%getCoordinate(polyline%coordIds(ubound(polyline%coordIds,1)))
          end if
+      end function
+
+      function readGeneratorOnTermination(id, label, default) result(res)
+         integer, intent(in) :: id, label
+         type(json_value), pointer :: sources
+         type(json_value_ptr), dimension(:), allocatable :: genSrcs
+         logical :: found
+         character(len=*), intent(in) :: default
+         character(len=256) :: res
+         
+         call this%core%get(this%root, J_SOURCES, sources, found)
+         if (.not. found) then
+            res = trim(default)
+            return
+         end if
+         
+         genSrcs = this%jsonValueFilterByKeyValues(sources, J_TYPE, [J_SRC_TYPE_GEN])
+         if (size(genSrcs) == 0) then
+            res = trim(default)
+            return
+         end if
+
+
+         block
+            type(node_t) :: srcCoord
+            integer, dimension(:), allocatable :: sourceElemIds
+            type(polyline_t) :: poly
+            integer :: i
+   
+            poly = this%mesh%getPolyline(id)
+            do i = 1, size(genSrcs)
+               if (.not. this%existsAt(genSrcs(i)%p, J_SRC_MAGNITUDE_FILE)) then
+                  write(error_unit, *) 'magnitudeFile of source missing'
+                  res = trim(default)
+                  return
+               end if
+               if (.not. this%existsAt(genSrcs(i)%p, J_FIELD)) then
+                  write(error_unit, *) 'Type of generator is ambigous'
+                  res = trim(default)
+                  return
+               end if
+               if (this%getStrAt(genSrcs(i)%p, J_FIELD) /= "voltage") then 
+                  write(error_unit, *) 'Only voltage generators are supported'
+                  res = trim(default)
+                  return
+               end if
+
+               call this%core%get(genSrcs(i)%p, J_ELEMENTIDS, sourceElemIds)
+               srcCoord = this%mesh%getNode(sourceElemIds(1))
+               if (label == TERMINAL_NODE_SIDE_INI) then
+                  if ((srcCoord%coordIds(1) == poly%coordIds(1))) then 
+                     res = trim(this%getStrAt(genSrcs(i)%p, J_SRC_MAGNITUDE_FILE))
+                     return
+                  end if
+               else if (label == TERMINAL_NODE_SIDE_END) then
+                  if ((srcCoord%coordIds(1) == poly%coordIds(ubound(poly%coordIds,1)))) then 
+                     res = trim(this%getStrAt(genSrcs(i)%p, J_SRC_MAGNITUDE_FILE))
+                     return
+                  end if
+               end if
+            end do
+            res = trim(default)
+         end block 
       end function
 
       function readTerminationType(termination) result(res)
@@ -2023,7 +2108,8 @@ contains
 
          if (this%existsAt(j_cable,J_NAME)) then
             res%name = trim(adjustl(this%getStrAt(j_cable,J_NAME)))
-            ! write(*,*) 'name: ', res%name
+         else
+            res%name  = ""
          end if
 
          res%step_size = buildStepSize(j_cable)
@@ -2031,13 +2117,6 @@ contains
          material = this%matTable%getId(this%getIntAt(j_cable, J_MATERIAL_ID, found))
          if (.not. found) &
             write(error_unit, *) "Error reading material region: materialId label not found."
-         ! removed to read all cables
-         ! if (isWire(j_cable)) then
-         !    if(.not. this%existsAt(material%p, J_MAT_WIRE_REF_CAPACITANCE)) then
-         !       is_read = .false.
-         !       return
-         !    end if
-         ! end if
 
          if (isWire(j_cable)) then
             call assignReferenceProperties(res, material)
@@ -2118,7 +2197,6 @@ contains
          else
             write(error_unit, *) "Capacitance per meter will be assigned in module Wire_bundles_mtln"
             res%capacitance_per_meter(1,1) = 0.0
-            ! write(error_unit, *) "Error reading material region: __referenceCapacitancePerMeter label not found."
          end if
          
          if (this%existsAt(mat%p, J_MAT_WIRE_REF_INDUCTANCE)) then
@@ -2126,14 +2204,12 @@ contains
          else
             write(error_unit, *) "Inductance per meter will be assigned in module Wire_bundles_mtln"
             res%inductance_per_meter(1,1) = 0.0
-            ! write(error_unit, *) "Error reading material region: __referenceInductancePerMeter label not found."
          end if
 
          if (this%existsAt(mat%p, J_MAT_WIRE_RESISTANCE)) then
             res%resistance_per_meter(1,1) = this%getRealAt(mat%p, J_MAT_WIRE_RESISTANCE)
          else
             res%resistance_per_meter(1,1) = 0.0
-            ! write(error_unit, *) "Error reading material region: resistancePerMeter label not found."
          end if
 
       end subroutine
@@ -2174,7 +2250,6 @@ contains
                res%resistance_per_meter = scalarToMatrix(this%getRealAt(mat%p, J_MAT_MULTIWIRE_RESISTANCE,found))
             end if
          else
-            ! write(error_unit, *) "Error reading material region: resistancePerMeter label not found."
             res%resistance_per_meter = null_matrix
          end if
 
@@ -2185,7 +2260,6 @@ contains
                res%conductance_per_meter = scalarToMatrix(this%getRealAt(mat%p, J_MAT_MULTIWIRE_CONDUCTANCE,found))
             end if
          else
-            ! write(error_unit, *) "Error reading material region: conductancePerMeter label not found."
             res%conductance_per_meter = null_matrix
          end if
 
@@ -2231,8 +2305,7 @@ contains
          n_segments = abs(ceiling(c2%position(axis)) - floor(c1%position(axis)))
          allocate(res(n_segments))
          curr_pos%position = [(c1%position(i), i = 1, 3)]
-         curr_pos%Efield_main2wire => null()
-         curr_pos%Efield_wire2main => null()
+         curr_pos%field => null()
 
          res = [(curr_pos, i = 1, n_segments)]
          res(:)%position(axis) = [(res(i)%position(axis) - i, i = 1, n_segments)]
@@ -2250,8 +2323,7 @@ contains
          n_segments = abs(floor(c2%position(axis)) - ceiling(c1%position(axis)))
          allocate(res(n_segments))
          curr_pos%position = [(c1%position(i), i = 1, 3)]
-         curr_pos%Efield_main2wire => null()
-         curr_pos%Efield_wire2main => null()
+         curr_pos%field => null()
 
          res = [(curr_pos, i = 1, n_segments)]
          res(:)%position(axis) = [(res(i)%position(axis) + (i-1), i = 1, n_segments)]
@@ -2348,10 +2420,13 @@ contains
          real, dimension(:), allocatable :: res
 
          if (axis == 1) then
+            allocate(res(size(desp%desX)))
             res = desp%desX
          else if (axis == 2) then
+            allocate(res(size(desp%desY)))
             res = desp%desY
          else if (axis == 3) then
+            allocate(res(size(desp%desZ)))
             res = desp%desZ
          end if
       end function
@@ -2388,7 +2463,6 @@ contains
          ! materialId is multiwire
          mat = this%matTable%getId(this%getIntAt(cable, J_MATERIAL_ID, found=found))
          if (.not. found) return
-         ! write(*,*) 'type: ', this%getStrAt(mat%p, J_TYPE)
          if (this%getStrAt(mat%p, J_TYPE) /= J_MAT_TYPE_MULTIWIRE) return
 
          ! has terminal on initial side

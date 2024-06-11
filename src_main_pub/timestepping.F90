@@ -90,7 +90,7 @@ module Solver
 #ifdef CompileWithWires  
    use HollandWires        
 #endif       
-#ifdef CompileWithWires_mtln  
+#ifdef CompileWithWires  
    use Wire_bundles_mtln_mod             
 #endif       
 #ifdef CompileWithBerengerWires
@@ -146,9 +146,9 @@ contains
    dontwritevtk,experimentalVideal,forceresampled,factorradius,factordelta,noconformalmapvtk, &
    mtln_parsed)
 
-!!!           
-   type (mtln_t) :: mtln_parsed
-!!!
+   !!!           
+      type (mtln_t) :: mtln_parsed
+   !!!
       logical :: noconformalmapvtk
       logical :: hopf,experimentalVideal,forceresampled
       character (LEN=BUFSIZE) :: ficherohopf
@@ -812,7 +812,7 @@ contains
 #endif
 
 
-#ifdef CompileWithWires_mtln  
+#ifdef CompileWithWires
          call InitWires_mtln(sgg,Ex,Ey,Ez,eps0, mu0, mtln_parsed,thereAre%MTLNbundles)
 #endif
 
@@ -1371,7 +1371,7 @@ contains
                if (wirecrank) then
                   call AdvanceWiresEcrank(sgg,n, layoutnumber,wiresflavor,simu_devia,stochastic)
                else
-                  call AdvanceWiresE(sgg,n, layoutnumber,wiresflavor,simu_devia,stochastic,experimentalVideal,wirethickness,eps0,mu0)                 
+                  ! call AdvanceWiresE(sgg,n, layoutnumber,wiresflavor,simu_devia,stochastic,experimentalVideal,wirethickness,eps0,mu0)                 
                endif
             endif
          endif
@@ -1388,8 +1388,9 @@ contains
             call AdvanceWiresE_Slanted(sgg,n) 
          endif
 #endif
-#ifdef CompileWithWires_mtln  
-         if (thereAre%MTLNbundles) call AdvanceWiresE_mtln(sgg,Idxh,Idyh,Idzh,eps0,mu0)  
+#ifdef CompileWithWires
+         if (thereAre%MTLNbundles) call AdvanceWiresE_mtln(sgg,Idxh,Idyh,Idzh,eps0,mu0)
+
 #endif 
          If (Thereare%PMLbodies) then !waveport absorbers
             call AdvancePMLbodyE
@@ -1543,6 +1544,8 @@ contains
          endif
 
 !!! no se ganada nada de tiempo                 Call Advance_HxHyHz(Hx,Hy,Hz,Ex,Ey,Ez,IdxE,IdyE,IdzE,sggMiHx,sggMiHy,sggMiHz,b,gm1,gm2)
+
+         ! call updateJ(sgg,Idxh,Idyh,Idzh,eps0,mu0, still_planewave_time)
 
          If (Thereare%PMLbodies) then !waveport absorbers
             call AdvancePMLbodyH

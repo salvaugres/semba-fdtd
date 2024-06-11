@@ -25,8 +25,7 @@ module mtln_solver_mod
         procedure :: advanceTime
         procedure :: step => mtln_step
         procedure :: step_alone
-        procedure :: setExternalVoltage
-        procedure :: updateExternalCurrent
+        procedure :: setExternalLongitudinalField
         
         procedure :: runUntil
         procedure :: run => mtln_run
@@ -62,7 +61,6 @@ contains
         res%number_of_bundles = size(res%bundles)
         res%probes = pre%probes
         call res%updateBundlesTimeStep(res%dt)
-        ! call res%updatePULTerms(res%getTimeRange(pre%final_time))
         call res%initNodes()
     end function
 
@@ -81,16 +79,15 @@ contains
         class(mtln_t) :: this
         integer :: i 
 
-        call this%setExternalVoltage()
+        call this%setExternalLongitudinalField()
 
         call this%advanceBundlesVoltage()
         call this%advanceNWVoltage()
         call this%advanceBundlesCurrent()
 
         call this%advanceTime()
-        call this%updateProbes()
+        ! call this%updateProbes()
 
-        ! call this%updateExternalCurrent()
     end subroutine
 
     subroutine step_alone(this)
@@ -107,25 +104,12 @@ contains
 
     end subroutine
 
-    subroutine setExternalVoltage(this)
+    subroutine setExternalLongitudinalField(this)
         class(mtln_t) :: this
         integer :: i
         do i = 1, this%number_of_bundles
-            call this%bundles(i)%setExternalVoltage()
+            call this%bundles(i)%setExternalLongitudinalField()
         end do
-
-    end subroutine
-
-    subroutine updateExternalCurrent(this, currents)
-        class(mtln_t) :: this
-        ! real, dimension(:,:), intent(inout) :: currents
-        real, dimension(:,:,:), intent(inout) :: currents
-        integer :: i
-        do i = 1, this%number_of_bundles
-            call this%bundles(i)%updateExternalCurrent(currents)
-            ! call this%bundles(i)%updateExternalCurrent(currents(i,:))
-        end do
-
 
     end subroutine
 
@@ -250,6 +234,7 @@ contains
         real :: time
         integer :: i
 
+        call this%updatePULTerms()
         do i = 1, this%getTimeRange(this%final_time)
             call this%advanceBundlesVoltage()
             call this%advanceNWVoltage()

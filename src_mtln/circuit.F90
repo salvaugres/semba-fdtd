@@ -50,6 +50,7 @@ module circuit_mod
         procedure :: updateNodeCurrent
         procedure :: updateNodeVoltage
         procedure :: updateVoltageSources
+        procedure :: modifyLineCapacitorValue
 
     end type circuit_t
 
@@ -63,9 +64,15 @@ contains
         timediff = this%time - time
         index = maxloc(timediff, 1, (timediff) <= 0)
         x1 = this%time(index)
-        x2 = this%time(index+1)
         y1 = this%voltage(index)
-        y2 = this%voltage(index+1)
+        if (index+1 > size(this%time)) then
+            x2 = x1
+            y2 = y1
+        else 
+            x2 = this%time(index+1)
+            y2 = this%voltage(index+1)
+        end if
+                
         res = (time*(y2-y1) + x2*y1 - x1*y2)/(x2-x1)
     end function
 
@@ -215,6 +222,16 @@ contains
         end do
     end subroutine
 
+    subroutine modifyLineCapacitorValue(this, name, c)
+        class(circuit_t) :: this
+        character(*), intent(in) :: name
+        real, intent(in) :: c
+        character(20) :: sC
+
+        write(sC, *) c
+        call command("alter @CL"//trim(name)//" = "//trim(sC) // c_null_char)
+
+    end subroutine
 
     subroutine updateNodeCurrent(this, node_name, current)
         class(circuit_t) :: this

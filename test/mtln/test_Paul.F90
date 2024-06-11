@@ -1,6 +1,6 @@
 integer function test_termination_resistive() bind(C) result(error_cnt)
     use mtln_solver_mod
-    use testingTools_mod
+    use mtln_testingTools_mod
     use preprocess_mod
     implicit none
 
@@ -21,7 +21,6 @@ integer function test_termination_resistive() bind(C) result(error_cnt)
     real,dimension(1,1) :: gpul = 0.0
     real,dimension(1,1) :: rpul = 0.0
     real,dimension(1,1) :: cpul = 100.0e-12
-
     error_cnt = 0
 
     cable%name = "wire0"
@@ -42,21 +41,21 @@ integer function test_termination_resistive() bind(C) result(error_cnt)
     node_left%conductor_in_cable = 1
     node_left%side = TERMINAL_NODE_SIDE_INI
 
-    node_left%termination = termination_with_source_t(path_to_excitation=square_excitation, & 
-                                                termination_type = TERMINATION_SERIES, &
-                                                resistance = 150, &
-                                                inductance = 0.0, &
-                                                capacitance = 1e22)
+    node_left%termination%path_to_excitation=square_excitation
+    node_left%termination%termination_type = TERMINATION_SERIES
+    node_left%termination%resistance = 150
+    node_left%termination%inductance = 0.0 
+    node_left%termination%capacitance = 1e22
 
     connection_left%nodes = [node_left]
 
     node_right%belongs_to_cable => cable
     node_right%conductor_in_cable = 1
     node_right%side = TERMINAL_NODE_SIDE_END
-    node_right%termination = termination_with_source_t(termination_type = TERMINATION_SERIES, &
-                                                  resistance = 50, &
-                                                  inductance = 0.0, &
-                                                  capacitance = 1e22)
+    node_right%termination%termination_type = TERMINATION_SERIES
+    node_right%termination%resistance = 50
+    node_right%termination%inductance = 0.0
+    node_right%termination%capacitance = 1e22
 
     connection_right%nodes = [node_right]
 
@@ -82,6 +81,7 @@ integer function test_termination_resistive() bind(C) result(error_cnt)
     parsed%probes = [probe_v, probe_i, probe_v_r]    ! pre = preprocess(parsed)
 
     solver = mtlnCtor(parsed)
+    
     call solver%run()
     write(*,*) error_cnt
     ! p = Parser(file)
@@ -102,7 +102,7 @@ end function
 
 integer function test_termination_resistive_inductive() bind(C) result(error_cnt)
     use mtln_solver_mod
-    use testingTools_mod
+    use mtln_testingTools_mod
     use preprocess_mod
     implicit none
 
@@ -144,21 +144,21 @@ integer function test_termination_resistive_inductive() bind(C) result(error_cnt
     node_left%conductor_in_cable = 1
     node_left%side = TERMINAL_NODE_SIDE_INI
 
-    node_left%termination = termination_with_source_t(path_to_excitation=square_excitation, & 
-                                                termination_type = TERMINATION_SERIES, &
-                                                resistance = 150, &
-                                                inductance = 0.0, &
-                                                capacitance = 1e22)
+    node_left%termination%path_to_excitation=square_excitation
+    node_left%termination%termination_type = TERMINATION_SERIES
+    node_left%termination%resistance = 150
+    node_left%termination%inductance = 0.0
+    node_left%termination%capacitance = 1e22
 
     connection_left%nodes = [node_left]
 
     node_right%belongs_to_cable => cable
     node_right%conductor_in_cable = 1
     node_right%side = TERMINAL_NODE_SIDE_END
-    node_right%termination = termination_with_source_t(termination_type = TERMINATION_SERIES, &
-                                                  resistance = 50, &
-                                                  inductance = 1e-5, &
-                                                  capacitance = 1e22)
+    node_right%termination%termination_type = TERMINATION_SERIES
+    node_right%termination%resistance = 50
+    node_right%termination%inductance = 1e-5
+    node_right%termination%capacitance = 1e22
 
     connection_right%nodes = [node_right]
 
@@ -184,6 +184,7 @@ integer function test_termination_resistive_inductive() bind(C) result(error_cnt
     parsed%probes = [probe_v, probe_i, probe_v_R]    ! pre = preprocess(parsed)
 
     solver = mtlnCtor(parsed)
+    
     call solver%run()
     write(*,*) error_cnt
     ! p = Parser(file)
@@ -204,7 +205,7 @@ end function
 
 integer function test_termination_resistive_capacitive_parallel() bind(C) result(error_cnt)
     use mtln_solver_mod
-    use testingTools_mod
+    use mtln_testingTools_mod
     use preprocess_mod
     implicit none
 
@@ -247,21 +248,21 @@ integer function test_termination_resistive_capacitive_parallel() bind(C) result
     node_left%conductor_in_cable = 1
     node_left%side = TERMINAL_NODE_SIDE_INI
 
-    node_left%termination = termination_with_source_t(path_to_excitation=square_excitation, & 
-                                                termination_type = TERMINATION_SERIES, &
-                                                resistance = 150, &
-                                                inductance = 0.0, &
-                                                capacitance = 1e22)
+    node_left%termination%path_to_excitation=square_excitation 
+    node_left%termination%termination_type = TERMINATION_SERIES
+    node_left%termination%resistance = 150
+    node_left%termination%inductance = 0.0 
+    node_left%termination%capacitance = 1e22
 
     connection_left%nodes = [node_left]
 
     node_right%belongs_to_cable => cable
     node_right%conductor_in_cable = 1
     node_right%side = TERMINAL_NODE_SIDE_END
-    node_right%termination = termination_with_source_t(termination_type = TERMINATION_RLsCp, &
-                                                  resistance = 0.1, &
-                                                  inductance = 0.0, &
-                                                  capacitance = 100e-12)
+    node_right%termination%termination_type = TERMINATION_RLsCp
+    node_right%termination%resistance = 0.1 
+    node_right%termination%inductance = 0.0 
+    node_right%termination%capacitance = 100e-12
 
     connection_right%nodes = [node_right]
 
@@ -287,6 +288,7 @@ integer function test_termination_resistive_capacitive_parallel() bind(C) result
     parsed%probes = [probe_v, probe_i, probe_v_r]    ! pre = preprocess(parsed)
 
     solver = mtlnCtor(parsed)
+    
     call solver%run()
     write(*,*) error_cnt
     ! p = Parser(file)
@@ -307,7 +309,7 @@ end function
 
 integer function test_termination_rls_cp() bind(C) result(error_cnt)
     use mtln_solver_mod
-    use testingTools_mod
+    use mtln_testingTools_mod
     use preprocess_mod
     implicit none
 
@@ -350,21 +352,21 @@ integer function test_termination_rls_cp() bind(C) result(error_cnt)
     node_left%conductor_in_cable = 1
     node_left%side = TERMINAL_NODE_SIDE_INI
 
-    node_left%termination = termination_with_source_t(path_to_excitation=square_excitation, & 
-                                                termination_type = TERMINATION_SERIES, &
-                                                resistance = 150, &
-                                                inductance = 0.0, &
-                                                capacitance = 1e22)
+    node_left%termination%path_to_excitation=square_excitation
+    node_left%termination%termination_type = TERMINATION_SERIES
+    node_left%termination%resistance = 150
+    node_left%termination%inductance = 0.0 
+    node_left%termination%capacitance = 1e22
 
     connection_left%nodes = [node_left]
 
     node_right%belongs_to_cable => cable
     node_right%conductor_in_cable = 1
     node_right%side = TERMINAL_NODE_SIDE_END
-    node_right%termination = termination_with_source_t(termination_type = TERMINATION_RLsCP, &
-                                                  resistance = 10, &
-                                                  inductance = 10e-6, &
-                                                  capacitance = 100e-12)
+    node_right%termination%termination_type = TERMINATION_RLsCP
+    node_right%termination%resistance = 10
+    node_right%termination%inductance = 10e-6
+    node_right%termination%capacitance = 100e-12
 
     connection_right%nodes = [node_right]
 
@@ -390,6 +392,7 @@ integer function test_termination_rls_cp() bind(C) result(error_cnt)
     parsed%probes = [probe_v, probe_i, probe_v_r]    ! pre = preprocess(parsed)
 
     solver = mtlnCtor(parsed)
+    
     call solver%run()
     write(*,*) error_cnt
     ! p = Parser(file)
@@ -410,7 +413,7 @@ end function
 
 integer function test_termination_rls_cp_ns() bind(C) result(error_cnt)
     use mtln_solver_mod
-    use testingTools_mod
+    use mtln_testingTools_mod
     use preprocess_mod
     implicit none
 
@@ -458,21 +461,21 @@ integer function test_termination_rls_cp_ns() bind(C) result(error_cnt)
     node_left%conductor_in_cable = 1
     node_left%side = TERMINAL_NODE_SIDE_INI
 
-    node_left%termination = termination_with_source_t(path_to_excitation=pulse_excitation, & 
-                                                termination_type = TERMINATION_SERIES, &
-                                                resistance = 150, &
-                                                inductance = 0.0, &
-                                                capacitance = 1e22)
+    node_left%termination%path_to_excitation=pulse_excitation 
+    node_left%termination%termination_type = TERMINATION_SERIES
+    node_left%termination%resistance = 150
+    node_left%termination%inductance = 0.0 
+    node_left%termination%capacitance = 1e22
 
     connection_left%nodes = [node_left]
 
     node_right%belongs_to_cable => cable
     node_right%conductor_in_cable = 1
     node_right%side = TERMINAL_NODE_SIDE_END
-    node_right%termination = termination_with_source_t(termination_type = TERMINATION_RLsCP, &
-                                                  resistance = 10, &
-                                                  inductance = 10e-6, &
-                                                  capacitance = 100e-12)
+    node_right%termination%termination_type = TERMINATION_RLsCP
+    node_right%termination%resistance = 10
+    node_right%termination%inductance = 10e-6
+    node_right%termination%capacitance = 100e-12
 
     connection_right%nodes = [node_right]
 
@@ -498,6 +501,7 @@ integer function test_termination_rls_cp_ns() bind(C) result(error_cnt)
     parsed%probes = [probe_v, probe_i, probe_v_r]    ! pre = preprocess(parsed)
 
     solver = mtlnCtor(parsed)
+    
     call solver%run()
     write(*,*) error_cnt
     ! p = Parser(file)
@@ -518,7 +522,7 @@ end function
 
 integer function test_termination_rcp() bind(C) result(error_cnt)
     use mtln_solver_mod
-    use testingTools_mod
+    use mtln_testingTools_mod
     use preprocess_mod
     implicit none
 
@@ -561,21 +565,21 @@ integer function test_termination_rcp() bind(C) result(error_cnt)
     node_left%conductor_in_cable = 1
     node_left%side = TERMINAL_NODE_SIDE_INI
 
-    node_left%termination = termination_with_source_t(path_to_excitation=square_excitation, & 
-                                                termination_type = TERMINATION_SERIES, &
-                                                resistance = 150, &
-                                                inductance = 0.0, &
-                                                capacitance = 1e22)
+    node_left%termination%path_to_excitation=square_excitation
+    node_left%termination%termination_type = TERMINATION_SERIES
+    node_left%termination%resistance = 150
+    node_left%termination%inductance = 0.0 
+    node_left%termination%capacitance = 1e22
 
     connection_left%nodes = [node_left]
 
     node_right%belongs_to_cable => cable
     node_right%conductor_in_cable = 1
     node_right%side = TERMINAL_NODE_SIDE_END
-    node_right%termination = termination_with_source_t(termination_type = TERMINATION_RLsCp, &
-                                                  resistance = 10, &
-                                                  inductance = 0.0, &
-                                                  capacitance = 100e-12)
+    node_right%termination%termination_type = TERMINATION_RLsCp
+    node_right%termination%resistance = 10
+    node_right%termination%inductance = 0.0
+    node_right%termination%capacitance = 100e-12
 
     connection_right%nodes = [node_right]
 
@@ -601,6 +605,7 @@ integer function test_termination_rcp() bind(C) result(error_cnt)
     parsed%probes = [probe_v, probe_i, probe_v_r]    ! pre = preprocess(parsed)
 
     solver = mtlnCtor(parsed)
+    
     call solver%run()
     write(*,*) error_cnt
     ! p = Parser(file)
@@ -621,7 +626,7 @@ end function
 
 integer function test_termination_resistive_capacitive() bind(C) result(error_cnt)
     use mtln_solver_mod
-    use testingTools_mod
+    use mtln_testingTools_mod
     use preprocess_mod
     implicit none
 
@@ -664,21 +669,21 @@ integer function test_termination_resistive_capacitive() bind(C) result(error_cn
     node_left%conductor_in_cable = 1
     node_left%side = TERMINAL_NODE_SIDE_INI
 
-    node_left%termination = termination_with_source_t(path_to_excitation=pulse_excitation, & 
-                                                termination_type = TERMINATION_SERIES, &
-                                                resistance = 150, &
-                                                inductance = 0.0, &
-                                                capacitance = 1e22)
+    node_left%termination%path_to_excitation=pulse_excitation
+    node_left%termination%termination_type = TERMINATION_SERIES
+    node_left%termination%resistance = 150
+    node_left%termination%inductance = 0.0
+    node_left%termination%capacitance = 1e22
 
     connection_left%nodes = [node_left]
 
     node_right%belongs_to_cable => cable
     node_right%conductor_in_cable = 1
     node_right%side = TERMINAL_NODE_SIDE_END
-    node_right%termination = termination_with_source_t(termination_type = TERMINATION_SERIES, &
-                                                  resistance = 50, &
-                                                  inductance = 0.0, &
-                                                  capacitance = 100e-12)
+    node_right%termination%termination_type = TERMINATION_SERIES
+    node_right%termination%resistance = 50
+    node_right%termination%inductance = 0.0
+    node_right%termination%capacitance = 100e-12
 
     connection_right%nodes = [node_right]
 
@@ -704,6 +709,7 @@ integer function test_termination_resistive_capacitive() bind(C) result(error_cn
     parsed%probes = [probe_v, probe_i, probe_v_r]    ! pre = preprocess(parsed)
 
     solver = mtlnCtor(parsed)
+    
     call solver%run()
     write(*,*) error_cnt
     ! p = Parser(file)
@@ -724,7 +730,7 @@ end function
 
 integer function test_coaxial_line_paul_8_6_square() bind(C) result(error_cnt)    
     use mtln_solver_mod
-    use testingTools_mod
+    use mtln_testingTools_mod
     use preprocess_mod
     implicit none
 
@@ -760,8 +766,7 @@ integer function test_coaxial_line_paul_8_6_square() bind(C) result(error_cnt)
     do i = 1, 100
         external_field_segments(i)%position = (/i, 1, 1/)
         external_field_segments(i)%direction = 1
-        external_field_segments(i)%Efield_main2wire => null()
-        external_field_segments(i)%Efield_wire2main => null()
+        external_field_segments(i)%field => null()
     end do
     cable%external_field_segments = external_field_segments
     cable%step_size = [(4.0, i = 1, 100)]
@@ -773,11 +778,11 @@ integer function test_coaxial_line_paul_8_6_square() bind(C) result(error_cnt)
     node_left%conductor_in_cable = 1
     node_left%side = TERMINAL_NODE_SIDE_INI
 
-    node_left%termination = termination_with_source_t(path_to_excitation=square_excitation, & 
-                                                 termination_type = TERMINATION_SERIES, &
-                                                 resistance = 150, &
-                                                 inductance = 0.0, &
-                                                 capacitance = 1e22)
+    node_left%termination%path_to_excitation=square_excitation
+    node_left%termination%termination_type = TERMINATION_SERIES
+    node_left%termination%resistance = 150
+    node_left%termination%inductance = 0.0
+    node_left%termination%capacitance = 1e22
 
     write(charR, '(F10.6)') node_left%termination%resistance
     write(*,*) charR
@@ -813,31 +818,36 @@ integer function test_coaxial_line_paul_8_6_square() bind(C) result(error_cnt)
     parsed%probes = [probe_v, probe_i]
 
     solver = mtlnCtor(parsed)
-    call solver%updatePULTerms()
+    
     call solver%run()
     write(*,*) error_cnt
 
     block
         integer :: i
-        open(unit = 1, file =  'testData/outputs/paul/paul_8.6_square.txt')
-        do i = 1, size(solver%bundles(1)%probes(1)%t)
-            write(1,*) solver%bundles(1)%probes(1)%t(i)," ", &
-                       solver%bundles(1)%probes(1)%val(i,1) ," ", &
-                       solver%bundles(1)%probes(2)%val(i,1)
+        real, dimension(:), allocatable :: start_times, end_times, expected_voltages, aux_times
+        integer :: j, start, end, idx
+
+        ! open(unit = 1, file =  'testData/outputs/paul/paul_8.6_square.txt')
+        ! do i = 1, size(solver%bundles(1)%probes(1)%t)
+        !     write(1,*) solver%bundles(1)%probes(1)%t(i)," ", &
+        !                solver%bundles(1)%probes(1)%val(i,1) ," ", &
+        !                solver%bundles(1)%probes(2)%val(i,1)
+        ! end do
+
+        
+        start_times = [0.1, 4.1, 6.1, 8.1, 10.1, 12.1, 14.1, 16.1]
+        end_times = [3.9, 5.9, 7.9, 9.9, 11.9, 13.9, 15.9, 18.9]
+        expected_voltages = [25.0, -12.5, -37.5, -18.75, 18.75, 9.375, -9.375, -4.6875]
+        allocate(aux_times(size(solver%bundles(1)%probes(1)%t)), source = 0.0)
+        do j = 1, size(start_times) 
+            aux_times = 0.5*(start_times(j)*1e-6 + end_times(j)*1e-6)
+            idx = minloc(abs(solver%bundles(1)%probes(1)%t - aux_times),1)
+            if (.not. (abs((solver%bundles(1)%probes(1)%val(idx,1) - expected_voltages(j))/expected_voltages(j)) <= 5e-2)) then 
+                error_cnt =  error_cnt + 1
+            end if
         end do
 
     end block
-
-    ! block
-    !     real, dimension(:), allocatable :: start_times, end_times, expected_voltages
-    !     integer :: i, start, end
-    
-    !     start_times = [0.1, 4.1, 6.1, 8.1, 10.1, 12.1, 14.1, 16.1]
-    !     end_times = [3.9, 5.9, 7.9, 9.9, 11.9, 13.9, 15.9, 18.9]
-    !     expected_voltages = [25.0, -12.5, -37.5, -18.75, 18.75, 9.375, -9.375, -4.6875]
-    !     do i = 1, size(start_times) 
-    !     end do
-    ! end block
 
 
 
@@ -845,11 +855,11 @@ end function
 
 integer function test_coaxial_line_paul_8_6_triangle() bind(C) result(error_cnt)    
     use mtln_solver_mod
-    use testingTools_mod
+    use mtln_testingTools_mod
     use preprocess_mod
     implicit none
 
-    character(len=*), parameter :: square_excitation = PATH_TO_TEST_DATA//'excitations/coaxial_line_paul_8_6_0.1_triangle.exc'
+    character(len=*), parameter :: square_excitation = PATH_TO_TEST_DATA//'excitations/coaxial_line_paul_8_6_0.05_triangle.exc'
     
     type(cable_t), target :: cable
     type(terminal_node_t) :: node_left, node_right
@@ -868,6 +878,8 @@ integer function test_coaxial_line_paul_8_6_triangle() bind(C) result(error_cnt)
     real,dimension(1,1) :: cpul = 100.0e-12
 
     character(20) :: charR, charL, charC, lineC
+    integer :: i 
+    type(external_field_segment_t), dimension(100) :: external_field_segments
 
     error_cnt = 0
 
@@ -876,24 +888,28 @@ integer function test_coaxial_line_paul_8_6_triangle() bind(C) result(error_cnt)
     cable%conductance_per_meter = gpul
     cable%resistance_per_meter = rpul
     cable%capacitance_per_meter = cpul
-    block
-        integer :: i
-        cable%step_size = [(4.0, i = 1, 100)]
-    end block
+    do i = 1, 100
+        external_field_segments(i)%position = (/i, 1, 1/)
+        external_field_segments(i)%direction = 1
+        external_field_segments(i)%field => null()
+    end do
+    cable%external_field_segments = external_field_segments
+    cable%step_size = [(4.0, i = 1, 100)]
 
     parsed%time_step = 2e-8
     parsed%number_of_steps = 20e-6/parsed%time_step
+
 
 
     node_left%belongs_to_cable => cable
     node_left%conductor_in_cable = 1
     node_left%side = TERMINAL_NODE_SIDE_INI
 
-    node_left%termination = termination_with_source_t(path_to_excitation=square_excitation, & 
-                                                 termination_type = TERMINATION_SERIES, &
-                                                 resistance = 150, &
-                                                 inductance = 0.0, &
-                                                 capacitance = 1e22)
+    node_left%termination%path_to_excitation=square_excitation
+    node_left%termination%termination_type = TERMINATION_SERIES
+    node_left%termination%resistance = 150
+    node_left%termination%inductance = 0.0
+    node_left%termination%capacitance = 1e22
 
     write(charR, '(F10.6)') node_left%termination%resistance
     write(*,*) charR
@@ -918,48 +934,51 @@ integer function test_coaxial_line_paul_8_6_triangle() bind(C) result(error_cnt)
     probe_i%index = 100
     probe_i%probe_type = PROBE_TYPE_CURRENT
 
-
+    allocate(parsed%networks(2))
     parsed%networks = [network_left, network_right]
+    allocate(parsed%cables(1))
     parsed%cables = [cable]
+    allocate(parsed%probes(2))
     parsed%probes = [probe_v, probe_i]
 
     solver = mtlnCtor(parsed)
-    call solver%updatePULTerms()
+    
     call solver%run()
     write(*,*) error_cnt
+
     block
         integer :: i
-        open(unit = 1, file =  './testData/outputs/paul/paul_8.6_triangle.txt')
-        do i = 1, size(solver%bundles(1)%probes(1)%t)
-            write(1,*) solver%bundles(1)%probes(1)%t(i)," ", &
-                       solver%bundles(1)%probes(1)%val(i,1) ," ", &
-                       solver%bundles(1)%probes(2)%val(i,1)
+        real, dimension(:), allocatable :: times, expected_voltages, aux_times
+        integer :: j, start, end, idx
+
+        ! open(unit = 1, file =  'testData/outputs/paul/paul_8.6_triangle.txt')
+        ! do i = 1, size(solver%bundles(1)%probes(1)%t)
+        !     write(1,*) solver%bundles(1)%probes(1)%t(i)," ", &
+        !                solver%bundles(1)%probes(1)%val(i,1) ," ", &
+        !                solver%bundles(1)%probes(2)%val(i,1)
+        ! end do
+        
+        times = [4.0, 5.9, 6.1, 8.0, 10.1, 12.0]
+        expected_voltages = [16.67, 12.5, -12.5, -25.0, 6.25, 12.5]
+        allocate(aux_times(size(solver%bundles(1)%probes(1)%t)), source = 0.0)
+        do j = 1, size(times) 
+            aux_times = times(j)*1e-6
+            idx = minloc(abs(solver%bundles(1)%probes(1)%t - aux_times),1)
+            ! write(*,*) 'expected: ', expected_voltages(j), ' simulated: ', solver%bundles(1)%probes(1)%val(idx,1)
+            if (.not. (abs((solver%bundles(1)%probes(1)%val(idx,1) - expected_voltages(j))/expected_voltages(j)) <= 5e-2)) then 
+                error_cnt =  error_cnt + 1
+            end if
         end do
 
-    end block
 
-    block
-        real, dimension(:), allocatable :: start_times, end_times, expected_voltages
-        integer :: i, start, end
-    
-        start_times = [0.1, 4.1, 6.1, 8.1, 10.1, 12.1, 14.1, 16.1]
-        end_times = [3.9, 5.9, 7.9, 9.9, 11.9, 13.9, 15.9, 18.9]
-        expected_voltages = [25.0, -12.5, -37.5, -18.75, 18.75, 9.375, -9.375, -4.6875]
-        do i = 1, size(start_times) 
-        end do
-    ! for (t_start, t_end, v) in zip(start_times, end_times, check_voltages):
-    !     start = np.argmin(np.abs(p.probes["v_source"].t - t_start*1e-6))
-    !     end = np.argmin(np.abs(p.probes["v_source"].t - t_end*1e-6))
-    !     assert np.all(np.isclose(p.probes["v_source"].val[start:end], v))
     end block
-
 
 
 end function
 
 integer function test_2_conductor_line_paul_9_6_1c() bind(C) result(error_cnt)    
     use mtln_solver_mod
-    use testingTools_mod
+    use mtln_testingTools_mod
     use preprocess_mod
     implicit none
 
@@ -1009,20 +1028,20 @@ integer function test_2_conductor_line_paul_9_6_1c() bind(C) result(error_cnt)
     node_left_1%belongs_to_cable => cable
     node_left_1%conductor_in_cable = 1
     node_left_1%side = TERMINAL_NODE_SIDE_INI
-    node_left_1%termination = termination_with_source_t(path_to_excitation=pulse_excitation, & 
-                                                 termination_type = TERMINATION_SERIES, &
-                                                 resistance = 50, &
-                                                 inductance = 0.0, &
-                                                 capacitance = 1e22)
+    node_left_1%termination%path_to_excitation=pulse_excitation
+    node_left_1%termination%termination_type = TERMINATION_SERIES
+    node_left_1%termination%resistance = 50
+    node_left_1%termination%inductance = 0.0
+    node_left_1%termination%capacitance = 1e22
 
 
     node_right_1%belongs_to_cable => cable
     node_right_1%conductor_in_cable = 1
     node_right_1%side = TERMINAL_NODE_SIDE_END
-    node_right_1%termination = termination_t(termination_type = TERMINATION_RLsCp, &
-                                             resistance = 50, &
-                                             inductance = 0.0, &
-                                             capacitance = 50e-12)
+    node_right_1%termination%termination_type = TERMINATION_RLsCp
+    node_right_1%termination%resistance = 50
+    node_right_1%termination%inductance = 0.0
+    node_right_1%termination%capacitance = 50e-12
     ! node_right_1%termination = termination_t(termination_type = TERMINATION_RLsCP, &
     !                                          resistance = 100, &
     !                                          inductance = 100e-6, &
@@ -1030,10 +1049,13 @@ integer function test_2_conductor_line_paul_9_6_1c() bind(C) result(error_cnt)
 
 
     
-
+    allocate(connection_left_1%nodes(1))
+    allocate(connection_right_1%nodes(1))
     connection_left_1%nodes = [node_left_1]
     connection_right_1%nodes = [node_right_1]
     
+    allocate(network_left%connections(1))
+    allocate(network_right%connections(1))
     network_left%connections = [connection_left_1]
     network_right%connections = [connection_right_1]
 
@@ -1053,13 +1075,17 @@ integer function test_2_conductor_line_paul_9_6_1c() bind(C) result(error_cnt)
     probe_i_right%index = 795
     probe_i_right%probe_type = PROBE_TYPE_CURRENT
 
-
+    
+    allocate(parsed%networks(2))
+    allocate(parsed%cables(1))
+    allocate(parsed%probes(4))
     parsed%networks = [network_left, network_right]
     parsed%cables = [cable]
     parsed%probes = [probe_v_left, probe_v_right, & 
                      probe_i_left, probe_i_right]
 
     solver = mtlnCtor(parsed)
+    
     call solver%run()
     write(*,*) error_cnt
 
@@ -1082,7 +1108,7 @@ end function
 
 integer function test_2_conductor_line_paul_9_6() bind(C) result(error_cnt)    
     use mtln_solver_mod
-    use testingTools_mod
+    use mtln_testingTools_mod
     use preprocess_mod
     implicit none
 
@@ -1106,6 +1132,8 @@ integer function test_2_conductor_line_paul_9_6() bind(C) result(error_cnt)
 
     character(20) :: charR, charL, charC, lineC
     real :: final_time
+    type(external_field_segment_t), dimension(795) :: external_field_segments
+    integer :: i
     error_cnt = 0
 
     cable%name = "wire0"
@@ -1113,6 +1141,14 @@ integer function test_2_conductor_line_paul_9_6() bind(C) result(error_cnt)
     cable%conductance_per_meter = gpul
     cable%resistance_per_meter = rpul
     cable%capacitance_per_meter = cpul
+
+    do i = 1, 795
+        external_field_segments(i)%position = (/i, 1, 1/)
+        external_field_segments(i)%direction = 1
+        external_field_segments(i)%field => null()
+    end do
+    cable%external_field_segments = external_field_segments
+
     block
         integer :: i
         real :: length = 0.5
@@ -1128,20 +1164,20 @@ integer function test_2_conductor_line_paul_9_6() bind(C) result(error_cnt)
     node_left_1%belongs_to_cable => cable
     node_left_1%conductor_in_cable = 1
     node_left_1%side = TERMINAL_NODE_SIDE_INI
-    node_left_1%termination = termination_t(termination_type = TERMINATION_SERIES, &
-                                            resistance = 5, &
-                                            inductance = 0.0, &
-                                            capacitance = 1e22)
+    node_left_1%termination%termination_type = TERMINATION_SERIES
+    node_left_1%termination%resistance = 5
+    node_left_1%termination%inductance = 0.0
+    node_left_1%termination%capacitance = 1e22
                                                    
 
     node_left_2%belongs_to_cable => cable
     node_left_2%conductor_in_cable = 2
     node_left_2%side = TERMINAL_NODE_SIDE_INI
-    node_left_2%termination = termination_with_source_t(path_to_excitation=pulse_excitation, & 
-                                                 termination_type = TERMINATION_SERIES, &
-                                                 resistance = 50, &
-                                                 inductance = 0.0, &
-                                                 capacitance = 1e22)
+    node_left_2%termination%path_to_excitation=pulse_excitation
+    node_left_2%termination%termination_type = TERMINATION_SERIES
+    node_left_2%termination%resistance = 50
+    node_left_2%termination%inductance = 0.0
+    node_left_2%termination%capacitance = 1e22
 
 
     node_right_1%belongs_to_cable => cable
@@ -1151,26 +1187,32 @@ integer function test_2_conductor_line_paul_9_6() bind(C) result(error_cnt)
     !                                          resistance = 50, &
     !                                          inductance = 0, &
     !                                          capacitance = 1e22)
-    node_right_1%termination = termination_t(termination_type = TERMINATION_RLsCP, &
-                                             resistance = 10, &
-                                             inductance = 1e-6, &
-                                             capacitance = 100e-12)
+    node_right_1%termination%termination_type = TERMINATION_RLsCP
+    node_right_1%termination%resistance = 10
+    node_right_1%termination%inductance = 1e-6
+    node_right_1%termination%capacitance = 100e-12
 
     node_right_2%belongs_to_cable => cable
     node_right_2%conductor_in_cable = 2
     node_right_2%side = TERMINAL_NODE_SIDE_END
-    node_right_2%termination = termination_t(termination_type = TERMINATION_SERIES, &
-                                             resistance = 50, &
-                                             inductance = 0.0, &
-                                             capacitance = 1e22)
+    node_right_2%termination%termination_type = TERMINATION_SERIES
+    node_right_2%termination%resistance = 50
+    node_right_2%termination%inductance = 0.0
+    node_right_2%termination%capacitance = 1e22
 
     
+    allocate(connection_left_1%nodes(1))
+    allocate(connection_left_2%nodes(1))
+    allocate(connection_right_1%nodes(1))
+    allocate(connection_right_2%nodes(1))
 
     connection_left_1%nodes = [node_left_1]
     connection_left_2%nodes = [node_left_2]
     connection_right_1%nodes = [node_right_1]
     connection_right_2%nodes = [node_right_2]
     
+    allocate(network_left%connections(2))
+    allocate(network_right%connections(2))
     network_left%connections = [connection_left_1,connection_left_2]
     network_right%connections = [connection_right_1, connection_right_2]
 
@@ -1199,13 +1241,19 @@ integer function test_2_conductor_line_paul_9_6() bind(C) result(error_cnt)
     probe_i_right%probe_type = PROBE_TYPE_CURRENT
 
 
-    ! parsed%networks = [network_left]
+
+
+    
+    allocate(parsed%networks(2))
+    allocate(parsed%cables(1))
+    allocate(parsed%probes(6))
     parsed%networks = [network_left, network_right]
     parsed%cables = [cable]
     parsed%probes = [probe_v_left, probe_v_mid, probe_v_right, & 
                      probe_i_left, probe_i_mid, probe_i_right]    ! pre = preprocess(parsed)
 
     solver = mtlnCtor(parsed)
+    
     call solver%run()
     write(*,*) error_cnt
     ! p = Parser(file)
@@ -1236,7 +1284,7 @@ end function
 
 integer function test_2_conductor_line_paul_9_11_20ns() bind(C) result(error_cnt)    
     use mtln_solver_mod
-    use testingTools_mod
+    use mtln_testingTools_mod
     use preprocess_mod
     implicit none
 
@@ -1281,37 +1329,37 @@ integer function test_2_conductor_line_paul_9_11_20ns() bind(C) result(error_cnt
     node_left_1%belongs_to_cable => cable
     node_left_1%conductor_in_cable = 1
     node_left_1%side = TERMINAL_NODE_SIDE_INI
-    node_left_1%termination = termination_t(termination_type = TERMINATION_SERIES, &
-                                            resistance = 50, &
-                                            inductance = 0.0, &
-                                            capacitance = 1e22)
+    node_left_1%termination%termination_type = TERMINATION_SERIES
+    node_left_1%termination%resistance = 50
+    node_left_1%termination%inductance = 0.0
+    node_left_1%termination%capacitance = 1e22
                                                    
 
     node_left_2%belongs_to_cable => cable
     node_left_2%conductor_in_cable = 2
     node_left_2%side = TERMINAL_NODE_SIDE_INI
-    node_left_2%termination = termination_with_source_t(path_to_excitation=pulse_excitation, & 
-                                                 termination_type = TERMINATION_SERIES, &
-                                                 resistance = 50, &
-                                                 inductance = 0.0, &
-                                                 capacitance = 1e22)
+    node_left_2%termination%path_to_excitation=pulse_excitation
+    node_left_2%termination%termination_type = TERMINATION_SERIES
+    node_left_2%termination%resistance = 50
+    node_left_2%termination%inductance = 0.0
+    node_left_2%termination%capacitance = 1e22
 
 
     node_right_1%belongs_to_cable => cable
     node_right_1%conductor_in_cable = 1
     node_right_1%side = TERMINAL_NODE_SIDE_END
-    node_right_1%termination = termination_t(termination_type = TERMINATION_SERIES, &
-                                             resistance = 50, &
-                                             inductance = 0.0, &
-                                             capacitance = 1e22)
+    node_right_1%termination%termination_type = TERMINATION_SERIES
+    node_right_1%termination%resistance = 50
+    node_right_1%termination%inductance = 0.0
+    node_right_1%termination%capacitance = 1e22
 
     node_right_2%belongs_to_cable => cable
     node_right_2%conductor_in_cable = 2
     node_right_2%side = TERMINAL_NODE_SIDE_END
-    node_right_2%termination = termination_t(termination_type = TERMINATION_SERIES, &
-                                             resistance = 50, &
-                                             inductance = 0.0, &
-                                             capacitance = 1e22)
+    node_right_2%termination%termination_type = TERMINATION_SERIES
+    node_right_2%termination%resistance = 50
+    node_right_2%termination%inductance = 0.0
+    node_right_2%termination%capacitance = 1e22
 
     
 
@@ -1331,7 +1379,8 @@ integer function test_2_conductor_line_paul_9_11_20ns() bind(C) result(error_cnt
     parsed%cables = [cable]
     parsed%probes = [probe_v_101]
 
-       solver = mtlnCtor(parsed)
+    solver = mtlnCtor(parsed)
+    
     call solver%run()
     write(*,*) error_cnt
 
@@ -1351,7 +1400,7 @@ end function
 
 integer function test_2_conductor_line_paul_9_11_1ns() bind(C) result(error_cnt)    
     use mtln_solver_mod
-    use testingTools_mod
+    use mtln_testingTools_mod
     use preprocess_mod
     implicit none
 
@@ -1396,37 +1445,37 @@ integer function test_2_conductor_line_paul_9_11_1ns() bind(C) result(error_cnt)
     node_left_1%belongs_to_cable => cable
     node_left_1%conductor_in_cable = 1
     node_left_1%side = TERMINAL_NODE_SIDE_INI
-    node_left_1%termination = termination_t(termination_type = TERMINATION_SERIES, &
-                                            resistance = 50, &
-                                            inductance = 0.0, &
-                                            capacitance = 1e22)
+    node_left_1%termination%termination_type = TERMINATION_SERIES
+    node_left_1%termination%resistance = 50
+    node_left_1%termination%inductance = 0.0
+    node_left_1%termination%capacitance = 1e22
                                                    
 
     node_left_2%belongs_to_cable => cable
     node_left_2%conductor_in_cable = 2
     node_left_2%side = TERMINAL_NODE_SIDE_INI
-    node_left_2%termination = termination_with_source_t(path_to_excitation=pulse_excitation, & 
-                                                 termination_type = TERMINATION_SERIES, &
-                                                 resistance = 50, &
-                                                 inductance = 0.0, &
-                                                 capacitance = 1e22)
+    node_left_2%termination%path_to_excitation=pulse_excitation
+    node_left_2%termination%termination_type = TERMINATION_SERIES
+    node_left_2%termination%resistance = 50 
+    node_left_2%termination%inductance = 0.0
+    node_left_2%termination%capacitance = 1e22
 
 
     node_right_1%belongs_to_cable => cable
     node_right_1%conductor_in_cable = 1
     node_right_1%side = TERMINAL_NODE_SIDE_END
-    node_right_1%termination = termination_t(termination_type = TERMINATION_SERIES, &
-                                             resistance = 50, &
-                                             inductance = 0.0, &
-                                             capacitance = 1e22)
+    node_right_1%termination%termination_type = TERMINATION_SERIES
+    node_right_1%termination%resistance = 50 
+    node_right_1%termination%inductance = 0.0 
+    node_right_1%termination%capacitance = 1e22
 
     node_right_2%belongs_to_cable => cable
     node_right_2%conductor_in_cable = 2
     node_right_2%side = TERMINAL_NODE_SIDE_END
-    node_right_2%termination = termination_t(termination_type = TERMINATION_SERIES, &
-                                             resistance = 50, &
-                                             inductance = 0.0, &
-                                             capacitance = 1e22)
+    node_right_2%termination%termination_type = TERMINATION_SERIES
+    node_right_2%termination%resistance = 50
+    node_right_2%termination%inductance = 0.0
+    node_right_2%termination%capacitance = 1e22
 
     
 
@@ -1447,6 +1496,7 @@ integer function test_2_conductor_line_paul_9_11_1ns() bind(C) result(error_cnt)
     parsed%probes = [probe_v_101]
 
     solver = mtlnCtor(parsed)
+    
     call solver%run()
     write(*,*) error_cnt
 

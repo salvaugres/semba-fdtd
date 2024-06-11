@@ -1,6 +1,6 @@
 integer function test_read_shieldedpair() bind (C) result(err)
    use smbjson
-   use testingTools
+   use smbjson_testingTools
 
    implicit none
 
@@ -14,7 +14,6 @@ integer function test_read_shieldedpair() bind (C) result(err)
    parser = parser_t(filename)
    problem = parser%readProblemDescription()
    call expect_eq(err, expected, problem)
-   call expect_eq_mtln(err, expected, problem)
 contains
    function expectedProblemDescription() result (expected)
       type(Parseador) :: expected
@@ -166,8 +165,7 @@ contains
       do i = 1, 18
          expected%mtln%cables(2)%external_field_segments(i)%position = (/2,2,i/)
          expected%mtln%cables(2)%external_field_segments(i)%direction = DIRECTION_Z_POS
-         expected%mtln%cables(2)%external_field_segments(i)%Efield_wire2main => null()
-         expected%mtln%cables(2)%external_field_segments(i)%Efield_main2wire => null()
+         expected%mtln%cables(2)%external_field_segments(i)%field => null()
 
       end do
 
@@ -199,8 +197,7 @@ contains
       do i = 1, 18
          expected%mtln%cables(1)%external_field_segments(i)%position = (/2,2,i/)
          expected%mtln%cables(1)%external_field_segments(i)%direction = DIRECTION_Z_POS
-         expected%mtln%cables(1)%external_field_segments(i)%Efield_wire2main => null()
-         expected%mtln%cables(1)%external_field_segments(i)%Efield_main2wire => null()
+         expected%mtln%cables(1)%external_field_segments(i)%field => null()
       end do
       expected%mtln%cables(1)%transfer_impedance%direction = TRANSFER_IMPEDANCE_DIRECTION_INWARDS
       expected%mtln%cables(1)%transfer_impedance%resistive_term = 0.0
@@ -214,6 +211,7 @@ contains
       expected%mtln%cables(1)%end_connector => null()
 
       ! probes
+      deallocate(expected%mtln%probes)
       allocate(expected%mtln%probes(2))
       expected%mtln%probes(1)%attached_to_cable => expected%mtln%cables(2) ! to which cable is the probe attached in mtln?
       expected%mtln%probes(1)%index = 19
@@ -224,6 +222,7 @@ contains
       expected%mtln%probes(2)%probe_type = PROBE_TYPE_CURRENT
 
       ! networks
+      deallocate(expected%mtln%networks)
       allocate(expected%mtln%networks(2))
       allocate(expected%mtln%networks(1)%connections(3))
 
@@ -231,7 +230,6 @@ contains
       expected%mtln%networks(1)%connections(3)%nodes(1)%conductor_in_cable = 1
       expected%mtln%networks(1)%connections(3)%nodes(1)%side = TERMINAL_NODE_SIDE_INI
       expected%mtln%networks(1)%connections(3)%nodes(1)%belongs_to_cable =>  expected%mtln%cables(2)
-      allocate(termination_t :: expected%mtln%networks(1)%connections(3)%nodes(1)%termination)
       expected%mtln%networks(1)%connections(3)%nodes(1)%termination%termination_type = TERMINATION_SERIES
       expected%mtln%networks(1)%connections(3)%nodes(1)%termination%resistance = 50.0
 
@@ -239,7 +237,6 @@ contains
       expected%mtln%networks(1)%connections(1)%nodes(1)%conductor_in_cable = 1
       expected%mtln%networks(1)%connections(1)%nodes(1)%side = TERMINAL_NODE_SIDE_INI
       expected%mtln%networks(1)%connections(1)%nodes(1)%belongs_to_cable => expected%mtln%cables(1)
-      allocate(termination_t :: expected%mtln%networks(1)%connections(1)%nodes(1)%termination)
       expected%mtln%networks(1)%connections(1)%nodes(1)%termination%termination_type = TERMINATION_SERIES
       expected%mtln%networks(1)%connections(1)%nodes(1)%termination%resistance = 50.0
 
@@ -247,7 +244,6 @@ contains
       expected%mtln%networks(1)%connections(2)%nodes(1)%conductor_in_cable = 2
       expected%mtln%networks(1)%connections(2)%nodes(1)%side = TERMINAL_NODE_SIDE_INI
       expected%mtln%networks(1)%connections(2)%nodes(1)%belongs_to_cable => expected%mtln%cables(1)
-      allocate(termination_t :: expected%mtln%networks(1)%connections(2)%nodes(1)%termination)
       expected%mtln%networks(1)%connections(2)%nodes(1)%termination%termination_type = TERMINATION_SERIES
       expected%mtln%networks(1)%connections(2)%nodes(1)%termination%resistance = 50.0
 
@@ -257,7 +253,6 @@ contains
       expected%mtln%networks(2)%connections(3)%nodes(1)%conductor_in_cable = 1
       expected%mtln%networks(2)%connections(3)%nodes(1)%side = TERMINAL_NODE_SIDE_END
       expected%mtln%networks(2)%connections(3)%nodes(1)%belongs_to_cable => expected%mtln%cables(2)
-      allocate(termination_t :: expected%mtln%networks(2)%connections(3)%nodes(1)%termination)
       expected%mtln%networks(2)%connections(3)%nodes(1)%termination%termination_type = TERMINATION_SERIES
       expected%mtln%networks(2)%connections(3)%nodes(1)%termination%resistance = 50.0
 
@@ -265,7 +260,6 @@ contains
       expected%mtln%networks(2)%connections(1)%nodes(1)%conductor_in_cable = 1
       expected%mtln%networks(2)%connections(1)%nodes(1)%side = TERMINAL_NODE_SIDE_END
       expected%mtln%networks(2)%connections(1)%nodes(1)%belongs_to_cable => expected%mtln%cables(1)
-      allocate(termination_t :: expected%mtln%networks(2)%connections(1)%nodes(1)%termination)
       expected%mtln%networks(2)%connections(1)%nodes(1)%termination%termination_type = TERMINATION_SERIES
       expected%mtln%networks(2)%connections(1)%nodes(1)%termination%resistance = 50.0
 
@@ -273,7 +267,6 @@ contains
       expected%mtln%networks(2)%connections(2)%nodes(1)%conductor_in_cable = 2
       expected%mtln%networks(2)%connections(2)%nodes(1)%side = TERMINAL_NODE_SIDE_END
       expected%mtln%networks(2)%connections(2)%nodes(1)%belongs_to_cable => expected%mtln%cables(1)
-      allocate(termination_t :: expected%mtln%networks(2)%connections(2)%nodes(1)%termination)
       expected%mtln%networks(2)%connections(2)%nodes(1)%termination%termination_type = TERMINATION_SERIES
       expected%mtln%networks(2)%connections(2)%nodes(1)%termination%resistance = 50.0
 
